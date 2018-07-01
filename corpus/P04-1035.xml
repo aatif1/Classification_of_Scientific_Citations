@@ -1,0 +1,1308 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1035">
+	
+
+	<s id="1">
+		 A Sentimental Education : Sentiment Analysis Using Subjectivity Summarization Based on Minimum Cuts Bo Pang and Lillian Lee Department of Computer Science Cornell University Ithaca , NY 14853-7501 1pabo,llee}@cs.cornell.edu Abstract Sentiment analysis seeks to identify the viewpoint(s) underlying a text span ; an example application is classifying a movie review as “thumbs up” or “thumbs down” . 
+	</s>
+	
+
+	<s id="2">
+		 To determine this sentiment polarity , we propose a novel machine-learning method that applies text-categorization techniques to just the subjective portions of the document . 
+	</s>
+	
+
+	<s id="3">
+		 Extracting these portions can be implemented using efficient techniques for finding minimum cuts in graphs ; this greatly facilitates incorporation of cross-sentence contextual constraints . 
+	</s>
+	
+
+	<s id="4">
+		 1 Introduction The computational treatment of opinion , sentiment , and subjectivity has recently attracted a great deal of attention ( see references ) , in part because of its potential applications . 
+	</s>
+	
+
+	<s id="5">
+		 For instance , information- extraction and question-answering systems could flag statements and queries regarding opinions rather than facts 
+		<ref citStr="Cardie et al. , 2003" id="1" label="CEPF" position="1179">
+			( Cardie et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="6">
+		 Also , it has proven useful for companies , recommender systems , and editorial sites to create summaries of people’s experiences and opinions that consist of subjective expressions extracted from reviews ( as is commonly done in movie ads ) or even just a review’s polarity — positive ( “thumbs up” ) or negative ( “thumbs down” ) . 
+	</s>
+	
+
+	<s id="7">
+		 Document polarity classification poses a significant challenge to data-driven methods , resisting traditional text-categorization techniques 
+		<ref citStr="Pang , Lee , and Vaithyanathan , 2002" id="2" label="CEPF" position="1723">
+			( Pang , Lee , and Vaithyanathan , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="8">
+		 Previous approaches focused on selecting indicative lexical features ( e.g. , the word “good” ) , classifying a document according to the number of such features that occur anywhere within it . 
+	</s>
+	
+
+	<s id="9">
+		 In contrast , we propose the following process : ( 1 ) label the sentences in the document as either subjective or objective , discarding the latter ; and then ( 2 ) apply a standard machine-learning classifier to the resulting extract . 
+	</s>
+	
+
+	<s id="10">
+		 This can prevent the polarity classifier from considering irrelevant or even potentially misleading text : for example , although the sentence “The protagonist tries to protect her good name” contains the word “good” , it tells us nothing about the author’s opinion and in fact could well be embedded in a negative movie review . 
+	</s>
+	
+
+	<s id="11">
+		 Also , as mentioned above , subjectivity extracts can be provided to users as a summary of the sentiment-oriented content of the document . 
+	</s>
+	
+
+	<s id="12">
+		 Our results show that the subjectivity extracts we create accurately represent the sentiment information of the originating documents in a much more compact form : depending on choice of downstream polarity classifier , we can achieve highly statistically significant improvement ( from 82.8 % to 86.4 % ) or maintain the same level of performance for the polarity classification task while retaining only 60 % of the reviews’ words . 
+	</s>
+	
+
+	<s id="13">
+		 Also , we explore extraction methods based on a minimum cut formulation , which provides an efficient , intuitive , and effective means for integrating inter-sentencelevel contextual information with traditional bag-ofwords features . 
+	</s>
+	
+
+	<s id="14">
+		 2 Method 2.1 Architecture One can consider document-level polarity classification to be just a special ( more difficult ) case of text categorization with sentiment- rather than topic-based categories . 
+	</s>
+	
+
+	<s id="15">
+		 Hence , standard machine- learning classification techniques , such as support vector machines ( SVMs ) , can be applied to the entire documents themselves , as was done by Pang , Lee , and 
+		<ref citStr="Vaithyanathan ( 2002 )" id="3" label="CEPF" position="3793">
+			Vaithyanathan ( 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="16">
+		 We refer to such classification techniques as default polarity classifiers . 
+	</s>
+	
+
+	<s id="17">
+		 However , as noted above , we may be able to improve polarity classification by removing objective sentences ( such as plot summaries in a movie review ) . 
+	</s>
+	
+
+	<s id="18">
+		 We therefore propose , as depicted in Figure 1 , to first employ a subjectivity detector that determines whether each sentence is subjective or not : discarding the objective ones creates an extract that should better represent a review’s subjective content to a default polarity classifier . 
+	</s>
+	
+
+	<s id="19">
+		 Figure 1 : Polarity classification via subjectivity detection . 
+	</s>
+	
+
+	<s id="20">
+		 To our knowledge , previous work has not integrated sentence-level subjectivity detection with document-level sentiment polarity . 
+	</s>
+	
+
+	<s id="21">
+		 
+		<ref citStr="Yu and Hatzivassiloglou ( 2003 )" id="4" label="CJPF" position="4604">
+			Yu and Hatzivassiloglou ( 2003 )
+		</ref>
+		 provide methods for sentence- level analysis and for determining whether a document is subjective or not , but do not combine these two types of algorithms or consider document polarity classification . 
+	</s>
+	
+
+	<s id="22">
+		 The motivation behind the single- sentence selection method of 
+		<ref citStr="Beineke et al . ( 2004 )" id="5" label="CJPF" position="4904">
+			Beineke et al . ( 2004 )
+		</ref>
+		 is to reveal a document’s sentiment polarity , but they do not evaluate the polarity-classification accuracy that results . 
+	</s>
+	
+
+	<s id="23">
+		 2.2 Context and Subjectivity Detection As with document-level polarity classification , we could perform subjectivity detection on individual sentences by applying a standard classification algorithm on each sentence in isolation . 
+	</s>
+	
+
+	<s id="24">
+		 However , modeling proximity relationships between sentences would enable us to leverage coherence : text spans occurring near each other ( within discourse boundaries ) may share the same subjectivity status , other things being equal 
+		<ref citStr="Wiebe , 1994" id="6" label="CEPF" position="5532">
+			( Wiebe , 1994 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="25">
+		 We would therefore like to supply our algorithms with pair-wise interaction information , e.g. , to specify that two particular sentences should ideally receive the same subjectivity label but not state which label this should be . 
+	</s>
+	
+
+	<s id="26">
+		 Incorporating such information is somewhat unnatural for classifiers whose input consists simply of individual feature vectors , such as Naive Bayes or SVMs , precisely because such classifiers label each test item in isolation . 
+	</s>
+	
+
+	<s id="27">
+		 One could define synthetic features or feature vectors to attempt to overcome this obstacle . 
+	</s>
+	
+
+	<s id="28">
+		 However , we propose an alternative that avoids the need for such feature engineering : we use an efficient and intuitive graph-based formulation relying on finding minimum cuts . 
+	</s>
+	
+
+	<s id="29">
+		 Our approach is inspired by 
+		<ref citStr="Blum and Chawla ( 2001 )" id="7" label="CERF" position="6368">
+			Blum and Chawla ( 2001 )
+		</ref>
+		 , although they focused on similarity between items ( the motivation being to combine labeled and unlabeled data ) , whereas we are concerned with physical proximity between the items to be classified ; indeed , in computer vision , modeling proximity information via graph cuts has led to very effective classification 
+		<ref citStr="Boykov , Veksler , and Zabih , 1999" id="8" label="CEPF" position="6728">
+			( Boykov , Veksler , and Zabih , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="30">
+		 2.3 Cut-based classification Figure 2 shows a worked example of the concepts in this section . 
+	</s>
+	
+
+	<s id="31">
+		 Suppose we have n items x1 , ... , xn to divide into two classes C1 and C2 , and we have access to two types of information : • Individual scores indj ( xi ) : non-negative estimates of each xi’s preference for being in Cj based on just the features of xi alone ; and • Association scores assoc(xi , xk ) : non-negative estimates of how important it is that xi and xk be in the same class.1 We would like to maximize each item’s “net happiness” : its individual score for the class it is assigned to , minus its individual score for the other class . 
+	</s>
+	
+
+	<s id="32">
+		 But , we also want to penalize putting tightly- associated items into different classes . 
+	</s>
+	
+
+	<s id="33">
+		 Thus , after some algebra , we arrive at the following optimization problem : assign the xis to C1 and C2 so as to minimize the partition cost X ind2(x)+ X ind1 (x)+ X assoc(xi , xk ) . 
+	</s>
+	
+
+	<s id="34">
+		 xEC1 xEC2 xi EC1 , xk EC2 The problem appears intractable , since there are 2n possible binary partitions of the xi’s . 
+	</s>
+	
+
+	<s id="35">
+		 However , suppose we represent the situation in the following manner . 
+	</s>
+	
+
+	<s id="36">
+		 Build an undirected graph G with vertices { v1 , ... , vn , s , t } ; the last two are , respectively , the source and sink . 
+	</s>
+	
+
+	<s id="37">
+		 Add n edges ( s , vi ) , each with weight ind1 ( xi ) , and n edges ( vi , t ) , each with weight ind2(xi) . 
+	</s>
+	
+
+	<s id="38">
+		 Finally , add ( 2 ) edges ( vi , vk ) , each with weight assoc(xi , xk ) . 
+	</s>
+	
+
+	<s id="39">
+		 Then , cuts in G are defined as follows : Definition 1 A cut ( 5 , T ) of G is a partition of its nodes into sets 5 = { s } U 5 ' and T = { t } U T ' , where s ^~ 5 ' , t ^~ T ' . 
+	</s>
+	
+
+	<s id="40">
+		 Its cost cost(5 , T ) is the sum of the weights of all edges crossing from 5 to T . 
+	</s>
+	
+
+	<s id="41">
+		 A minimum cut of G is one of minimum cost . 
+	</s>
+	
+
+	<s id="42">
+		 1Asymmetry is allowed , but we used symmetric scores . 
+	</s>
+	
+
+	<s id="43">
+		 subjective nsentence review sentence ? 
+	</s>
+	
+
+	<s id="44">
+		 msentence extract ( m&lt;=n ) positive or negative review ? 
+	</s>
+	
+
+	<s id="45">
+		 s1 yes s2 no s1 s3 s4 no s4 yes +/ s n subjectivity extraction s ind1(M) [ •5 ] M ind2(M) [ •5 ] t ind1(Y) [ •8 ] ind2(Y) [ •2 ] ind1(N) [ •1 ] ind2(N) [ •9 ] assoc(Y,M) assoc(M,N) [ 1•0 ] [ •2 ] Y N assoc(Y,N) [ •1 ] C1 Individual penalties Association penalties Cost { Y,M } .2+.5+.1 .1+.2 1.1 ( none ) .8+.5+.1 0 1.4 { Y,M,N } .2+.5+.9 0 1.6 { Y } .2+.5+.1 1.0+.1 1.9 { N } .8+.5+.9 .1+.2 2.5 { M } .8+.5+.1 1.0+.2 2.6 { Y,N } .2+.5+.9 1.0+.2 2.8 { M,N } .8+.5+.9 1.0+.1 3.3 Figure 2 : Graph for classifying three items . 
+	</s>
+	
+
+	<s id="46">
+		 Brackets enclose example values ; here , the individual scores happen to be probabilities . 
+	</s>
+	
+
+	<s id="47">
+		 Based on individual scores alone , we would put Y ( “yes” ) in C1 , N ( “no” ) in C2 , and be undecided about M ( “maybe” ) . 
+	</s>
+	
+
+	<s id="48">
+		 But the association scores favor cuts that put Y and M in the same class , as shown in the table . 
+	</s>
+	
+
+	<s id="49">
+		 Thus , the minimum cut , indicated by the dashed line , places M together with Y in C1 . 
+	</s>
+	
+
+	<s id="50">
+		 Observe that every cut corresponds to a partition of the items and has cost equal to the partition cost . 
+	</s>
+	
+
+	<s id="51">
+		 Thus , our optimization problem reduces to finding minimum cuts . 
+	</s>
+	
+
+	<s id="52">
+		 Practical advantages As we have noted , formulating our subjectivity-detection problem in terms of graphs allows us to model item-specific and pair- wise information independently . 
+	</s>
+	
+
+	<s id="53">
+		 Note that this is a very flexible paradigm . 
+	</s>
+	
+
+	<s id="54">
+		 For instance , it is perfectly legitimate to use knowledge-rich algorithms employing deep linguistic knowledge about sentiment indicators to derive the individual scores . 
+	</s>
+	
+
+	<s id="55">
+		 And we could also simultaneously use knowledge- lean methods to assign the association scores . 
+	</s>
+	
+
+	<s id="56">
+		 Interestingly , 
+		<ref citStr="Yu and Hatzivassiloglou ( 2003 )" id="9" label="CJPF" position="10527">
+			Yu and Hatzivassiloglou ( 2003 )
+		</ref>
+		 compared an individual-preference classifier against a relationship-based method , but didn’t combine the two ; the ability to coordinate such algorithms is precisely one of the strengths of our approach . 
+	</s>
+	
+
+	<s id="57">
+		 But a crucial advantage specific to the utilization of a minimum-cut-based approach is that we can use maximum -flow algorithms with polynomial asymptotic running times — and near-linear running times in practice — to exactly compute the minimum- cost cut(s) , despite the apparent intractability of the optimization problem 
+		<ref citStr="Cormen , Leiserson , and Rivest , 1990" id="10" label="CEPF" position="11071">
+			( Cormen , Leiserson , and Rivest , 1990 
+		</ref>
+		<ref citStr="Ahuja , Magnanti , and Orlin , 1993" id="11" label="CEPF" position="11112">
+			; Ahuja , Magnanti , and Orlin , 1993)
+		</ref>
+		.2 In contrast , other graph-partitioning problems that have been previously used to formulate NLP classification problems3 are NP-complete 
+		<ref citStr="Hatzivassiloglou and McKeown , 1997" id="12" label="CJPF" position="11290">
+			( Hatzivassiloglou and McKeown , 1997 
+		</ref>
+		<ref citStr="Agrawal et al. , 2003" id="13" label="CJPF" position="11328">
+			; Agrawal et al. , 2003 
+		</ref>
+		<ref citStr="Joachims , 2003" id="14" label="CJPF" position="11352">
+			; Joachims , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="58">
+		 2Code available at http://www.avglab.com/andrew/soft.html . 
+	</s>
+	
+
+	<s id="59">
+		 3Graph-based approaches to general clustering problems are too numerous to mention here . 
+	</s>
+	
+
+	<s id="60">
+		 3 Evaluation Framework Our experiments involve classifying movie reviews as either positive or negative , an appealing task for several reasons . 
+	</s>
+	
+
+	<s id="61">
+		 First , as mentioned in the introduction , providing polarity information about reviews is a useful service : witness the popularity of www.rottentomatoes.com . 
+	</s>
+	
+
+	<s id="62">
+		 Second , movie reviews are apparently harder to classify than reviews of other products 
+		<ref citStr="Turney , 2002" id="15" label="CEPF" position="11964">
+			( Turney , 2002 
+		</ref>
+		<ref citStr="Dave , Lawrence , and Pennock , 2003" id="16" label="CEPF" position="11980">
+			; Dave , Lawrence , and Pennock , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="63">
+		 Third , the correct label can be extracted automatically from rating information ( e.g. , number of stars ) . 
+	</s>
+	
+
+	<s id="64">
+		 Our data4 contains 1000 positive and 1000 negative reviews all written before 2002 , with a cap of 20 reviews per author ( 312 authors total ) per category . 
+	</s>
+	
+
+	<s id="65">
+		 We refer to this corpus as the polarity dataset . 
+	</s>
+	
+
+	<s id="66">
+		 Default polarity classifiers We tested support vector machines ( SVMs ) and Naive Bayes ( NB ) . 
+	</s>
+	
+
+	<s id="67">
+		 Following 
+		<ref citStr="Pang et al . ( 2002 )" id="17" label="CERF" position="12514">
+			Pang et al . ( 2002 )
+		</ref>
+		 , we use unigram-presence features : the ith coordinate of a feature vector is 1 if the corresponding unigram occurs in the input text , 0 otherwise . 
+	</s>
+	
+
+	<s id="68">
+		 ( For SVMs , the feature vectors are length-normalized ) . 
+	</s>
+	
+
+	<s id="69">
+		 Each default document- level polarity classifier is trained and tested on the extracts formed by applying one of the sentence- level subjectivity detectors to reviews in the polarity dataset . 
+	</s>
+	
+
+	<s id="70">
+		 Subjectivity dataset To train our detectors , we need a collection of labeled sentences . 
+	</s>
+	
+
+	<s id="71">
+		 
+		<ref citStr="Riloff and Wiebe ( 2003 )" id="18" label="CEPF" position="13069">
+			Riloff and Wiebe ( 2003 )
+		</ref>
+		 state that “It is [ very hard ] to obtain collections of individual sentences that can be easily identified as subjective or objective” ; the polarity-dataset sentences , for example , have not 4Available at www.cs.cornell.edu/people/pabo/moviereview-data/ ( review corpus version 2.0 ) . 
+	</s>
+	
+
+	<s id="72">
+		 been so annotated.5 Fortunately , we were able to mine the Web to create a large , automatically- labeled sentence corpus6 . 
+	</s>
+	
+
+	<s id="73">
+		 To gather subjective sentences ( or phrases ) , we collected 5000 movie- review snippets ( e.g. , “bold , imaginative , and impossible to resist” ) from www.rottentomatoes.com . 
+	</s>
+	
+
+	<s id="74">
+		 To obtain ( mostly ) objective data , we took 5000 sentences from plot summaries available from the Internet Movie Database ( www.imdb.com ) . 
+	</s>
+	
+
+	<s id="75">
+		 We only selected sentences or snippets at least ten words long and drawn from reviews or plot summaries of movies released post-2001 , which prevents overlap with the polarity dataset . 
+	</s>
+	
+
+	<s id="76">
+		 Subjectivity detectors As noted above , we can use our default polarity classifiers as “basic” sentence- level subjectivity detectors ( after retraining on the subjectivity dataset ) to produce extracts of the original reviews . 
+	</s>
+	
+
+	<s id="77">
+		 We also create a family of cut-based subjectivity detectors ; these take as input the set of sentences appearing in a single document and determine the subjectivity status of all the sentences simultaneously using per-item and pairwise relationship information . 
+	</s>
+	
+
+	<s id="78">
+		 Specifically , for a given document , we use the construction in Section 2.2 to build a graph wherein the source s and sink t correspond to the class of subjective and objective sentences , respectively , and each internal node vi corresponds to the document’s ith sentence si . 
+	</s>
+	
+
+	<s id="79">
+		 We can set the individual scores ind1(si) to Pr .b(si) and ind2(si) to 1 — Pr ub(si) , as shown in Figure 3 , where Pr Ub(s) denotes Naive Bayes’ estimate of the probability that sentence s is subjective ; or , we can use the weights produced by the SVM classifier instead.7 If we set all the association scores to zero , then the minimum-cut classification of the sentences is the same as that of the basic subjectivity detector . 
+	</s>
+	
+
+	<s id="80">
+		 Alternatively , we incorporate the degree of proximity between pairs of sentences , controlled by three parameters . 
+	</s>
+	
+
+	<s id="81">
+		 The threshold T specifies the maximum distance two sentences can be separated by and still be considered proximal . 
+	</s>
+	
+
+	<s id="82">
+		 The 5We therefore could not directly evaluate sentence- classification accuracy on the polarity dataset . 
+	</s>
+	
+
+	<s id="83">
+		 6Available at www.cs.cornell.edu/people/pabo/moviereview-data/ , sentence corpus version 1.0. 7We converted SVM output di , which is a signed distance ( negative=objective ) from the separating hyperplane , to non- negative numbers by def r1 di&gt;2 ; ind1(si) = S ( 2 + di)/4 —2 &lt;_ di &lt;_ 2 ; l 0 di &lt; —2 . 
+	</s>
+	
+
+	<s id="84">
+		 and ind2(si) = 1 — ind1(si) . 
+	</s>
+	
+
+	<s id="85">
+		 Note that scaling is employed only for consistency ; the algorithm itself does not require probabilities for individual scores . 
+	</s>
+	
+
+	<s id="86">
+		 non-increasing function f ( d ) specifies how the influence of proximal sentences decays with respect to distance d ; in our experiments , we tried f ( d ) = 1 , e1—d , and 1/d2 . 
+	</s>
+	
+
+	<s id="87">
+		 The constant c controls the relative influence of the association scores : a larger c makes the minimum-cut algorithm more loath to put proximal sentences in different classes . 
+	</s>
+	
+
+	<s id="88">
+		 With these in hand 8 , we set ( for j &gt; i ) assoc(si , sj)=l def f f(j—i)•c if(j—i)&lt;T ; 0 otherwise . 
+	</s>
+	
+
+	<s id="89">
+		 4 Experimental Results Below , we report average accuracies computed by ten-fold cross-validation over the polarity dataset . 
+	</s>
+	
+
+	<s id="90">
+		 Section 4.1 examines our basic subjectivity extraction algorithms , which are based on individual- sentence predictions alone . 
+	</s>
+	
+
+	<s id="91">
+		 Section 4.2 evaluates the more sophisticated form of subjectivity extraction that incorporates context information via the minimum-cut paradigm . 
+	</s>
+	
+
+	<s id="92">
+		 As we will see , the use of subjectivity extracts can in the best case provide satisfying improvement in polarity classification , and otherwise can at least yield polarity-classification accuracies indistinguishable from employing the full review . 
+	</s>
+	
+
+	<s id="93">
+		 At the same time , the extracts we create are both smaller on average than the original document and more effective as input to a default polarity classifier than the same-length counterparts produced by standard summarization tactics ( e.g. , first- or last-N sentences ) . 
+	</s>
+	
+
+	<s id="94">
+		 We therefore conclude that subjectivity extraction produces effective summaries of document sentiment . 
+	</s>
+	
+
+	<s id="95">
+		 4.1 Basic subjectivity extraction As noted in Section 3 , both Naive Bayes and SVMs can be trained on our subjectivity dataset and then used as a basic subjectivity detector . 
+	</s>
+	
+
+	<s id="96">
+		 The former has somewhat better average ten-fold cross-validation performance on the subjectivity dataset ( 92 % vs. 90 % ) , and so for space reasons , our initial discussions will focus on the results attained via NB subjectivity detection . 
+	</s>
+	
+
+	<s id="97">
+		 Employing Naive Bayes as a subjectivity detector ( ExtractNB ) in conjunction with a Naive Bayes document-level polarity classifier achieves 86.4 % accuracy.9 This is a clear improvement over the 82.8 % that results when no extraction is applied 8 Parameter training is driven by optimizing the performance of the downstream polarity classifier rather than the detector itself because the subjectivity dataset’s sentences come from different reviews , and so are never proximal . 
+	</s>
+	
+
+	<s id="98">
+		 9This result and others are depicted in Figure 5 ; for now , consider only the y-axis in those plots . 
+	</s>
+	
+
+	<s id="99">
+		 nsentence review Figure 3 : Graph-cut-based creation of subjective extracts . 
+	</s>
+	
+
+	<s id="100">
+		 edge crossing the cut Pr(s1) v1 1—PrNB(s1) subsu ^^ v1 msentence extract ( m&lt;=n ) construct graph ^ ~ s v2 v3 vn t compute ^^min . 
+	</s>
+	
+
+	<s id="101">
+		 cut s t ^ ^extract v2 v3 vn create s1 s4 individual subjectivityprobability link proximity link s1 s2 s3 s4 sn ( Full review ) ; indeed , the difference is highly statistically significant ( p &lt; 0.01 , paired t-test ) . 
+	</s>
+	
+
+	<s id="102">
+		 With SVMs as the polarity classifier instead , the Full review performance rises to 87.15 % , but comparison via the paired t-test reveals that this is statistically indistinguishable from the 86.4 % that is achieved by running the SVM polarity classifier on ExtractNB input . 
+	</s>
+	
+
+	<s id="103">
+		 ( More improvements to extraction performance are reported later in this section . 
+	</s>
+	
+
+	<s id="104">
+		 ) These findings indicate10 that the extracts preserve ( and , in the NB polarity-classifier case , apparently clarify ) the sentiment information in the originating documents , and thus are good summaries from the polarity-classification point of view . 
+	</s>
+	
+
+	<s id="105">
+		 Further support comes from a “flipping” experiment : if we give as input to the default polarity classifier an extract consisting of the sentences labeled objective , accuracy drops dramatically to 71 % for NB and 67 % for SVMs . 
+	</s>
+	
+
+	<s id="106">
+		 This confirms our hypothesis that sentences discarded by the subjectivity extraction process are indeed much less indicative of sentiment polarity . 
+	</s>
+	
+
+	<s id="107">
+		 Moreover , the subjectivity extracts are much more compact than the original documents ( an important feature for a summary to have ) : they contain on average only about 60 % of the source reviews’ words . 
+	</s>
+	
+
+	<s id="108">
+		 ( This word preservation rate is plotted along the x-axis in the graphs in Figure 5. ) This prompts us to study how much reduction of the original documents subjectivity detectors can perform and still accurately represent the texts’ sentiment information . 
+	</s>
+	
+
+	<s id="109">
+		 We can create subjectivity extracts of varying lengths by taking just the N most subjective sentences11 from the originating review . 
+	</s>
+	
+
+	<s id="110">
+		 As one base- 10Recall that direct evidence is not available because the polarity dataset’s sentences lack subjectivity labels . 
+	</s>
+	
+
+	<s id="111">
+		 11 These are the N sentences assigned the highest probability by the basic NB detector , regardless of whether their probabil line to compare against , we take the canonical summarization standard of extracting the first N sentences — in general settings , authors often begin documents with an overview . 
+	</s>
+	
+
+	<s id="112">
+		 We also consider the last N sentences : in many documents , concluding material may be a good summary , and www.rottentomatoes.com tends to select “snippets” from the end of movie reviews 
+		<ref citStr="Beineke et al. , 2004" id="19" label="CEPF" position="21575">
+			( Beineke et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="113">
+		 Finally , as a sanity check , we include results from the N least subjective sentences according to Naive Bayes . 
+	</s>
+	
+
+	<s id="114">
+		 Figure 4 shows the polarity classifier results as N ranges between 1 and 40 . 
+	</s>
+	
+
+	<s id="115">
+		 Our first observation is that the NB detector provides very good “bang for the buck” : with subjectivity extracts containing as few as 15 sentences , accuracy is quite close to what one gets if the entire review is used . 
+	</s>
+	
+
+	<s id="116">
+		 In fact , for the NB polarity classifier , just using the 5 most subjective sentences is almost as informative as the Full review while containing on average only about 22 % of the source reviews’ words . 
+	</s>
+	
+
+	<s id="117">
+		 Also , it so happens that at N = 30 , performance is actually slightly better than ( but statistically indistinguishable from ) Full review even when the SVM default polarity classifier is used ( 87.2 % vs. 87.15%).12 This suggests potentially effective extraction alternatives other than using a fixed probability threshold ( which resulted in the lower accuracy of 86.4 % reported above ) . 
+	</s>
+	
+
+	<s id="118">
+		 Furthermore , we see in Figure 4 that the N mostsubjective-sentences method generally outperforms the other baseline summarization methods ( which perhaps suggests that sentiment summarization cannot be treated the same as topic-based summariza- ities exceed 50 % and so would actually be classified as subjective by Naive Bayes . 
+	</s>
+	
+
+	<s id="119">
+		 For reviews with fewer than N sentences , the entire review will be returned . 
+	</s>
+	
+
+	<s id="120">
+		 12 Note that roughly half of the documents in the polarity dataset contain more than 30 sentences ( average=32.3 , standard deviation 15 ) . 
+	</s>
+	
+
+	<s id="121">
+		 Accuracy for N-sentence abstracts ( def = NB ) Accuracy for N-sentence abstracts ( def = SVM ) 90 85 80 75 70 65 60 55 90 85 80 75 70 65 60 55 most subjective N sentences last N sentences first N sentences least subjective N sentences Full review most subjective N sentences last N sentences first N sentences least subjective N sentences Full review 1 5 10 15 20 25 30 35 40 N 1 5 10 15 20 25 30 35 40 N Figure 4 : Accuracies using N-sentence extracts for NB ( left ) and SVM ( right ) default polarity classifiers . 
+	</s>
+	
+
+	<s id="122">
+		 Accuracy for subjective abstracts ( def = NB ) Accuracy for subjective abstracts ( def = SVM ) Full Review difference in accuracy ExtractSVM indicates statistically significant improvement in accuracy ExtractNB+Prox ExtractNB not statistically significant ExtractSVM+Prox 0.6 0.7 0.8 0.9 1 1.1 % of words extracted 87 86.5 86 85.5 84.5 84 83.5 83 85 ExtractNB ExtractSVM indicates statistically significant improvement in accuracy ExtractNB+Prox ExtractSVM+Prox difference in accuracy not statistically significant Full Review 87 86.5 86 85.5 84.5 84 83.5 83 85 0.6 0.7 0.8 0.9 1 1.1 % of words extracted Figure 5 : Word preservation rate vs. accuracy , NB ( left ) and SVMs ( right ) as default polarity classifiers . 
+	</s>
+	
+
+	<s id="123">
+		 Also indicated are results for some statistical significance tests . 
+	</s>
+	
+
+	<s id="124">
+		 tion , although this conjecture would need to be verified on other domains and data ) . 
+	</s>
+	
+
+	<s id="125">
+		 It’s also interesting to observe how much better the last N sentences are than the first N sentences ; this may reflect a ( hardly surprising ) tendency for movie-review authors to place plot descriptions at the beginning rather than the end of the text and conclude with overtly opinionated statements . 
+	</s>
+	
+
+	<s id="126">
+		 4.2 Incorporating context information The previous section demonstrated the value of subjectivity detection . 
+	</s>
+	
+
+	<s id="127">
+		 We now examine whether context information , particularly regarding sentence proximity , can further improve subjectivity extraction . 
+	</s>
+	
+
+	<s id="128">
+		 As discussed in Section 2.2 and 3 , contextual constraints are easily incorporated via the minimum-cut formalism but are not natural inputs for standard Naive Bayes and SVMs . 
+	</s>
+	
+
+	<s id="129">
+		 Figure 5 shows the effect of adding in proximity information . 
+	</s>
+	
+
+	<s id="130">
+		 ExtractNB+Prox and ExtractSVM+Prox are the graph-based subjectivity detectors using Naive Bayes and SVMs , respectively , for the individual scores ; we depict the best performance achieved by a single setting of the three proximity-related edge-weight parameters over all ten data folds13 ( parameter selection was not a focus of the current work ) . 
+	</s>
+	
+
+	<s id="131">
+		 The two comparisons we are most interested in are ExtractNB+Prox versus ExtractNB and ExtractSVM+Prox versus ExtractSVM . 
+	</s>
+	
+
+	<s id="132">
+		 We see that the context-aware graph-based subjectivity detectors tend to create extracts that are more informative ( statistically significant so ( paired t-test ) for SVM subjectivity detectors only ) , although these extracts are longer than their context- blind counterparts . 
+	</s>
+	
+
+	<s id="133">
+		 We note that the performance 13 Parameters are chosen from T E { 1 , 2 , 3 } , f ( d ) E { 1 , e1-d,1/d2 } , and c E [ 0 , 1 ] at intervals of 0.1. enhancements cannot be attributed entirely to the mere inclusion of more sentences regardless of whether they are subjective or not — one counter- argument is that Full review yielded substantially worse results for the NB default polarity classifier— and at any rate , the graph-derived extracts are still substantially more concise than the full texts . 
+	</s>
+	
+
+	<s id="134">
+		 Now , while incorporating a bias for assigning nearby sentences to the same category into NB and SVM subjectivity detectors seems to require some non-obvious feature engineering , we also wish to investigate whether our graph-based paradigm makes better use of contextual constraints that can be ( more or less ) easily encoded into the input of standard classifiers . 
+	</s>
+	
+
+	<s id="135">
+		 For illustrative purposes , we consider paragraph-boundary information , looking only at SVM subjectivity detection for simplicity’s sake . 
+	</s>
+	
+
+	<s id="136">
+		 It seems intuitively plausible that paragraph boundaries ( an approximation to discourse boundaries ) loosen coherence constraints between nearby sentences . 
+	</s>
+	
+
+	<s id="137">
+		 To capture this notion for minimum-cutbased classification , we can simply reduce the association scores for all pairs of sentences that occur in different paragraphs by multiplying them by a cross-paragraph-boundary weight w E [ 0 , 1 ] . 
+	</s>
+	
+
+	<s id="138">
+		 For standard classifiers , we can employ the trick of having the detector treat paragraphs , rather than sentences , as the basic unit to be labeled . 
+	</s>
+	
+
+	<s id="139">
+		 This enables the standard classifier to utilize coherence between sentences in the same paragraph ; on the other hand , it also ( probably unavoidably ) poses a hard constraint that all of a paragraph’s sentences get the same label , which increases noise sensitivity . 
+	</s>
+	
+
+	<s id="140">
+		 14 Our experiments reveal the graph-cut formulation to be the better approach : for both default polarity classifiers ( NB and SVM ) , some choice of parameters ( including w ) for ExtractSVM+Prox yields statistically significant improvement over its paragraph- unit non-graph counterpart ( NB : 86.4 % vs. 85.2 % ; SVM : 86.15 % vs. 85.45 % ) . 
+	</s>
+	
+
+	<s id="141">
+		 5 Conclusions We examined the relation between subjectivity detection and polarity classification , showing that subjectivity detection can compress reviews into much shorter extracts that still retain polarity information at a level comparable to that of the full review . 
+	</s>
+	
+
+	<s id="142">
+		 In fact , for the Naive Bayes polarity classifier , the subjectivity extracts are shown to be more effective input than the originating document , which suggests 14 For example , in the data we used , boundaries may have been missed due to malformed html. that they are not only shorter , but also “cleaner” representations of the intended polarity . 
+	</s>
+	
+
+	<s id="143">
+		 We have also shown that employing the minimum-cut framework results in the development of efficient algorithms for sentiment analysis . 
+	</s>
+	
+
+	<s id="144">
+		 Utilizing contextual information via this framework can lead to statistically significant improvement in polarity-classification accuracy . 
+	</s>
+	
+
+	<s id="145">
+		 Directions for future research include developing parameter- selection techniques , incorporating other sources of contextual cues besides sentence proximity , and investigating other means for modeling such information . 
+	</s>
+	
+
+	<s id="146">
+		 Acknowledgments We thank Eric Breck , Claire Cardie , Rich Caruana , Yejin Choi , Shimon Edelman , Thorsten Joachims , Jon Kleinberg , Oren Kurland , Art Munson , Vincent Ng , Fernando Pereira , Ves Stoyanov , Ramin Zabih , and the anonymous reviewers for helpful comments . 
+	</s>
+	
+
+	<s id="147">
+		 This paper is based upon work supported in part by the National Science Foundation under grants ITR/IM IIS-0081334 and IIS-0329064 , a Cornell Graduate Fellowship in Cognitive Studies , and by an Alfred P. Sloan Research Fellowship . 
+	</s>
+	
+
+	<s id="148">
+		 Any opinions , findings , and conclusions or recommendations expressed above are those of the authors and do not necessarily reflect the views of the National Science Foundation or Sloan Foundation . 
+	</s>
+	
+
+	<s id="149">
+		 References Agrawal , Rakesh , Sridhar Rajagopalan , Ramakrishnan Srikant , and Yirong Xu . 
+	</s>
+	
+
+	<s id="150">
+		 2003. Mining newsgroups using networks arising from social behavior . 
+	</s>
+	
+
+	<s id="151">
+		 In WWW , pages 529–535 . 
+	</s>
+	
+
+	<s id="152">
+		 Ahuja , Ravindra , Thomas L. Magnanti , and James B. Orlin . 
+	</s>
+	
+
+	<s id="153">
+		 1993. Network Flows : Theory , Algorithms , and Applications . 
+	</s>
+	
+
+	<s id="154">
+		 Prentice Hall . 
+	</s>
+	
+
+	<s id="155">
+		 Beineke , Philip , Trevor Hastie , Christopher Manning , and Shivakumar Vaithyanathan . 
+	</s>
+	
+
+	<s id="156">
+		 2004. Exploring sentiment summarization . 
+	</s>
+	
+
+	<s id="157">
+		 In AAAI Spring Symposium on Exploring Attitude and Affect in Text : Theories and Applications ( AAAI tech report SS-04-07 ) . 
+	</s>
+	
+
+	<s id="158">
+		 Blum , Avrim and Shuchi Chawla. 2001 . 
+	</s>
+	
+
+	<s id="159">
+		 Learning from labeled and unlabeled data using graph min- cuts . 
+	</s>
+	
+
+	<s id="160">
+		 In Intl . 
+	</s>
+	
+
+	<s id="161">
+		 Conf . 
+	</s>
+	
+
+	<s id="162">
+		 on Machine Learning ( ICML ) , pages 19–26 . 
+	</s>
+	
+
+	<s id="163">
+		 Boykov , Yuri , Olga Veksler , and Ramin Zabih . 
+	</s>
+	
+
+	<s id="164">
+		 1999. Fast approximate energy minimization via graph cuts . 
+	</s>
+	
+
+	<s id="165">
+		 In Intl . 
+	</s>
+	
+
+	<s id="166">
+		 Conf . 
+	</s>
+	
+
+	<s id="167">
+		 on Computer Vision ( ICCV ) , pages 377–384 . 
+	</s>
+	
+
+	<s id="168">
+		 Journal version in IEEE Trans . 
+	</s>
+	
+
+	<s id="169">
+		 Pattern Analysis and Machine Intelligence ( PAMI ) 23(11):1222–1239 , 2001 . 
+	</s>
+	
+
+	<s id="170">
+		 Cardie , Claire , Janyce Wiebe , Theresa Wilson , and Diane Litman . 
+	</s>
+	
+
+	<s id="171">
+		 2003. Combining low-level and summary representations of opinions for multi- perspective question answering . 
+	</s>
+	
+
+	<s id="172">
+		 In AAAI Spring Symposium on New Directions in Question Answering , pages 20–27 . 
+	</s>
+	
+
+	<s id="173">
+		 Cormen , Thomas H. , Charles E. Leiserson , and Ronald L. Rivest . 
+	</s>
+	
+
+	<s id="174">
+		 1990. Introduction to Algorithms . 
+	</s>
+	
+
+	<s id="175">
+		 MIT Press . 
+	</s>
+	
+
+	<s id="176">
+		 Das , Sanjiv and Mike Chen . 
+	</s>
+	
+
+	<s id="177">
+		 2001. Yahoo ! 
+	</s>
+	
+
+	<s id="178">
+		 for Amazon : Extracting market sentiment from stock message boards . 
+	</s>
+	
+
+	<s id="179">
+		 In Asia Pacific Finance Association Annual Conf . 
+	</s>
+	
+
+	<s id="180">
+		 ( APFA ) . 
+	</s>
+	
+
+	<s id="181">
+		 Dave , Kushal , Steve Lawrence , and David M. Pennock . 
+	</s>
+	
+
+	<s id="182">
+		 2003. Mining the peanut gallery : Opinion extraction and semantic classification of product reviews . 
+	</s>
+	
+
+	<s id="183">
+		 In WWW , pages 519–528 . 
+	</s>
+	
+
+	<s id="184">
+		 Dini , Luca and Giampaolo Mazzini . 
+	</s>
+	
+
+	<s id="185">
+		 2002. Opinion classification through information extraction . 
+	</s>
+	
+
+	<s id="186">
+		 In Intl . 
+	</s>
+	
+
+	<s id="187">
+		 Conf . 
+	</s>
+	
+
+	<s id="188">
+		 on Data Mining Methods and Databases for Engineering , Finance and Other Fields , pages 299–310 . 
+	</s>
+	
+
+	<s id="189">
+		 Durbin , Stephen D. , J. Neal Richter , and Doug Warner . 
+	</s>
+	
+
+	<s id="190">
+		 2003. A system for affective rating of texts . 
+	</s>
+	
+
+	<s id="191">
+		 In KDD Wksp. on Operational Text Classification Systems ( OTC-3 ) . 
+	</s>
+	
+
+	<s id="192">
+		 Hatzivassiloglou , Vasileios and Kathleen McKeown . 
+	</s>
+	
+
+	<s id="193">
+		 1997. Predicting the semantic orientation of adjectives . 
+	</s>
+	
+
+	<s id="194">
+		 In 35th ACL/8th EACL , pages 174–181 . 
+	</s>
+	
+
+	<s id="195">
+		 Joachims , Thorsten . 
+	</s>
+	
+
+	<s id="196">
+		 2003. Transductive learning via spectral graph partitioning . 
+	</s>
+	
+
+	<s id="197">
+		 In Intl . 
+	</s>
+	
+
+	<s id="198">
+		 Conf . 
+	</s>
+	
+
+	<s id="199">
+		 on Machine Learning ( ICML ) . 
+	</s>
+	
+
+	<s id="200">
+		 Liu , Hugo , Henry Lieberman , and Ted Selker . 
+	</s>
+	
+
+	<s id="201">
+		 2003. A model of textual affect sensing using real-world knowledge . 
+	</s>
+	
+
+	<s id="202">
+		 In Intelligent User Interfaces ( IUI ) , pages 125–132 . 
+	</s>
+	
+
+	<s id="203">
+		 Montes-y-G´omez , Manuel , Aurelio L´opez-L´opez , and Alexander Gelbukh . 
+	</s>
+	
+
+	<s id="204">
+		 1999. Text mining as a social thermometer . 
+	</s>
+	
+
+	<s id="205">
+		 In IJCAI Wksp. on Text Mining , pages 103–107 . 
+	</s>
+	
+
+	<s id="206">
+		 Morinaga , Satoshi , Kenji Yamanishi , Kenji Tateishi , and Toshikazu Fukushima . 
+	</s>
+	
+
+	<s id="207">
+		 2002. Mining product reputations on the web. . 
+	</s>
+	
+
+	<s id="208">
+		 In KDD , pages 341– 349 . 
+	</s>
+	
+
+	<s id="209">
+		 Industry track . 
+	</s>
+	
+
+	<s id="210">
+		 Pang , Bo , Lillian Lee , and Shivakumar Vaithyanathan . 
+	</s>
+	
+
+	<s id="211">
+		 2002. Thumbs up ? 
+	</s>
+	
+
+	<s id="212">
+		 Sentiment classification using machine learning techniques . 
+	</s>
+	
+
+	<s id="213">
+		 In EMNLP , pages 79–86 . 
+	</s>
+	
+
+	<s id="214">
+		 Qu , Yan , James Shanahan , and Janyce Wiebe , editors . 
+	</s>
+	
+
+	<s id="215">
+		 2004. AAAI Spring Symposium on Exploring Attitude and Affect in Text : Theories and Applications . 
+	</s>
+	
+
+	<s id="216">
+		 AAAI technical report SS-04-07 . 
+	</s>
+	
+
+	<s id="217">
+		 Riloff , Ellen and Janyce Wiebe . 
+	</s>
+	
+
+	<s id="218">
+		 2003. Learning extraction patterns for subjective expressions . 
+	</s>
+	
+
+	<s id="219">
+		 In EMNLP . 
+	</s>
+	
+
+	<s id="220">
+		 Riloff , Ellen , Janyce Wiebe , and Theresa Wilson . 
+	</s>
+	
+
+	<s id="221">
+		 2003. Learning subjective nouns using extraction pattern bootstrapping . 
+	</s>
+	
+
+	<s id="222">
+		 In Conf . 
+	</s>
+	
+
+	<s id="223">
+		 on Natural Language Learning ( CoNLL ) , pages 25–32 . 
+	</s>
+	
+
+	<s id="224">
+		 Subasic , Pero and Alison Huettner . 
+	</s>
+	
+
+	<s id="225">
+		 2001. Affect analysis of text using fuzzy semantic typing . 
+	</s>
+	
+
+	<s id="226">
+		 IEEE Trans . 
+	</s>
+	
+
+	<s id="227">
+		 Fuzzy Systems , 9(4):483–496 . 
+	</s>
+	
+
+	<s id="228">
+		 Tong , Richard M. 2001 . 
+	</s>
+	
+
+	<s id="229">
+		 An operational system for detecting and tracking opinions in on-line discussion . 
+	</s>
+	
+
+	<s id="230">
+		 SIGIR Wksp. on Operational Text Classification . 
+	</s>
+	
+
+	<s id="231">
+		 Turney , Peter . 
+	</s>
+	
+
+	<s id="232">
+		 2002. Thumbs up or thumbs down ? 
+	</s>
+	
+
+	<s id="233">
+		 Semantic orientation applied to unsupervised classification of reviews . 
+	</s>
+	
+
+	<s id="234">
+		 In ACL , pages 417–424 . 
+	</s>
+	
+
+	<s id="235">
+		 Wiebe , Janyce M. 1994 . 
+	</s>
+	
+
+	<s id="236">
+		 Tracking point of view in narrative . 
+	</s>
+	
+
+	<s id="237">
+		 Computational Linguistics , 20(2):233– 287 . 
+	</s>
+	
+
+	<s id="238">
+		 Yi , Jeonghee , Tetsuya Nasukawa , Razvan Bunescu , and Wayne Niblack . 
+	</s>
+	
+
+	<s id="239">
+		 2003 . 
+	</s>
+	
+
+	<s id="240">
+		 Sentiment analyzer : Extracting sentiments about a given topic using natural language processing techniques . 
+	</s>
+	
+
+	<s id="241">
+		 In IEEE Intl . 
+	</s>
+	
+
+	<s id="242">
+		 Conf . 
+	</s>
+	
+
+	<s id="243">
+		 on Data Mining ( ICDM ) . 
+	</s>
+	
+
+	<s id="244">
+		 Yu , Hong and Vasileios Hatzivassiloglou . 
+	</s>
+	
+
+	<s id="245">
+		 2003. Towards answering opinion questions : Separating facts from opinions and identifying the polarity of opinion sentences . 
+	</s>
+	
+
+	<s id="246">
+		 In EMNLP . 
+	</s>
+	
+
+
+</acldoc>

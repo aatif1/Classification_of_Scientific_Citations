@@ -1,0 +1,1742 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1058">
+	
+
+	<s id="1">
+		 Alternative Approaches for Generating Bodies of Grammar Rules Gabriel Infante-Lopez and Maarten de Rijke Informatics Institute , University of Amsterdam {infante,mdr}@science.uva.nl Abstract We compare two approaches for describing and generating bodies of rules used for natural language parsing . 
+	</s>
+	
+
+	<s id="2">
+		 In today’s parsers rule bodies do not exist a priori but are generated on the fly , usually with methods based on n-grams , which are one particular way of inducing probabilistic regular languages . 
+	</s>
+	
+
+	<s id="3">
+		 We compare two approaches for inducing such languages . 
+	</s>
+	
+
+	<s id="4">
+		 One is based on n-grams , the other on minimization of the Kullback-Leibler divergence . 
+	</s>
+	
+
+	<s id="5">
+		 The inferred regular languages are used for generating bodies of rules inside a parsing procedure . 
+	</s>
+	
+
+	<s id="6">
+		 We compare the two approaches along two dimensions : the quality of the probabilistic regular language they produce , and the performance of the parser they were used to build . 
+	</s>
+	
+
+	<s id="7">
+		 The second approach outperforms the first one along both dimensions . 
+	</s>
+	
+
+	<s id="8">
+		 1 Introduction N-grams have had a big impact on the state of the art in natural language parsing . 
+	</s>
+	
+
+	<s id="9">
+		 They are central to many parsing models ( Charniak , 1997 ; Collins , 1997 , 2000 ; Eisner , 1996 ) , and despite their simplicity n-gram models have been very successful . 
+	</s>
+	
+
+	<s id="10">
+		 Modeling with n-grams is an induction task 
+		<ref citStr="Gold , 1967" id="1" label="CEPF" position="1408">
+			( Gold , 1967 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="11">
+		 Given a sample set of strings , the task is to guess the grammar that produced that sample . 
+	</s>
+	
+
+	<s id="12">
+		 Usually , the grammar is not be chosen from an arbitrary set of possible grammars , but from a given class . 
+	</s>
+	
+
+	<s id="13">
+		 Hence , grammar induction consists of two parts : choosing the class of languages amongst which to search and designing the procedure for performing the search . 
+	</s>
+	
+
+	<s id="14">
+		 By using n-grams for grammar induction one addresses the two parts in one go . 
+	</s>
+	
+
+	<s id="15">
+		 In particular , the use of n-grams implies that the solution will be searched for in the class of probabilistic regular languages , since n-grams induce probabilistic automata and , consequently , probabilistic regular languages . 
+	</s>
+	
+
+	<s id="16">
+		 However , the class of probabilistic regular languages induced using n-grams is a proper subclass of the class of all probabilistic regular languages ; n-grams are incapable of capturing long-distance relations between words . 
+	</s>
+	
+
+	<s id="17">
+		 At the technical level the restricted nature of n-grams is witnessed by the special structure of the automata induced from them , as we will see in Section 4.2 . 
+	</s>
+	
+
+	<s id="18">
+		 N-grams are not the only way to induce regular languages , and not the most powerful way to do so . 
+	</s>
+	
+
+	<s id="19">
+		 There is a variety of general methods capable of inducing all regular languages 
+		<ref citStr="Denis , 2001" id="2" label="CEPF" position="2735">
+			( Denis , 2001 
+		</ref>
+		<ref citStr="Carrasco and Oncina , 1994" id="3" label="CEPF" position="2750">
+			; Carrasco and Oncina , 1994 
+		</ref>
+		<ref citStr="Thollard et al. , 2000" id="4" label="CEPF" position="2779">
+			; Thollard et al. , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="20">
+		 What is their relevance for natural language parsing ? 
+	</s>
+	
+
+	<s id="21">
+		 Recall that regular languages are used for describing the bodies of rules in a grammar . 
+	</s>
+	
+
+	<s id="22">
+		 Consequently , the quality and expressive power of the resulting grammar is tied to the quality and expressive power of the regular languages used to describe them . 
+	</s>
+	
+
+	<s id="23">
+		 And the quality and expressive power of the latter , in turn , are influenced directly by the method used to induce them . 
+	</s>
+	
+
+	<s id="24">
+		 These observations give rise to a natural question : can we gain anything in parsing from using general methods for inducing regular languages instead of methods based on n-grams ? 
+	</s>
+	
+
+	<s id="25">
+		 Specifically , can we describe the bodies of grammatical rules more accurately and more concisely by using general methods for inducing regular languages ? 
+	</s>
+	
+
+	<s id="26">
+		 In the context of natural language parsing we present an empirical comparison between algorithms for inducing regular languages using n- grams on the one hand , and more general algorithms for learning the general class of regular language on the other hand . 
+	</s>
+	
+
+	<s id="27">
+		 We proceed as follows . 
+	</s>
+	
+
+	<s id="28">
+		 We generate our training data from the Wall Street Journal Section of the Penn Tree Bank ( PTB ) , by transforming it to projective dependency structures , following 
+		<ref citStr="Collins , 1996" id="5" label="CERF" position="4127">
+			( Collins , 1996 )
+		</ref>
+		 , and extracting rules from the result . 
+	</s>
+	
+
+	<s id="29">
+		 These rules are used as training material for the rule induction algorithms we consider . 
+	</s>
+	
+
+	<s id="30">
+		 The automata produced this way are then used to build grammars which , in turn , are used for parsing . 
+	</s>
+	
+
+	<s id="31">
+		 We are interested in two different aspects of the use of probabilistic regular languages for natural language parsing : the quality of the induced automata and the performance of the resulting parsers . 
+	</s>
+	
+
+	<s id="32">
+		 For evaluation purposes , we use two different metrics : perplexity for the first aspect and percentage of correct attachments for the second . 
+	</s>
+	
+
+	<s id="33">
+		 The main results of the paper are that , measured in terms of perplexity , the automata induced by algorithms other than n-grams describe the rule bodies better than automata induced using n-gram-based algorithms , and that , moreover , the gain in automata quality is reflected by an improvement in parsing performance . 
+	</s>
+	
+
+	<s id="34">
+		 We also find that the parsing performance of both methods ( n-grams vs. general automata ) can be substantially improved by splitting the training material into POS categories . 
+	</s>
+	
+
+	<s id="35">
+		 As a side product , we find empirical evidence to suggest that the effectiveness of rule lexicalization techniques ( Collins , 1997 ; Sima’an , 2000 ) and parent annotation techniques 
+		<ref citStr="Klein and Manning , 2003" id="6" label="CEPF" position="5486">
+			( Klein and Manning , 2003 )
+		</ref>
+		 is due to the fact that both lead to a reduction in perplexity in the automata induced from training corpora . 
+	</s>
+	
+
+	<s id="36">
+		 Section 2 surveys our experiments , and later sections provide details of the various aspects . 
+	</s>
+	
+
+	<s id="37">
+		 Section 3 offers details on our grammatical framework , PCW-grammars , on transforming automata to PCW-grammars , and on parsing with PCWgrammars . 
+	</s>
+	
+
+	<s id="38">
+		 Section 4 explains the starting point of this process : learning automata , and Section 5 reports on parsing experiments . 
+	</s>
+	
+
+	<s id="39">
+		 We discuss related work in Section 6 and conclude in Section 7 . 
+	</s>
+	
+
+	<s id="40">
+		 2 Overview We want to build grammars using different algorithms for inducing their rules . 
+	</s>
+	
+
+	<s id="41">
+		 Our main question is aimed at understanding how different algorithms for inducing regular languages impact the parsing performance with those grammars . 
+	</s>
+	
+
+	<s id="42">
+		 A second issue that we want to explore is how the grammars perform when the quality of the training material is improved , that is , when the training material is separated into part of speech ( POS ) categories before the regular language learning algorithms are run . 
+	</s>
+	
+
+	<s id="43">
+		 We first transform the PTB into projective dependencies structures following 
+		<ref citStr="Collins , 1996" id="7" label="CERF" position="6711">
+			( Collins , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="44">
+		 From the resulting tree bank we delete all lexical information except POS tags . 
+	</s>
+	
+
+	<s id="45">
+		 Every POS in a tree belonging to the tree-bank has associated to it two different , possibly empty , sequences of right and left dependents , respectively . 
+	</s>
+	
+
+	<s id="46">
+		 We extract all these sequences for all trees , producing two different sets containing right and left sequences of dependents respectively . 
+	</s>
+	
+
+	<s id="47">
+		 These two sets form the training material used for building four different grammars . 
+	</s>
+	
+
+	<s id="48">
+		 The four grammars differ along two dimensions : the number of automata used for building them and the algorithm used for inducing the automata . 
+	</s>
+	
+
+	<s id="49">
+		 As to the latter dimension , in Section 4 we use two algorithms : the Minimum Discriminative Information ( MDI ) algorithm , and a bigram-based algorithm . 
+	</s>
+	
+
+	<s id="50">
+		 As to the former dimension , two of the grammars are built using only two different automata , each of which is built using the two sample set generated from the PTB . 
+	</s>
+	
+
+	<s id="51">
+		 The other two grammars were built using two automata per POS , exploiting a split of the train ing samples into multiple samples , two samples per POS , to be precise , each containing only those samples where the POS appeared as the head . 
+	</s>
+	
+
+	<s id="52">
+		 The grammars built from the induced automata are so-called PCW-grammars ( see Section 3 ) , a formalism based on probabilistic context free grammars ( PCFGs ) ; as we will see in Section 3 , inferring them from automata is almost immediate . 
+	</s>
+	
+
+	<s id="53">
+		 3 Grammatical Framework We briefly detail the grammars we work with ( PCW-grammars ) , how automata give rise to these grammars , and how we parse using them . 
+	</s>
+	
+
+	<s id="54">
+		 3.1 PCW-Grammars We need a grammatical framework that models rule bodies as instances of a regular language and that allows us to transform automata to grammars as directly as possible . 
+	</s>
+	
+
+	<s id="55">
+		 We decided to embed them in the general grammatical framework of CW-grammars 
+		<ref citStr="Infante-Lopez and de Rijke , 2003" id="8" label="CEPF" position="8700">
+			( Infante-Lopez and de Rijke , 2003 )
+		</ref>
+		 : based on PCFGs , they have a clear and well- understood mathematical background and we do not need to implement ad-hoc parsing algorithms . 
+	</s>
+	
+
+	<s id="56">
+		 A probabilistic constrained W-grammar ( PCWgrammar ) consists of two different sets of PCF-like rules called pseudo-rules and meta-rules respectively and three pairwise disjoint sets of symbols : variables , non-terminals and terminals . 
+	</s>
+	
+
+	<s id="57">
+		 Pseudo- rules and meta-rules provide mechanisms for building ‘real’ rewrite rules . 
+	</s>
+	
+
+	<s id="58">
+		 We use a w==.&gt; Q to indicate that a should be rewritten as Q . 
+	</s>
+	
+
+	<s id="59">
+		 In the case of PCWgrammars , rewrite rules are built by first selecting a pseudo-rule , and then using meta-rules for instantiating all the variables in the body of the pseudo-rule . 
+	</s>
+	
+
+	<s id="60">
+		 To illustrate these concepts , we provide an example . 
+	</s>
+	
+
+	<s id="61">
+		 Let W = ( V , NT , T , 5 , m^ ) , '9^ ) ) be a CWgrammar such that the set of variable , non-terminals pseudo-rules 5 '9^ )1 Adj Noun Adj '9^ )0.1 big Noun '9^ )1 ball ... and terminals are defined as follows : V = { Adj } , NT = { 5 , Adj , Noun } , T = { ball , big , fat , red , green , ... } . 
+	</s>
+	
+
+	<s id="62">
+		 As usual , the numbers attached to the arrows indicate the probabilities of the rules . 
+	</s>
+	
+
+	<s id="63">
+		 The rules defined by W have the following shape : 5 =w=.&gt; Adj* Noun . 
+	</s>
+	
+
+	<s id="64">
+		 Suppose now that we want to build the rule 5 =w=.&gt; Adj Adj Noun . 
+	</s>
+	
+
+	<s id="65">
+		 We take the pseudo-rule 5 '9^ ) 1 Adj Noun and instantiate the Adj m^ )0.5 Adj Adj Adj m^ )0.5 Adj meta-rules variable Adj with Adj Adj to get the desired rule . 
+	</s>
+	
+
+	<s id="66">
+		 The probability for it is 1 x 0.5 x 0.5 , that is , the probability of the derivation for Adj Adj times the probability of the pseudo-rule used . 
+	</s>
+	
+
+	<s id="67">
+		 Trees for this particular grammar are flat , with a main node 5 and all the adjectives in it as daughters . 
+	</s>
+	
+
+	<s id="68">
+		 An example derivation is given in Figure 1(a) . 
+	</s>
+	
+
+	<s id="69">
+		 3.2 From Automata to Grammars Now that we have introduced PCW-grammars , we describe how we build them from the automata that we are going to induce in Section 4 . 
+	</s>
+	
+
+	<s id="70">
+		 Since we will induce two families of automata ( “Many- Automata” where we use two automata per POS , and “One-Automaton” where we use only two automata to fit every POS ) , we need to describe two automata-to-grammar transformations . 
+	</s>
+	
+
+	<s id="71">
+		 Let’s start with the case where we build two automata per POS . 
+	</s>
+	
+
+	<s id="72">
+		 Let w be a POS in the PTB ; let AwL and AwR be the two automata associated to it . 
+	</s>
+	
+
+	<s id="73">
+		 Let GwL and GwR be the PCFGs equivalent to AwLandAwR , respectively , following 
+		<ref citStr="Abney et al. , 1999" id="9" label="CEPF" position="11279">
+			( Abney et al. , 1999 )
+		</ref>
+		 , and let 5wL and 5wR be the starting symbols of GwL and GwR , respectively . 
+	</s>
+	
+
+	<s id="74">
+		 We build our final grammar G with starting symbol 5 , by defining its meta-rules as the disjoint union of all rules in GwL and GwR ( for all POS w ) , its set of pseudo-rules as the union of the sets { W '9^ )1 5wLw5wR and 5 '9^ )1 5wLw5wR } , where W is a unique new variable symbol associated to w . 
+	</s>
+	
+
+	<s id="75">
+		 When we use two automata for all parts of speech , the grammar is defined as follows . 
+	</s>
+	
+
+	<s id="76">
+		 Let AL and AR be the two automata learned . 
+	</s>
+	
+
+	<s id="77">
+		 Let GL and GR be the PCFGs equivalent to AL and AR , and let 5L and 5R be the starting symbols of GL and GR , respectively . 
+	</s>
+	
+
+	<s id="78">
+		 Fix a POS w in the PTB . 
+	</s>
+	
+
+	<s id="79">
+		 Since the automata are deterministic , there exist states 5wL and 5wR that are reachable from 5L and 5R , respectively , by following the arc labeled with w. Define a grammar as in the previous case . 
+	</s>
+	
+
+	<s id="80">
+		 Its starting symbol is 5 , its set of meta-rules is the disjoint union of all rules in GwL and GwR ( for all POS w ) , its set of pseudo- rules is { W '9^ )1 5wLw5wR,5 '9^ )1 5wLw5wR : w is a POS in the PTB and W is a unique new variable symbol associated to w } . 
+	</s>
+	
+
+	<s id="81">
+		 3.3 Parsing PCW-Grammars Parsing PCW-grammars requires two steps : a generation-rule step followed by a tree-building step . 
+	</s>
+	
+
+	<s id="82">
+		 We now explain how these two steps can be carried out in one go . 
+	</s>
+	
+
+	<s id="83">
+		 Parsing with PCW-grammars can be viewed as parsing with PCF grammars . 
+	</s>
+	
+
+	<s id="84">
+		 The main difference is that in PCW-parsing derivations for variables remain hidden in the final tree . 
+	</s>
+	
+
+	<s id="85">
+		 To clarify this , consider the trees depicted in Figure 1 ; the tree in part ( a ) is the CW-tree corresponding to the word red big green ball , and the tree in part ( b ) is the same tree but now the instantiations of the meta- rules that were used have been made visible . 
+	</s>
+	
+
+	<s id="86">
+		 ( a ) ( b ) Figure 1 : ( a ) A tree generated by W. ( b ) The same tree with meta-rule derivations made visible . 
+	</s>
+	
+
+	<s id="87">
+		 To adapt a PCFG to parse CW-grammars , we need to define a PCF grammar for a given PCWgrammar by adding the two sets of rules while making sure that all meta-rules have been marked somehow . 
+	</s>
+	
+
+	<s id="88">
+		 In Figure 1(b) the head symbols of meta-rules have been marked with the superscript 1 . 
+	</s>
+	
+
+	<s id="89">
+		 After parsing the sentence with the PCF parser , all marked rules should be collapsed as shown in part ( a ) . 
+	</s>
+	
+
+	<s id="90">
+		 4 Building Automata The four grammars we intend to induce are completely defined once the underlying automata have been built . 
+	</s>
+	
+
+	<s id="91">
+		 We now explain how we build those automata from the training material . 
+	</s>
+	
+
+	<s id="92">
+		 We start by detailing how the material is generated . 
+	</s>
+	
+
+	<s id="93">
+		 4.1 Building the Sample Sets We transform the PTB , sections 2–22 , to dependency structures , as suggested by 
+		<ref citStr="Collins , 1999" id="10" label="CERF" position="14115">
+			( Collins , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="94">
+		 All sentences containing CC tags are filtered out , following 
+		<ref citStr="Eisner , 1996" id="11" label="CERF" position="14206">
+			( Eisner , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="95">
+		 We also eliminate all word information , leaving only POS tags . 
+	</s>
+	
+
+	<s id="96">
+		 For each resulting dependency tree we extract a sample set of right and left sequences of dependents as shown in Figure 2 . 
+	</s>
+	
+
+	<s id="97">
+		 From the tree we generate a sample set with all right sequences of dependents { E , E , E } , and another with all left sequences { E , E , red big green } . 
+	</s>
+	
+
+	<s id="98">
+		 The sample set used for automata induction is the union of all individual tree sample sets . 
+	</s>
+	
+
+	<s id="99">
+		 4.2 Learning Probabilistic Automata Probabilistic deterministic finite state automata ( PDFA ) inference is the problem of inducing a stochastic regular grammar from a sample set of strings belonging to an unknown regular language . 
+	</s>
+	
+
+	<s id="100">
+		 The most direct approach for solving the task is by Adj 1 Adj 1 Adj 1 Adj red S Noun ball Adj green Adj big Adj red Adj big S Adj green Noun ball left right left right left right e e e e red big green e ( c ) Figure 2 : ( a ) , ( b ) Dependency representations of Figure 1. ( c ) Sample instances extracted from this tree . 
+	</s>
+	
+
+	<s id="101">
+		 using n-grams . 
+	</s>
+	
+
+	<s id="102">
+		 The n-gram induction algorithm adds a state to the resulting automaton for each sequence of symbols of length n it has seen in the training material ; it also adds an arc between states aQ and Qb labeled b , if the sequence aQb appears in the training set . 
+	</s>
+	
+
+	<s id="103">
+		 The probability assigned to the arc ( aQ , Qb ) is proportional to the number of times the sequence aQb appears in the training set . 
+	</s>
+	
+
+	<s id="104">
+		 For the remainder , we take n-grams to be bigrams . 
+	</s>
+	
+
+	<s id="105">
+		 There are other approaches to inducing regular grammars besides ones based on n-grams . 
+	</s>
+	
+
+	<s id="106">
+		 The first algorithm to learn PDFAs was ALERGIA 
+		<ref citStr="Carrasco and Oncina , 1994" id="12" label="CEPF" position="15939">
+			( Carrasco and Oncina , 1994 )
+		</ref>
+		 ; it learns cyclic automata with the so-called state-merging method . 
+	</s>
+	
+
+	<s id="107">
+		 The Minimum Discrimination Information ( MDI ) algorithm 
+		<ref citStr="Thollard et al. , 2000" id="13" label="CEPF" position="16102">
+			( Thollard et al. , 2000 )
+		</ref>
+		 improves over ALERGIA and uses Kullback-Leibler divergence for deciding when to merge states . 
+	</s>
+	
+
+	<s id="108">
+		 We opted for the MDI algorithm as an alternative to n-gram based induction algorithms , mainly because their working principles are radically different from the n-gram-based algorithm . 
+	</s>
+	
+
+	<s id="109">
+		 The MDI algorithm first builds an automaton that only accepts the strings in the sample set by merging common prefixes , thus producing a tree-shaped automaton in which each transition has a probability proportional to the number of times it is used while generating the positive sample . 
+	</s>
+	
+
+	<s id="110">
+		 The MDI algorithm traverses the lattice of all possible partitions for this general automaton , attempting to merge states that satisfy a trade-off that can be specified by the user . 
+	</s>
+	
+
+	<s id="111">
+		 Specifically , assume that A1 is a temporary solution of the algorithm and that A2 is a tentative new solution derived from A1 . 
+	</s>
+	
+
+	<s id="112">
+		 A(A1,A2) = D(A0IIA2) — D(A0IIA1) de- notes the divergence increment while going from A1 to A2 , where D(A0I I AZ ) is the Kullback-Leibler divergence or relative entropy between the two distributions generated by the corresponding au- tomata 
+		<ref citStr="Cover and Thomas , 1991" id="14" label="CEPF" position="17301">
+			( Cover and Thomas , 1991 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="113">
+		 The new solution A2 is compatible with the training data if the divergence increment relative to the size reduction , that is , the reduction of the number of states , is small enough . 
+	</s>
+	
+
+	<s id="114">
+		 Formally , let alpha denote a compatibility threshold ; then the compatibility is satisfied if A(A1,A2) &lt; alpha . 
+	</s>
+	
+
+	<s id="115">
+		 For this learning algorithm , IA11^1A21 alpha is the unique parameter ; we tuned it to get better quality automata . 
+	</s>
+	
+
+	<s id="116">
+		 4.3 Optimizing Automata We use three measures to evaluate the quality of a probabilistic automaton ( and set the value of alpha optimally ) . 
+	</s>
+	
+
+	<s id="117">
+		 The first , called test sample perplexity ( PP ) , is based on the per symbol log- likelihood of strings x belonging to a test sample according to the distribution defined by the au- tomaton . 
+	</s>
+	
+
+	<s id="118">
+		 Formally , LL = — Is1 Px^S log ( P( where P(x) is the probability assigned to the string x by the automata . 
+	</s>
+	
+
+	<s id="119">
+		 The perplexity PP is defined as PP = 2LL . 
+	</s>
+	
+
+	<s id="120">
+		 The minimal perplexity PP = 1 is reached when the next symbol is always predicted with probability 1 from the current state , while PP = I E I corresponds to uniformly guessing from an alphabet of size I E I. The second measure we used to evaluate the quality of an automaton is the number of missed samples ( MS ) . 
+	</s>
+	
+
+	<s id="121">
+		 A missed sample is a string in the test sample that the automaton failed to accept . 
+	</s>
+	
+
+	<s id="122">
+		 One such instance suffices to have PP undefined ( LL infinite ) . 
+	</s>
+	
+
+	<s id="123">
+		 Since an undefined value of PP only witnesses the presence of at least one MS we decided to count the number of MS separately , and compute PP without taking MS into account . 
+	</s>
+	
+
+	<s id="124">
+		 This choice leads to a more accurate value of PP , while , moreover , the value of MS provides us with information about the generalization capacity of automata : the lower the value of MS , the larger the generalization capacities of the automaton . 
+	</s>
+	
+
+	<s id="125">
+		 The usual way to circumvent undefined perplexity is to smooth the resulting automaton with unigrams , thus increasing the generalization capacity of the automaton , which is usually paid for with an increase in perplexity . 
+	</s>
+	
+
+	<s id="126">
+		 We decided not to use any smoothing techniques as we want to compare bigram-based automata with MDI-based automata in the cleanest possible way . 
+	</s>
+	
+
+	<s id="127">
+		 The PP and MS measures are relative to a test sample ; we transformed section 00 of the PTB to obtain one.1 1If smoothing techniques are used for optimizing automata based on n-grams , they should also be used for optimizing MDI-based automata . 
+	</s>
+	
+
+	<s id="128">
+		 A fair experiment for comparing the two automata-learning algorithms using smoothing techniques would consist of first building two pairs of automata . 
+	</s>
+	
+
+	<s id="129">
+		 The first pair would consist of the unigram-based automaton together jj jj nn S nn red big green ball JJ JJ JJ jj red jj big jj green ball ( a ) ( b ) x ) ) , The third measure we used to evaluate the quality of automata concerns the size of the automata . 
+	</s>
+	
+
+	<s id="130">
+		 We compute NumEdges and NumStates ( the number of edges and the number of states of the automaton ) . 
+	</s>
+	
+
+	<s id="131">
+		 We used PP , US , NumEdges , and NumStates to compare automata . 
+	</s>
+	
+
+	<s id="132">
+		 We say that one automaton is of a better quality than another if the values of the 4 indicators are lower for the first than for the second . 
+	</s>
+	
+
+	<s id="133">
+		 Our aim is to find a value of alpha that produces an automaton of better quality than the bigram-based counterpart . 
+	</s>
+	
+
+	<s id="134">
+		 By exhaustive search , using all training data , we determined the optimal value of alpha . 
+	</s>
+	
+
+	<s id="135">
+		 We selected the value of alpha for which the MDI-based automaton outperforms the bigram-based one.2 We exemplify our procedure by considering automata for the “One-Automaton” setting ( where we used the same automata for all parts of speech ) . 
+	</s>
+	
+
+	<s id="136">
+		 In Figure 3 we plot all values of PP and MS computed for different values of alpha , for each training set ( i.e. , left and right ) . 
+	</s>
+	
+
+	<s id="137">
+		 From the plots we can identify values of alpha that produce automata having better values of PP and MS than the bigram-based ones . 
+	</s>
+	
+
+	<s id="138">
+		 All such alphas are the ones inside the marked areas ; automata induced using those alphas possess a lower value of PP as well as a smaller number of MS , as required . 
+	</s>
+	
+
+	<s id="139">
+		 Based on these explorations MDI Bigrams Right Left Right Left NumEdges NumStates 268 328 20519 16473 12 15 844 755 Table 1 : Automata sizes for the “One-Automaton” case , with alpha = 0.0001. we selected alpha = 0.0001 for building the au tomata used for grammar induction in the “One- Automaton” case . 
+	</s>
+	
+
+	<s id="140">
+		 Besides having lower values of PP and MS , the resulting automata are smaller than the bigram based automata ( Table 1 ) . 
+	</s>
+	
+
+	<s id="141">
+		 MDI com- presses information better ; the values in the tables with an MDI-based automaton outperforming the unigrambased one . 
+	</s>
+	
+
+	<s id="142">
+		 The second one , a bigram-based automata together with an MDI-based automata outperforming the bigram-based one . 
+	</s>
+	
+
+	<s id="143">
+		 Second , the two n-gram based automata smoothed into a single automaton have to be compared against the two MDIbased automata smoothed into a single automaton . 
+	</s>
+	
+
+	<s id="144">
+		 It would be hard to determine whether the differences between the final automata are due to smoothing procedure or to the algorithms used for creating the initial automata . 
+	</s>
+	
+
+	<s id="145">
+		 By leaving smoothing out of the picture , we obtain a clearer understanding of the differences between the two automata induction algorithms . 
+	</s>
+	
+
+	<s id="146">
+		 2An equivalent value of alpha can be obtained independently of the performance of the bigram-based automata by defining a measure that combines PP and MS . 
+	</s>
+	
+
+	<s id="147">
+		 This measure should reach its maximum when PP and MS reach their minimums . 
+	</s>
+	
+
+	<s id="148">
+		 suggest that MDI finds more regularities in the sample set than the bigram-based algorithm . 
+	</s>
+	
+
+	<s id="149">
+		 To determine optimal values for the “Many- Automata” case ( where we learned two automata for each POS ) we used the same procedure as for the “One-Automaton” case , but now for every individual POS . 
+	</s>
+	
+
+	<s id="150">
+		 Because of space constraints we are not able to reproduce analogues of Figure 3 and Table 1 for all parts of speech . 
+	</s>
+	
+
+	<s id="151">
+		 Figure 4 contains representative plots ; the remaining plots are available online at http : //www. science . 
+	</s>
+	
+
+	<s id="152">
+		 uva.nl/˜infante/POS . 
+	</s>
+	
+
+	<s id="153">
+		 Besides allowing us to find the optimal alphas , the plots provide us with a great deal of information . 
+	</s>
+	
+
+	<s id="154">
+		 For instance , there are two remarkable things in the plots for VBP ( Figure 4 , second row ) . 
+	</s>
+	
+
+	<s id="155">
+		 First , it is one of the few examples where the bigrambased algorithm performs better than the MDI algorithm . 
+	</s>
+	
+
+	<s id="156">
+		 Second , the values of PP in this plot are relatively high and unstable compared to other POS plots . 
+	</s>
+	
+
+	<s id="157">
+		 Lower perplexity usually implies better quality automata , and as we will see in the next section , better automata produce better parsers . 
+	</s>
+	
+
+	<s id="158">
+		 How can we obtain lower PP values for the VBP automata ? 
+	</s>
+	
+
+	<s id="159">
+		 The class of words tagged with VBP harbors many different behaviors , which is not surprising , given that verbs can differ widely in terms of , e.g. , their sub- categorization frames . 
+	</s>
+	
+
+	<s id="160">
+		 One way to decrease the PP values is to split the class of words tagged with VBP into multiple , more homogeneous classes . 
+	</s>
+	
+
+	<s id="161">
+		 Note from Figures 3 and 4 that splitting the original sample sets into POS-dependent sets produces a huge decrease on PP . 
+	</s>
+	
+
+	<s id="162">
+		 One attempt to implement this idea is lexicalization : increasing the information in the POS tag by adding the lemma to it ( Collins , 1997 ; Sima’an , 2000 ) . 
+	</s>
+	
+
+	<s id="163">
+		 Lexicalization splits the class of verbs into a family of singletons producing more homogeneous classes , as desired . 
+	</s>
+	
+
+	<s id="164">
+		 A different approach 
+		<ref citStr="Klein and Manning , 2003" id="15" label="CEPF" position="25108">
+			( Klein and Manning , 2003 )
+		</ref>
+		 consists in adding head information to dependents ; words tagged with VBP are then split into classes according to the words that dominate them in the training corpus . 
+	</s>
+	
+
+	<s id="165">
+		 Some POS present very high perplexities , but tags such as DT present a PP close to 1 ( and 0 MS ) for all values of alpha . 
+	</s>
+	
+
+	<s id="166">
+		 Hence , there is no need to introduce further distinctions in DT , doing so will not increase the quality of the automata but will increase their number ; splitting techniques are bound to add noise to the resulting grammars . 
+	</s>
+	
+
+	<s id="167">
+		 The plots also indicate that the bigram-based algorithm captures them as well as the MDI algorithm . 
+	</s>
+	
+
+	<s id="168">
+		 In Figure 4 , third row , we see that the MDI-based automata and the bigram-based automata achieve the same value of PP ( close to 5 ) for NN , but Unique Automaton - Left Side 5e-05 0.0001 0.00015 0.0002 0.00025 0.0003 0.00035 0.0004 Alpha Unique Automaton - Right Side 5e-05 0.0001 0.00015 0.0002 0.00025 0.0003 0.00035 0.0004 Alpha 25 20 15 10 5 0 MDI Perplex . 
+	</s>
+	
+
+	<s id="169">
+		 ( PP ) Bigram Perplex . 
+	</s>
+	
+
+	<s id="170">
+		 ( PP ) MDI Missed Samples ( MS ) Bigram Missed Samples ( MS ) 30 25 20 15 10 5 0 MDI Perplex . 
+	</s>
+	
+
+	<s id="171">
+		 ( PP ) Bigram Perplex . 
+	</s>
+	
+
+	<s id="172">
+		 ( PP ) MDI Missed Samples ( MS ) Bigram Missed Samples ( MS ) Figure 3 : Values of PP and MS for automata used in building One-Automaton grammars . 
+	</s>
+	
+
+	<s id="173">
+		 ( X-axis ) : alpha . 
+	</s>
+	
+
+	<s id="174">
+		 ( Y-axis ) : missed samples ( MS ) and perplexity ( PP ) . 
+	</s>
+	
+
+	<s id="175">
+		 The two constant lines represent the values of PP and MS for the bigram-based automata . 
+	</s>
+	
+
+	<s id="176">
+		 VBP - LeftSide 9 8 7 6 5 4 3 Alpha VBP - LeftSide 9 8 7 6 5 4 3 Alpha MDI Perplex . 
+	</s>
+	
+
+	<s id="177">
+		 ( PP ) Bigram Perplex . 
+	</s>
+	
+
+	<s id="178">
+		 ( PP ) MDI Missed Samples ( MS ) Bigram Missed Samples ( MS ) MDI Perplex . 
+	</s>
+	
+
+	<s id="179">
+		 ( PP ) Bigram Perplex . 
+	</s>
+	
+
+	<s id="180">
+		 ( PP ) MDI Missed Samples ( MS ) Bigram Missed Samples ( MS ) NN - LeftSide NN - RightSide 30 25 20 15 10 5 30 25 20 15 10 5 0 0 Alpha Alpha MDI Perplex . 
+	</s>
+	
+
+	<s id="181">
+		 ( PP ) Bigram Perplex . 
+	</s>
+	
+
+	<s id="182">
+		 ( PP ) MDI Missed Samples ( MS ) Bigram Missed Samples ( MS ) MDI Perplex . 
+	</s>
+	
+
+	<s id="183">
+		 ( PP ) Bigram Perplex . 
+	</s>
+	
+
+	<s id="184">
+		 ( PP ) MDI Missed Samples ( MS ) Bigram Missed Samples ( MS ) Figure 4 : Values of PP and MS for automata for ad-hoc automata the MDI misses fewer examples for alphas big ger than 1.4e — 04 . 
+	</s>
+	
+
+	<s id="185">
+		 As pointed out , we built the One-Automaton-MDI using alpha = 0.0001 and even though the method allows us to fine-tune each alpha in the Many-Automata-MDI grammar , we used a fixed alpha = 0.0002 for all parts of speech , which , for most parts of speech , produces better au- tomata than bigrams . 
+	</s>
+	
+
+	<s id="186">
+		 Table 2 lists the sizes of the automata . 
+	</s>
+	
+
+	<s id="187">
+		 The differences between MDI-based and bigram-based automata are not as dramatic as in the “One-Automaton” case ( Table 1 ) , but the former again have consistently lower NumEdges and NumStates values , for all parts of speech , even where bigram-based automata have a lower perplexity . 
+	</s>
+	
+
+	<s id="188">
+		 POS MDI Bigrams Right Left Right Left DT NumEdges 21 14 35 39 NumStates 4 3 25 17 VBP NumEdges 300 204 2596 1311 NumStates 50 45 250 149 NN NumEdges 104 111 3827 4709 NumStates 6 4 284 326 Table 2 : Automata sizes for the three parts of speech in the “Many-Automata” case , with alpha = 0.0002 for parts of speech . 
+	</s>
+	
+
+	<s id="189">
+		 5 Parsing the PTB We have observed remarkable differences in quality between MDI-based and bigram-based automata . 
+	</s>
+	
+
+	<s id="190">
+		 Next , we present the parsing scores , and discuss the meaning of the measures observed for automata in the context of the grammars they produce . 
+	</s>
+	
+
+	<s id="191">
+		 The measure that translates directly from automata to grammars is automaton size . 
+	</s>
+	
+
+	<s id="192">
+		 Since each automaton is transformed into a PCFG , the number of rules in the resulting grammar is proportional to the number of arcs in the automaton , and the number of non- terminals is proportional to the number of states . 
+	</s>
+	
+
+	<s id="193">
+		 From Table 3 we see that MDI compresses information better : the sizes of the grammars produced by the MDI-based automata are an order of magnitude smaller that those produced using bigram-based automata . 
+	</s>
+	
+
+	<s id="194">
+		 Moreover , the “One-Automaton” versions substantially reduce the size of the resulting grammars ; this is obviously due to the fact that all POS share the same underlying automaton so that information does not need to be duplicated across parts of speech . 
+	</s>
+	
+
+	<s id="195">
+		 To understand the meaning of PP and One Automaton Many Automata MDI Bigram MDI Bigram 702 38670 5316 68394 Table 3 : Number of rules in the grammars built . 
+	</s>
+	
+
+	<s id="196">
+		 MS in the context of grammars it helps to think of PCW-parsing as a two-phase procedure . 
+	</s>
+	
+
+	<s id="197">
+		 The first phase consists of creating the rules that will be used in the second phase . 
+	</s>
+	
+
+	<s id="198">
+		 And the second phase consists in using the rules created in the first phase as a PCFG and parsing the sentence using a PCF parser . 
+	</s>
+	
+
+	<s id="199">
+		 Since regular expressions are used to build rules , the values of PP and MS quantify the quality of the set of rules built for the second phase : MS gives us a measure of the number rule bodies that should be created but that will not be created , and , hence , it gives us a measure of the number of “correct” trees that will not be produced . 
+	</s>
+	
+
+	<s id="200">
+		 PP tells us how uncertain the first phase is about producing rules . 
+	</s>
+	
+
+	<s id="201">
+		 Finally , we report on the parsing accuracy . 
+	</s>
+	
+
+	<s id="202">
+		 We use two measures , the first one ( %Words ) was proposed by 
+		<ref citStr="Lin ( 1995 )" id="16" label="CEPF" position="30566">
+			Lin ( 1995 )
+		</ref>
+		 and was the one reported in 
+		<ref citStr="Eisner , 1996" id="17" label="CEPF" position="30612">
+			( Eisner , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="203">
+		 Lin’s measure computes the fraction of words that have been attached to the right word . 
+	</s>
+	
+
+	<s id="204">
+		 The second one ( %POS ) marks as correct a word attachment if , and only if , the POS tag of the head is the same as that of the right head , i.e. , the word was attached to the correct word-class , even though the word is not the correct one in the sentence . 
+	</s>
+	
+
+	<s id="205">
+		 Clearly , the second measure is always higher than the first one . 
+	</s>
+	
+
+	<s id="206">
+		 The two measures try to capture the performance of the PCW-parser in the two phases described above : ( %POS ) tries to capture the performance in the first phase , and ( %Words ) in the second phase . 
+	</s>
+	
+
+	<s id="207">
+		 The measures reported in Table 4 are the mean values of ( %POS ) and ( %Words ) computed over all sentences in section 23 having length at most 20 . 
+	</s>
+	
+
+	<s id="208">
+		 We parsed only those sentences because the resulting grammars for bigrams are too big : parsing all sentences without any serious pruning techniques was simply not feasible . 
+	</s>
+	
+
+	<s id="209">
+		 From Table 4 MDI Bigrams %Words %POS %Words %POS One-Aut . 
+	</s>
+	
+
+	<s id="210">
+		 Many-Aut . 
+	</s>
+	
+
+	<s id="211">
+		 0.69 0.73 0.59 0.63 0.85 0.88 0.73 0.76 Table 4 : Parsing results for the PTB we see that the grammars induced with MDI outperform the grammars created with bigrams . 
+	</s>
+	
+
+	<s id="212">
+		 Moreover , the grammar using different automata per POS outperforms the ones built using only a single automaton per side ( left or right ) . 
+	</s>
+	
+
+	<s id="213">
+		 The results suggest that an increase in quality of the automata has a direct impact on the parsing performance . 
+	</s>
+	
+
+	<s id="214">
+		 6 Related Work and Discussion Modeling rule bodies is a key component of parsers . 
+	</s>
+	
+
+	<s id="215">
+		 N-grams have been used extensively for this purpose ( Collins 1996 , 1997 ; Eisner , 1996 ) . 
+	</s>
+	
+
+	<s id="216">
+		 In these formalisms the generative process is not considered in terms of probabilistic regular languages . 
+	</s>
+	
+
+	<s id="217">
+		 Considering them as such ( like we do ) has two advantages . 
+	</s>
+	
+
+	<s id="218">
+		 First , a vast area of research for inducing regular languages 
+		<ref citStr="Carrasco and Oncina , 1994" id="18" label="CEPF" position="32603">
+			( Carrasco and Oncina , 1994 
+		</ref>
+		<ref citStr="Thollard et al. , 2000" id="19" label="CEPF" position="32632">
+			; Thollard et al. , 2000 
+		</ref>
+		<ref citStr="Dupont and Chase , 1998" id="20" label="CEPF" position="32657">
+			; Dupont and Chase , 1998 )
+		</ref>
+		 comes in sight . 
+	</s>
+	
+
+	<s id="219">
+		 Second , the parsing device itself can be viewed under a unifying grammatical paradigm like PCW-grammars 
+		<ref citStr="Chastellier and Colmerauer , 1969" id="21" label="CEPF" position="32816">
+			( Chastellier and Colmerauer , 1969 
+		</ref>
+		<ref citStr="Infante-Lopez and de Rijke , 2003" id="22" label="CEPF" position="32852">
+			; Infante-Lopez and de Rijke , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="220">
+		 As PCWgrammars are PCFGs plus post tree transformations , properties of PCFGs hold for them too 
+		<ref citStr="Booth and Thompson , 1973" id="23" label="CEPF" position="33026">
+			( Booth and Thompson , 1973 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="221">
+		 In our comparison we optimized the value of alpha , but we did not optimize the n-grams , as doing so would mean two different things . 
+	</s>
+	
+
+	<s id="222">
+		 First , smoothing techniques would have to be used to combine different order n-grams . 
+	</s>
+	
+
+	<s id="223">
+		 To be fair , we would also have to smooth different MDI-based automata , which would leave us in the same point . 
+	</s>
+	
+
+	<s id="224">
+		 Second , the degree of the n-gram . 
+	</s>
+	
+
+	<s id="225">
+		 We opted for n = 2 as it seems the right balance of informativeness and generalization . 
+	</s>
+	
+
+	<s id="226">
+		 N-grams are used to model sequences of arguments , and these hardly ever have length &gt; 3 , making higher degrees useless . 
+	</s>
+	
+
+	<s id="227">
+		 To make a fair comparison for the Many-Automata grammars we did not tune the MDI-based automata individually , but we picked a unique alpha . 
+	</s>
+	
+
+	<s id="228">
+		 MDI presents a way to compact rule information on the PTB ; of course , other approaches exists . 
+	</s>
+	
+
+	<s id="229">
+		 In particular , 
+		<ref citStr="Krotov et al . ( 1998 )" id="24" label="CEPF" position="33978">
+			Krotov et al . ( 1998 )
+		</ref>
+		 try to induce a CW-grammar from the PTB with the underlying assumption that some derivations that were supposed to be hidden were left visible . 
+	</s>
+	
+
+	<s id="230">
+		 The attempt to use algorithms other than n-grams-based for inducing of regular languages in the context of grammar induction is not new ; for example , Kruijff(2003) uses profile hidden models in an attempt to quantify free order variations across languages ; we are not aware of evaluations of his grammars as parsing devices . 
+	</s>
+	
+
+	<s id="231">
+		 7 Conclusions and Future Work Our experiments support two kinds of conclusions . 
+	</s>
+	
+
+	<s id="232">
+		 First , modeling rules with algorithms other than n-grams not only produces smaller grammars but also better performing ones . 
+	</s>
+	
+
+	<s id="233">
+		 Second , the procedure used for optimizing alpha reveals that some POS behave almost deterministically for selecting their arguments , while others do not . 
+	</s>
+	
+
+	<s id="234">
+		 These findings suggests that splitting classes that behave non- deterministically into homogeneous ones could improve the quality of the inferred automata . 
+	</s>
+	
+
+	<s id="235">
+		 We saw that lexicalization and head-annotation seem to attack this problem . 
+	</s>
+	
+
+	<s id="236">
+		 Obvious questions for future work arise : Are these two techniques the best way to split non-homogeneous classes into homogeneous ones ? 
+	</s>
+	
+
+	<s id="237">
+		 Is there an optimal splitting ? 
+	</s>
+	
+
+	<s id="238">
+		 Acknowledgments We thank our referees for valuable comments . 
+	</s>
+	
+
+	<s id="239">
+		 Both authors were supported by the Netherlands Organization for Scientific Research ( NWO ) under project number 220-80-001 . 
+	</s>
+	
+
+	<s id="240">
+		 De Rijke was also supported by grants from NWO , under project numbers 365- 20-005 , 612.069.006 , 612.000.106 , 612.000.207 , and 612.066.302 . 
+	</s>
+	
+
+	<s id="241">
+		 References S. Abney , D. McAllester , and F. Pereira . 
+	</s>
+	
+
+	<s id="242">
+		 1999. Relating probabilistic grammars and automata . 
+	</s>
+	
+
+	<s id="243">
+		 In Proc . 
+	</s>
+	
+
+	<s id="244">
+		 37th Annual Meeting of the ACL , pages 542–549 . 
+	</s>
+	
+
+	<s id="245">
+		 T. Booth and R. Thompson . 
+	</s>
+	
+
+	<s id="246">
+		 1973. Applying probability measures to abstract languages . 
+	</s>
+	
+
+	<s id="247">
+		 IEEE Transaction on Computers , C-33(5):442–450 . 
+	</s>
+	
+
+	<s id="248">
+		 R. Carrasco and J. Oncina . 
+	</s>
+	
+
+	<s id="249">
+		 1994. Learning stochastic regular grammars by means of state merging method . 
+	</s>
+	
+
+	<s id="250">
+		 In Proc . 
+	</s>
+	
+
+	<s id="251">
+		 ICGI-94 , Springer , pages 139–150 . 
+	</s>
+	
+
+	<s id="252">
+		 E. Charniak . 
+	</s>
+	
+
+	<s id="253">
+		 1997. Statistical parsing with a context- free grammar and word statistics . 
+	</s>
+	
+
+	<s id="254">
+		 In Proc . 
+	</s>
+	
+
+	<s id="255">
+		 14th Nat . 
+	</s>
+	
+
+	<s id="256">
+		 Conf . 
+	</s>
+	
+
+	<s id="257">
+		 on Artificial Intelligence , pages 598–603 . 
+	</s>
+	
+
+	<s id="258">
+		 G. Chastellier and A. Colmerauer . 
+	</s>
+	
+
+	<s id="259">
+		 1969. W-grammar . 
+	</s>
+	
+
+	<s id="260">
+		 In Proc . 
+	</s>
+	
+
+	<s id="261">
+		 1969 24th National Conf. , pages 511–518 . 
+	</s>
+	
+
+	<s id="262">
+		 M. Collins . 
+	</s>
+	
+
+	<s id="263">
+		 1996. A new statistical parser based on bigram lexical dependencies . 
+	</s>
+	
+
+	<s id="264">
+		 In Proc . 
+	</s>
+	
+
+	<s id="265">
+		 34th Annual Meeting of the ACL , pages 184–191 . 
+	</s>
+	
+
+	<s id="266">
+		 M. Collins . 
+	</s>
+	
+
+	<s id="267">
+		 1997. Three generative , lexicalized models for statistical parsing . 
+	</s>
+	
+
+	<s id="268">
+		 In Proc . 
+	</s>
+	
+
+	<s id="269">
+		 35th Annual Meeting of the ACL and 8th Conf . 
+	</s>
+	
+
+	<s id="270">
+		 of the EACL , pages 16–23 . 
+	</s>
+	
+
+	<s id="271">
+		 M. Collins . 
+	</s>
+	
+
+	<s id="272">
+		 1999. Head-Driven Statistical Models for Natural Language Parsing . 
+	</s>
+	
+
+	<s id="273">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="274">
+		 thesis , University of Pennsylvania , PA . 
+	</s>
+	
+
+	<s id="275">
+		 M. Collins . 
+	</s>
+	
+
+	<s id="276">
+		 2000. Discriminative reranking for natural language parsing . 
+	</s>
+	
+
+	<s id="277">
+		 In Proc . 
+	</s>
+	
+
+	<s id="278">
+		 ICML-2000 , Stanford , Ca. T. . 
+	</s>
+	
+
+	<s id="279">
+		 Cover and J. Thomas . 
+	</s>
+	
+
+	<s id="280">
+		 1991. Elements ofInformation Theory . 
+	</s>
+	
+
+	<s id="281">
+		 Jonh Wiley and Sons , New York . 
+	</s>
+	
+
+	<s id="282">
+		 F. Denis . 
+	</s>
+	
+
+	<s id="283">
+		 2001. Learning regular languages from simple positive examples . 
+	</s>
+	
+
+	<s id="284">
+		 Machine Learning , 44(1/2):37–66 . 
+	</s>
+	
+
+	<s id="285">
+		 P. Dupont and L. Chase . 
+	</s>
+	
+
+	<s id="286">
+		 1998. Using symbol clustering to improve probabilistic automaton inference . 
+	</s>
+	
+
+	<s id="287">
+		 In Proc . 
+	</s>
+	
+
+	<s id="288">
+		 ICGI-98 , pages 232–243 . 
+	</s>
+	
+
+	<s id="289">
+		 J. Eisner . 
+	</s>
+	
+
+	<s id="290">
+		 1996. Three new probabilistic models for dependency parsing : An exploration . 
+	</s>
+	
+
+	<s id="291">
+		 In Proc . 
+	</s>
+	
+
+	<s id="292">
+		 COLING96 , pages 340–245 , Copenhagen , Denmark . 
+	</s>
+	
+
+	<s id="293">
+		 J. Eisner . 
+	</s>
+	
+
+	<s id="294">
+		 2000. Bilexical grammars and their cubic-time parsing algorithms . 
+	</s>
+	
+
+	<s id="295">
+		 In Advances in Probabilistic and Other Parsing Technologies , pages 29–62 . 
+	</s>
+	
+
+	<s id="296">
+		 Kluwer . 
+	</s>
+	
+
+	<s id="297">
+		 E. M. . 
+	</s>
+	
+
+	<s id="298">
+		 Gold . 
+	</s>
+	
+
+	<s id="299">
+		 1967. Language identification in the limit . 
+	</s>
+	
+
+	<s id="300">
+		 Information and Control , 10:447–474 . 
+	</s>
+	
+
+	<s id="301">
+		 G. Infante-Lopez and M. de Rijke . 
+	</s>
+	
+
+	<s id="302">
+		 2003. Natural language parsing with W-grammars . 
+	</s>
+	
+
+	<s id="303">
+		 In Proc . 
+	</s>
+	
+
+	<s id="304">
+		 CLIN 2003 . 
+	</s>
+	
+
+	<s id="305">
+		 D. Klein and C. Manning . 
+	</s>
+	
+
+	<s id="306">
+		 2003 . 
+	</s>
+	
+
+	<s id="307">
+		 Accurate unlexicalized parsing . 
+	</s>
+	
+
+	<s id="308">
+		 In Proc . 
+	</s>
+	
+
+	<s id="309">
+		 41st Annual Meeting of the ACL . 
+	</s>
+	
+
+	<s id="310">
+		 A. Krotov , M. Hepple , R.J. Gaizauskas , and Y. Wilks . 
+	</s>
+	
+
+	<s id="311">
+		 1998. Compacting the Penn Treebank grammar . 
+	</s>
+	
+
+	<s id="312">
+		 In Proc . 
+	</s>
+	
+
+	<s id="313">
+		 COLING-ACL , pages 699–703 . 
+	</s>
+	
+
+	<s id="314">
+		 G. Kruijff . 
+	</s>
+	
+
+	<s id="315">
+		 2003. 3-phase grammar learning . 
+	</s>
+	
+
+	<s id="316">
+		 In Proc . 
+	</s>
+	
+
+	<s id="317">
+		 Workshop on Ideas and Strategies for Multilingual Grammar Development . 
+	</s>
+	
+
+	<s id="318">
+		 D. Lin . 
+	</s>
+	
+
+	<s id="319">
+		 1995. A dependency-based method for evaluating broad-coverage parsers . 
+	</s>
+	
+
+	<s id="320">
+		 In Proc . 
+	</s>
+	
+
+	<s id="321">
+		 IJCAI-95 . 
+	</s>
+	
+
+	<s id="322">
+		 K. Sima’an . 
+	</s>
+	
+
+	<s id="323">
+		 2000. Tree-gram Parsing : Lexical Dependencies and Structual Relations . 
+	</s>
+	
+
+	<s id="324">
+		 In Proc . 
+	</s>
+	
+
+	<s id="325">
+		 38th Annual Meeting of the ACL , pages 53–60 , Hong Kong , China . 
+	</s>
+	
+
+	<s id="326">
+		 F. Thollard , P. Dupont , and C. de la Higuera . 
+	</s>
+	
+
+	<s id="327">
+		 2000. Probabilistic DFA inference using kullback-leibler divergence and minimality . 
+	</s>
+	
+
+	<s id="328">
+		 In Proc . 
+	</s>
+	
+
+	<s id="329">
+		 ICML 2000. 
+	</s>
+	
+
+
+</acldoc>

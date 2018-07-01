@@ -1,0 +1,723 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-3017">
+	
+
+	<s id="1">
+		 Finding Anchor Verbs for Biomedical IE Using Predicate-Argument Structures Akane YAKUSHIJIt Yuka TATEISItt Yusuke MIYAOt Jun’ichi TSUJIItt tDepartment of Computer Science , University of Tokyo Hongo 7-3-1 , Bunkyo-ku , Tokyo 113-0033 JAPAN $ CREST , JST ( Japan Science and Technology Agency ) Honcho 4-1-8 , Kawaguchi-shi , Saitama 332-0012 JAPAN {akane,yucca,yusuke,tsujii}@is.s.u-tokyo.ac.jp Abstract For biomedical information extraction , most systems use syntactic patterns on verbs ( anchor verbs ) and their arguments . 
+	</s>
+	
+
+	<s id="2">
+		 Anchor verbs can be selected by focusing on their arguments . 
+	</s>
+	
+
+	<s id="3">
+		 We propose to use predicate-argument structures ( PASs ) , which are outputs of a full parser , to obtain verbs and their arguments . 
+	</s>
+	
+
+	<s id="4">
+		 In this paper , we evaluated PAS method by comparing it to a method using part of speech ( POSs ) pattern matching . 
+	</s>
+	
+
+	<s id="5">
+		 POS patterns produced larger results with incorrect arguments , and the results will cause adverse effects on a phase selecting appropriate verbs . 
+	</s>
+	
+
+	<s id="6">
+		 1 Introduction Research in molecular-biology field is discovering enormous amount of new facts , and thus there is an increasing need for information extraction ( IE ) technology to support database building and to find novel knowledge in online journals . 
+	</s>
+	
+
+	<s id="7">
+		 To implement IE systems , we need to construct extraction rules , i.e. , rules to extract desired information from processed resource . 
+	</s>
+	
+
+	<s id="8">
+		 One subtask of the construction is defining a set of anchor verbs , which express realization of desired information in natural language text . 
+	</s>
+	
+
+	<s id="9">
+		 In this paper , we propose a novel method of finding anchor verbs : extracting anchor verbs from predicate-argument structures ( PASs ) obtained by full parsing . 
+	</s>
+	
+
+	<s id="10">
+		 We here discuss only finding anchor verbs , although our final purpose is construction of extraction rules . 
+	</s>
+	
+
+	<s id="11">
+		 Most anchor verbs take topical nouns , i.e. , nouns describing target entities for IE , as their arguments . 
+	</s>
+	
+
+	<s id="12">
+		 Thus verbs which take topical nouns can be candidates for anchor verbs . 
+	</s>
+	
+
+	<s id="13">
+		 Our method collects anchor verb candidates by choosing PASs whose arguments are topical nouns . 
+	</s>
+	
+
+	<s id="14">
+		 Then , semantically inappropriate verbs are filtered out . 
+	</s>
+	
+
+	<s id="15">
+		 We leave this filtering phase as a future work , and discuss the acquisition of candidates . 
+	</s>
+	
+
+	<s id="16">
+		 We have also investigated difference in verbs and their arguments extracted by naive POS patterns and PAS method . 
+	</s>
+	
+
+	<s id="17">
+		 When anchor verbs are found based on whether their arguments are topical nouns , like in 
+		<ref citStr="Hatzivassiloglou and Weng , 2002" id="1" label="CEPF" position="2618">
+			( Hatzivassiloglou and Weng , 2002 )
+		</ref>
+		 , it is important to obtain correct arguments . 
+	</s>
+	
+
+	<s id="18">
+		 Thus , in this paper , we set our goal to obtain anchor verb candidates and their correct arguments . 
+	</s>
+	
+
+	<s id="19">
+		 2 Background There are some works on acquiring extraction rules automatically . 
+	</s>
+	
+
+	<s id="20">
+		 
+		<ref citStr="Sudo et al . ( 2003 )" id="2" label="CEPN" position="2897">
+			Sudo et al . ( 2003 )
+		</ref>
+		 acquired subtrees derived from dependency trees as extraction rules for IE in general domains . 
+	</s>
+	
+
+	<s id="21">
+		 One problem of their system is that dependency trees cannot treat non-local dependencies , and thus rules acquired from the constructions are partial . 
+	</s>
+	
+
+	<s id="22">
+		 
+		<ref citStr="Hatzivassiloglou and Weng ( 2002 )" id="3" label="CEPN" position="3198">
+			Hatzivassiloglou and Weng ( 2002 )
+		</ref>
+		 used frequency of collocation of verbs and topical nouns and verb occurrence rates in several domains to obtain anchor verbs for biological interaction . 
+	</s>
+	
+
+	<s id="23">
+		 They used only POSs and word positions to detect relations between verbs and topical nouns . 
+	</s>
+	
+
+	<s id="24">
+		 Their performance was 87.5 % precision and 82.4 % recall . 
+	</s>
+	
+
+	<s id="25">
+		 One of the reasons of errors they reported is failures to detect verb-noun relations . 
+	</s>
+	
+
+	<s id="26">
+		 To avoid these problems , we decided to use PASs obtained by full parsing to get precise relations between verbs and their arguments . 
+	</s>
+	
+
+	<s id="27">
+		 The obtained precise relations will improve precision . 
+	</s>
+	
+
+	<s id="28">
+		 In addition , PASs obtained by full parsing can treat non-local dependencies , thus recall will also be improved . 
+	</s>
+	
+
+	<s id="29">
+		 The sentence below is an example which supports advantage of full parsing . 
+	</s>
+	
+
+	<s id="30">
+		 A gerund “activating” takes a non-local semantic subject “IL-4” . 
+	</s>
+	
+
+	<s id="31">
+		 In full parsing based on Head-Driven Phrase Structure Grammar ( HPSG ) 
+		<ref citStr="Sag and Wasow , 1999" id="4" label="CEPF" position="4220">
+			( Sag and Wasow , 1999 )
+		</ref>
+		 , the subject of the whole sentence and the semantic subject of “activating” are shared , and thus we can extract the subject of “activating” . 
+	</s>
+	
+
+	<s id="32">
+		 IL-4 may mediate its biological effects by activating a tyrosine -phosphorylated DNA binding protein . 
+	</s>
+	
+
+	<s id="33">
+		 It interacts with non -polymorphic regions of major histocompatibility complex class II molecules . 
+	</s>
+	
+
+	<s id="34">
+		 Next , in Step 2 , we check each argument of ( a ) , ( b ) and ( c ) . 
+	</s>
+	
+
+	<s id="35">
+		 ( a ) is discarded because it does not have a topical noun argument.2 ( b ) is selected because ARG1 “regions” is a topical noun . 
+	</s>
+	
+
+	<s id="36">
+		 Similarly , ( c ) is selected because of ARG1 “molecules” . 
+	</s>
+	
+
+	<s id="37">
+		 And then , in Step 3 , we check each POS of a predicate included in ( b ) and ( c ) . 
+	</s>
+	
+
+	<s id="38">
+		 ( b ) is selected be- cause it has the verb “interacts” in 1 which shares Figure 1 : PAS examples Figure 2 : Core verbs of PASs 3 Anchor Verb Finding by PASs By using PASs , we extract candidates for anchor verbs from a sentence in the following steps : 1 . 
+	</s>
+	
+
+	<s id="39">
+		 Obtain all PASs of a sentence by a full parser . 
+	</s>
+	
+
+	<s id="40">
+		 The PASs correspond not only to verbal phrases but also other phrases such as prepositional phrases . 
+	</s>
+	
+
+	<s id="41">
+		 2. Select PASs which take one or more topical nouns as arguments . 
+	</s>
+	
+
+	<s id="42">
+		 3. From the selected PASs in Step 2 , select PASs which include one or more verbs . 
+	</s>
+	
+
+	<s id="43">
+		 4. Extract a core verb , which is the innermost verbal predicate , from each of the chosen PASs . 
+	</s>
+	
+
+	<s id="44">
+		 In Step 1 , we use a probabilistic HPSG parser developed by 
+		<ref citStr="Miyao et al . ( 2003 )" id="5" label="OEPF" position="5783">
+			Miyao et al . ( 2003 )
+		</ref>
+		 , ( 2004 ) . 
+	</s>
+	
+
+	<s id="45">
+		 PASs obtained by the parser are illustrated in Figure 1.1 Bold words are predicates . 
+	</s>
+	
+
+	<s id="46">
+		 Arguments of the predi- cates are described in ARGn ( n = 1 , 2 , ... ) . 
+	</s>
+	
+
+	<s id="47">
+		 MOD- I FY denotes the modified PAS . 
+	</s>
+	
+
+	<s id="48">
+		 Numbers in squares denote shared structures . 
+	</s>
+	
+
+	<s id="49">
+		 Examples of core verbs are illustrated in Figure 2 . 
+	</s>
+	
+
+	<s id="50">
+		 We regard all arguments in a PAS are arguments of the core verb . 
+	</s>
+	
+
+	<s id="51">
+		 Extraction of candidates for anchor verbs from the sentence in Figure 1 is as follows . 
+	</s>
+	
+
+	<s id="52">
+		 Here , ”regions” and ”molecules” are topical nouns . 
+	</s>
+	
+
+	<s id="53">
+		 In Step 1 , we obtain all the PASs , ( a ) , ( b ) and ( c ) , in Figure 1. 1Here , named entities are regarded as chunked , and thus internal structures of noun phrases are not illustrated . 
+	</s>
+	
+
+	<s id="54">
+		 the structure with ( a ) . 
+	</s>
+	
+
+	<s id="55">
+		 ( c ) is discarded because it includes no verbs . 
+	</s>
+	
+
+	<s id="56">
+		 Finally , in Step 4 , we extract a core verb from ( b ) . 
+	</s>
+	
+
+	<s id="57">
+		 ( b ) includes 1 as MODIFY , and the predicate of 1 is the verb , “interacts” . 
+	</s>
+	
+
+	<s id="58">
+		 So we extract it . 
+	</s>
+	
+
+	<s id="59">
+		 4 Experiments We investigated the verbs and their arguments extracted by PAS method and POS pattern matching , which is less expressive in analyzing sentence structures but would be more robust . 
+	</s>
+	
+
+	<s id="60">
+		 For topical nouns and POSs , we used the GENIA corpus 
+		<ref citStr="Kim et al. , 2003" id="6" label="OEPF" position="7147">
+			( Kim et al. , 2003 )
+		</ref>
+		 , a corpus of annotated abstracts taken from National Library of Medicine’s MEDLINE database . 
+	</s>
+	
+
+	<s id="61">
+		 We defined topical nouns as the names tagged as protein , peptide , amino acid , DNA , RNA , or nucleic acid . 
+	</s>
+	
+
+	<s id="62">
+		 We chose PASs which take one or more topical nouns as an argument or arguments , and substrings matched by POS patterns which include topical nouns . 
+	</s>
+	
+
+	<s id="63">
+		 All names tagged in the corpus were replaced by their head nouns in order to reduce complexity of sentences and thus reduce the task of the parser and the POS pattern matcher . 
+	</s>
+	
+
+	<s id="64">
+		 4.1 Implementation of PAS method We implemented PAS method on LiLFeS , a unification-based programming system for typed feature structures 
+		<ref citStr="Makino et al. , 1998" id="7" label="CEPF" position="7857">
+			( Makino et al. , 1998 
+		</ref>
+		<ref citStr="Miyao et al. , 2000" id="8" label="CEPF" position="7880">
+			; Miyao et al. , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="65">
+		 The selection in Step 2 described in Section 3 is realized by matching PASs with nine PAS templates . 
+	</s>
+	
+
+	<s id="66">
+		 Four of the templates are illustrated in Figure 3. 4.2 POS Pattern Method We constructed a POS pattern matcher with a partial verb chunking function according to 
+		<ref citStr="Hatzivassiloglou and Weng , 2002" id="9" label="CEPF" position="8224">
+			( Hatzivassiloglou and Weng , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="67">
+		 Because the original matcher has problems in recall ( its verb group detector has low coverage ) and precision ( it does not consider other words to detect relations between verb groups and topical nouns ) , we implemented 2(a) may be selected if the anaphora ( “it” ) is resolved . 
+	</s>
+	
+
+	<s id="68">
+		 But we regard anaphora resolving is too hard task as a subprocess of finding anchor verbs . 
+	</s>
+	
+
+	<s id="69">
+		 Figure 3 : PAS templates N^VG^N N ^ VG VG ^ N N : is a topical noun VG : is a verb group which is accepted by a finite state machine described in 
+		<ref citStr="Hatzivassiloglou and Weng , 2002" id="10" label="CEPF" position="8813">
+			( Hatzivassiloglou and Weng , 2002 )
+		</ref>
+		 or one of { VB , VBD , VBG , VBN , VBP , VBZ } ^ : is 0–4 tokens which do not include { FW , NN , NNS , NNP , NNPS , PRP , VBG , WP , * } ( Parts in Bold letters are added to the patterns of 
+		<ref citStr="Hatzivassiloglou and Weng ( 2002 )" id="11" label="CEPF" position="9040">
+			Hatzivassiloglou and Weng ( 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="70">
+		 ) Figure 4 : POS patterns our POS pattern matcher as a modified version of one in 
+		<ref citStr="Hatzivassiloglou and Weng , 2002" id="12" label="CEPF" position="9170">
+			( Hatzivassiloglou and Weng , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="71">
+		 Figure 4 shows patterns in our experiment . 
+	</s>
+	
+
+	<s id="72">
+		 The last verb of VG is extracted if all of Ns are topical nouns . 
+	</s>
+	
+
+	<s id="73">
+		 Non-topical nouns are disregarded . 
+	</s>
+	
+
+	<s id="74">
+		 Adding candidates for verb groups raises recall of obtained relations of verbs and their arguments . 
+	</s>
+	
+
+	<s id="75">
+		 Restriction on intervening tokens to non-nouns raises the precision , although it decreases the recall . 
+	</s>
+	
+
+	<s id="76">
+		 4.3 Experiment 1 We extracted last verbs of POS patterns and core verbs of PASs with their arguments from 100 abstracts ( 976 sentences ) of the GENIA corpus . 
+	</s>
+	
+
+	<s id="77">
+		 We took up not the verbs only but tuples of the verbs and their arguments ( VAs ) , in order to estimate effect of the arguments on semantical filtering . 
+	</s>
+	
+
+	<s id="78">
+		 Results The numbers of VAs extracted from the 100 abstracts using POS patterns and PASs are shown in Table 1. ( Total ^ VAs of verbs not extracted by the other method ) are not the same , because more than one VA can be extracted on a verb in a sentence . 
+	</s>
+	
+
+	<s id="79">
+		 POS patterns method extracted more VAs , although POS patterns PASs Total 1127 766 VAs of verbs not extracted by the other 478 105 Table 1 : Numbers of VAs extracted from the 100 abstracts Appropriate Inappropriate Total Correct 43 12 55 Incorrect 20 23 43 Total 63 35 98 Table 2 : Numbers of VAs extracted by POS patterns ( in detail ) their correctness is not considered . 
+	</s>
+	
+
+	<s id="80">
+		 4.4 Experiment 2 For the first 10 abstracts ( 92 sentences ) , we manually investigated whether extracted VAs are syntactically or semantically correct . 
+	</s>
+	
+
+	<s id="81">
+		 The investigation was based on two criteria : “appropriateness” based on whether the extracted verb can be used for an anchor verb and “correctness” based on whether the syntactical analysis is correct , i.e. , whether the arguments were extracted correctly . 
+	</s>
+	
+
+	<s id="82">
+		 Based on human judgment , the verbs that represent interactions , events , and properties were selected as semantically appropriate for anchor verbs , and the others were treated as inappropriate . 
+	</s>
+	
+
+	<s id="83">
+		 For example , “identified” in “We identified ZEBRA protein.” is not appropriate and discarded . 
+	</s>
+	
+
+	<s id="84">
+		 We did not consider non-topical noun arguments for POS pattern method , whereas we considered them for PAS method . 
+	</s>
+	
+
+	<s id="85">
+		 Thus decision on correctness is stricter for PAS method . 
+	</s>
+	
+
+	<s id="86">
+		 Results The manual investigation results on extracted VAs from the 10 abstracts using POS patterns and PASs are shown in Table 2 and 3 respectively . 
+	</s>
+	
+
+	<s id="87">
+		 POS patterns extracted more ( 98 ) VAs than PASs ( 75 ) , but many of the increment were from incorrect POS pattern matching . 
+	</s>
+	
+
+	<s id="88">
+		 By POS patterns , 43 VAs ( 44 % ) were extracted based on incorrect analysis . 
+	</s>
+	
+
+	<s id="89">
+		 On the other hand , by PASs , 20 VAs ( 27 % ) were extracted incorrectly . 
+	</s>
+	
+
+	<s id="90">
+		 Thus the ratio of VAs extracted by syntactically correct analysis is larger on PAS method . 
+	</s>
+	
+
+	<s id="91">
+		 POS pattern method extracted 38 VAs of verbs not extracted by PAS method and 7 of them are correct . 
+	</s>
+	
+
+	<s id="92">
+		 For PAS method , correspondent numbers are Appropriate Inappropriate Total Correct 44 11 55 Incorrect 14 6 20 Total 58 17 75 Table 3 : Numbers of VAs extracted by PASs ( in detail ) 11 and 4 respectively . 
+	</s>
+	
+
+	<s id="93">
+		 Thus the increments tend to be caused by incorrect analysis , and the tendency is greater in POS pattern method . 
+	</s>
+	
+
+	<s id="94">
+		 Since not all of verbs that take topical nouns are appropriate for anchor verbs , automatic filtering is required . 
+	</s>
+	
+
+	<s id="95">
+		 In the filtering phase that we leave as a future work , we can use semantical classes and frequencies of arguments of the verbs . 
+	</s>
+	
+
+	<s id="96">
+		 The results with syntactically incorrect arguments will cause adverse effect on filtering because they express incorrect relationship between verbs and arguments . 
+	</s>
+	
+
+	<s id="97">
+		 Since the numbers of extracted VAs after excluding the ones with incorrect arguments are the same ( 55 ) between PAS and POS pattern methods , it can be concluded that the precision of PAS method is higher . 
+	</s>
+	
+
+	<s id="98">
+		 Although there are few ( 7 ) correct VAs which were extracted by POS pattern method but not by PAS method , we expect the number of such verbs can be reduced using a larger corpus . 
+	</s>
+	
+
+	<s id="99">
+		 Examples of appropriate VAs extracted by only one method are as follows : ( A ) is correct and ( B ) incorrect , extracted by only POS pattern method , and ( C ) is correct and ( D ) incorrect , extracted by only PAS method . 
+	</s>
+	
+
+	<s id="100">
+		 Bold words are extracted verbs or predicates and italic words their extracted arguments . 
+	</s>
+	
+
+	<s id="101">
+		 ( A ) This delay is associated with down-regulation of many erythroid cell-speci~c genes , including alpha- and beta-globin , band 3 , band 4 . 
+	</s>
+	
+
+	<s id="102">
+		 1 , and .... ( B ) ... show that several elements in the ... region of the IL-2R alpha gene contribute to IL-1 responsiveness , .... ( C ) The CD4 coreceptor interacts with non- polymorphic regions of ... molecules on non-polymorphic cells and contributes to T cell activation . 
+	</s>
+	
+
+	<s id="103">
+		 ( D ) Whereas activation of the HIV-1 enhancer following T-cell stimulation is mediated largely through binding of the ... factor NF-kappa B to two adjacent kappa B sites in .... 5 Conclusions We have proposed a method of extracting anchor verbs as elements of extraction rules for IE by using PASs obtained by full parsing . 
+	</s>
+	
+
+	<s id="104">
+		 To compare our method with more naive and robust methods , we have extracted verbs and their arguments using POS patterns and PASs . 
+	</s>
+	
+
+	<s id="105">
+		 POS pattern method could obtain more candidate verbs for anchor verbs , but many of them were extracted with incorrect arguments by incorrect matching . 
+	</s>
+	
+
+	<s id="106">
+		 A later filtering process benefits by precise relations between verbs and their arguments which PASs obtained . 
+	</s>
+	
+
+	<s id="107">
+		 The shortcoming of PAS method is expected to be reduced by using a larger corpus , because verbs to extract will appear many times in many forms . 
+	</s>
+	
+
+	<s id="108">
+		 One of the future works is to extend PAS method to handle events in nominalized forms . 
+	</s>
+	
+
+	<s id="109">
+		 Acknowledgements This work was partially supported by Grant-inAid for Scientific Research on Priority Areas ( C ) “Genome Information Science” from the Ministry of Education , Culture , Sports , Science and Technology of Japan . 
+	</s>
+	
+
+	<s id="110">
+		 References Vasileios Hatzivassiloglou and Wubin Weng . 
+	</s>
+	
+
+	<s id="111">
+		 2002. Learning anchor verbs for biological interaction patterns from published text articles . 
+	</s>
+	
+
+	<s id="112">
+		 International Journal of Medical Informatics , 67:19–32 . 
+	</s>
+	
+
+	<s id="113">
+		 Jin-Dong Kim , Tomoko Ohta , Yuka Teteisi , and Jun’ichi Tsujii . 
+	</s>
+	
+
+	<s id="114">
+		 2003. GENIA corpus – a semantically annotated corpus for bio-textmining . 
+	</s>
+	
+
+	<s id="115">
+		 Bioinformatics , 19(suppl . 
+	</s>
+	
+
+	<s id="116">
+		 1):i180–i182 . 
+	</s>
+	
+
+	<s id="117">
+		 Takaki Makino , Minoru Yoshida , Kentaro Torisawa , and Jun-ichi Tsujii . 
+	</s>
+	
+
+	<s id="118">
+		 1998. LiLFeS — towards a practical HPSG parser . 
+	</s>
+	
+
+	<s id="119">
+		 In Proceedings of COLING-ACL’98 . 
+	</s>
+	
+
+	<s id="120">
+		 Yusuke Miyao , Takaki Makino , Kentaro Torisawa , and Jun-ichi Tsujii . 
+	</s>
+	
+
+	<s id="121">
+		 2000. The LiLFeS abstract machine and its evaluation with the LinGO grammar . 
+	</s>
+	
+
+	<s id="122">
+		 Natural Language Engineering , 6(1):47– 61 . 
+	</s>
+	
+
+	<s id="123">
+		 Yusuke Miyao , Takashi Ninomiya , and Jun’ichi Tsujii . 
+	</s>
+	
+
+	<s id="124">
+		 2003. Probabilistic modeling of argument structures including non-local dependencies . 
+	</s>
+	
+
+	<s id="125">
+		 In Proceedings of RANLP 2003 , pages 285–291 . 
+	</s>
+	
+
+	<s id="126">
+		 Yusuke Miyao , Takashi Ninomiya , and Jun’ichi Tsujii . 
+	</s>
+	
+
+	<s id="127">
+		 2004. Corpus-oriented grammar development for acquiring a Head-driven Phrase Structure Grammar from the Penn Treebank . 
+	</s>
+	
+
+	<s id="128">
+		 In Proceedings of IJCNLP-04 . 
+	</s>
+	
+
+	<s id="129">
+		 Ivan A. Sag and Thomas Wasow . 
+	</s>
+	
+
+	<s id="130">
+		 1999. Syntactic Theory . 
+	</s>
+	
+
+	<s id="131">
+		 CSLI publications . 
+	</s>
+	
+
+	<s id="132">
+		 Kiyoshi Sudo , Satoshi Sekine , and Ralph Grishman . 
+	</s>
+	
+
+	<s id="133">
+		 2003. An improved extraction pattern representation model for automatic IE pattern acquisition . 
+	</s>
+	
+
+	<s id="134">
+		 In Proceedings ofACL 2003 , pages 224–231 . 
+	</s>
+	
+
+
+</acldoc>

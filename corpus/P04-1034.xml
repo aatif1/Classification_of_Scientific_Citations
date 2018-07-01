@@ -1,0 +1,1113 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1034">
+	
+
+	<s id="1">
+		 The Sentimental Factor : Improving Review Classification via Human-Provided Information Philip Beineke*and Trevor Hastie Shivakumar Vaithyanathan Dept. of Statistics IBM Almaden Research Center Stanford University 650 Harry Rd. Stanford , CA 94305 San Jose , CA 95120-6099 Abstract Sentiment classification is the task of labeling a review document according to the polarity of its prevailing opinion ( favorable or unfavorable ) . 
+	</s>
+	
+
+	<s id="2">
+		 In approaching this problem , a model builder often has three sources of information available : a small collection of labeled documents , a large collection of unlabeled documents , and human understanding of language . 
+	</s>
+	
+
+	<s id="3">
+		 Ideally , a learning method will utilize all three sources . 
+	</s>
+	
+
+	<s id="4">
+		 To accomplish this goal , we generalize an existing procedure that uses the latter two . 
+	</s>
+	
+
+	<s id="5">
+		 We extend this procedure by re-interpreting it as a Naive Bayes model for document sentiment . 
+	</s>
+	
+
+	<s id="6">
+		 Viewed as such , it can also be seen to extract a pair of derived features that are linearly combined to predict sentiment . 
+	</s>
+	
+
+	<s id="7">
+		 This perspective allows us to improve upon previous methods , primarily through two strategies : incorporating additional derived features into the model and , where possible , using labeled data to estimate their relative influence . 
+	</s>
+	
+
+	<s id="8">
+		 1 Introduction Text documents are available in ever-increasing numbers , making automated techniques for information extraction increasingly useful . 
+	</s>
+	
+
+	<s id="9">
+		 Traditionally , most research effort has been directed towards “objective” information , such as classification according to topic ; however , interest is growing in producing information about the opinions that a document contains ; for instance , 
+		<ref citStr="Morinaga et al . ( 2002 )" id="1" label="CEPF" position="1761">
+			Morinaga et al . ( 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="10">
+		 In March , 2004 , the American Association for Artificial Intelligence held a symposium in this area , entitled “Exploring Affect and Attitude in Text.” One task in opinion extraction is to label a review document d according to its prevailing sentiment s E { ^1 , 1 } ( unfavorable or favorable ) . 
+	</s>
+	
+
+	<s id="11">
+		 Several previous papers have addressed this problem by building models that rely exclusively upon labeled documents , e.g. 
+		<ref citStr="Pang et al . ( 2002 )" id="2" label="CJPN" position="2228">
+			Pang et al . ( 2002 )
+		</ref>
+		 , 
+		<ref citStr="Dave et al . ( 2003 )" id="3" label="CJPN" position="2252">
+			Dave et al . ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="12">
+		 By learning models from labeled data , one can apply familiar , powerful techniques directly ; however , in practice it may be difficult to obtain enough labeled reviews to learn model parameters accurately . 
+	</s>
+	
+
+	<s id="13">
+		 A contrasting approach 
+		<ref citStr="Turney , 2002" id="4" label="CJPN" position="2522">
+			( Turney , 2002 )
+		</ref>
+		 relies only upon documents whose labels are unknown . 
+	</s>
+	
+
+	<s id="14">
+		 This makes it possible to use a large underlying corpus – in this case , the entire Internet as seen through the AltaVista search engine . 
+	</s>
+	
+
+	<s id="15">
+		 As a result , estimates for model parameters are subject to a relatively small amount of random variation . 
+	</s>
+	
+
+	<s id="16">
+		 The corresponding drawback to such an approach is that its predictions are not validated on actual documents . 
+	</s>
+	
+
+	<s id="17">
+		 In machine learning , it has often been effective to use labeled and unlabeled examples in tandem , e.g. 
+		<ref citStr="Nigam et al . ( 2000 )" id="5" label="CEPF" position="3099">
+			Nigam et al . ( 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="18">
+		 Turney’s model introduces the further consideration of incorporating human-provided knowledge about language . 
+	</s>
+	
+
+	<s id="19">
+		 In this paper we build models that utilize all three sources : labeled documents , unlabeled documents , and human-provided information . 
+	</s>
+	
+
+	<s id="20">
+		 The basic concept behind Turney’s model is quite simple . 
+	</s>
+	
+
+	<s id="21">
+		 The “sentiment orientation” 
+		<ref citStr="Hatzivassiloglou and McKeown , 1997" id="6" label="CEPF" position="3516">
+			( Hatzivassiloglou and McKeown , 1997 )
+		</ref>
+		 of a pair of words is taken to be known . 
+	</s>
+	
+
+	<s id="22">
+		 These words serve as “anchors” for positive and negative sentiment . 
+	</s>
+	
+
+	<s id="23">
+		 Words that co-occur more frequently with one anchor than the other are themselves taken to be predictive of sentiment . 
+	</s>
+	
+
+	<s id="24">
+		 As a result , information about a pair of words is generalized to many words , and then to documents . 
+	</s>
+	
+
+	<s id="25">
+		 In the following section , we relate this model with Naive Bayes classification , showing that Turney’s classifier is a “pseudo-supervised” approach : it effectively generates a new corpus of labeled documents , upon which it fits a Naive Bayes classifier . 
+	</s>
+	
+
+	<s id="26">
+		 This insight allows the procedure to be represented as a probability model that is linear on the logistic scale , which in turn suggests generalizations that are developed in subsequent sections . 
+	</s>
+	
+
+	<s id="27">
+		 2 A Logistic Model for Sentiment 2.1 Turney’s Sentiment Classifier In Turney’s model , the “sentiment orientation” Q of word w is estimated as follows . 
+	</s>
+	
+
+	<s id="28">
+		 Q(w) = log N(w , excellent ) /Nexcellent ( 1 ) N(w,poor) /Npoor Here , Na is the total number of sites on the Internet that contain an occurrence of a – a feature that can be a word type or a phrase . 
+	</s>
+	
+
+	<s id="29">
+		 N(w,a) is the number of sites in which features w and a appear “near” each other , i.e. in the same passage of text , within a span of ten words . 
+	</s>
+	
+
+	<s id="30">
+		 Both numbers are obtained from the hit count that results from a query of the AltaVista search engine . 
+	</s>
+	
+
+	<s id="31">
+		 The rationale for this estimate is that words that express similar sentiment often co-occur , while words that express conflicting sentiment co- occur more rarely . 
+	</s>
+	
+
+	<s id="32">
+		 Thus , a word that co-occurs more frequently with excellent than poor is estimated to have a positive sentiment orientation . 
+	</s>
+	
+
+	<s id="33">
+		 To extrapolate from words to documents , the estimated sentiment sˆ E { -1 , 1 } of a review document d is the sign of the average sentiment orientation of its constituent features . 
+	</s>
+	
+
+	<s id="34">
+		 ' To represent this estimate formally , we introduce the following notation : W is a “dictionary” of features : ( w1 , ... , wp ) . 
+	</s>
+	
+
+	<s id="35">
+		 Each feature’s respective sentiment orientation is represented as an entry in the vector ~ˆ of length p : ˆ~j = ˆ~(wj) ( 2 ) Given a collection of n review documents , the i-th each di is also represented as a vector of length p , with dij equal to the number of times that feature w j occurs in di . 
+	</s>
+	
+
+	<s id="36">
+		 The length of a document is its total number of features , Idi I = E~3=1 dij . 
+	</s>
+	
+
+	<s id="37">
+		 Turney’s classifier for the i-th document’s sentiment si can now be written : ˆsi = si Ej=1 &amp;jdij sign Idi ' ( 3 ) Using a carefully chosen collection of features , this classifier produces correct results on 65.8 % of a collection of 120 movie reviews , where 60 are labeled positive and 60 negative . 
+	</s>
+	
+
+	<s id="38">
+		 Although this is not a particularly encouraging result , movie reviews tend to be a difficult domain . 
+	</s>
+	
+
+	<s id="39">
+		 Accuracy on sentiment classification in other domains exceeds 80 % 
+		<ref citStr="Turney , 2002" id="7" label="CEPF" position="6575">
+			( Turney , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="40">
+		 ' Note that not all words or phrases need to be considered as features . 
+	</s>
+	
+
+	<s id="41">
+		 In 
+		<ref citStr="Turney ( 2002 )" id="8" label="CEPF" position="6687">
+			Turney ( 2002 )
+		</ref>
+		 , features are selected according to part-of-speech labels . 
+	</s>
+	
+
+	<s id="42">
+		 2.2 Naive Bayes Classification Bayes’ Theorem provides a convenient framework for predicting a binary response s E { -1 , 1 } from a feature vector x : Pr(s = 1 x = Pr(xIs = 1)7r1 ( 4 ) ( I ) EkCI-1,11 Pr(xIs = k)7rk For a labeled sample of data ( xi , si ) , i = 1 , ... , n , a class’s marginal probability 7rk can be estimated trivially as the proportion of training samples belonging to the class . 
+	</s>
+	
+
+	<s id="43">
+		 Thus the critical aspect of classification by Bayes’ Theorem is to estimate the conditional distribution of x given s. Naive Bayes simplifies this problem by making a “naive” assumption : within a class , the different feature values are taken to be independent of one another . 
+	</s>
+	
+
+	<s id="44">
+		 Pr(xIs) = fj Pr(xjIs) ( 5 ) j As a result , the estimation problem is reduced to univariate distributions . 
+	</s>
+	
+
+	<s id="45">
+		 • Naive Bayes for a Multinomial Distribution We consider a “bag of words” model for a document that belongs to class k , where features are assumed to result from a sequence of I di I independent multinomial draws with outcome probability vector ilk = ( gk1,...,gkp ) . 
+	</s>
+	
+
+	<s id="46">
+		 Given a collection of documents with labels , ( di , si ) , i = 1 , ... , n , a natural estimate for gkj is the fraction of all features in documents of class k that equal wj : Ei:si=k dij ( 6 ) Ei:si=k IdiI In the two-class case , the logit transformation provides a revealing representation of the class posterior probabilities of the Naive Bayes model . 
+	</s>
+	
+
+	<s id="47">
+		 ~logit(sId) °A ~Pr(s = 1Id ) ( 7 ) = ( 8 ) log ~Pr(s = -1Id ) p ˆ7r1 ˆg1j log +1 : dj log ˆ7r-1 ˆg-1j j=1 ~p djˆ~j ( 9 ) ˆ~0 + j=1 ˆ7r1 where ˆ~0 = log ( 10 ) ˆ7r-1 ˆ~j = ˆg1j ( 11 ) log ˆg-1j ˆgkj = Observe that the estimate for the logit in Equation 9 has a simple structure : it is a linear function of d . 
+	</s>
+	
+
+	<s id="48">
+		 Models that take this form are commonplace in classification . 
+	</s>
+	
+
+	<s id="49">
+		 2.3 Turney’s Classifier as Naive Bayes Although Naive Bayes classification requires a labeled corpus of documents , we show in this section that Turney’s approach corresponds to a Naive Bayes model . 
+	</s>
+	
+
+	<s id="50">
+		 The necessary documents and their corresponding labels are built from the spans of text that surround the anchor words excellent and poor . 
+	</s>
+	
+
+	<s id="51">
+		 More formally , a labeled corpus may be produced by the following procedure : 1 . 
+	</s>
+	
+
+	<s id="52">
+		 For a particular anchor ak , locate all of the sites on the Internet where it occurs . 
+	</s>
+	
+
+	<s id="53">
+		 2. From all of the pages within a site , gather the features that occur within ten words of an occurrence of ak , with any particular feature included at most once . 
+	</s>
+	
+
+	<s id="54">
+		 This list comprises a new “document,” representing that site.2 3 . 
+	</s>
+	
+
+	<s id="55">
+		 Label this document +1 if ak = excellent , -1 if ak = poor . 
+	</s>
+	
+
+	<s id="56">
+		 When a Naive Bayes model is fit to the corpus described above , it results in a vector ~ˆ of length p , consisting of coefficient estimates for all features . 
+	</s>
+	
+
+	<s id="57">
+		 In Propositions 1 and 2 below , we show that Turney’s estimates of sentiment orientation ~ˆ are closely related to ˆ~ , and that both estimates produce identical classifiers . 
+	</s>
+	
+
+	<s id="58">
+		 Proposition 1 Proposition 2 Turney’s classifier is identical to a Naive Bayes classifier fit on this corpus , with 7r1 = 7r-1 = 0.5 . 
+	</s>
+	
+
+	<s id="59">
+		 Proof : A Naive Bayes classifier typically assigns an observation to its most probable class . 
+	</s>
+	
+
+	<s id="60">
+		 This is equivalent to classifying according to the sign of the estimated logit . 
+	</s>
+	
+
+	<s id="61">
+		 So for any document , we must show that both the logit estimate and the average sentiment orientation are identical in sign . 
+	</s>
+	
+
+	<s id="62">
+		 When 7r1 = 0 . 
+	</s>
+	
+
+	<s id="63">
+		 5 , ~0 = 0 . 
+	</s>
+	
+
+	<s id="64">
+		 Thus the estimated logit is logit(sId) = ~p ˆ~jdj ( 18 ) j=1 = C1 ~p ˆ~jdj ( 19 ) j=1 This is a positive multiple of Turney’s classifier ( Equation 3 ) , so they clearly match in sign . 
+	</s>
+	
+
+	<s id="65">
+		 ^ 3 A More Versatile Model 3.1 Desired Extensions By understanding Turney’s model within a Naive Bayes framework , we are able to interpret its output as a probability model for document classes . 
+	</s>
+	
+
+	<s id="66">
+		 In the presence of labeled examples , this insight also makes it possible to estimate the intercept term ~0 . 
+	</s>
+	
+
+	<s id="67">
+		 Further , we are able to view this model as a member of a broad class : linear estimates for the logit . 
+	</s>
+	
+
+	<s id="68">
+		 This understanding facilitates further extensions , in particular , utilizing the following : ~ˆ = C1ˆ~ ( 12 ) Nexc./~i:si=1 IdiI Npoor/ Ei:si=-1 IdiI ( 13 ) where C1 = 1 . 
+	</s>
+	
+
+	<s id="69">
+		 Labeled documents 2 . 
+	</s>
+	
+
+	<s id="70">
+		 More anchor words Proof : Because a feature is restricted to at most one occurrence in a document , E dij = N(w,ak) ( 14 ) i:si=k 2If both anchors occur on a site , then there will actually be two documents , one for each sentiment The reason for using labeled documents is straightforward ; labels offer validation for any chosen model . 
+	</s>
+	
+
+	<s id="71">
+		 Using additional anchors is desirable in part because it is inexpensive to produce lists of words that are believed to reflect positive sentiment , perhaps by reference to a thesaurus . 
+	</s>
+	
+
+	<s id="72">
+		 In addition , a single anchor may be at once too general and too specific . 
+	</s>
+	
+
+	<s id="73">
+		 An anchor may be too general in the sense that many common words have multiple meanings , and not all of them reflect a chosen sentiment orientation . 
+	</s>
+	
+
+	<s id="74">
+		 For example , poor can refer to an objective economic state that does not necessarily express negative sentiment . 
+	</s>
+	
+
+	<s id="75">
+		 As a result , a word such as income appears 4.18 times as frequently with poor as excellent , even though it does not convey negative sentiment . 
+	</s>
+	
+
+	<s id="76">
+		 Similarly , excellent has a technical Then from Equations 6 and 11 : ˆ~j = log ˆq1j ( 15 ) ˆq-1j N(w,poor)/ ~ i:si=-1IdiI N(w,exc.)/ ~i:si=1 IdiI ( 16 ) = C1 ˆ~j ( 17 ) = log meaning in antiquity trading , which causes it to appear 3.34 times as frequently with furniture . 
+	</s>
+	
+
+	<s id="77">
+		 An anchor may also be too specific , in the sense that there are a variety of different ways to express sentiment , and a single anchor may not capture them all . 
+	</s>
+	
+
+	<s id="78">
+		 So a word like pretentious carries a strong negative sentiment but co-occurs only slightly more frequently ( 1.23 times ) with excellent than poor . 
+	</s>
+	
+
+	<s id="79">
+		 Likewise , fascination generally reflects a positive sentiment , yet it appears slightly more frequently ( 1.06 times ) with poor than excellent . 
+	</s>
+	
+
+	<s id="80">
+		 3.2 Other Sources of Unlabeled Data The use of additional anchors has a drawback in terms of being resource-intensive . 
+	</s>
+	
+
+	<s id="81">
+		 A feature set may contain many words and phrases , and each of them requires a separate AltaVista query for every chosen anchor word . 
+	</s>
+	
+
+	<s id="82">
+		 In the case of 30,000 features and ten queries per minute , downloads for a single anchor word require over two days of data collection . 
+	</s>
+	
+
+	<s id="83">
+		 An alternative approach is to access a large collection of documents directly . 
+	</s>
+	
+
+	<s id="84">
+		 Then all co- occurrences can be counted in a single pass . 
+	</s>
+	
+
+	<s id="85">
+		 Although this approach dramatically reduces the amount of data available , it does offer several advantages . 
+	</s>
+	
+
+	<s id="86">
+		 • Increased Query Options Search engine queries of the form phrase NEAR anchor may not produce all of the desired co- occurrence counts . 
+	</s>
+	
+
+	<s id="87">
+		 For instance , one may wish to run queries that use stemmed words , hyphenated words , or punctuation marks . 
+	</s>
+	
+
+	<s id="88">
+		 One may also wish to modify the definition of NEAR , or to count individual co-occurrences , rather than counting sites that contain at least one co-occurrence . 
+	</s>
+	
+
+	<s id="89">
+		 • Topic Matching Across the Internet as a whole , features may not exhibit the same correlation structure as they do within a specific domain . 
+	</s>
+	
+
+	<s id="90">
+		 By restricting attention to documents within a domain , one may hope to avoid co- occurrences that are primarily relevant to other subjects . 
+	</s>
+	
+
+	<s id="91">
+		 • Reproducibility On a fixed corpus , counts of word occurrences produce consistent results . 
+	</s>
+	
+
+	<s id="92">
+		 Due to the dynamic nature of the Internet , numbers may fluctuate . 
+	</s>
+	
+
+	<s id="93">
+		 3.3 Co-Occurrences and Derived Features The Naive Bayes coefficient estimate ˆ~j may itself be interpreted as an intercept term plus a linear combination of features of the form log N(,,,j,ak) . 
+	</s>
+	
+
+	<s id="94">
+		 Num . 
+	</s>
+	
+
+	<s id="95">
+		 of Labeled Occurrences Correlation 1-5 0.022 6-10 0.082 11-25 0.113 26-50 0.183 51-75 0.283 76-100 0.316 Figure 1 : Correlation between Supervised and Unsupervised Coefficient Estimates N(j,pr.)/ i:si=^1IdiI N(j,exc.)/ i:si=1 IdiI ( 20 ) =log C1 + log N(j,exc.) — log N(j,pr.) ( 21 ) We generalize this estimate as follows : for a collection of K different anchor words , we consider a general linear combination of logged co-occurrence counts . 
+	</s>
+	
+
+	<s id="96">
+		 ˆ~j = ~K ' Yk log N(,,,j , ak ) ( 22 ) k=1 In the special case of a Naive Bayes model , ' Yk = 1 when the k-th anchor word ak conveys positive sentiment , —1 when it conveys negative sentiment . 
+	</s>
+	
+
+	<s id="97">
+		 Replacing the logit estimate in Equation 9 with an estimate of this form , the model becomes : = ' Y0 + ~K ' Yk ~p dj logN(,,,j,ak) k=1 j=1 ( 25 ) ( 26 ) This model has only K + 1 parameters : 'Y0,'Y1 , • • • , ' YK . 
+	</s>
+	
+
+	<s id="98">
+		 These can be learned straightforwardly from labeled documents by a method such as logistic regression . 
+	</s>
+	
+
+	<s id="99">
+		 Observe that a document receives a score for each anchor word ~ 1 dj log N(,,,j,ak) . 
+	</s>
+	
+
+	<s id="100">
+		 Effectively , the predictor variables in this model are no longer counts of the original features dj . 
+	</s>
+	
+
+	<s id="101">
+		 Rather , they are logit(sId) = ˆ~0 + ~p djˆ~j ( 23 ) j=1 dj ' Yk log N( , , , j , ak ) ( 24 ) ˆ~0 + ~p ~K j=1 k=1 ˆ~j = log Positive Negative best awful brilliant bad excellent pathetic spectacular poor wonderful worst Figure 3 : Selected Anchor Words Unsupervised vs. . 
+	</s>
+	
+
+	<s id="102">
+		 Supervised Coefficients ^2.0 ^1.5^1.0 ^0.5 0.0 0.5 1.0 1.5 Traditional Naive Bayes Coefs . 
+	</s>
+	
+
+	<s id="103">
+		 Figure 2 : Unsupervised versus Supervised Coefficient Estimates inner products between the entire feature vector d and the logged co-occurence vector N(w,aka . 
+	</s>
+	
+
+	<s id="104">
+		 In this respect , the vector of logged co-occurrences is used to produce derived feature . 
+	</s>
+	
+
+	<s id="105">
+		 4 Data Analysis 4.1 Accuracy of Unsupervised Coefficients By means of a Perl script that uses the Lynx browser , Version 2.8.3rel.1 , we download AltaVista hit counts for queries of the form “target NEAR anchor.” The initial list of targets consists of 44,321 word types extracted from the Pang corpus of 1400 labeled movie reviews . 
+	</s>
+	
+
+	<s id="106">
+		 After preprocessing , this number is reduced to 28,629.3 In Figure 1 , we compare estimates produced by two Naive Bayes procedures . 
+	</s>
+	
+
+	<s id="107">
+		 For each feature wd , we estimate ~d by using Turney’s procedure , and by fitting a traditional Naive Bayes model to the labeled documents . 
+	</s>
+	
+
+	<s id="108">
+		 The traditional estimates are smoothed by assuming a Beta prior distribution that is equivalent to having four previous observations of wd in documents of each class . 
+	</s>
+	
+
+	<s id="109">
+		 C2 4 + Ei:8i=1 did ( 27 ) 4 + Ei:8i=-1 did where C2 = 4p + EV.8i=1 IdiI(28) 4p + E=-1 Idi Here , did is used to indicate feature presence : ~1 if wd appears in di did = 0 otherwise ( 29 ) 3 We eliminate extremely rare words by requiring each target to co-occur at least once with each anchor . 
+	</s>
+	
+
+	<s id="110">
+		 In addition , certain types , such as words containing hyphens , apostrophes , or other punctuation marks , do not appear to produce valid counts , so they are discarded . 
+	</s>
+	
+
+	<s id="111">
+		 We choose this fitting procedure among several candidates because it performs well in classifying test documents . 
+	</s>
+	
+
+	<s id="112">
+		 In Figure 1 , each entry in the right-hand column is the observed correlation between these two estimates over a subset of features . 
+	</s>
+	
+
+	<s id="113">
+		 For features that occur in five documents or fewer , the correlation is very weak ( 0.022 ) . 
+	</s>
+	
+
+	<s id="114">
+		 This is not surprising , as it is difficult to estimate a coefficient from such a small number of labeled examples . 
+	</s>
+	
+
+	<s id="115">
+		 Correlations are stronger for more common features , but never strong . 
+	</s>
+	
+
+	<s id="116">
+		 As a baseline for comparison , Naive Bayes coefficients can be estimated using a subset of their labeled occurrences . 
+	</s>
+	
+
+	<s id="117">
+		 With two independent sets of 51-75 occurrences , Naive Bayes coefficient estimates had a correlation of 0.475 . 
+	</s>
+	
+
+	<s id="118">
+		 Figure 2 is a scatterplot of the same coefficient estimates for word types that appear in 51 to 100 documents . 
+	</s>
+	
+
+	<s id="119">
+		 The great majority of features do not have large coefficients , but even for the ones that do , there is not a tight correlation . 
+	</s>
+	
+
+	<s id="120">
+		 4.2 Additional Anchors We wish to learn how our model performance depends on the choice and number of anchor words . 
+	</s>
+	
+
+	<s id="121">
+		 Selecting from WordNet synonym lists 
+		<ref citStr="Fellbaum , 1998" id="9" label="OEPF" position="19345">
+			( Fellbaum , 1998 )
+		</ref>
+		 , we choose five positive anchor words and five negative ( Figure 3 ) . 
+	</s>
+	
+
+	<s id="122">
+		 This produces a total of 25 different possible pairs for use in producing coefficient estimates . 
+	</s>
+	
+
+	<s id="123">
+		 Figure 4 shows the classification performance of unsupervised procedures using the 1400 labeled Pang documents as test data . 
+	</s>
+	
+
+	<s id="124">
+		 Coefficients ˆ~d are estimated as described in Equation 22 . 
+	</s>
+	
+
+	<s id="125">
+		 Several different experimental conditions are applied . 
+	</s>
+	
+
+	<s id="126">
+		 The methods labeled ”Count” use the original un-normalized coefficients , while those labeled “Norm.” have been normalized so that the number of co-occurrences with each anchor have identical variance . 
+	</s>
+	
+
+	<s id="127">
+		 Results are shown when rare words ( with three or fewer occurrences in the labeled corpus ) are included and omitted . 
+	</s>
+	
+
+	<s id="128">
+		 The methods “pair” and “10” describe whether all ten anchor coefficients are used at once , or just the ones that correspond to a single pair of ˆq1d ˆq-1d Method Feat . 
+	</s>
+	
+
+	<s id="129">
+		 Misclass . 
+	</s>
+	
+
+	<s id="130">
+		 St.Dev Count Pair &gt;3 39.6 % 2.9 % Norm . 
+	</s>
+	
+
+	<s id="131">
+		 Pair &gt;3 38.4 % 3.0 % Count Pair all 37.4 % 3.1 % Norm . 
+	</s>
+	
+
+	<s id="132">
+		 Pair all 37.3 % 3.0 % Count 10 &gt; 3 36.4 % – Norm . 
+	</s>
+	
+
+	<s id="133">
+		 10 &gt; 3 35.4 % – Count 10 all 34.6 % – Norm . 
+	</s>
+	
+
+	<s id="134">
+		 10 all 34.1 % – Figure 4 : Classification Error Rates for Different Unsupervised Approaches anchor words . 
+	</s>
+	
+
+	<s id="135">
+		 For anchor pairs , the mean error across all 25 pairs is reported , along with its standard deviation . 
+	</s>
+	
+
+	<s id="136">
+		 Patterns are consistent across the different conditions . 
+	</s>
+	
+
+	<s id="137">
+		 A relatively large improvement comes from using all ten anchor words . 
+	</s>
+	
+
+	<s id="138">
+		 Smaller benefits arise from including rare words and from normalizing model coefficients . 
+	</s>
+	
+
+	<s id="139">
+		 Models that use the original pair of anchor words , excellent and poor , perform slightly better than the average pair . 
+	</s>
+	
+
+	<s id="140">
+		 Whereas mean performance ranges from 37.3 % to 39.6 % , misclassification rates for this pair of anchors ranges from 37.4 % to 38.1 % . 
+	</s>
+	
+
+	<s id="141">
+		 4.3 A Smaller Unlabeled Corpus As described in Section 3.2 , there are several reasons to explore the use of a smaller unlabeled corpus , rather than the entire Internet . 
+	</s>
+	
+
+	<s id="142">
+		 In our experiments , we use additional movie reviews as our documents . 
+	</s>
+	
+
+	<s id="143">
+		 For this domain , Pang makes available 27,886 reviews.4 Because this corpus offers dramatically fewer instances of anchor words , we modify our estimation procedure . 
+	</s>
+	
+
+	<s id="144">
+		 Rather than discarding words that rarely co-occur with anchors , we use the same feature set as before and regularize estimates by the same procedure used in the Naive Bayes procedure described earlier . 
+	</s>
+	
+
+	<s id="145">
+		 Using all features , and ten anchor words with normalized scores , test error is 35.0 % . 
+	</s>
+	
+
+	<s id="146">
+		 This suggests that comparable results can be attained while referring to a considerably smaller unlabeled corpus . 
+	</s>
+	
+
+	<s id="147">
+		 Rather than requiring several days of downloads , the count of nearby co-occurrences was completed in under ten minutes . 
+	</s>
+	
+
+	<s id="148">
+		 Because this procedure enables fast access to counts , we explore the possibility of dramatically enlarging our collection of anchor words . 
+	</s>
+	
+
+	<s id="149">
+		 We col- 4 This corpus is freely available on the following website : Misclassification versus Sample Size Num of Labeled Documents Figure 5 : Misclassification with Labeled Documents . 
+	</s>
+	
+
+	<s id="150">
+		 The solid curve represents a latent factor model with estimated coefficients . 
+	</s>
+	
+
+	<s id="151">
+		 The dashed curve uses a Naive Bayes classifier . 
+	</s>
+	
+
+	<s id="152">
+		 The two horizontal lines represent unsupervised estimates ; the upper one is for the original unsupervised classifier , and the lower is for the most successful unsupervised method . 
+	</s>
+	
+
+	<s id="153">
+		 lect data for the complete set of WordNet synonyms for the words good , best , bad , boring , and dreadful . 
+	</s>
+	
+
+	<s id="154">
+		 This yields a total of 83 anchor words , 35 positive and 48 negative . 
+	</s>
+	
+
+	<s id="155">
+		 When all of these anchors are used in conjunction , test error increases to 38.3 % . 
+	</s>
+	
+
+	<s id="156">
+		 One possible difficulty in using this automated procedure is that some synonyms for a word do not carry the same sentiment orientation . 
+	</s>
+	
+
+	<s id="157">
+		 For instance , intense is listed as a synonym for bad , even though its presence in a movie review is a strongly positive indication.5 4.4 Methods with Supervision As demonstrated in Section 3.3 , each anchor word ak is associated with a coefficient yk . 
+	</s>
+	
+
+	<s id="158">
+		 In unsupervised models , these coefficients are assumed to be known . 
+	</s>
+	
+
+	<s id="159">
+		 However , when labeled documents are available , it may be advantageous to estimate them . 
+	</s>
+	
+
+	<s id="160">
+		 Figure 5 compares the performance of a model with estimated coefficient vector y , as opposed to unsupervised models and a traditional supervised approach . 
+	</s>
+	
+
+	<s id="161">
+		 When a moderate number of labeled documents are available , it offers a noticeable improvement . 
+	</s>
+	
+
+	<s id="162">
+		 The supervised method used for reference in this case is the Naive Bayes model that is described in section 4.1 . 
+	</s>
+	
+
+	<s id="163">
+		 Naive Bayes classification is of particular interest here because it converges faster to its asymptotic optimum than do discriminative methods 
+		<ref citStr="Ng , A. Y. and Jordan , M. , 2002" id="10" label="CEPF" position="24493">
+			( Ng , A. Y. and Jordan , M. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="164">
+		 Further , with 5In the labeled Pang corpus , intense appears in 38 positive 100 200 300 400 500 600 http://www.cs.cornell.edu/people/pabo/movie-rwviem-addbnYy 6 negative ones . 
+	</s>
+	
+
+	<s id="165">
+		 a larger number of labeled documents , its performance on this corpus is comparable to that of Support Vector Machines and Maximum Entropy models 
+		<ref citStr="Pang et al. , 2002" id="11" label="CEPF" position="24859">
+			( Pang et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="166">
+		 The coefficient vector ry is estimated by regularized logistic regression . 
+	</s>
+	
+
+	<s id="167">
+		 This method has been used in other text classification problems , as in 
+		<ref citStr="Zhang and Yang ( 2003 )" id="12" label="CEPF" position="25051">
+			Zhang and Yang ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="168">
+		 In our case , the regularization6 is introduced in order to enforce the beliefs that : ry1 pz~ ry2 , if a1 , a2 synonyms ( 30 ) ry1 pz~ —ry2 , if a1 , a2 antonyms ( 31 ) For further information on regularized model fitting , see for instance , 
+		<ref citStr="Hastie et al . ( 2001 )" id="13" label="CEPF" position="25331">
+			Hastie et al . ( 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="169">
+		 5 Conclusion In business settings , there is growing interest in learning product reputations from the Internet . 
+	</s>
+	
+
+	<s id="170">
+		 For such problems , it is often difficult or expensive to obtain labeled data . 
+	</s>
+	
+
+	<s id="171">
+		 As a result , a change in modeling strategies is needed , towards approaches that require less supervision . 
+	</s>
+	
+
+	<s id="172">
+		 In this paper we provide a framework for allowing human-provided information to be combined with unlabeled documents and labeled documents . 
+	</s>
+	
+
+	<s id="173">
+		 We have found that this framework enables improvements over existing techniques , both in terms of the speed of model estimation and in classification accuracy . 
+	</s>
+	
+
+	<s id="174">
+		 As a result , we believe that this is a promising new approach to problems of practical importance . 
+	</s>
+	
+
+	<s id="175">
+		 References Kushal Dave , Steve Lawrence , and David M. Pennock . 
+	</s>
+	
+
+	<s id="176">
+		 2003. Mining the peanut gallery : Opinion extraction and semantic classification of product reviews . 
+	</s>
+	
+
+	<s id="177">
+		 C. Fellbaum . 
+	</s>
+	
+
+	<s id="178">
+		 1998. Wordnet an electronic lexical database . 
+	</s>
+	
+
+	<s id="179">
+		 T. Hastie , R. Tibshirani , and J. Friedman . 
+	</s>
+	
+
+	<s id="180">
+		 2001. The Elements of Statistical Learning : Data Mining , Inference , and Prediction . 
+	</s>
+	
+
+	<s id="181">
+		 Springer-Verlag . 
+	</s>
+	
+
+	<s id="182">
+		 Vasileios Hatzivassiloglou and Kathleen R. McKeown . 
+	</s>
+	
+
+	<s id="183">
+		 1997. Predicting the semantic orientation of adjectives . 
+	</s>
+	
+
+	<s id="184">
+		 In Philip R. Cohen and Wolfgang Wahlster , editors , Proceedings of the Thirty-Fifth Annual Meeting of the Association for Computational Linguistics and Eighth Conference of the European Chapter of the Association for Computational Linguistics , pages 174–181 , Somerset , New Jersey . 
+	</s>
+	
+
+	<s id="185">
+		 Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="186">
+		 6By cross-validation , we choose the regularization term A = 1.5/sqrt(n) , where n is the number of labeled documents . 
+	</s>
+	
+
+	<s id="187">
+		 Satoshi Morinaga , Kenji Yamanishi , Kenji Tateishi , and Toshikazu Fukushima . 
+	</s>
+	
+
+	<s id="188">
+		 2002. Mining product reputations on the web. Ng , A. Y. and Jordan , M. 2002 . 
+	</s>
+	
+
+	<s id="189">
+		 On discriminative vs. generative classifiers : A comparison of logistic regression and naive bayes . 
+	</s>
+	
+
+	<s id="190">
+		 Advances in Neural Information Processing Systems , 14 . 
+	</s>
+	
+
+	<s id="191">
+		 Kamal Nigam , Andrew K. McCallum , Sebastian Thrun , and Tom M. Mitchell . 
+	</s>
+	
+
+	<s id="192">
+		 2000. Text classification from labeled and unlabeled documents using EM . 
+	</s>
+	
+
+	<s id="193">
+		 Machine Learning , 39(2/3):103–134 . 
+	</s>
+	
+
+	<s id="194">
+		 Bo Pang , Lillian Lee , and Shivakumar Vaithyanathan . 
+	</s>
+	
+
+	<s id="195">
+		 2002. Thumbs up ? 
+	</s>
+	
+
+	<s id="196">
+		 sentiment classification using machine learning techniques . 
+	</s>
+	
+
+	<s id="197">
+		 In Proceedings of the 2002 Conference on Empirical Methods in Natural Language Processing ( EMNLP ) . 
+	</s>
+	
+
+	<s id="198">
+		 P.D. Turney and M.L. Littman . 
+	</s>
+	
+
+	<s id="199">
+		 2002. Unsupervised learning of semantic orientation from a hundredbillion-word corpus . 
+	</s>
+	
+
+	<s id="200">
+		 Peter Turney . 
+	</s>
+	
+
+	<s id="201">
+		 2002. Thumbs up or thumbs down ? 
+	</s>
+	
+
+	<s id="202">
+		 semantic orientation applied to unsupervised classification of reviews . 
+	</s>
+	
+
+	<s id="203">
+		 In Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics ( ACL’02 ) , pages 417– 424 , Philadelphia , Pennsylvania . 
+	</s>
+	
+
+	<s id="204">
+		 Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="205">
+		 Janyce Wiebe . 
+	</s>
+	
+
+	<s id="206">
+		 2000. Learning subjective adjectives from corpora . 
+	</s>
+	
+
+	<s id="207">
+		 In Proc . 
+	</s>
+	
+
+	<s id="208">
+		 17th National Conference on Artificial Intelligence ( AAAI-2000 ) , Austin , Texas . 
+	</s>
+	
+
+	<s id="209">
+		 Jian Zhang and Yiming Yang . 
+	</s>
+	
+
+	<s id="210">
+		 2003. ”robustness of regularized linear classification methods in text categorization” . 
+	</s>
+	
+
+	<s id="211">
+		 In Proceedings of the 26th Annual International ACM SIGIR Conference ( SIGIR 2003 ) . 
+	</s>
+	
+
+
+</acldoc>

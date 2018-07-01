@@ -1,0 +1,777 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-3015">
+	
+
+	<s id="1">
+		 Hierarchy Extraction based on Inclusion of Appearance Eiko Yamamoto Kyoko Kanzaki Hitoshi Isahara Computational Linguistics Group , National Institute of Information and Communications Technology 3-5 Hikari-dai , Seika-cho , Soraku-gun , Kyoto , 619-0289 , Japan . 
+	</s>
+	
+
+	<s id="2">
+		 eiko@nict.go jp kanzaki@nict.go jp isahara@nict.go jp Abstract In this paper , we propose a method of automatically extracting word hierarchies based on the inclusion relation of appearance patterns from corpora . 
+	</s>
+	
+
+	<s id="3">
+		 We apply a complementary similarity measure to find a hierarchical word structure . 
+	</s>
+	
+
+	<s id="4">
+		 This similarity measure was developed for the recognition of degraded machine- printed text in the field and can be applied to estimate one-to-many relations . 
+	</s>
+	
+
+	<s id="5">
+		 Our purpose is to extract word hierarchies from corpora automatically . 
+	</s>
+	
+
+	<s id="6">
+		 As the initial task , we attempt to extract hierarchies of abstract nouns co- occurring with adjectives in Japanese and compare with hierarchies in the EDR electronic dictionary . 
+	</s>
+	
+
+	<s id="7">
+		 1 Introduction The hierarchical relations of words are useful as language resources . 
+	</s>
+	
+
+	<s id="8">
+		 Hierarchical semantic lexical databases such as WordNet 
+		<ref citStr="Miller et al. , 1990" id="1" label="OEPF" position="1209">
+			( Miller et al. , 1990 )
+		</ref>
+		 and the EDR electronic dictionary ( 1995 ) are used for NLP research worldwide to fully understand a word meaning . 
+	</s>
+	
+
+	<s id="9">
+		 In current thesauri in the form of hierarchical relations , words are categorized manually and classified in a top-down manner based on human intuition . 
+	</s>
+	
+
+	<s id="10">
+		 This is a good way to make a lexical database for users having a specific purpose . 
+	</s>
+	
+
+	<s id="11">
+		 However , word hierarchies based on human intuition tend to vary greatly depending on the lexicographer . 
+	</s>
+	
+
+	<s id="12">
+		 In addition , hierarchical relations based on various data may be needed depending on each user . 
+	</s>
+	
+
+	<s id="13">
+		 Accordingly , we try to extract a hierarchical relation of words automatically and statistically . 
+	</s>
+	
+
+	<s id="14">
+		 In previous research , ways of extracting from definition sentences in dictionaries 
+		<ref citStr="Tsurumaru et al. , 1986" id="2" label="CJPF" position="2005">
+			( Tsurumaru et al. , 1986 
+		</ref>
+		<ref citStr="Shoutsu et al. , 2003" id="3" label="CJPF" position="2031">
+			; Shoutsu et al. , 2003 )
+		</ref>
+		 or from a corpus by using patterns such as “a part of” , “is-a” , or “and” 
+		<ref citStr="Berland and Charniak , 1999" id="4" label="CJPF" position="2138">
+			( Berland and Charniak , 1999 
+		</ref>
+		<ref citStr="Caraballo , 1999" id="5" label="CJPF" position="2168">
+			; Caraballo , 1999 )
+		</ref>
+		 have been proposed . 
+	</s>
+	
+
+	<s id="15">
+		 Also , there is a method that uses the dependence relation between words taken from a corpus 
+		<ref citStr="Matsumoto et al. , 1996" id="6" label="CJPF" position="2339">
+			( Matsumoto et al. , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="16">
+		 In contrast , we propose a method based on the inclusion relation of appearance patterns from corpora . 
+	</s>
+	
+
+	<s id="17">
+		 In this paper , to verify the suitability of our method , we attempt to extract hierarchies of abstract nouns co-occurring with adjectives in Japanese . 
+	</s>
+	
+
+	<s id="18">
+		 We select two similarity measures to estimate the inclusion relation between word appearance patterns . 
+	</s>
+	
+
+	<s id="19">
+		 One is a complementary similarity measure ; i.e. , a similarity measure developed for the recognition of degraded machine-printed text in the field 
+		<ref citStr="Hagita and Sawaki , 1995" id="7" label="CERF" position="2915">
+			( Hagita and Sawaki , 1995 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="20">
+		 This measure can be used to estimate one-to-many relations such as superordinate–subordinate relations from appearance patterns 
+		<ref citStr="Yamamoto and Umemura , 2002" id="8" label="CEPF" position="3087">
+			( Yamamoto and Umemura , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="21">
+		 The second similarity measure is the overlap coefficient , which is a similarity measure to calculate the rate of overlap between two binary vectors . 
+	</s>
+	
+
+	<s id="22">
+		 Using each measure , we extract hierarchies from a corpus . 
+	</s>
+	
+
+	<s id="23">
+		 After that , we compare these with the EDR electronic dictionary . 
+	</s>
+	
+
+	<s id="24">
+		 2 Experiment Corpus A good deal of linguistic research has focused on the syntactic and semantic functions of abstract nouns 
+		<ref citStr="Nemoto , 1969" id="9" label="CEPF" position="3529">
+			( Nemoto , 1969 
+		</ref>
+		<ref citStr="Takahashi , 1975" id="10" label="CEPF" position="3545">
+			; Takahashi , 1975 
+		</ref>
+		<ref citStr="Schmid , 2000" id="11" label="CEPF" position="3564">
+			; Schmid , 2000 
+		</ref>
+		<ref citStr="Kanzaki et al. , 2003" id="12" label="CEPF" position="3580">
+			; Kanzaki et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="25">
+		 In the example , “Magi ( goat ) wa seishitsu ( nature ) ga otonashii ( gentle ) ( The nature of goats is gentle).” , 
+		<ref citStr="Takahashi ( 1975 )" id="13" label="CEPF" position="3754">
+			Takahashi ( 1975 )
+		</ref>
+		 recognized that the abstract noun “seishitsu (nature)” is a hypernym of the attribute that the predicative adjective “otonashi (gentle)” expresses . 
+	</s>
+	
+
+	<s id="26">
+		 
+		<ref citStr="Kanzaki et al . ( 2003 )" id="14" label="CEPF" position="3941">
+			Kanzaki et al . ( 2003 )
+		</ref>
+		 defined such abstract nouns that co-occur with adjectives as adjective hypernyms , and extracted these co-occurrence relations between abstract nouns and adjectives from many corpora such as newspaper articles . 
+	</s>
+	
+
+	<s id="27">
+		 In the linguistic data , there are sets of co-occurring adjectives for each abstract noun – the total number of abstract noun types is 365 and the number of adjective types is 10,525 . 
+	</s>
+	
+
+	<s id="28">
+		 Some examples are as follows . 
+	</s>
+	
+
+	<s id="29">
+		 OMOI ( feeling ) : ureshii ( glad ) , kanashii ( sad ) , shiawasena ( happy ) , ... 
+	</s>
+	
+
+	<s id="30">
+		 KANTEN ( viewpoint ) : igakutekina ( medical ) , rekishitekina ( historical ) , ... 3 Complementary Similarity Measure The complementary similarity measure ( CSM ) is used in a character recognition method for binary images which is robust against heavy noise or graphical designs 
+		<ref citStr="Sawaki and Hagita , 1996" id="15" label="CEPF" position="4800">
+			( Sawaki and Hagita , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="31">
+		 
+		<ref citStr="Yamamoto et al . ( 2002 )" id="16" label="CEPF" position="4837">
+			Yamamoto et al . ( 2002 )
+		</ref>
+		 applied CSM to estimate oneto-many relations between words . 
+	</s>
+	
+
+	<s id="32">
+		 They estimated one-to-many relations from the inclusion relations between the appearance patterns of two words . 
+	</s>
+	
+
+	<s id="33">
+		 The appearance pattern is expressed as an n- dimensional binary feature vector . 
+	</s>
+	
+
+	<s id="34">
+		 Now , let F = ( f1 , f2 , ... , fn ) and T = ( t1 , t2 , ... , tn ) ( where fi , ti = 0 or 1 ) be the feature vectors of the appearance patterns for a word and another word , respectively . 
+	</s>
+	
+
+	<s id="35">
+		 The CSM of F to T is defined as The CSM of F to T represents the degree to which F includes T ; that is , the inclusion relation between the appearance patterns of two words . 
+	</s>
+	
+
+	<s id="36">
+		 In our experiment , each “word” is an abstract noun . 
+	</s>
+	
+
+	<s id="37">
+		 Therefore , n is the number of adjectives in the corpus , a indicates the number of adjectives co- occurring with both abstract nouns , b and c indicate the number of adjectives co-occurring with either abstract noun , and d indicates the number of adjectives co-occurring with neither abstract noun . 
+	</s>
+	
+
+	<s id="38">
+		 4 Overlap Coefficient The overlap coefficient ( OVLP ) is a similarity measure for binary vectors 
+		<ref citStr="Manning and Schutze , 1999" id="17" label="CEPF" position="6008">
+			( Manning and Schutze , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="39">
+		 OVLP is essentially a measure of inclusion . 
+	</s>
+	
+
+	<s id="40">
+		 It has a value of 1.0 if every dimension with a nonzero value for the first vector is also non-zero for the second vector or vice versa . 
+	</s>
+	
+
+	<s id="41">
+		 In other words , the value is 1.0 when the first vector completely includes the second vector or vice versa . 
+	</s>
+	
+
+	<s id="42">
+		 OVLP of F and T is defined as 5 EDR hierarchy The EDR Electronic 
+		<ref citStr="Dictionary ( 1995 )" id="18" label="OEPF" position="6424">
+			Dictionary ( 1995 )
+		</ref>
+		 was developed for advanced processing of natural language by computers and is composed of eleven sub-dictionaries . 
+	</s>
+	
+
+	<s id="43">
+		 The sub-dictionaries include a concept dictionary , word dictionaries , bilingual dictionaries , etc. . 
+	</s>
+	
+
+	<s id="44">
+		 We verify and analyse the hierarchies that are extracted based on a comparison with the EDR dictionary . 
+	</s>
+	
+
+	<s id="45">
+		 However , the hierarchies in EDR consist of hypernymic concepts represented by sentences . 
+	</s>
+	
+
+	<s id="46">
+		 On the other hand , our extracted hierarchies consist of hypernyms such as abstract nouns . 
+	</s>
+	
+
+	<s id="47">
+		 Therefore , we have to replace the concept composed of a sentence with the sequence of the words . 
+	</s>
+	
+
+	<s id="48">
+		 We replace the description of concepts with entry words from the “Word List by Semantic Principles” ( 1964 ) and add synonyms . 
+	</s>
+	
+
+	<s id="49">
+		 We also add to abstract nouns in order to reduce any difference in representation . 
+	</s>
+	
+
+	<s id="50">
+		 In this way , conceptual hierarchies of adjectives in the EDR dictionary are defined by the sequence of words . 
+	</s>
+	
+
+	<s id="51">
+		 6 Hierarchy Extraction Process The processes for hierarchy extraction from the corpus are as follows . 
+	</s>
+	
+
+	<s id="52">
+		 “TH” is a threshold value for each pair under consideration . 
+	</s>
+	
+
+	<s id="53">
+		 If TH is low , we can obtain long hierarchies . 
+	</s>
+	
+
+	<s id="54">
+		 However , if TH is too low , the number of word pairs taken into consideration increases overwhelmingly and the measurement reliability diminishes . 
+	</s>
+	
+
+	<s id="55">
+		 In this experiment , we set 0.2 as TH . 
+	</s>
+	
+
+	<s id="56">
+		 1. Compute the similarity between appearance patterns for each pair of words . 
+	</s>
+	
+
+	<s id="57">
+		 The hierarchical relation between the two words in a pair is determined by the similarity value . 
+	</s>
+	
+
+	<s id="58">
+		 We express the pair as ( X , Y ) , where X is a hypernym of Y and Y is a hyponym of X. 2 . 
+	</s>
+	
+
+	<s id="59">
+		 Sort the pairs by the normalized similarities and reduce the pairs where the similarity is less than TH . 
+	</s>
+	
+
+	<s id="60">
+		 3. For each abstract noun , A ) Choose a pair ( B , C ) where word B is the hypernym with the highest value . 
+	</s>
+	
+
+	<s id="61">
+		 The hierarchy between B and C is set to the initial hierarchy . 
+	</s>
+	
+
+	<s id="62">
+		 B ) Choose a pair ( C , D ) where hyponym D is not contained in the current hierarchy and has the highest value in pairs where the last word of the current hierarchy C is a hypernym . 
+	</s>
+	
+
+	<s id="63">
+		 C ) Connect hyponym D with the tail of the current hierarchy . 
+	</s>
+	
+
+	<s id="64">
+		 D ) While such a pair can be chosen , repeat B ) and C ) . 
+	</s>
+	
+
+	<s id="65">
+		 E ) Choose a pair ( A , B ) where hypernym A is not contained in the current hierarchy and has the highest value in pairs where the first word of the current hierarchy B is a hypernym . 
+	</s>
+	
+
+	<s id="66">
+		 F ) Connect hypernym A with the head of the current hierarchy . 
+	</s>
+	
+
+	<s id="67">
+		 G ) While such a pair can be chosen , repeat E ) and F ) . 
+	</s>
+	
+
+	<s id="68">
+		 4. For the hierarchies that are built , A ) If a short hierarchy is included in a longer hierarchy with the order of the words preserved , the short one is dropped from the list of hierarchies . 
+	</s>
+	
+
+	<s id="69">
+		 B ) If a hierarchy has only one or a few different words from another hierarchy , the two hierarchies are merged . 
+	</s>
+	
+
+	<s id="70">
+		 7 Extracted Hierarchy Some extracted hierarchies are as follows . 
+	</s>
+	
+
+	<s id="71">
+		 In our experiment , we get koto ( matter ) as the common hypernym . 
+	</s>
+	
+
+	<s id="72">
+		 koto ( matter ) -- joutai ( state ) -- kankei ( relation ) -- kakawari ( something to do with ) -- tsukiai ( have an acquaintance with ) koto ( matter ) -- toki ( when ) -- yousu ( aspect ) -- omomochi ( one’s face ) -- manazashi ( a look ) -- iro ( on one’s face ) -- shisen ( one’s eye ) 8 Comparison We analyse extracted hierarchies by using the number of nodes that agree with the EDR hierarchy . 
+	</s>
+	
+
+	<s id="73">
+		 Specifically , we count the number of nodes ( nouns ) which agree with a word in the EDR hierarchy , preserving the order of each hierarchy . 
+	</s>
+	
+
+	<s id="74">
+		 Here , two hierarchies are “A - B - C - D - E” and “A - B - D - F - G.” They have three agreement nodes ; “A - B-D.” Table 1 shows the distribution of the depths of a CSM hierarchy , and the number of nodes that agree with the EDR hierarchy at each depth . 
+	</s>
+	
+
+	<s id="75">
+		 Table 2 shows the same for an OVLP one . 
+	</s>
+	
+
+	<s id="76">
+		 “Agreement Level” is the number of agreement nodes . 
+	</s>
+	
+
+	<s id="77">
+		 The bold font represents the number of hierarchies completely included in the EDR hierarchy . 
+	</s>
+	
+
+	<s id="78">
+		 8.1 Depth of Hierarchy The number of hierarchies made from the EDR dictionary ( EDR hierarchy ) is 932 and the deepest level is 14 . 
+	</s>
+	
+
+	<s id="79">
+		 The number of CSM hierarchies is 105 and the depth is from 3 to 14 ( Table 1 ) . 
+	</s>
+	
+
+	<s id="80">
+		 The number of OVLP hierarchies is 179 and the depth is from 2 to 9 ( Table 2 ) . 
+	</s>
+	
+
+	<s id="81">
+		 These results show that CSM builds a deeper hierarchy than OVLP , though the number of hierarchies is less than OVLP . 
+	</s>
+	
+
+	<s id="82">
+		 Also , the deepest level of CSM equals that of EDR . 
+	</s>
+	
+
+	<s id="83">
+		 Therefore , comparison with the EDR dictionary is an appropriate way to verify the hierarchies that we have extracted . 
+	</s>
+	
+
+	<s id="84">
+		 In both tables , we find most hierarchies have an agreement level from 2 to 4 . 
+	</s>
+	
+
+	<s id="85">
+		 The deepest agreement level is 6 . 
+	</s>
+	
+
+	<s id="86">
+		 For an agreement level of 5 or better , the OVLP hierarchy includes only two hierarchies while the CSM hierarchy includes nine hierarchies . 
+	</s>
+	
+
+	<s id="87">
+		 This means CSM can extract hierarchies having more nodes which agree with the EDR hierarchy than is possible with OVLP . 
+	</s>
+	
+
+	<s id="88">
+		 Depth of Agreement Level Hierarchy 1 2 3 4 5 6 3 1 4 1 4 8 6 2 5 9 8 1 6 8 9 4 1 7 2 6 1 1 8 1 5 2 2 9 3 2 3 1 10 1 2 11 4 1 12 1 1 13 1 2 14 1 Table 1 : Distribution of CSM hierarchy for each depth Depth of Agreement Level Hierarchy 1 2 3 4 5 6 2 1 3 2 8 1 4 25 9 1 5 24 13 7 6 21 31 5 7 5 12 1 1 8 3 5 2 1 9 1 3 1 Table 2 : Distribution of OVLP hierarchy for each depth Also , many abstract nouns agree with the hyperonymic concept around the top level . 
+	</s>
+	
+
+	<s id="89">
+		 In current thesauri , the categorization of words is classified in a top-down manner based on human intuition . 
+	</s>
+	
+
+	<s id="90">
+		 Therefore , we believe the hierarchy that we have built is consistent with human intuition , at least around the top level of hyperonymic concepts . 
+	</s>
+	
+
+	<s id="91">
+		 9 Conclusion We have proposed a method of automatically extracting hierarchies based on an inclusion relation of appearance patterns from corpora . 
+	</s>
+	
+
+	<s id="92">
+		 In this paper , we attempted to extract objective hierarchies of abstract nouns co-occurring with adjectives in Japanese . 
+	</s>
+	
+
+	<s id="93">
+		 In our experiment , we showed that complementary similarity measure can extract a kind of hierarchy from corpora , though it is a similarity measure developed for the recognition of degraded machine-printed text . 
+	</s>
+	
+
+	<s id="94">
+		 Also , we can find interesting hierarchies which suit human intuition , though they are different from exact hierarchies . 
+	</s>
+	
+
+	<s id="95">
+		 
+		<ref citStr="Kanzaki et al . ( 2004 )" id="19" label="CEPF" position="13159">
+			Kanzaki et al . ( 2004 )
+		</ref>
+		 have applied our approach to verify classification of abstract nouns by using self- organization map . 
+	</s>
+	
+
+	<s id="96">
+		 We can look a suitability of our result at that work . 
+	</s>
+	
+
+	<s id="97">
+		 In our future work , we will use our approach for other parts of speech and other types of word . 
+	</s>
+	
+
+	<s id="98">
+		 Moreover , we will compare with current alternative approaches such as those based on sentence patterns . 
+	</s>
+	
+
+	<s id="99">
+		 References Berland , M. and Charniak , E. 1999 . 
+	</s>
+	
+
+	<s id="100">
+		 Finding Parts in Very Large Corpora , In Proceedings of the 37th Annual Meeting of the Association for Computational Linguistics , pp.57-64 . 
+	</s>
+	
+
+	<s id="101">
+		 Caraballo , S. A. 1999 . 
+	</s>
+	
+
+	<s id="102">
+		 Automatic Construction of a Hypernym-labeled Noun Hierarchy from Text , In Proceedings of the 37th Annual Meeting of the Association for Computational Linguistics , pp. 120-126 . 
+	</s>
+	
+
+	<s id="103">
+		 EDR Electronic Dictionary . 
+	</s>
+	
+
+	<s id="104">
+		 1995. http://www2.nict.go.jp/kk/e416/EDR/index.html Hagita , N. and Sawaki , M. 1995 . 
+	</s>
+	
+
+	<s id="105">
+		 Robust Recognition of Degraded Machine-Printed Characters using Complementary Similarity Measure and Error-Correction Learning^In Proceedings of the SPIE –The International Society for Optical Engineering , 2442 : pp.236-244 . 
+	</s>
+	
+
+	<s id="106">
+		 Kanzaki , K. , Ma , Q. , Yamamoto , E. , Murata , M. , and Isahara , H. 2003 . 
+	</s>
+	
+
+	<s id="107">
+		 Adjectives and their Abstract concepts --- Toward an objective thesaurus from Semantic Map . 
+	</s>
+	
+
+	<s id="108">
+		 In Proceedings of the Second International Workshop on Generative Approaches to the Lexicon , pp. 177-184 . 
+	</s>
+	
+
+	<s id="109">
+		 Kanzaki , K. , Ma , Q. , Yamamoto , E. , Murata , M. , and Isahara , H. 2004 . 
+	</s>
+	
+
+	<s id="110">
+		 Extraction of Hyperonymy of Adjectives from Large Corpora by using the Neural Network Model . 
+	</s>
+	
+
+	<s id="111">
+		 In Proceedings of the Fourth International Conference on Language Resources and Evaluation , Volume II , pp.423- 426 . 
+	</s>
+	
+
+	<s id="112">
+		 Kay , M. 1986 . 
+	</s>
+	
+
+	<s id="113">
+		 Parsing in Functional Unification Grammar . 
+	</s>
+	
+
+	<s id="114">
+		 In “Readings in Natural Language Processing” , Grosz , B. J. , Spark Jones , K. and Webber , B. L. , ed. , pp.125-138 , Morgan Kaufmann Publishers , Los Altos , California . 
+	</s>
+	
+
+	<s id="115">
+		 Manning , C. D. and Schutze , H. 1999 . 
+	</s>
+	
+
+	<s id="116">
+		 Foundations of Statistical Natural Language Processing , The MIT Press , Cambridge MA . 
+	</s>
+	
+
+	<s id="117">
+		 Matsumoto , Y. and Sudo , S. , Nakayama , T. , and Hirao , T. 1996 . 
+	</s>
+	
+
+	<s id="118">
+		 Thesaurus Construction from Multiple Language Resources , In IPSJ SIG Notes NL-93 , pp.23-28 ( In Japanese ) . 
+	</s>
+	
+
+	<s id="119">
+		 Miller , A. , Beckwith , R. , Fellbaum , C. , Gros , D. , Millier , K. , and Tengi , R. 1990 . 
+	</s>
+	
+
+	<s id="120">
+		 Five Papers on WordNet , Technical Report CSL Report 43 , Cognitive Science Laboratory , Princeton University . 
+	</s>
+	
+
+	<s id="121">
+		 Mosteller , F. and Wallace , D. 1964 . 
+	</s>
+	
+
+	<s id="122">
+		 Inference and Disputed Authorship : The Federalist . 
+	</s>
+	
+
+	<s id="123">
+		 Addison- Wesley , Reading , Massachusetts . 
+	</s>
+	
+
+	<s id="124">
+		 Nemoto , K. 1969 . 
+	</s>
+	
+
+	<s id="125">
+		 The combination of the noun with “ga-Case” and the adjective , Language research2 for the computer , National Language Research Institute , pp.63-73 ( In Japanese ) . 
+	</s>
+	
+
+	<s id="126">
+		 Shmid , H-J. 2000 . 
+	</s>
+	
+
+	<s id="127">
+		 English Abstract Nouns as Conceptual Shells , Mouton de Gruyter . 
+	</s>
+	
+
+	<s id="128">
+		 Shoutsu , Y. , Tokunaga , T. , and Tanaka , H. 2003 . 
+	</s>
+	
+
+	<s id="129">
+		 The integration of Japanese dictionary and thesaurus , In IPSJ SIG Notes NL-153 , pp.141-146 ( In Japanese ) . 
+	</s>
+	
+
+	<s id="130">
+		 Sparck Jones , K. 1972 . 
+	</s>
+	
+
+	<s id="131">
+		 A statistical interpretation of term specificity and its application in retrieval . 
+	</s>
+	
+
+	<s id="132">
+		 Journal of Documentation , 28(1) : pp. 11-21 . 
+	</s>
+	
+
+	<s id="133">
+		 Takahashi , T. 1975 . 
+	</s>
+	
+
+	<s id="134">
+		 A various phase related to the part-whole relation investigated in the sentence , Studies in the Japanese language 103 , The Society of Japanese Linguistics , pp.1-16 ( In Japanese ) . 
+	</s>
+	
+
+	<s id="135">
+		 Tsurumaru , H. , Hitaka , T. , and Yoshita , S. 1986 . 
+	</s>
+	
+
+	<s id="136">
+		 Automatic extraction of hierarchical relation between words , In IPSJ SIG Notes NL-83 , pp. 121- 128 ( In Japanese ) . 
+	</s>
+	
+
+	<s id="137">
+		 Yamamoto , E. and Umemura , K. 2002 . 
+	</s>
+	
+
+	<s id="138">
+		 A Similarity Measure for Estimation of One–to-Many Relationship in Corpus , In Journal of Natural Language Processing , pp.45-75 ( In Japanese ) . 
+	</s>
+	
+
+	<s id="139">
+		 Word List by Semantic Principles . 
+	</s>
+	
+
+	<s id="140">
+		 1964. National Language Research Institute Publications , Shuei Shuppan ( In Japanese ) . 
+	</s>
+	
+
+
+</acldoc>

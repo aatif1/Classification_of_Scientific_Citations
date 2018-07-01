@@ -1,0 +1,703 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-3025">
+	
+
+	<s id="1">
+		 Incorporating topic information into sentiment analysis models Tony Mullen National Institute of Informatics ( NII ) Hitotsubashi 2-1-2 , Chiyoda-ku Tokyo 101-8430 , Japan , mullen@nii.ac.jp Nigel Collier National Institute of Informatics ( NII ) Hitotsubashi 2-1-2 , Chiyoda-ku Tokyo 101-8430 , Japan , collier@nii.ac.jp Abstract This paper reports experiments in classifying texts based upon their favorability towards the subject of the text using a feature set enriched with topic information on a small dataset of music reviews hand-annotated for topic . 
+	</s>
+	
+
+	<s id="2">
+		 The results of these experiments suggest ways in which incorporating topic information into such models may yield improvement over models which do not use topic information . 
+	</s>
+	
+
+	<s id="3">
+		 1 Introduction There are a number of challenging aspects in recognizing the favorability of opinion-based texts , the task known as sentiment analysis . 
+	</s>
+	
+
+	<s id="4">
+		 Opinions in natural language are very often expressed in subtle and complex ways , presenting challenges which may not be easily addressed by simple text categorization approaches such as n-gram or keyword identification approaches . 
+	</s>
+	
+
+	<s id="5">
+		 Although such approaches have been employed effectively 
+		<ref citStr="Pang et al. , 2002" id="1" label="CEPF" position="1241">
+			( Pang et al. , 2002 )
+		</ref>
+		 , there appears to remain considerable room for improvement . 
+	</s>
+	
+
+	<s id="6">
+		 Moving beyond these approaches can involve addressing the task at several levels . 
+	</s>
+	
+
+	<s id="7">
+		 Negative reviews may contain many apparently positive phrases even while maintaining a strongly negative tone , and the opposite is also common . 
+	</s>
+	
+
+	<s id="8">
+		 This paper attempts to address this issue using Support Vector Machines ( SVMs ) , a well-known and powerful tool for classification of vectors of real-valued features 
+		<ref citStr="Vapnik , 1998" id="2" label="OEPF" position="1745">
+			( Vapnik , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="9">
+		 The present approach emphasizes the use of a variety of diverse information sources . 
+	</s>
+	
+
+	<s id="10">
+		 In particular , several classes of features based upon the proximity of the topic with phrases which have been assigned favorability values are described in order to take advantage of situations in which the topic of the text may be explicitly identified . 
+	</s>
+	
+
+	<s id="11">
+		 2 Motivation In the past , work has been done in the area of characterizing words and phrases according to their emotive tone 
+		<ref citStr="Turney and Littman , 2003" id="3" label="CEPF" position="2244">
+			( Turney and Littman , 2003 
+		</ref>
+		<ref citStr="Turney , 2002" id="4" label="CEPF" position="2272">
+			; Turney , 2002 
+		</ref>
+		<ref citStr="Kamps et al. , 2002" id="5" label="CEPF" position="2288">
+			; Kamps et al. , 2002 
+		</ref>
+		<ref citStr="Hatzivassiloglou and Wiebe , 2000" id="6" label="CEPF" position="2310">
+			; Hatzivassiloglou and Wiebe , 2000 
+		</ref>
+		<ref citStr="Hatzivassiloglou and McKeown , 2002" id="7" label="CEPF" position="2346">
+			; Hatzivassiloglou and McKeown , 2002 
+		</ref>
+		<ref citStr="Wiebe , 2000" id="8" label="CEPF" position="2384">
+			; Wiebe , 2000 )
+		</ref>
+		 , but in many domains of text , the values of individual phrases may bear little relation to the overall sentiment expressed by the text . 
+	</s>
+	
+
+	<s id="12">
+		 Pang et al . 
+	</s>
+	
+
+	<s id="13">
+		 (2002)’s treatment of the task as analogous to topic-classification underscores the difference between the two tasks . 
+	</s>
+	
+
+	<s id="14">
+		 A number of rhetorical devices , such as the drawing of contrasts between the reviewed entity and other entities or expectations , sarcasm , understatement , and digressions , all of which are used in abundance in many discourse domains , create challenges for these approaches . 
+	</s>
+	
+
+	<s id="15">
+		 It is hoped that incorporating topic information along the lines suggested in this paper will be a step towards solving some of these problems . 
+	</s>
+	
+
+	<s id="16">
+		 3 Methods 3.1 Semantic orientation with PMI Here , the term semantic orientation ( SO ) 
+		<ref citStr="Hatzivassiloglou and McKeown , 2002" id="9" label="CEPF" position="3270">
+			( Hatzivassiloglou and McKeown , 2002 )
+		</ref>
+		 refers to a real number measure of the positive or negative sentiment expressed by a word or phrase . 
+	</s>
+	
+
+	<s id="17">
+		 In the present work , the approach taken by 
+		<ref citStr="Turney ( 2002 )" id="10" label="CERF" position="3441">
+			Turney ( 2002 )
+		</ref>
+		 is used to derive such values for selected phrases in the text . 
+	</s>
+	
+
+	<s id="18">
+		 For the purposes of this paper , these phrases will be referred to as value phrases , since they will be the sources of SO values . 
+	</s>
+	
+
+	<s id="19">
+		 Once the desired value phrases have been extracted from the text , each one is assigned an SO value . 
+	</s>
+	
+
+	<s id="20">
+		 The SO of a phrase is determined based upon the phrase’s pointwise mutual information ( PMI ) with the words “excellent” and “poor” . 
+	</s>
+	
+
+	<s id="21">
+		 PMI is defined by 
+		<ref citStr="Church and Hanks ( 1989 )" id="11" label="CEPF" position="3959">
+			Church and Hanks ( 1989 )
+		</ref>
+		 as follows : ( 1 ) where is the probability that and co-occur . 
+	</s>
+	
+
+	<s id="22">
+		 The SO for a is the difference between its PMI with the word “excellent” and its PMI with the word “poor.” The method used to derive these values takes advantage of the possibility of using the World Wide Web as a corpus , similarly to work such as 
+		<ref citStr="Keller and Lapata , 2003" id="12" label="CEPF" position="4314">
+			( Keller and Lapata , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="23">
+		 The probabilities are estimated by querying the AltaVista Advanced Search engine ' for counts . 
+	</s>
+	
+
+	<s id="24">
+		 The search engine’s “NEAR” operator , representing occurrences of the two queried words within ten words of each other in a text , is used to define co-occurrence . 
+	</s>
+	
+
+	<s id="25">
+		 The final SO equation is Intuitively , this yields values above zero for phrases with greater PMI with the word “excellent” and below zero for greater PMI with “poor” . 
+	</s>
+	
+
+	<s id="26">
+		 A SO value of zero would indicate a completely neutral semantic orientation . 
+	</s>
+	
+
+	<s id="27">
+		 3.2 Osgood semantic differentiation with WordNet Further feature types are derived using the method of 
+		<ref citStr="Kamps and Marx ( 2002 )" id="13" label="CERF" position="5003">
+			Kamps and Marx ( 2002 )
+		</ref>
+		 of using WordNet relationships to derive three values pertinent to the emotive meaning of adjectives . 
+	</s>
+	
+
+	<s id="28">
+		 The three values correspond to the potency ( strong or weak ) , activity ( active or passive ) and the evaluative ( good or bad ) factors introduced in Charles Osgood’s Theory of Semantic Differentiation 
+		<ref citStr="Osgood et al. , 1957" id="14" label="CEPF" position="5345">
+			( Osgood et al. , 1957 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="29">
+		 These values are derived by measuring the relative minimal path length ( MPL ) in WordNet between the adjective in question and the pair of words appropriate for the given factor . 
+	</s>
+	
+
+	<s id="30">
+		 In the case of the evaluative factor ( EVA ) for example , the comparison is between the MPL between the adjective and “good” and the MPL between the adjective and “bad” . 
+	</s>
+	
+
+	<s id="31">
+		 Only adjectives connected by synonymy to each of the opposites are considered . 
+	</s>
+	
+
+	<s id="32">
+		 The method results in a list of 5410 adjectives , each of which is given a value for each of the three factors referred to as EVA , POT , and ACT . 
+	</s>
+	
+
+	<s id="33">
+		 Each of these factors’ values are averaged over all the adjectives in a text , yielding three real-valued feature values for the text , which will be added to the SVM model . 
+	</s>
+	
+
+	<s id="34">
+		 3.3 Topic proximity and syntactic-relation features In some application domains , it is known in advance what the topic is toward which sentiment is to be evaluated . 
+	</s>
+	
+
+	<s id="35">
+		 Incorporating this information is done by creating several classes of features based upon the semantic orientation values of phrases given their position in relation to the topic of the text . 
+	</s>
+	
+
+	<s id="36">
+		 The approach allows secondary information to be incorporated where available , in this case , the primary information is the specific record being reviewed and the secondary information identified is the artist . 
+	</s>
+	
+
+	<s id="37">
+		 Texts were annotated by hand using the Open Ontology Forge annotation tool 
+		<ref citStr="Collier et al. , 2003" id="15" label="OEPF" position="6863">
+			( Collier et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="38">
+		 In each record review , references ( including co-reference ) to the record being reviewed were tagged as THIS WORK and references to the artist under review were tagged as THIS ARTIST . 
+	</s>
+	
+
+	<s id="39">
+		 With these entities tagged , a number of classes of features may be extracted , representing various relationships between topic entities and value phrases similar to those described in section 3.1 . 
+	</s>
+	
+
+	<s id="40">
+		 The classes looked at in this work are as follows : Turney Value The average value of all value phrases’ SO values for the text . 
+	</s>
+	
+
+	<s id="41">
+		 Classification by this feature alone is not the equivalent of Turney’s approach , since the present approach involves retraining in a supervised model . 
+	</s>
+	
+
+	<s id="42">
+		 In sentence with THIS WORK The average value of all value phrases which occur in the same sentence as a reference to the work being reviewed . 
+	</s>
+	
+
+	<s id="43">
+		 lwww.altavista.com Following THIS WORK The average value of all value phrases which follow a reference to the work being reviewed directly , or separated only by the copula or a preposition . 
+	</s>
+	
+
+	<s id="44">
+		 Preceding THIS WORK The average value of all value phrases which precede a reference to the work being reviewed directly , or separated only by the copula or a preposition . 
+	</s>
+	
+
+	<s id="45">
+		 In sentence with THIS ARTIST As above , but with reference to the artist . 
+	</s>
+	
+
+	<s id="46">
+		 Following THIS ARTIST As above , but with reference to the artist . 
+	</s>
+	
+
+	<s id="47">
+		 Preceding THIS ARTIST As above , but with reference to the artist . 
+	</s>
+	
+
+	<s id="48">
+		 The features used which make use of adjectives with WordNet derived Osgood values include the following : Text-wide EVA The average EVA value of all adjectives in a text . 
+	</s>
+	
+
+	<s id="49">
+		 Text-wide POT The average POT value of all adjectives in a text . 
+	</s>
+	
+
+	<s id="50">
+		 Text-wide ACT The average ACT value of all adjectives in a text . 
+	</s>
+	
+
+	<s id="51">
+		 TOPIC-sentence EVA The average EVA value of all adjectives which share a sentence with the topic of the text . 
+	</s>
+	
+
+	<s id="52">
+		 TOPIC-sentence POT The average POT value of all adjectives which share a sentence with the topic of the text . 
+	</s>
+	
+
+	<s id="53">
+		 TOPIC-sentence ACT The average ACT value of all adjectives which share a sentence with the topic of the text . 
+	</s>
+	
+
+	<s id="54">
+		 The grouping of these classes should reflect some common degree of reliability of features within a given class , but due to data sparseness what might have been more natural class groupings—for example including value-phrase preposition topic-entity as a distinct class—often had to be conflated in order to get features with enough occurrences to be representative . 
+	</s>
+	
+
+	<s id="55">
+		 4 Experiments The dataset consists of 100 record reviews from the Pitchfork Media online record review publication,2 topic-annotated by hand . 
+	</s>
+	
+
+	<s id="56">
+		 Features used include word unigrams and lemmatized unigrams3 as well as the features described in 3.3 which make use of topic information , namely the broader PMI derived SO values and the topic-sentence Osgood values . 
+	</s>
+	
+
+	<s id="57">
+		 Due to the relatively small size of this dataset , test suites were created using 100 , 20 , 10 , and 5-fold cross validation , to maximize the amount of data available for training and the accuracy of the results . 
+	</s>
+	
+
+	<s id="58">
+		 SVMs were built using Kudo’s TinySVM software implementation.4 5 Results Experimental results may be seen in figure 1 . 
+	</s>
+	
+
+	<s id="59">
+		 It must be noted that this dataset is very small,and although the results are not conclusive they are promising insofar as they suggest that the use of incorporating PMI values towards the topic yields some improvement in modeling . 
+	</s>
+	
+
+	<s id="60">
+		 They also suggest that the best way to incorporate such features is in the form of a separate SVM which may then be combined with the lemma-based model to create a hybrid . 
+	</s>
+	
+
+	<s id="61">
+		 2http://www.pitchforkmedia.com 3 We employ the Conexor FDG parser ( Tapanainen and J¨arvinen , 1997 ) for POS tagging and lemmatization 4http://cl.aist-nara.ac.jp/˜taku-ku/software/TinySVM Model 5 folds 10 folds 20 folds 100 folds All ( THIS WORK and THIS ARTIST)PMI 70 % 70 % 68 % 69 % THIS WORK PMI 72 % 69 % 70 % 71 % All Osgood 64 % 64 % 65 % 64 % All PMI and Osgood 74 % 71 % 74 % 72 % Unigrams 79 % 80 % 78 % 82 % Unigrams , PMI , Osgood 81 % 80 % 82 % 82 % Lemmas 83 % 85 % 84 % 84 % Lemmas and Osgood 83 % 84 % 84 % 84 % Lemmas and Turney 84 % 85 % 84 % 84 % Lemmas , Turney , text-wide Osgood 84 % 85 % 84 % 84 % Lemmas , PMI , Osgood 84 % 85 % 84 % 86 % Lemmas and PMI 84 % 85 % 85 % 86 % Hybrid SVM ( PMI/Osgood and Lemmas ) 86 % 87 % 84 % 89 % Figure 1 : Accuracy results ( percent of texts correctly classed ) for 5 , 10 , 20 and 100-fold cross-validation tests with Pitchforkmedia.com record review data , hand-annotated for topic . 
+	</s>
+	
+
+	<s id="62">
+		 5.1 Discussion At the level of the phrasal SO assignment , it would seem that some improvement could be gained by adding domain context to the AltaVista Search . 
+	</s>
+	
+
+	<s id="63">
+		 Many —perhaps most—terms’ favorability content depends to some extent on their context . 
+	</s>
+	
+
+	<s id="64">
+		 As Turney notes , “unpredictable,” is generally positive when describing a movie plot , and negative when describing an automobile or a politician . 
+	</s>
+	
+
+	<s id="65">
+		 Likewise , such terms as “devastating” might be generally negative , but in the context of music or art may imply an emotional engagement which is usually seen as positive . 
+	</s>
+	
+
+	<s id="66">
+		 Likewise , using “excellent” and “poor” as the poles in assessing this value seems somewhat arbitrary , especially given the potentially misleading economic meaning of “poor.” Nevertheless , cursory experiments in adjusting the search have not yielded improvements . 
+	</s>
+	
+
+	<s id="67">
+		 One problem with limiting the domain ( such as adding “AND music” or some disjunction of such constraints to the query ) is that the resultant hit count is greatly diminished . 
+	</s>
+	
+
+	<s id="68">
+		 The data sparseness which results from added restrictions appears to cancel out any potential gain . 
+	</s>
+	
+
+	<s id="69">
+		 It is to be hoped that in the future , as search engines continue to improve and the Internet continues to grow , more possibilities will open up in this regard . 
+	</s>
+	
+
+	<s id="70">
+		 As it is , Google returns more hits than AltaVista , but its query syntax lacks a “NEAR” operator , making it unsuitable for this task . 
+	</s>
+	
+
+	<s id="71">
+		 As to why using “excellent” and “poor” works better than , for example “good” and “bad,” it is not entirely clear . 
+	</s>
+	
+
+	<s id="72">
+		 Again , cursory investigations have thus far supported Turney’s conclusion that the former are the appropriate terms to use for this task . 
+	</s>
+	
+
+	<s id="73">
+		 It also seems likely that the topic-relations aspect of the present research only scratches the surface of what should be possible . 
+	</s>
+	
+
+	<s id="74">
+		 Although performance in the mid-80s is not bad , there is still considerable room for improvement . 
+	</s>
+	
+
+	<s id="75">
+		 The present models may also be further expanded with features representing other information sources , which may include other types of semantic annotation 
+		<ref citStr="Wiebe , 2002" id="16" label="CEPF" position="13753">
+			( Wiebe , 2002 
+		</ref>
+		<ref citStr="Wiebe et al. , 2002" id="17" label="CEPF" position="13768">
+			; Wiebe et al. , 2002 )
+		</ref>
+		 , or features based on more sophisticated grammatical or dependency relations , or perhaps upon such things as zoning ( e.g. do opinions become more clearly stated towards the end of a text ? 
+	</s>
+	
+
+	<s id="76">
+		 In any case , it is hoped that the present work may help to indicate how various information sources pertinent to the task may be brought together . 
+	</s>
+	
+
+	<s id="77">
+		 6 Conclusion Further investigation using larger datasets is necessary for the purposes of fully exploiting topic information where it is available , but the present results suggest that this is a worthwhile direction to investigate . 
+	</s>
+	
+
+	<s id="78">
+		 References K.W. Church and P. Hanks . 
+	</s>
+	
+
+	<s id="79">
+		 1989. Word association norms , mutual information and lexicography . 
+	</s>
+	
+
+	<s id="80">
+		 In Proceedings of the 27th Annual Conference of the ACL , New Brunswick , NJ . 
+	</s>
+	
+
+	<s id="81">
+		 N. Collier , K. Takeuchi , A. Kawazoe , T. Mullen , and T. Wattarujeekrit . 
+	</s>
+	
+
+	<s id="82">
+		 2003. A framework for integrat- ing deep and shallow semantic structures in text mining . 
+	</s>
+	
+
+	<s id="83">
+		 In Proceedings of the Seventh International Conference on Knowledge-based Intelligent Information and Engineering Systems . 
+	</s>
+	
+
+	<s id="84">
+		 Springer-Verlag . 
+	</s>
+	
+
+	<s id="85">
+		 V. Hatzivassiloglou and K.R. McKeown . 
+	</s>
+	
+
+	<s id="86">
+		 2002. Predicting the semantic orientation of adjectives . 
+	</s>
+	
+
+	<s id="87">
+		 In Proceedings of the 35th Annual Meeting of the Association for Computational Linguistics and the 8th Conference of the European Chapter of the ACL . 
+	</s>
+	
+
+	<s id="88">
+		 V. Hatzivassiloglou and J. Wiebe . 
+	</s>
+	
+
+	<s id="89">
+		 2000. Effects of adjective orientation and gradability on sentence subjectivity . 
+	</s>
+	
+
+	<s id="90">
+		 Jaap Kamps , Maarten Marx , Robert J. Mokken , and Marten de Rijke . 
+	</s>
+	
+
+	<s id="91">
+		 2002. Words with attitude . 
+	</s>
+	
+
+	<s id="92">
+		 In In Proceedings of the 1st International Conference on Global WordNet , Mysore , India . 
+	</s>
+	
+
+	<s id="93">
+		 Frank Keller and Mirella Lapata . 
+	</s>
+	
+
+	<s id="94">
+		 2003. Using the web to obtain freqeuncies for unseen bigrams . 
+	</s>
+	
+
+	<s id="95">
+		 Computational Linguistics , 29(3) . 
+	</s>
+	
+
+	<s id="96">
+		 Special Issue on the Web as Corpus . 
+	</s>
+	
+
+	<s id="97">
+		 Charles E. Osgood , George J. Succi , and Percy H. Tannenbaum . 
+	</s>
+	
+
+	<s id="98">
+		 1957. The Measurement of Meaning . 
+	</s>
+	
+
+	<s id="99">
+		 University of Illinois . 
+	</s>
+	
+
+	<s id="100">
+		 Bo Pang , Lillian Lee , and Shivakumar Vaithyanathan . 
+	</s>
+	
+
+	<s id="101">
+		 2002. Thumbs up ? 
+	</s>
+	
+
+	<s id="102">
+		 Sentiment classification using machine learning techniques . 
+	</s>
+	
+
+	<s id="103">
+		 In Empirical Methods in Natural Language Processing [ and Very Large Corpora ] . 
+	</s>
+	
+
+	<s id="104">
+		 P. Tapanainen and T. J¨arvinen . 
+	</s>
+	
+
+	<s id="105">
+		 1997. A non-projective dependency parser . 
+	</s>
+	
+
+	<s id="106">
+		 In Proceedings of the 5th Conference on Applied Natural Language Processing , Washington D.C. , Association of Computational Linguistics . 
+	</s>
+	
+
+	<s id="107">
+		 P.D. Turney and M.L. Littman . 
+	</s>
+	
+
+	<s id="108">
+		 2003. Measuring praise and criticism : Inference of semantic orientation from association . 
+	</s>
+	
+
+	<s id="109">
+		 ACM Transactions on Information Systems ( TOIS ) , 21(4):315–346 . 
+	</s>
+	
+
+	<s id="110">
+		 P.D. Turney . 
+	</s>
+	
+
+	<s id="111">
+		 2002. Thumbs up or thumbs down ? 
+	</s>
+	
+
+	<s id="112">
+		 semantic orientation applied to unsupervised classification of reviews . 
+	</s>
+	
+
+	<s id="113">
+		 In Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics , Philadelphia . 
+	</s>
+	
+
+	<s id="114">
+		 Vladimir Vapnik . 
+	</s>
+	
+
+	<s id="115">
+		 1998. Statistical Learning Theory . 
+	</s>
+	
+
+	<s id="116">
+		 Wiley , Chichester , GB . 
+	</s>
+	
+
+	<s id="117">
+		 J. Wiebe , T. Wilson , R. Bruce , M. Bell , and M. Martin . 
+	</s>
+	
+
+	<s id="118">
+		 2002. Learning subjective language . 
+	</s>
+	
+
+	<s id="119">
+		 Technical Report TR-02-100 , University of Pittsburgh , Pittsburgh , PA . 
+	</s>
+	
+
+	<s id="120">
+		 Janyce Wiebe . 
+	</s>
+	
+
+	<s id="121">
+		 2000. Learning subjective adjectives from corpora . 
+	</s>
+	
+
+	<s id="122">
+		 In Proc . 
+	</s>
+	
+
+	<s id="123">
+		 17th National Conference on Artificial Intelligence ( AAAI-2000 ) , Austin , Texas , July . 
+	</s>
+	
+
+	<s id="124">
+		 J Wiebe . 
+	</s>
+	
+
+	<s id="125">
+		 2002 . 
+	</s>
+	
+
+	<s id="126">
+		 Instructions for annotating opinions in newspaper articles . 
+	</s>
+	
+
+	<s id="127">
+		 Technical Report TR-02-101 , University of Pittsburgh , Pittsburgh , PA . 
+	</s>
+	
+
+
+</acldoc>

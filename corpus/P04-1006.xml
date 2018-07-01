@@ -1,0 +1,1303 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1006">
+	
+
+	<s id="1">
+		 Attention Shifting for Parsing Speech ^ Keith Hall Department of Computer Science Brown University Providence , RI 02912 kh@cs.brown.edu Mark Johnson Department of Cognitive and Linguistic Science Brown University Providence , RI 02912 Mark Johnson@Brown.edu Abstract We present a technique that improves the efficiency of word-lattice parsing as used in speech recognition language modeling . 
+	</s>
+	
+
+	<s id="2">
+		 Our technique applies a probabilistic parser iteratively where on each iteration it focuses on a different subset of the word- lattice . 
+	</s>
+	
+
+	<s id="3">
+		 The parser’s attention is shifted towards word-lattice subsets for which there are few or no syntactic analyses posited . 
+	</s>
+	
+
+	<s id="4">
+		 This attention-shifting technique provides a six-times increase in speed ( measured as the number of parser analyses evaluated ) while performing equivalently when used as the first-stage of a multi-stage parsing-based language model . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction Success in language modeling has been dominated by the linear n-gram for the past few decades . 
+	</s>
+	
+
+	<s id="6">
+		 A number of syntactic language models have proven to be competitive with the n-gram and better than the most popular n-gram , the trigram 
+		<ref citStr="Roark , 2001" id="1" label="CEPF" position="1189">
+			( Roark , 2001 
+		</ref>
+		<ref citStr="Xu et al. , 2002" id="2" label="CEPF" position="1204">
+			; Xu et al. , 2002 
+		</ref>
+		<ref citStr="Charniak , 2001" id="3" label="CEPF" position="1223">
+			; Charniak , 2001 
+		</ref>
+		<ref citStr="Hall and Johnson , 2003" id="4" label="CEPF" position="1241">
+			; Hall and Johnson , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="7">
+		 Language modeling for speech could well be the first real problem for which syntactic techniques are useful . 
+	</s>
+	
+
+	<s id="8">
+		 VP:ate VB NP IN NP:plate IN NP:fork John ate the pizza on a plate with a fork . 
+	</s>
+	
+
+	<s id="9">
+		 Figure 1 : An incomplete parse tree with head-word annotations . 
+	</s>
+	
+
+	<s id="10">
+		 One reason that we expect syntactic models to perform well is that they are capable of modeling long-distance dependencies that simple n-gram * This research was supported in part by NSF grants 9870676 and 0085940. models cannot . 
+	</s>
+	
+
+	<s id="11">
+		 For example , the model presented by Chelba and Jelinek 
+		<ref citStr="Chelba and Jelinek , 1998" id="5" label="CEPF" position="1858">
+			( Chelba and Jelinek , 1998 
+		</ref>
+		<ref citStr="Xu et al. , 2002" id="6" label="CEPF" position="1886">
+			; Xu et al. , 2002 )
+		</ref>
+		 uses syntactic structure to identify lexical items in the left-context which are then modeled as an n-gram process . 
+	</s>
+	
+
+	<s id="12">
+		 The model presented by Charniak 
+		<ref citStr="Charniak , 2001" id="7" label="CEPF" position="2084">
+			( Charniak , 2001 )
+		</ref>
+		 identifies both syntactic structural and lexical dependencies that aid in language modeling . 
+	</s>
+	
+
+	<s id="13">
+		 While there are n-gram models that attempt to extend the left-context window through the use of caching and skip models 
+		<ref citStr="Goodman , 2001" id="8" label="CJPN" position="2326">
+			( Goodman , 2001 )
+		</ref>
+		 , we believe that linguistically motivated models , such as these lexical-syntactic models , are more robust . 
+	</s>
+	
+
+	<s id="14">
+		 Figure 1 presents a simple example to illustrate the nature of long-distance dependencies . 
+	</s>
+	
+
+	<s id="15">
+		 Using a syntactic model such as the the Structured Language Model 
+		<ref citStr="Chelba and Jelinek , 1998" id="9" label="CERF" position="2643">
+			( Chelba and Jelinek , 1998 )
+		</ref>
+		 , we pre- dict the word fork given the context { ate , with } where a trigram model uses the context { with , a } . 
+	</s>
+	
+
+	<s id="16">
+		 Consider the problem of disambiguating between ... plate with a fork and ... plate with effort . 
+	</s>
+	
+
+	<s id="17">
+		 The syntactic model captures the semantic relationship between the words ate andfork . 
+	</s>
+	
+
+	<s id="18">
+		 The syntactic structure allows us to find lexical contexts for which there is some semantic relationship ( e.g. , predicate- argument ) . 
+	</s>
+	
+
+	<s id="19">
+		 Unfortunately , syntactic language modeling techniques have proven to be extremely expensive in terms of computational effort . 
+	</s>
+	
+
+	<s id="20">
+		 Many employ the use of string parsers ; in order to utilize such techniques for language modeling one must preselect a set of strings from the word-lattice and parse each of them separately , an inherently inefficient procedure . 
+	</s>
+	
+
+	<s id="21">
+		 Of the techniques that can process word-lattices directly , it takes significant computation to achieve the same levels of accuracy as then –best reranking method . 
+	</s>
+	
+
+	<s id="22">
+		 This computational cost is the result of increasing the search space evaluated with the syntactic model ( parser ) ; the larger space resulting from combining the search for syntactic structure with the search for paths in the word-lattice . 
+	</s>
+	
+
+	<s id="23">
+		 In this paper we propose a variation of a probabilistic word-lattice parsing technique that increases PP:with PP:on Figure 2 : A partial word-lattice from the NIST HUB-1 dataset . 
+	</s>
+	
+
+	<s id="24">
+		 it/51.59 to/0 13 7 outline/2.573 strategy/0 a/71.30 the/115.3 strategy/0 11 &lt;/s&gt;/0 12/0 outline/0 9 of/115.4 outlines/7.140 0 yesterday/0 1 and/4.004 in/14.73 tuesday/0 to/0 5 3 14 2 tuesday/0 4 two/8.769 6 to/0.000 outlaw/83.57 outlines/10.71 8 outlined/8.027 outline/0 in/0 10 outlined/12.58 efficiency while incurring no loss of language modeling performance ( measured as Word Error Rate – WER ) . 
+	</s>
+	
+
+	<s id="25">
+		 In 
+		<ref citStr="Hall and Johnson , 2003" id="10" label="CERF" position="4557">
+			( Hall and Johnson , 2003 )
+		</ref>
+		 we presented a modular lattice parsing process that operates in two stages . 
+	</s>
+	
+
+	<s id="26">
+		 The first stage is a PCFG word-lattice parser that generates a set of candidate parses over strings in a word-lattice , while the second stage rescores these candidate edges using a lexicalized syntactic language model 
+		<ref citStr="Charniak , 2001" id="11" label="CERF" position="4882">
+			( Charniak , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="27">
+		 Under this paradigm , the first stage is not only responsible for selecting candidate parses , but also for selecting paths in the word-lattice . 
+	</s>
+	
+
+	<s id="28">
+		 Due to computational and memory requirements of the lexicalized model , the second stage parser is capable of rescoring only a small subset of all parser analyses . 
+	</s>
+	
+
+	<s id="29">
+		 For this reason , the PCFG prunes the set of parser analyses , thereby indirectly pruning paths in the word lattice . 
+	</s>
+	
+
+	<s id="30">
+		 We propose adding a meta-process to the first- stage that effectively shifts the selection of word- lattice paths to the second stage ( where lexical information is available ) . 
+	</s>
+	
+
+	<s id="31">
+		 We achieve this by ensuring that for each path in the word-lattice the first-stage parser posits at least one parse . 
+	</s>
+	
+
+	<s id="32">
+		 2 Parsing speech word-lattices P(A,W) = P(AIW)P(W) ( 1 ) The noisy channel model for speech is presented in Equation 1 , where A represents the acoustic data extracted from a speech signal , and W represents a word string . 
+	</s>
+	
+
+	<s id="33">
+		 The acoustic model P(AIW) assigns probability mass to the acoustic data given a word string and the language model P(W) defines a distribution over word strings . 
+	</s>
+	
+
+	<s id="34">
+		 Typically the acoustic model is broken into a series of distributions conditioned on individual words ( though these are based on false independence assumptions ) . 
+	</s>
+	
+
+	<s id="35">
+		 P(AIw1 ... wi ... wn ) = ~n P(AI wi ) ( 2 ) i=1 The result of the acoustic modeling process is a set of string hypotheses ; each word of each hypothesis is assigned a probability by the acoustic model . 
+	</s>
+	
+
+	<s id="36">
+		 Word-lattices are a compact representation of output of the acoustic recognizer ; an example is presented in Figure 2 . 
+	</s>
+	
+
+	<s id="37">
+		 The word-lattice is a weighted directed acyclic graph where a path in the graph corresponds to a string predicted by the acoustic recognizer . 
+	</s>
+	
+
+	<s id="38">
+		 The ( sum ) product of the ( log ) weights on the graph ( the acoustic probabilities ) is the probability of the acoustic data given the string . 
+	</s>
+	
+
+	<s id="39">
+		 Typically we want to know the most likely string given the acoustic data . 
+	</s>
+	
+
+	<s id="40">
+		 arg max P(W IA ) ( 3 ) = arg max P ( A , W ) = argmaxP(AIW)P(W) In Equation 3 we use Bayes’ rule to find the optimal string given P(AIW) , the acoustic model , and P(W) , the language model . 
+	</s>
+	
+
+	<s id="41">
+		 Although the language model can be used to rescore1 the word-lattice , it is typically used to select a single hypothesis . 
+	</s>
+	
+
+	<s id="42">
+		 We focus our attention in this paper to syntactic language modeling techniques that perform complete parsing , meaning that parse trees are built upon the strings in the word-lattice . 
+	</s>
+	
+
+	<s id="43">
+		 2.1 n–best list reranking Much effort has been put forth in developing efficient probabilistic models for parsing strings 
+		<ref citStr="Caraballo and Charniak , 1998" id="12" label="CEPF" position="7628">
+			( Caraballo and Charniak , 1998 
+		</ref>
+		<ref citStr="Goldwater et al. , 1998" id="13" label="CEPF" position="7660">
+			; Goldwater et al. , 1998 
+		</ref>
+		<ref citStr="Blaheta and Charniak , 1999" id="14" label="CEPF" position="7686">
+			; Blaheta and Charniak , 1999 
+		</ref>
+		<ref citStr="Charniak , 2000" id="15" label="CEPF" position="7716">
+			; Charniak , 2000 
+		</ref>
+		<ref citStr="Charniak , 2001" id="16" label="CEPF" position="7734">
+			; Charniak , 2001 )
+		</ref>
+		 ; an obvious solution to parsing word- lattices is to use n –best list reranking . 
+	</s>
+	
+
+	<s id="44">
+		 Then –best list reranking procedure , depicted in Figure 3 , utilizes an external language model that selects a set of strings from the word-lattice . 
+	</s>
+	
+
+	<s id="45">
+		 These strings are analyzed by the parser which computes a language model probability . 
+	</s>
+	
+
+	<s id="46">
+		 This probability is combined 1To rescore a word-lattice , each arch is assigned a new score ( probability ) defined by a new model ( in combination with the acoustic model ) . 
+	</s>
+	
+
+	<s id="47">
+		 duh/1.385 1 6 the/0 3 2 man/0 is/0 mans/1.385 man's/1.385 man/0 4 7 10 is/0 5 early/0 early/0 surly/0 surly/0.692 surely/0 8 early/0 9 n-best list extractor w1 , ... , wi , ... , wn1 w1 , ... , wi , ... , wn2 w1 , ... , wi , ... , wn3 w1 , ... , wi , ... , wn4 w1 , ... , wi , ... , wnm ... 
+	</s>
+	
+
+	<s id="48">
+		 Language Model o1 , ... , oi , ... , on Figure 3 : n –best list reranking with the acoustic model probability to reranked the strings according to the joint probability P(A , W ) . 
+	</s>
+	
+
+	<s id="49">
+		 There are two significant disadvantages to this approach . 
+	</s>
+	
+
+	<s id="50">
+		 First , we are limited by the performance of the language model used to select then –best lists . 
+	</s>
+	
+
+	<s id="51">
+		 Usually , the trigram model is used to select n paths through the lattice generating at most n unique strings . 
+	</s>
+	
+
+	<s id="52">
+		 The maximum performance that can be achieved is limited by the performance of this extractor model . 
+	</s>
+	
+
+	<s id="53">
+		 Second , of the strings that are analyzed by the parser , many will share common substrings . 
+	</s>
+	
+
+	<s id="54">
+		 Much of the work performed by the parser is duplicated for these substrings . 
+	</s>
+	
+
+	<s id="55">
+		 This second point is the primary motivation behind parsing word-lattices 
+		<ref citStr="Hall and Johnson , 2003" id="17" label="CEPF" position="9477">
+			( Hall and Johnson , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="56">
+		 2.2 Multi-stage parsing PCFG Parser Lexicalized Parser Figure 4 : Coarse-to-fine lattice parsing . 
+	</s>
+	
+
+	<s id="57">
+		 In Figure 4 we present the general overview of a multi-stage parsing technique 
+		<ref citStr="Goodman , 1997" id="18" label="CEPF" position="9676">
+			( Goodman , 1997 
+		</ref>
+		<ref citStr="Charniak , 2000" id="19" label="CEPF" position="9693">
+			; Charniak , 2000 
+		</ref>
+		<ref citStr="Charniak , 2001" id="20" label="CEPF" position="9711">
+			; Charniak , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="58">
+		 This process Parse word-lattice with PCFG parser 5 . 
+	</s>
+	
+
+	<s id="59">
+		 Overparse , generating additional candidates 6 . 
+	</s>
+	
+
+	<s id="60">
+		 Compute inside-outside probabilities 7 . 
+	</s>
+	
+
+	<s id="61">
+		 Prune candidates with probability threshold Table 1 : First stage word-lattice parser is know as coarse-to-fine modeling , where coarse models are more efficient but less accurate than fine models , which are robust but computationally expensive . 
+	</s>
+	
+
+	<s id="62">
+		 In this particular parsing model a PCFG best-first parser 
+		<ref citStr="Bobrow , 1990" id="21" label="OEPF" position="10227">
+			( Bobrow , 1990 
+		</ref>
+		<ref citStr="Caraballo and Charniak , 1998" id="22" label="OEPF" position="10243">
+			; Caraballo and Charniak , 1998 )
+		</ref>
+		 is used to search the unconstrained space of parses ^ over a string . 
+	</s>
+	
+
+	<s id="63">
+		 This first stage performs overparsing which effectively allows it to generate a set of high probability candi- date parses ^ ' . 
+	</s>
+	
+
+	<s id="64">
+		 These parses are then rescored us- ing a lexicalized syntactic model 
+		<ref citStr="Charniak , 2001" id="23" label="CERF" position="10582">
+			( Charniak , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="65">
+		 Although the coarse-to-fine model may include any number of intermediary stages , in this paper we consider this two-stage model . 
+	</s>
+	
+
+	<s id="66">
+		 There is no guarantee that parses favored by the second stage will be generated by the first stage . 
+	</s>
+	
+
+	<s id="67">
+		 In other words , because the first stage model prunes the space of parses from which the second stage rescores , the first stage model may remove solutions that the second stage would have assigned a high probability . 
+	</s>
+	
+
+	<s id="68">
+		 In 
+		<ref citStr="Hall and Johnson , 2003" id="24" label="CEPF" position="11102">
+			( Hall and Johnson , 2003 )
+		</ref>
+		 , we extended the multi-stage parsing model to work on word-lattices . 
+	</s>
+	
+
+	<s id="69">
+		 The first-stage parser , Table 1 , is responsible for positing a set of candidate parses over the word- lattice . 
+	</s>
+	
+
+	<s id="70">
+		 Were we to run the parser to completion it would generate all parses for all strings described by the word-lattice . 
+	</s>
+	
+
+	<s id="71">
+		 As with string parsing , we stop the first stage parser early , generating a subset of all parses . 
+	</s>
+	
+
+	<s id="72">
+		 Only the strings covered by complete parses are passed on to the second stage parser . 
+	</s>
+	
+
+	<s id="73">
+		 This indirectly prunes the word-lattice of all word-arcs that were not covered by complete parses in the first stage . 
+	</s>
+	
+
+	<s id="74">
+		 We use a first stage PCFG parser that performs a best-first search over the space of parses , which means that it depends on a heuristic “figure-ofmerit” ( FOM ) 
+		<ref citStr="Caraballo and Charniak , 1998" id="25" label="CEPF" position="11962">
+			( Caraballo and Charniak , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="75">
+		 A good FOM attempts to model the true probability of a chart edge2 P(Nij,k) . 
+	</s>
+	
+
+	<s id="76">
+		 Generally , this probability is impossible to compute during the parsing process as it requires knowing both the inside and outside probabilities ( Charniak , 1993 ; Manning and Sch¨utze , 1999 ) . 
+	</s>
+	
+
+	<s id="77">
+		 The FOM we describe is an approximation to the edge probability and is computed using an estimate of the inside probability times an approximation to the outside probability 3 . 
+	</s>
+	
+
+	<s id="78">
+		 The inside probability ^(Nij,k) can be computed incrementally during bottom-up parsing . 
+	</s>
+	
+
+	<s id="79">
+		 The normalized acoustic probabilities from the acoustic recognizer are included in this calculation . 
+	</s>
+	
+
+	<s id="80">
+		 ˆ^(Nij,k) ( 4 ) fwd(Tqi,j)p(Ni |T N q)p(7r i)bkwd(Tkr l ) The outside probability is approximated with a bitag model and the standard tag/category boundary model 
+		<ref citStr="Caraballo and Charniak , 1998" id="26" label="CEPF" position="12828">
+			( Caraballo and Charniak , 1998 
+		</ref>
+		<ref citStr="Hall and Johnson , 2003" id="27" label="CEPF" position="12860">
+			; Hall and Johnson , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="81">
+		 Equation 4 presents the approximation to the outside probability . 
+	</s>
+	
+
+	<s id="82">
+		 Part-of-speech tags Tq and Tr are the candidate tags to the left and right of the constituent Nij,k . 
+	</s>
+	
+
+	<s id="83">
+		 The fwd() and bkwd() functions are the HMM forward and backward probabilities calculated over a lattice containing the part-of-speech tag , the word , and the acoustic scores from the word-lattice to the left and right of the constituent , respectively . 
+	</s>
+	
+
+	<s id="84">
+		 p(Ni | Tq ) and p(Tr| Ni ) are the boundary statistics which are estimated from training data ( details of this model can be found in 
+		<ref citStr="Hall and Johnson , 2003" id="28" label="CERF" position="13511">
+			( Hall and Johnson , 2003 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="85">
+		 FOM(Nij,k) = ˆ^(Nij,k)^(Nij,k)^C(j , k ) ( 5 ) The best-first search employed by the first stage parser uses the FOM defined in Equation 5 , where ^is a normalization factor based on path length C(j , k ) . 
+	</s>
+	
+
+	<s id="86">
+		 The normalization factor prevents small constituents from consistently being assigned a 2A chart edge Nij,k indicates a grammar category Ni can be constructed from nodes j to k. 3An alternative to the inside and outside probabilities are the Viterbi inside and outside probabilities 
+		<ref citStr="Goldwater et al. , 1998" id="29" label="CEPF" position="14025">
+			( Goldwater et al. , 1998 
+		</ref>
+		<ref citStr="Hall and Johnson , 2003" id="30" label="CEPF" position="14051">
+			; Hall and Johnson , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="87">
+		 higher probability than larger constituents 
+		<ref citStr="Goldwater et al. , 1998" id="31" label="CEPF" position="14161">
+			( Goldwater et al. , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="88">
+		 Although this heuristic works well for directing the parser towards likely parses over a string , it is not an ideal model for pruning the word-lattice . 
+	</s>
+	
+
+	<s id="89">
+		 First , the outside approximation of this FOM is based on a linear part-of-speech tag model ( the bitag ) . 
+	</s>
+	
+
+	<s id="90">
+		 Such a simple syntactic model is unlikely to provide realistic information when choosing a word-lattice path to consider . 
+	</s>
+	
+
+	<s id="91">
+		 Second , the model is prone to favoring subsets of the word-lattice causing it to posit additional parse trees for the favored sublattice rather than exploring the remainder of the word-lattice . 
+	</s>
+	
+
+	<s id="92">
+		 This second point is the primary motivation for the attention shifting technique presented in the next section . 
+	</s>
+	
+
+	<s id="93">
+		 3 Attention shifting4 We explore a modification to the multi-stage parsing algorithm that ensures the first stage parser posits at least one parse for each path in the word-lattice . 
+	</s>
+	
+
+	<s id="94">
+		 The idea behind this is to intermittently shift the attention of the parser to unexplored parts of the word lattice . 
+	</s>
+	
+
+	<s id="95">
+		 PCFG Word-lattice Parser Identify Used Edges Clear Agenda/ Add Edges for Unused Words yes Continue Multi-stage Parsing Figure 5 : Attention shifting parser . 
+	</s>
+	
+
+	<s id="96">
+		 Figure 5 depicts the attention shifting first stage parsing procedure . 
+	</s>
+	
+
+	<s id="97">
+		 A used edge is a parse edge that has non-zero outside probability . 
+	</s>
+	
+
+	<s id="98">
+		 By definition of 4The notion of attention shifting is motivated by the work on parser FOM compensation presented in 
+		<ref citStr="Blaheta and Charniak , 1999" id="32" label="OERF" position="15703">
+			( Blaheta and Charniak , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="99">
+		 ~= i,l,q,r Is Agenda no Empty ? 
+	</s>
+	
+
+	<s id="100">
+		 the outside probability , used edges are constituents that are part of a complete parse ; a parse is complete if there is a root category label ( e.g. , S for sentence ) that spans the entire word-lattice . 
+	</s>
+	
+
+	<s id="101">
+		 In order to identify used edges , we compute the outside probabilities for each parse edge ( efficiently computing the outside probability of an edge requires that the inside probabilities have already been computed ) . 
+	</s>
+	
+
+	<s id="102">
+		 In the third step of this algorithm we clear the agenda , removing all partial analyses evaluated by the parser . 
+	</s>
+	
+
+	<s id="103">
+		 This forces the parser to abandon analyses of parts of the word-lattice for which complete parses exist . 
+	</s>
+	
+
+	<s id="104">
+		 Following this , the agenda is populated with edges corresponding to the unused words , priming the parser to consider these words . 
+	</s>
+	
+
+	<s id="105">
+		 To ensure the parser builds upon at least one of these unused edges , we further modify the parsing algorithm : • Only unused edges are added to the agenda . 
+	</s>
+	
+
+	<s id="106">
+		 • When building parses from the bottom up , a parse is considered complete if it connects to a used edge . 
+	</s>
+	
+
+	<s id="107">
+		 These modifications ensure that the parser focuses on edges built upon the unused words . 
+	</s>
+	
+
+	<s id="108">
+		 The second modification ensures the parser is able to determine when it has connected an unused word with a previously completed parse . 
+	</s>
+	
+
+	<s id="109">
+		 The application of these constraints directs the attention of the parser towards new edges that contribute to parse analyses covering unused words . 
+	</s>
+	
+
+	<s id="110">
+		 We are guaranteed that each iteration of the attention shifting algorithm adds a parse for at least one unused word , meaning that it will take at most I |A | iterations to cover the entire lattice , where A is the set of word-lattice arcs . 
+	</s>
+	
+
+	<s id="111">
+		 This guarantee is trivially provided through the constraints just described . 
+	</s>
+	
+
+	<s id="112">
+		 The attention-shifting parser continues until there are no unused words remaining and each parsing iteration runs until it has found a complete parse using at least one of the unused words . 
+	</s>
+	
+
+	<s id="113">
+		 As with multi-stage parsing , an adjustable parameter determines how much overparsing to perform on the initial parse . 
+	</s>
+	
+
+	<s id="114">
+		 In the attention shifting algorithm an additional parameter specifies the amount of overparsing for each iteration after the first . 
+	</s>
+	
+
+	<s id="115">
+		 The new parameter allows for independent control of the attention shifting iterations . 
+	</s>
+	
+
+	<s id="116">
+		 After the attention shifting parser populates a parse chart with parses covering all paths in the lattice , the multi-stage parsing algorithm performs additional pruning based on the probability of the parse edges ( the product of the inside and outside probabilities ) . 
+	</s>
+	
+
+	<s id="117">
+		 This is necessary in order to constrain the size of the hypothesis set passed on to the second stage parsing model . 
+	</s>
+	
+
+	<s id="118">
+		 The Charniak lexicalized syntactic language model effectively splits the number of parse states ( an edges in a PCFG parser ) by the number of unique contexts in which the state is found . 
+	</s>
+	
+
+	<s id="119">
+		 These contexts include syntactic structure such as parent and grandparent category labels as well as lexical items such as the head of the parent or the head of a sibling constituent 
+		<ref citStr="Charniak , 2001" id="33" label="CEPF" position="18982">
+			( Charniak , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="120">
+		 State splitting on this level causes the memory requirement of the lexicalized parser to grow rapidly . 
+	</s>
+	
+
+	<s id="121">
+		 Ideally , we would pass all edges on to the second stage , but due to memory limitations , pruning is necessary . 
+	</s>
+	
+
+	<s id="122">
+		 It is likely that edges recently discovered by the attention shifting procedure are pruned . 
+	</s>
+	
+
+	<s id="123">
+		 However , the true PCFG probability model is used to prune these edges rather than the approximation used in the FOM . 
+	</s>
+	
+
+	<s id="124">
+		 We believe that by considering parses which have a relatively high probability according to the combined PCFG and acoustic models that we will include most of the analyses for which the lexicalized parser assigns a high probability . 
+	</s>
+	
+
+	<s id="125">
+		 4 Experiments The purpose of attention shifting is to reduce the amount of work exerted by the first stage PCFG parser while maintaining the same quality of language modeling ( in the multi-stage system ) . 
+	</s>
+	
+
+	<s id="126">
+		 We have performed a set of experiments on the NIST ’93 HUB–1 word-lattices . 
+	</s>
+	
+
+	<s id="127">
+		 The HUB–1 is a collection of 213 word-lattices resulting from an acoustic recognizer’s analysis of speech utterances . 
+	</s>
+	
+
+	<s id="128">
+		 Professional readers reading Wall Street Journal articles generated the utterances . 
+	</s>
+	
+
+	<s id="129">
+		 The first stage parser is a best-first PCFG parser trained on sections 2 through 22 , and 24 of the Penn WSJ treebank 
+		<ref citStr="Marcus et al. , 1993" id="34" label="OEPF" position="20373">
+			( Marcus et al. , 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="130">
+		 Prior to training , the treebank is transformed into speech-like text , removing punctuation and expanding numerals , etc.5 Overparsing is performed using an edge pop6 multiplicative factor . 
+	</s>
+	
+
+	<s id="131">
+		 The parser records the number of edge pops required to reach the first complete parse . 
+	</s>
+	
+
+	<s id="132">
+		 The parser continues to parse a until multiple of the number of edge pops required for the first parse are popped off the agenda . 
+	</s>
+	
+
+	<s id="133">
+		 The second stage parser used is a modified version of the Charniak language modeling parser described in 
+		<ref citStr="Charniak , 2001" id="35" label="OEPF" position="20947">
+			( Charniak , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="134">
+		 We trained this parser 5Brian Roark of AT&amp;T provided a tool to perform the speech normalization . 
+	</s>
+	
+
+	<s id="135">
+		 6An edge pop is the process of the parser removing an edge from the agenda and placing it in the parse chart . 
+	</s>
+	
+
+	<s id="136">
+		 on the BLLIP99 corpus 
+		<ref citStr="Charniak et al. , 1999" id="36" label="OEPF" position="21238">
+			( Charniak et al. , 1999 )
+		</ref>
+		 ; a corpus of 30million words automatically parsed using the Charniak parser 
+		<ref citStr="Charniak , 2000" id="37" label="OEPF" position="21335">
+			( Charniak , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="137">
+		 In order to compare the work done by then –best reranking technique to the word-lattice parser , we generated a set of n –best lattices . 
+	</s>
+	
+
+	<s id="138">
+		 50–best lists were extracted using the Chelba A* decoder7 . 
+	</s>
+	
+
+	<s id="139">
+		 A 50– best lattice is a sublattice of the acoustic lattice that generates only the strings found in the 50–best list . 
+	</s>
+	
+
+	<s id="140">
+		 Additionally , we provide the results for parsing the full acoustic lattices ( although these work measurements should not be compared to those of n –best reranking ) . 
+	</s>
+	
+
+	<s id="141">
+		 We report the amount of work , shown as the cumulative # edge pops , the oracle WER for the word-lattices after first stage pruning , and the WER of the complete multi-stage parser . 
+	</s>
+	
+
+	<s id="142">
+		 In all of the word-lattice parsing experiments , we pruned the set of posited hypothesis so that no more than 30,000 local-trees are generated8 . 
+	</s>
+	
+
+	<s id="143">
+		 We chose this threshold due to the memory requirements of the second stage parser . 
+	</s>
+	
+
+	<s id="144">
+		 Performing pruning at the end of the first stage prevents the attention shifting parser from reaching the minimum oracle WER ( most notable in the full acoustic word-lattice experiments ) . 
+	</s>
+	
+
+	<s id="145">
+		 While the attention-shifting algorithm ensures all word-lattice arcs are included in complete parses , forward-backward pruning , as used here , will eliminate some of these parses , indirectly eliminating some of the word-lattice arcs . 
+	</s>
+	
+
+	<s id="146">
+		 To illustrate the need for pruning , we computed the number of states used by the Charniak lexicalized syntactic language model for 30,000 local trees . 
+	</s>
+	
+
+	<s id="147">
+		 An average of 215 lexicalized states were generated for each of the 30,000 local trees . 
+	</s>
+	
+
+	<s id="148">
+		 This means that the lexicalized language model , on average , computes probabilities for over 6.5 million states when provided with 30,000 local trees . 
+	</s>
+	
+
+	<s id="149">
+		 Model # edge pops O-WER WER n –best ( Charniak ) 2.5 million 7.75 11.8 100x LatParse 3.4 million 8.18 12.0 1 0x AttShift 564,895 7.78 11.9 Table 2 : Results for n –best lists and n –best lattices . 
+	</s>
+	
+
+	<s id="150">
+		 Table 2 shows the results for n –best list reranking and word-lattice parsing of n –best lattices . 
+	</s>
+	
+
+	<s id="151">
+		 We recreated the results of the Charniak language model parser used for reranking in order to measure the amount of work required . 
+	</s>
+	
+
+	<s id="152">
+		 We ran the first stage parser with 4-times overparsing for each string in 7The n–best lists were provided by Brian Roark 
+		<ref citStr="Roark , 2001" id="38" label="CEPF" position="23783">
+			( Roark , 2001 )
+		</ref>
+		 8A local-tree is an explicit expansion of an edge and its chil- dren . 
+	</s>
+	
+
+	<s id="153">
+		 An example local tree is NP3,8 --+ DT3,4 NN4,8 . 
+	</s>
+	
+
+	<s id="154">
+		 then –best list . 
+	</s>
+	
+
+	<s id="155">
+		 The LatParse result represents running the word-lattice parser on then –best lattices performing 100–times overparsing in the first stage . 
+	</s>
+	
+
+	<s id="156">
+		 The AttShift model is the attention shifting parser described in this paper . 
+	</s>
+	
+
+	<s id="157">
+		 We used 10–times overparsing for both the initial parse and each of the attention shifting iterations . 
+	</s>
+	
+
+	<s id="158">
+		 When run on then –best lattice , this model achieves a comparable WER , while reducing the amount of parser work sixfold ( as compared to the regular word-lattice parser ) . 
+	</s>
+	
+
+	<s id="159">
+		 Model # edge pops O-WER WER acoustic lats N/A 3.26 N/A 100x LatParse 3.4 million 5.45 13.1 1 0x AttShift 1.6 million 4.17 13.1 Table 3 : Results for acoustic lattices . 
+	</s>
+	
+
+	<s id="160">
+		 In Table 3 we present the results of the word- lattice parser and the attention shifting parser when run on full acoustic lattices . 
+	</s>
+	
+
+	<s id="161">
+		 While the oracle WER is reduced , we are considering almost half as many edges as the standard word-lattice parser . 
+	</s>
+	
+
+	<s id="162">
+		 The increased size of the acoustic lattices suggests that it may not be computationally efficient to consider the entire lattice and that an additional pruning phase is necessary . 
+	</s>
+	
+
+	<s id="163">
+		 The most significant constraint of this multi-stage lattice parsing technique is that the second stage process has a large memory requirement . 
+	</s>
+	
+
+	<s id="164">
+		 While the attention shifting technique does allow the parser to propose constituents for every path in the lattice , we prune some of these constituents prior to performing analysis by the second stage parser . 
+	</s>
+	
+
+	<s id="165">
+		 Currently , pruning is accomplished using the PCFG model . 
+	</s>
+	
+
+	<s id="166">
+		 One solution is to incorporate an intermediate pruning stage ( e.g. , lexicalized PCFG ) between the PCFG parser and the full lexicalized model . 
+	</s>
+	
+
+	<s id="167">
+		 Doing so will relax the requirement for aggressive PCFG pruning and allows for a lexicalized model to influence the selection of word-lattice paths . 
+	</s>
+	
+
+	<s id="168">
+		 5 Conclusion We presented a parsing technique that shifts the attention of a word-lattice parser in order to ensure syntactic analyses for all lattice paths . 
+	</s>
+	
+
+	<s id="169">
+		 Attention shifting can be thought of as a meta-process around the first stage of a multi-stage word-lattice parser . 
+	</s>
+	
+
+	<s id="170">
+		 We show that this technique reduces the amount of work exerted by the first stage PCFG parser while maintaining comparable language modeling performance . 
+	</s>
+	
+
+	<s id="171">
+		 Attention shifting is a simple technique that attempts to make word-lattice parsing more efficient . 
+	</s>
+	
+
+	<s id="172">
+		 As suggested by the results for the acoustic lattice experiments , this technique alone is not sufficient . 
+	</s>
+	
+
+	<s id="173">
+		 Solutions to improve these results include modifying the first-stage grammar by annotating the category labels with local syntactic features as suggested in 
+		<ref citStr="Johnson , 1998" id="39" label="CEPF" position="26737">
+			( Johnson , 1998 )
+		</ref>
+		 and 
+		<ref citStr="Klein and Manning , 2003" id="40" label="CEPF" position="26770">
+			( Klein and Manning , 2003 )
+		</ref>
+		 as well as incorporating some level of lexicalization . 
+	</s>
+	
+
+	<s id="174">
+		 Improving the quality of the parses selected by the first stage should reduce the need for generating such a large number of candidates prior to pruning , improving efficiency as well as overall accuracy . 
+	</s>
+	
+
+	<s id="175">
+		 We believe that attention shifting , or some variety of this technique , will be an integral part of efficient solutions for word-lattice parsing . 
+	</s>
+	
+
+	<s id="176">
+		 References Don Blaheta and Eugene Charniak . 
+	</s>
+	
+
+	<s id="177">
+		 1999. Automatic compensation for parser figure-of-merit flaws . 
+	</s>
+	
+
+	<s id="178">
+		 In Proceedings of the 37th annual meeting of the Association for Computational Linguistics , pages 513–518 . 
+	</s>
+	
+
+	<s id="179">
+		 Robert J. Bobrow . 
+	</s>
+	
+
+	<s id="180">
+		 1990. Statistical agenda parsing . 
+	</s>
+	
+
+	<s id="181">
+		 In DARPA Speech and Language Workshop , pages 222–224 . 
+	</s>
+	
+
+	<s id="182">
+		 Sharon Caraballo and Eugene Charniak . 
+	</s>
+	
+
+	<s id="183">
+		 1998. New figures of merit for best-first probabilistic chart parsing . 
+	</s>
+	
+
+	<s id="184">
+		 Computational Linguistics , 24(2):275–298 , June . 
+	</s>
+	
+
+	<s id="185">
+		 Eugene Charniak , Don Blaheta , Niyu Ge , Keith Hall , John Hale , and Mark Johnson . 
+	</s>
+	
+
+	<s id="186">
+		 1999. BLLIP 1987–89 wsj corpus release 1 . 
+	</s>
+	
+
+	<s id="187">
+		 LDC corpus LDC2000T43 . 
+	</s>
+	
+
+	<s id="188">
+		 Eugene Charniak . 
+	</s>
+	
+
+	<s id="189">
+		 1993. Statistical Language Learning . 
+	</s>
+	
+
+	<s id="190">
+		 MIT Press . 
+	</s>
+	
+
+	<s id="191">
+		 Eugene Charniak . 
+	</s>
+	
+
+	<s id="192">
+		 2000. A maximum-entropyinspired parser . 
+	</s>
+	
+
+	<s id="193">
+		 In Proceedings of the 2000 Conference of the North American Chapter of the Association for Computational Linguistics. , ACL , New Brunswick , NJ . 
+	</s>
+	
+
+	<s id="194">
+		 Eugene Charniak . 
+	</s>
+	
+
+	<s id="195">
+		 2001. Immediate-head parsing for language models . 
+	</s>
+	
+
+	<s id="196">
+		 In Proceedings of the 39th Annual Meeting of the Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="197">
+		 Ciprian Chelba and Frederick Jelinek . 
+	</s>
+	
+
+	<s id="198">
+		 1998. A study on richer syntactic dependencies for structured language modeling . 
+	</s>
+	
+
+	<s id="199">
+		 In Proceedings of the 36th Annual Meeting of the Association for Computational Linguistics and 17th International Conference on Computational Linguistics , pages 225–231 . 
+	</s>
+	
+
+	<s id="200">
+		 Sharon Goldwater , Eugene Charniak , and Mark Johnson . 
+	</s>
+	
+
+	<s id="201">
+		 1998. Best-first edge-based chart parsing . 
+	</s>
+	
+
+	<s id="202">
+		 In 6th Annual Workshop for Very Large Corpora , pages 127–133 . 
+	</s>
+	
+
+	<s id="203">
+		 Joshua Goodman . 
+	</s>
+	
+
+	<s id="204">
+		 1997. Global thresholding and multiple-pass parsing . 
+	</s>
+	
+
+	<s id="205">
+		 In Proceedings of the Sec- ond Conference on Empirical Methods in Natural Language Processing , pages 11–25 . 
+	</s>
+	
+
+	<s id="206">
+		 Joshua Goodman . 
+	</s>
+	
+
+	<s id="207">
+		 2001. A bit of progress in language modeling , extendend version . 
+	</s>
+	
+
+	<s id="208">
+		 In Microsoft Research Technical Report MSR-TR-2001-72 . 
+	</s>
+	
+
+	<s id="209">
+		 Keith Hall and Mark Johnson . 
+	</s>
+	
+
+	<s id="210">
+		 2003. Language modeling using efficient best-first bottom-up parsing . 
+	</s>
+	
+
+	<s id="211">
+		 In Proceedings of IEEE Automated Speech Recognition and Understanding Workshop . 
+	</s>
+	
+
+	<s id="212">
+		 Mark Johnson . 
+	</s>
+	
+
+	<s id="213">
+		 1998. PCFG models of linguistic tree representations . 
+	</s>
+	
+
+	<s id="214">
+		 Computational Linguistics , 24:617–636 . 
+	</s>
+	
+
+	<s id="215">
+		 Dan Klein and Christopher D. Manning . 
+	</s>
+	
+
+	<s id="216">
+		 2003 . 
+	</s>
+	
+
+	<s id="217">
+		 Accurate unlexicalized parsing . 
+	</s>
+	
+
+	<s id="218">
+		 In Proceedings of the 41st Meeting of the Association for Computational Linguistics ( ACL-03 ) . 
+	</s>
+	
+
+	<s id="219">
+		 Christopher D. Manning and Hinrich Sch¨utze . 
+	</s>
+	
+
+	<s id="220">
+		 1999. Foundations of statistical natural language processing . 
+	</s>
+	
+
+	<s id="221">
+		 MIT Press . 
+	</s>
+	
+
+	<s id="222">
+		 Mitchell Marcus , Beatrice Santorini , and Mary Ann Marcinkiewicz . 
+	</s>
+	
+
+	<s id="223">
+		 1993. Building a large annotated corpus of english : The penn treebank . 
+	</s>
+	
+
+	<s id="224">
+		 Computational Linguistics , 19:313–330 . 
+	</s>
+	
+
+	<s id="225">
+		 Brian Roark . 
+	</s>
+	
+
+	<s id="226">
+		 2001. Probabilistic top-down parsing and language modeling . 
+	</s>
+	
+
+	<s id="227">
+		 Computational Linguistics , 27(3):249–276 . 
+	</s>
+	
+
+	<s id="228">
+		 Peng Xu , Ciprian Chelba , and Frederick Jelinek . 
+	</s>
+	
+
+	<s id="229">
+		 2002. A study on richer syntactic dependencies for structured language modeling . 
+	</s>
+	
+
+	<s id="230">
+		 In Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics , pages 191– 198. 
+	</s>
+	
+
+
+</acldoc>

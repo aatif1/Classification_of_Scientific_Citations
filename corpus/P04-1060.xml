@@ -1,0 +1,1130 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1060">
+	
+
+	<s id="1">
+		 Experiments in Parallel-Text Based Grammar Induction Jonas Kuhn Department of Linguistics The University of Texas at Austin Austin , TX 78712 jonak@mail.utexas.edu Abstract This paper discusses the use of statistical word alignment over multiple parallel texts for the identification of string spans that cannot be constituents in one of the languages . 
+	</s>
+	
+
+	<s id="2">
+		 This information is exploited in monolingual PCFG grammar induction for that language , within an augmented version of the inside-outside algorithm . 
+	</s>
+	
+
+	<s id="3">
+		 Besides the aligned corpus , no other resources are required . 
+	</s>
+	
+
+	<s id="4">
+		 We discuss an implemented system and present experimental results with an evaluation against the Penn Tree- bank . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction There have been a number of recent studies exploiting parallel corpora in bootstrapping of monolingual analysis tools . 
+	</s>
+	
+
+	<s id="6">
+		 In the “information projection” approach ( e.g. , 
+		<ref citStr="Yarowsky and Ngai , 2001" id="1" label="CEPF" position="947">
+			( Yarowsky and Ngai , 2001 )
+		</ref>
+		 ) , statistical word alignment is applied to a parallel corpus of English and some other language for which no tagger/morphological analyzer/chunker etc. ( henceforth simply : analysis tool ) exists . 
+	</s>
+	
+
+	<s id="7">
+		 A high-quality analysis tool is applied to the English text , and the statistical word alignment is used to project a ( noisy ) target annotation to the version of the text . 
+	</s>
+	
+
+	<s id="8">
+		 Robust learning techniques are then applied to bootstrap an analysis tool for , using the annotations projected with high confidence as the initial training data . 
+	</s>
+	
+
+	<s id="9">
+		 ( Confidence of both the English analysis tool and the statistical word alignment is taken into account . 
+	</s>
+	
+
+	<s id="10">
+		 ) The results that have been achieved by this method are very encouraging . 
+	</s>
+	
+
+	<s id="11">
+		 Will the information projection approach also work for less shallow analysis tools , in particular full syntactic parsers ? 
+	</s>
+	
+
+	<s id="12">
+		 An obvious issue is that one does not expect the phrase structure representation of English ( as produced by state-of-the-art tree- bank parsers ) to carry over to less configurational languages . 
+	</s>
+	
+
+	<s id="13">
+		 Therefore , 
+		<ref citStr="Hwa et al. , 2002" id="2" label="CEPF" position="2087">
+			( Hwa et al. , 2002 )
+		</ref>
+		 extract a more language-independent dependency structure from the English parse as the basis for projection to Chinese . 
+	</s>
+	
+
+	<s id="14">
+		 From the resulting ( noisy ) dependency treebank , a dependency parser is trained using the techniques of 
+		<ref citStr="Collins , 1999" id="3" label="CEPF" position="2342">
+			( Collins , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="15">
+		 
+		<ref citStr="Hwa et al. , 2002" id="4" label="CEPF" position="2375">
+			( Hwa et al. , 2002 )
+		</ref>
+		 report that the noise in the projected treebank is still a major challenge , suggesting that a future research focus should be on the filtering of ( parts of ) unreliable trees and statistical word alignment models sensitive to the syntactic projection framework . 
+	</s>
+	
+
+	<s id="16">
+		 Our hypothesis is that the quality of the resulting parser/grammar for language can be significantly improved if the training method for the parser is changed to accomodate for training data which are in part unreliable . 
+	</s>
+	
+
+	<s id="17">
+		 The experiments we report in this paper focus on a specific part of the problem : we replace standard treebank training with an Expectation-Maximization ( EM ) algorithm for PCFGs , augmented by weighting factors for the reliability of training data , following the approach of 
+		<ref citStr="Nigam et al. , 2000" id="5" label="CERF" position="3182">
+			( Nigam et al. , 2000 )
+		</ref>
+		 , who apply it for EM training of a text classifier . 
+	</s>
+	
+
+	<s id="18">
+		 The factors are only sensitive to the constituent/distituent ( C/D ) status of each span of the string in ( cp. 
+		<ref citStr="Klein and Manning , 2002" id="6" label="CEPF" position="3386">
+			( Klein and Manning , 2002 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="19">
+		 The C/D status is derived from an aligned parallel corpus in a way discussed in section 2 . 
+	</s>
+	
+
+	<s id="20">
+		 We use the Europarl corpus 
+		<ref citStr="Koehn , 2002" id="7" label="OEPF" position="3544">
+			( Koehn , 2002 )
+		</ref>
+		 , and the statistical word alignment was performed with the GIZA++ toolkit 
+		<ref citStr="Al-Onaizan et al. , 1999" id="8" label="OEPF" position="3620">
+			( Al-Onaizan et al. , 1999 
+		</ref>
+		<ref citStr="Och and Ney , 2003" id="9" label="OEPF" position="3647">
+			; Och and Ney , 2003)
+		</ref>
+		.1 For the current experiments we assume no preexisting parser for any of the languages , contrary to the information projection scenario . 
+	</s>
+	
+
+	<s id="21">
+		 While better absolute results could be expected using one or more parsers for the languages involved , we think that it is important to isolate the usefulness of exploiting just crosslinguistic word order divergences in order to obtain partial prior knowledge about the constituent structure of a language , which is then exploited in an EM learning approach ( section 3 ) . 
+	</s>
+	
+
+	<s id="22">
+		 Not using a parser for some languages also makes it possible to compare various language pairs at the same level , and specifically , we can experiment with grammar induction for English exploiting various 1 The software is available at http://www.isi.edu/˜och/GIZA++.html At that moment the voting will commence . 
+	</s>
+	
+
+	<s id="23">
+		 Le vote aura lieu à ce moment -la. . 
+	</s>
+	
+
+	<s id="24">
+		 Figure 1 : Alignment example other languages . 
+	</s>
+	
+
+	<s id="25">
+		 Indeed the focus of our initial experiments has been on English ( section 4 ) , which facilitates evaluation against a treebank ( section 5 ) . 
+	</s>
+	
+
+	<s id="26">
+		 2 Cross-language order divergences The English-French example in figure 1 gives a simple illustration of the partial information about constituency that a word-aligned parallel corpus may provide . 
+	</s>
+	
+
+	<s id="27">
+		 The en bloc reversal of subsequences of words provides strong evidence that , for instance , [ moment the voting ] or [ aura lieu à ce ] do not form constituents . 
+	</s>
+	
+
+	<s id="28">
+		 At first sight it appears as if there is also clear evidence for [ at that moment ] forming a constituent , since it fully covers a substring that appears in a different position in French . 
+	</s>
+	
+
+	<s id="29">
+		 Similarly for [ Le vote aura lieu ] . 
+	</s>
+	
+
+	<s id="30">
+		 However , from the distribution of contiguous substrings alone we cannot distinguish between two the types of situations sketched in ( 1 ) and ( 2 ) : ( 1 ) ( 2 ) A string that is contiguous under projection , like ( 1 ) may be a true constituent , but it may also be a non-constituent part of a larger constituent as in in ( 2 ) . 
+	</s>
+	
+
+	<s id="31">
+		 Word blocks . 
+	</s>
+	
+
+	<s id="32">
+		 Let us define the notion of a word block ( as opposed to a phrase or constituent ) induced by a word alignment to capture the relevant property of contiguousness under translation.2 The alignments induced by GIZA++ ( following the IBM models ) are asymmetrical in that several words from may be aligned with one word in , but not vice versa . 
+	</s>
+	
+
+	<s id="33">
+		 So we can view a word alignment as a function that maps each word in an -sentence to a ( possibly empty ) subset of words from its translation in . 
+	</s>
+	
+
+	<s id="34">
+		 For example , in figure 1 , voting ={vote } , and that = { ce -la. . 
+	</s>
+	
+
+	<s id="35">
+		 Note that for . 
+	</s>
+	
+
+	<s id="36">
+		 The -images of a sentence need not exhaust the words of the translation in ; however it is common to assume a special empty word NULL in each -sentence , for which by definition NULL is the set of -words not contained in any -image of the overt words . 
+	</s>
+	
+
+	<s id="37">
+		 We now define an -induced block ( or -block for short ) as a substring of a sentence in , such that the union over all -images ( or are -induced blocks . 
+	</s>
+	
+
+	<s id="38">
+		 Let us define a maximal -block as an -block , such that adding at the beginning or at the end is either ( i ) impossible ( because it would lead to a non-block , or or do not exist as we are at the beginning or end of the string ) , or ( ii ) it would introduce a new crossing alignment 2The block notion we are defining in this section is indirectly related to the concept of a “phrase” in recent work in Statistical Machine Translation . 
+	</s>
+	
+
+	<s id="39">
+		 
+		<ref citStr="Koehn et al. , 2003" id="10" label="CEPF" position="7285">
+			( Koehn et al. , 2003 )
+		</ref>
+		 show that exploiting all contiguous word blocks in phrase-based alignment is better than focusing on syntactic constituents only . 
+	</s>
+	
+
+	<s id="40">
+		 In our context , we are interested in inducing syntactic constituents based on alignment information ; given the observations from Statistical MT , it does not come as a surprise that there is no direct link from blocks to constituents . 
+	</s>
+	
+
+	<s id="41">
+		 Our work can be seen as an attempt to zero in on the distinction between the concepts ; we find that it is most useful to keep track of the boundaries between blocks . 
+	</s>
+	
+
+	<s id="42">
+		 
+		<ref citStr="Wu , 1997" id="11" label="CEPF" position="7863">
+			( Wu , 1997 )
+		</ref>
+		 also includes a brief discussion of crossing constraints that can be derived from phrase structure correspondences . 
+	</s>
+	
+
+	<s id="43">
+		 ) forms a contiguous substring in , modulo the words from NULL . 
+	</s>
+	
+
+	<s id="44">
+		 For example , in ( 1 ) ( or ( 2 ) ) is not an -block since the union over its -images is which do not form a contiguous string in . 
+	</s>
+	
+
+	<s id="45">
+		 The sequences to the block.3 String in ( 1 ) is not a maximal -block , be- cause is an -block ; but is maxi- mal since is the final word of the sentence and is a non-block . 
+	</s>
+	
+
+	<s id="46">
+		 We can now make the initial observation precise that ( 1 ) and ( 2 ) have the same block structure , but the constituent structures are different ( and this is not due to an incorrect alignment ) . 
+	</s>
+	
+
+	<s id="47">
+		 is a maximal block in both cases , but while it is a constituent in ( 1 ) , it isn’t in ( 2 ) . 
+	</s>
+	
+
+	<s id="48">
+		 We may call maximal blocks that contain only non-maximal blocks as substrings first-order maximal -blocks . 
+	</s>
+	
+
+	<s id="49">
+		 A maximal block that contains other maximal blocks as substrings is a higher-order maximal -block . 
+	</s>
+	
+
+	<s id="50">
+		 In ( 1 ) and ( 2 ) , the complete string is a higher-order maximal block . 
+	</s>
+	
+
+	<s id="51">
+		 Note that a higher-order maximal block may contain substrings which are non-blocks . 
+	</s>
+	
+
+	<s id="52">
+		 Higher-order maximal blocks may still be non- constituents as the following simple English-French example shows : ( 3 ) He gave Mary a book Il a donné un livre à Mary The three first-order maximal blocks in English are [ He gave ] , [ Mary ] , and [ a book ] . 
+	</s>
+	
+
+	<s id="53">
+		 [ Mary a book ] is a higher-order maximal block , since its “projection” to French is contiguous , but it is not a constituent . 
+	</s>
+	
+
+	<s id="54">
+		 ( Note that the VP constituent gave Mary a book on the other hand is not a maximal block here . 
+	</s>
+	
+
+	<s id="55">
+		 ) Block boundaries . 
+	</s>
+	
+
+	<s id="56">
+		 Let us call the string position between two maximal blocks an -block boundary.4 In (1)/(2) , the position between and is a block boundary . 
+	</s>
+	
+
+	<s id="57">
+		 We can now formulate the ( 4 ) Distituent hypothesis If a substring of a sentence in language crosses a first-order -block boundary ( zones ) , then it can only be a constituent of if it contains at least one of the two maximal -blocks separated by that boundary in full . 
+	</s>
+	
+
+	<s id="58">
+		 This hypothesis makes it precise under which conditions we assume to have reliable negative evidence against a constituent . 
+	</s>
+	
+
+	<s id="59">
+		 Even examples of complicated structural divergence from the classical MT 3I.e. , an element of ( or ) continues the - string at the other end . 
+	</s>
+	
+
+	<s id="60">
+		 4 We will come back to the situation where a block boundary may not be unique below . 
+	</s>
+	
+
+	<s id="61">
+		 5This will be explained below . 
+	</s>
+	
+
+	<s id="62">
+		 literature tend not to pose counterexamples to the hypothesis , since it is so conservative . 
+	</s>
+	
+
+	<s id="63">
+		 Projecting phrasal constituents from one language to another is problematic in cases of divergence , but projecting information about distituents is generally safe . 
+	</s>
+	
+
+	<s id="64">
+		 Mild divergences are best . 
+	</s>
+	
+
+	<s id="65">
+		 As should be clear , the -block-based approach relies on the occurrence of reorderings of constituents in translation . 
+	</s>
+	
+
+	<s id="66">
+		 If two languages have the exact same structure ( and no paraphrases whatsoever are used in translation ) , the approach does not gain any information from a parallel text . 
+	</s>
+	
+
+	<s id="67">
+		 However , this situation does not occur realistically . 
+	</s>
+	
+
+	<s id="68">
+		 If on the other hand , massive reordering occurs without preserving any contiguous sub- blocks , the approach cannot gain information either . 
+	</s>
+	
+
+	<s id="69">
+		 The ideal situation is in the middleground , with a number of mid-sized blocks in most sentences . 
+	</s>
+	
+
+	<s id="70">
+		 The table in figure 2 shows the distribution of sentences with -block boundaries based on the alignment of English and 7 other languages , for a sample of c. 3,000 sentences from the Europarl corpus . 
+	</s>
+	
+
+	<s id="71">
+		 We can see that the occurrence of boundaries is in a range that should make it indeed useful.6 : de el es fi fr it sv 1 82.3 % 76.7 % 80.9 % 70.2 % 83.3 % 82.9 % 67.4 % 2 73.5 % 64.2 % 74.0 % 55.7 % 76.0 % 74.6 % 58.0 % 3 57.7 % 50.4 % 57.5 % 39.3 % 60.5 % 60.7 % 38.4 % 4 47.9 % 40.1 % 50.9 % 29.7 % 53.3 % 52.1 % 31.3 % 5 38.0 % 30.6 % 42.5 % 21.5 % 45.9 % 42.0 % 23.0 % 6 28.7 % 23.2 % 33.4 % 15.2 % 36.1 % 33.4 % 15.2 % 7 22.6 % 17.9 % 28.0 % 10.2 % 30.2 % 26.6 % 11.0 % 8 17.0 % 13.6 % 22.4 % 7.6 % 24.4 % 21.8 % 8.0 % 9 12.3 % 10.3 % 17.4 % 5.4 % 19.7 % 17.3 % 5.6 % 10 9.5 % 7.8 % 13.7 % 3.4 % 16.3 % 13.1 % 4.1 % de : German ; el : Greek ; es : Spanish ; fi : Finnish ; fr : French ; it : Italian ; sv : Swedish . 
+	</s>
+	
+
+	<s id="72">
+		 Figure 2 : Proportion of sentences with -block boundaries for : English Zero fertility words . 
+	</s>
+	
+
+	<s id="73">
+		 So far we have not addressed the effect of finding zero fertility words , i.e. , words from with . 
+	</s>
+	
+
+	<s id="74">
+		 Statistical word alignment makes frequent use of this mechanism . 
+	</s>
+	
+
+	<s id="75">
+		 An actual example from our alignment is shown in figure 3 . 
+	</s>
+	
+
+	<s id="76">
+		 The English word has is treated as a zero fertility word . 
+	</s>
+	
+
+	<s id="77">
+		 While we can tell from the block structure that there is a maximal block boundary somewhere between Baringdorf and the , it is 6The average sentence length for the English sentence is 26.5 words . 
+	</s>
+	
+
+	<s id="78">
+		 ( Not too suprisingly , Swedish gives rise to the fewest divergences against English . 
+	</s>
+	
+
+	<s id="79">
+		 Note also that the Romance languages shown here behave very similarly . 
+	</s>
+	
+
+	<s id="80">
+		 ) Mr. Graefe zu Baringdorf has the floor to explain this request . 
+	</s>
+	
+
+	<s id="81">
+		 La parole est à M. Graefe zu Baringdorf pour motiver la demande . 
+	</s>
+	
+
+	<s id="82">
+		 Figure 3 : Alignment example with zero-fertility word in English unclear on which side has should be located.7 The definitions of the various types of word blocks cover zero fertility words in principle , but they are somewhat awkward in that the same word may belong to two maximal -blocks , on its left and on its right . 
+	</s>
+	
+
+	<s id="83">
+		 It is not clear where the exact block boundary is located . 
+	</s>
+	
+
+	<s id="84">
+		 So we redefine the notion of - block boundaries . 
+	</s>
+	
+
+	<s id="85">
+		 We call the ( possibly empty ) sub- string between the rightmost non-zero-fertility word of one maximal -block and the leftmost non-zerofertility word of its right neighbor block the -block boundary zone . 
+	</s>
+	
+
+	<s id="86">
+		 The distituent hypothesis is sensitive to crossing a boundary zone , i.e. , if a constituent-candidate ends somewhere in the middle of a non-empty boundary zone , this does not count as a crossing . 
+	</s>
+	
+
+	<s id="87">
+		 This reflects the intuition of uncertainty and keeps the exclusion of clear distituents intact . 
+	</s>
+	
+
+	<s id="88">
+		 3 EM grammar induction with weighting factors The distituent identification scheme introduced in the previous section can be used to hypothesize a fairly reliable exclusion of constituency for many spans of strings from a parallel corpus . 
+	</s>
+	
+
+	<s id="89">
+		 Besides a statistical word alignment , no further resources are required . 
+	</s>
+	
+
+	<s id="90">
+		 In order to make use of this scattered ( non- ) constituency information , a semi-supervised approach is needed that can fill in the ( potentially large ) areas for which no prior information is available . 
+	</s>
+	
+
+	<s id="91">
+		 For the present experiments we decided to choose a conceptually simple such approach , with which we can build on substantial existing work in grammar induction : we construe the learning problem as PCFG induction , using the inside-outside algorithm , with the addition of weighting factors based on the ( non- )constituency information . 
+	</s>
+	
+
+	<s id="92">
+		 This use of weighting factors in EM learning follows the approach discussed in 
+		<ref citStr="Nigam et al. , 2000" id="12" label="CERF" position="15347">
+			( Nigam et al. , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="93">
+		 Since we are mainly interested in comparative experiments at this stage , the conceptual simplicity , and the availability of efficient implemented open- 7Since zero-fertility words are often function words , there is probably a rightward-tendency that one might be able to exploit ; however in the present study we didn’t want to build such high-level linguistic assumptions into the system . 
+	</s>
+	
+
+	<s id="94">
+		 source systems of a PCFG induction approach outweighs the disadvantage of potentially poorer overall performance than one might expect from some other approaches . 
+	</s>
+	
+
+	<s id="95">
+		 The PCFG topology we use is a binary , entirely unrestricted X-bar-style grammar based on the Penn Treebank POS-tagset ( expanded as in the TreeTagger by 
+		<ref citStr="Schmid , 1994" id="13" label="OEPF" position="16107">
+			( Schmid , 1994 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="96">
+		 All possible combinations of projections of POS-categories X and Y are included following the schemata in ( 5 ) . 
+	</s>
+	
+
+	<s id="97">
+		 This gives rise to 13,110 rules . 
+	</s>
+	
+
+	<s id="98">
+		 ( 5 ) a. XP X b. XP XP YP c. XP YP XP d. XP YP X e. XP X YP We tagged the English version of our training section of the Europarl corpus with the TreeTagger and used the strings of POS-tags as the training corpus for the inside-outside algorithm ; however , it is straightforward to apply our approach to a language for which no taggers are available if an unsupervised word clustering technique is applied first . 
+	</s>
+	
+
+	<s id="99">
+		 We based our EM training algorithm on Mark Johnson’s implementation of the inside-outside algorithm . 
+	</s>
+	
+
+	<s id="100">
+		 $ The initial parameters on the PCFG rules are set to be uniform . 
+	</s>
+	
+
+	<s id="101">
+		 In the iterative induction process of parameter reestimation , the current rule parameters are used to compute the expectations of how often each rule occurred in the parses of the training corpus , and these expectations are used to adjust the rule parameters , so that the likelihood of the training data is increased . 
+	</s>
+	
+
+	<s id="102">
+		 When the probablity of a given rule drops below a certain threshold , the rule is excluded from the grammar . 
+	</s>
+	
+
+	<s id="103">
+		 The iteration is continued until the increase in likelihood of the training corpus is very small . 
+	</s>
+	
+
+	<s id="104">
+		 Weight factors . 
+	</s>
+	
+
+	<s id="105">
+		 The inside-outside algorithm is a dynamic programming algorithm that uses a chart in order to compute the rule expectations for each sentence . 
+	</s>
+	
+
+	<s id="106">
+		 We use the information obtained from the parallel corpus as discussed in section 2 as prior information ( in a Bayesian framework ) to adjust the 8http://cog.brown.edu/˜mj/ you can table questions under rule 28 , and you no longer have the floor . 
+	</s>
+	
+
+	<s id="107">
+		 vous pouvez poser les questions au moyen de l’ article 28 du réglement . 
+	</s>
+	
+
+	<s id="108">
+		 je ne vous donne pas la parole . 
+	</s>
+	
+
+	<s id="109">
+		 Figure 4 : Alignment example with higher-fertility words in English expectations that the inside-outside algorithm determines based on its current rule parameters . 
+	</s>
+	
+
+	<s id="110">
+		 Note that the this prior information is information about string spans of (non-)constituents – it does not tell us anything about the categories of the potential constituents affected . 
+	</s>
+	
+
+	<s id="111">
+		 It is combined with the PCFG expectations as the chart is constructed . 
+	</s>
+	
+
+	<s id="112">
+		 For each span in the chart , we get a weight factor that is multiplied with the parameter-based expectations.9 4 Experiments We applied GIZA++ 
+		<ref citStr="Al-Onaizan et al. , 1999" id="14" label="OEPF" position="18614">
+			( Al-Onaizan et al. , 1999 
+		</ref>
+		<ref citStr="Och and Ney , 2003" id="15" label="OEPF" position="18641">
+			; Och and Ney , 2003 )
+		</ref>
+		 to word-align parts of the Europarl corpus 
+		<ref citStr="Koehn , 2002" id="16" label="OEPF" position="18723">
+			( Koehn , 2002 )
+		</ref>
+		 for English and all other 10 languages . 
+	</s>
+	
+
+	<s id="113">
+		 For the experiments we report in this paper , we only used the 1999 debates , with the language pairs of English combined with Finnish , French , German , Greek , Italian , Spanish , and Swedish . 
+	</s>
+	
+
+	<s id="114">
+		 For computing the weight factors we used a two- step process implemented in Perl , which first determines the maximal -block boundaries ( by detecting discontinuities in the sequence of the - projected words ) . 
+	</s>
+	
+
+	<s id="115">
+		 Words with fertility whose - correspondents were non-adjacent ( modulo NULL- projections ) were treated like zero fertility words , i.e. , we viewed them as unreliable indicators of block status ( compare figure 4 ) . 
+	</s>
+	
+
+	<s id="116">
+		 ( 7 ) shows the internal representation of the block structure for ( 6 ) ( compare figure 3 ) . 
+	</s>
+	
+
+	<s id="117">
+		 L and R are used for the beginning and end of blocks , when the adjacent boundary zone is empty ; l and r are used next to non-empty boundary zones . 
+	</s>
+	
+
+	<s id="118">
+		 Words that have correspondents in 9In the simplest model , we use the factor 0 for spans satisfying the distituent condition underlying hypothesis ( 4 ) , and factor 1 for all other spans ; in other words , parses involving a distituent are cancelled out . 
+	</s>
+	
+
+	<s id="119">
+		 We also experimented with various levels of weight factors : for instance , distituents were assigned factor 0.0 1 , likely distituents factor 0 . 
+	</s>
+	
+
+	<s id="120">
+		 1 , neutral spans 1 , and likely constituents factor 2 . 
+	</s>
+	
+
+	<s id="121">
+		 Likely constituents are defined as spans for which one end is adjacent to an empty block boundary zone ( i.e. , there is no zero fertility word in the block boundary zone which could be the actual boundary of constituents in which the block is involved ) . 
+	</s>
+	
+
+	<s id="122">
+		 Most variations in the weighting scheme did not have a significant effect , but they caused differences in coverage because rules with a probability below a certain threshold were dropped in training . 
+	</s>
+	
+
+	<s id="123">
+		 Below , we report the results of the 0.01–0.1–1–2 scheme , which had a reasonably high coverage on the test data . 
+	</s>
+	
+
+	<s id="124">
+		 the normal sequence are encoded as * , zero fertility words as - ; A and B are used for the first block in a sentence instead of L and R , unless it arises from “relocation” , which increases likelihood for constituent status ( likewise for the last block : Y and Z ) . 
+	</s>
+	
+
+	<s id="125">
+		 Since we are interested only in first-order blocks here , the compact string-based representation is sufficient . 
+	</s>
+	
+
+	<s id="126">
+		 ( 6 ) la parole est à m. graefe zu baringdorf pour motiver la demande NULL ( { 3 4 11 } ) mr ( { 5 } ) graefe ( { 6 } ) zu ( { 7 } ) baringdorf ( { 8 } ) has ( { } ) the ( { 1 } ) floor ( { 2 } ) to ( { 9 } ) explain ( { 10 } ) this ( { } ) request ( { 12 } ) ( 7 ) [ L**r-lRY*-*Z ] The second step for computing the weight factors creates a chart of all string spans over the given sentence and marks for each span whether it is a distituent , possible constituent or likely distituent , based on the location of boundary symbols . 
+	</s>
+	
+
+	<s id="127">
+		 ( For instance zu Baringdorf has the is marked as a distituent ; the floor and has the floor are marked as likely constituents . 
+	</s>
+	
+
+	<s id="128">
+		 ) The tests are implemented as simple regular expressions . 
+	</s>
+	
+
+	<s id="129">
+		 The chart of weight factors is represented as an array which is stored in the training corpus file along with the sentences . 
+	</s>
+	
+
+	<s id="130">
+		 We combine the weight factors from various languages , since each of them may contribute distinct ( non- )constituent information . 
+	</s>
+	
+
+	<s id="131">
+		 The inside-outside algorithm reads in the weight factor array and uses it in the computation of expected rule counts . 
+	</s>
+	
+
+	<s id="132">
+		 We used the probability of the statistical word alignment as a confidence measure to filter out unreliable training sentences . 
+	</s>
+	
+
+	<s id="133">
+		 Due to the conservative nature of the information we extract from the alignment , the results indicate however that filtering is not necessary . 
+	</s>
+	
+
+	<s id="134">
+		 5 Evaluation For evaluation , we ran the PCFG resulting from training with the Viterbi algorithm10 on parts of the Wall Street Journal ( WSJ ) section of the Penn Tree- bank and compared the tree structure for the most 10We used the LoPar parser 
+		<ref citStr="Schmid , 2000" id="17" label="OEPF" position="22896">
+			( Schmid , 2000 )
+		</ref>
+		 for this . 
+	</s>
+	
+
+	<s id="135">
+		 System Unlab . 
+	</s>
+	
+
+	<s id="136">
+		 Prec . 
+	</s>
+	
+
+	<s id="137">
+		 Unlab . 
+	</s>
+	
+
+	<s id="138">
+		 Recall F -Score Crossing Brack . 
+	</s>
+	
+
+	<s id="139">
+		 Left-branching 30.4 35.8 32.9 3.06 Right-branching 36.2 42.6 39.2 2.48 Standard PCFG induction 42.4 64.9 51.3 2.2 PCFG trained with C/D weight factors from Europarl corpus 47.8 72.1 57.5 1.7 Upper limit 66.08 100.0 79.6 0.0 Figure 5 : Scores for test sentences from WSJ section 23 , up to length 10. probable parse for the test sentences against the gold standard treebank annotation . 
+	</s>
+	
+
+	<s id="140">
+		 ( Note that one does not necessarily expect that an induced grammar will match a treebank annotation , but it may at least serve as a basis for comparison . 
+	</s>
+	
+
+	<s id="141">
+		 ) The evaluation criteria we apply are unlabeled bracketing precision and recall ( and crossing brackets ) . 
+	</s>
+	
+
+	<s id="142">
+		 We follow an evaluation criterion that ( Klein and Manning , 2002 , footnote 3 ) discuss for the evaluation of a not fully supervised grammar induction approach based on a binary grammar topology : bracket multiplicity ( i.e. , non-branching projections ) is collapsed into a single set of brackets ( since what is relevant is the constituent structure that was induced).11 For comparison , we provide baseline results that a uniform left-branching structure and a uniform right-branching structure ( which encodes some nontrivial information about English syntax ) would give rise to . 
+	</s>
+	
+
+	<s id="143">
+		 As an upper boundary for the performance a binary grammar can achieve on the WSJ , we present the scores for a minimal binarized extension of the gold-standard annotation . 
+	</s>
+	
+
+	<s id="144">
+		 The results we can report at this point are based on a comparatively small training set . 
+	</s>
+	
+
+	<s id="145">
+		 12 So , it may be too early for conclusive results . 
+	</s>
+	
+
+	<s id="146">
+		 ( An issue that arises with the small training set is that smoothing techniques would be required to avoid overtraining , but these tend to dominate the test application , so the effect of the parallel-corpus based information cannot be seen so clearly . 
+	</s>
+	
+
+	<s id="147">
+		 ) But we think that the results are rather encouraging . 
+	</s>
+	
+
+	<s id="148">
+		 As the table in figure 5 shows , the PCFG we induced based on the parallel-text derived weight factors reaches 57.5 as the F -score of unlabeled precision and recall on sentences up to length 10.13 We 11Note that we removed null elements from the WSJ , but we left punctuation in place . 
+	</s>
+	
+
+	<s id="149">
+		 We used the EVALB program for obtaining the measures , however we preprocessed the bracketings to reflect the criteria we discuss here . 
+	</s>
+	
+
+	<s id="150">
+		 12This is not due to scalability issues of the system ; we expect to be able to run experiments on rather large training sets . 
+	</s>
+	
+
+	<s id="151">
+		 Since no manual annotation is required , the available resources are practically indefinite . 
+	</s>
+	
+
+	<s id="152">
+		 13For sentences up to length 30 , the F -score drops to 28.7 show the scores for an experiment without smoothing , trained on c. 3,000 sentences . 
+	</s>
+	
+
+	<s id="153">
+		 Since no smoothing was applied , the resulting coverage ( with low- probability rules removed ) on the test set is about 80 % . 
+	</s>
+	
+
+	<s id="154">
+		 It took 74 iterations of the inside-outside algorithm to train the weight-factor-trained grammar ; the final version has 1005 rules . 
+	</s>
+	
+
+	<s id="155">
+		 For comparison we induced another PCFG based on the same X-bar topology without using the weight factor mechanism . 
+	</s>
+	
+
+	<s id="156">
+		 This grammar ended up with 1145 rules after 115 iterations . 
+	</s>
+	
+
+	<s id="157">
+		 The F -score is only 51.3 ( while the coverage is the same as for the weight-factor-trained grammar ) . 
+	</s>
+	
+
+	<s id="158">
+		 Figure 6 shows the complete set of ( singular ) “NP rules” emerging from the weight-factor-trained grammar , which are remarkably well-behaved , in particular when we compare them to the corresponding rules from the PCFG induced in the standard way ( figure 7 ) . 
+	</s>
+	
+
+	<s id="159">
+		 ( XP categories are written as POS-TAG -P , X head categories are written as POS-TAG -0 – so the most probable NP productions in figure 6 are NP N PP , NP N , NP ADJP N , NP NP PP , NP N PropNP . 
+	</s>
+	
+
+	<s id="160">
+		 ) Of course we are comparing an unsupervised technique with a mildly supervised technique ; but the results indicate that the relatively subtle information discussed in section 2 seems to be indeed very useful . 
+	</s>
+	
+
+	<s id="161">
+		 6 Discussion This paper presented a novel approach of using parallel corpora as the only resource in the creation of a monolingual analysis tools . 
+	</s>
+	
+
+	<s id="162">
+		 We believe that in order to induce high-quality tools based on statistical word alignment , the training approach for the target language tool has to be able to exploit islands of reliable information in a stream of potentially rather noisy data . 
+	</s>
+	
+
+	<s id="163">
+		 We experimented with an initial idea to address this task , which is conceptually simple and can be implemented building on existing technology : using the notion of word blocks projected ( as compared to 23.5 for the standard PCFG ) . 
+	</s>
+	
+
+	<s id="164">
+		 0.300467 NN-P --&gt; NN-0 IN-P 0.25727 NN-P --&gt; NN-0 0.222335 NN-P --&gt; JJ-P NN-0 0.0612312 NN-P --&gt; NN-P IN-P 0.0462079 NN-P --&gt; NN-0 NP-P 0.0216048 NN-P --&gt; NN-0 , -P 0.0173518 NN-P --&gt; NN-P NN-0 0.0114746 NN-P --&gt; NN-0 NNS-P 0.00975112 NN-P --&gt; NN-0 MD-P 0.00719605 NN-P --&gt; NN-0 VBZ-P 0.00556762 NN-P --&gt; NN-0 NN-P 0.00511326 NN-P --&gt; NN-0 VVD-P 0.00438077 NN-P --&gt; NN-P VBD-P 0.00423814 NN-P --&gt; NN-P , -P 0.00409675 NN-P --&gt; NN-0 CD-P 0.00286634 NN-P --&gt; NN-0 VHZ-P 0.00258022 NN-P --&gt; VVG-P NN-0 0.0018237 NN-P --&gt; NN-0 TO-P 0.00162601 NN-P --&gt; NN-P VVN-P 0.00157752 NN-P --&gt; NN-P VB-P 0.00125101 NN-P --&gt; NN-0 VVN-P 0.00106749 NN-P --&gt; NN-P VBZ-P 0.00105866 NN-P --&gt; NN-0 VBD-P 0.000975359 NN-P --&gt; VVN-P NN-0 0.000957702 NN-P --&gt; NN-0 SENT-P 0.000931056 NN-P --&gt; NN-0 CC-P 0.000902116 NN-P --&gt; NN-P SENT-P 0.000717542 NN-P --&gt; NN-0 VBP-P 0.000620843 NN-P --&gt; RB-P NN-0 0.00059608 NN-P --&gt; NN-0 WP-P 0.000550255 NN-P --&gt; NN-0 PDT-P 0.000539155 NN-P --&gt; NN-P CC-P 0.000341498 NN-P --&gt; WP$-P NN-0 0.000330967 NN-P --&gt; WRB-P NN-0 0.000186441 NN-P --&gt; , -P NN-0 0.000135449 NN-P --&gt; CD-P NN-0 7.16819e-05 NN-P --&gt; NN-0 POS-P Figure 6 : Full set of rules based on the NN tag in the C/D-trained PCFG by word alignment as an indication for ( mainly ) impossible string spans . 
+	</s>
+	
+
+	<s id="165">
+		 Applying this information in order to impose weighting factors on the EM algorithm for PCFG induction gives us a first , simple instance of the “island-exploiting” system we think is needed . 
+	</s>
+	
+
+	<s id="166">
+		 More sophisticated models may make use some of the experience gathered in these experiments . 
+	</s>
+	
+
+	<s id="167">
+		 The conservative way in which cross-linguistic relations between phrase structure is exploited has the advantage that we don’t have to make unwarranted assumptions about direct correspondences among the majority of constituent spans , or even direct correspondences of phrasal categories . 
+	</s>
+	
+
+	<s id="168">
+		 The technique is particularly well-suited for the exploitation of parallel corpora involving multiple lan- 0.429157 NN-P --&gt; DT-P NN-0 0.0816385 NN-P --&gt; IN-P NN-0 0.0630426 NN-P --&gt; NN-0 0.0489261 NN-P --&gt; PP$-P NN-0 0.0487434 NN-P --&gt; JJ-P NN-0 0.0451819 NN-P --&gt; NN-P , -P 0.0389741 NN-P --&gt; NN-P VBZ-P 0.0330732 NN-P --&gt; NN-P NN-0 0.0215872 NN-P --&gt; NN-P MD-P 0.0201612 NN-P --&gt; NN-P TO-P 0.0199536 NN-P --&gt; CC-P NN-0 0.015509 NN-P --&gt; NN-P VVZ-P 0.0112734 NN-P --&gt; NN-P RB-P 0.00977683 NN-P --&gt; NP-P NN-0 0.00943218 NN-P --&gt; CD-P NN-0 0.00922132 NN-P --&gt; NN-P WDT-P 0.00896826 NN-P --&gt; POS-P NN-0 0.00749452 NN-P --&gt; NN-P VHZ-P 0.00621328 NN-P --&gt; NN-0 , -P 0.00520734 NN-P --&gt; NN-P VBD-P 0.004674 NN-P --&gt; JJR-P NN-0 0.00407644 NN-P --&gt; NN-P VVD-P 0.00394681 NN-P --&gt; NN-P VVN-P 0.00354741 NN-P --&gt; NN-0 MD-P 0.00335451 NN-P --&gt; NN-0 NN-P 0.0030748 NN-P --&gt; EX-P NN-0 0.0026483 NN-P --&gt; WRB-P NN-0 0.00262025 NN-P --&gt; NN-0 TO-P [ ... ] 0.000403279 NN-P --&gt; NN-0 VBP-P 0.000378414 NN-P --&gt; NN-0 PDT-P 0.000318026 NN-P --&gt; NN-0 VHZ-P 2.27821e-05 NN-P --&gt; NN-P PP-P Figure 7 : Standard induced PCFG : Excerpt of rules based on the NN tag guages like the Europarl corpus . 
+	</s>
+	
+
+	<s id="169">
+		 Note that nothing in our methodology made any language particular assumptions ; future research has to show whether there are language pairs that are particularly effective , but in general the technique should be applicable for whatever parallel corpus is at hand . 
+	</s>
+	
+
+	<s id="170">
+		 A number of studies are related to the work we presented , most specifically work on parallel-text based “information projection” for parsing 
+		<ref citStr="Hwa et al. , 2002" id="18" label="CEPF" position="31473">
+			( Hwa et al. , 2002 )
+		</ref>
+		 , but also grammar induction work based on constituent/distituent information 
+		<ref citStr="Klein and Manning , 2002" id="19" label="CEPF" position="31580">
+			( Klein and Manning , 2002 )
+		</ref>
+		 and ( language-internal ) alignment- based learning ( van Zaanen , 2000 ) . 
+	</s>
+	
+
+	<s id="171">
+		 However to our knowledge the specific way of bringing these aspects together is new . 
+	</s>
+	
+
+	<s id="172">
+		 References Yaser Al-Onaizan , Jan Curin , Michael Jahr , Kevin Knight , John Lafferty , Dan Melamed , Franz- Josef Och , David Purdy , Noah A. Smith , and David Yarowsky . 
+	</s>
+	
+
+	<s id="173">
+		 1999. Statistical machine translation . 
+	</s>
+	
+
+	<s id="174">
+		 Final report , JHU Workshop . 
+	</s>
+	
+
+	<s id="175">
+		 Michael Collins . 
+	</s>
+	
+
+	<s id="176">
+		 1999. A statistical parser for Czech . 
+	</s>
+	
+
+	<s id="177">
+		 In Proceedings ofA CL . 
+	</s>
+	
+
+	<s id="178">
+		 Rebecca Hwa , Philip Resnik , and Amy Weinberg . 
+	</s>
+	
+
+	<s id="179">
+		 2002. Breaking the resource bottleneck for multilingual parsing . 
+	</s>
+	
+
+	<s id="180">
+		 In Proceedings ofLREC . 
+	</s>
+	
+
+	<s id="181">
+		 Dan Klein and Christopher Manning . 
+	</s>
+	
+
+	<s id="182">
+		 2002. A generative constituent-context model for improved grammar induction . 
+	</s>
+	
+
+	<s id="183">
+		 In Proceedings ofACL . 
+	</s>
+	
+
+	<s id="184">
+		 Philipp Koehn , Franz Josef Och , and Daniel Marcu . 
+	</s>
+	
+
+	<s id="185">
+		 2003. Statistical phrase-based translation . 
+	</s>
+	
+
+	<s id="186">
+		 In Proceedings of the Human Language Technology Conference 2003 ( HLT-NAACL 2003 ) , Edmonton , Canada . 
+	</s>
+	
+
+	<s id="187">
+		 Philipp Koehn . 
+	</s>
+	
+
+	<s id="188">
+		 2002. Europarl : A multilingual corpus for evaluation of machine translation . 
+	</s>
+	
+
+	<s id="189">
+		 Ms. , University of Southern California . 
+	</s>
+	
+
+	<s id="190">
+		 Kamal Nigam , Andrew Kachites McCallum , Sebastian Thrun , and Tom M. Mitchell . 
+	</s>
+	
+
+	<s id="191">
+		 2000. Text classification from labeled and unlabeled documents using EM . 
+	</s>
+	
+
+	<s id="192">
+		 Machine Learning , 39(2/3):103–134 . 
+	</s>
+	
+
+	<s id="193">
+		 Franz Josef Och and Hermann Ney . 
+	</s>
+	
+
+	<s id="194">
+		 2003. A systematic comparison of various statistical alignment models . 
+	</s>
+	
+
+	<s id="195">
+		 Computational Linguistics , 29(1):19–51 . 
+	</s>
+	
+
+	<s id="196">
+		 Helmut Schmid . 
+	</s>
+	
+
+	<s id="197">
+		 1994. Probabilistic part-of-speech tagging using decision trees . 
+	</s>
+	
+
+	<s id="198">
+		 In International Conference on New Methods in Language Processing , Manchester , UK . 
+	</s>
+	
+
+	<s id="199">
+		 Helmut Schmid . 
+	</s>
+	
+
+	<s id="200">
+		 2000. Lopar : Design and implementation . 
+	</s>
+	
+
+	<s id="201">
+		 Arbeitspapiere des Sonderforschungsbereiches 340 , No. 149 , IMS Stuttgart . 
+	</s>
+	
+
+	<s id="202">
+		 Menno van Zaanen . 
+	</s>
+	
+
+	<s id="203">
+		 2000. ABL : Alignment-based learning . 
+	</s>
+	
+
+	<s id="204">
+		 In COLING 2000 - Proceedings of the 18th International Conference on Computational Linguistics , pages 961–967 . 
+	</s>
+	
+
+	<s id="205">
+		 Dekai Wu . 
+	</s>
+	
+
+	<s id="206">
+		 1997. Stochastic inversion transduction grammars and bilingual parsing of parallel corpora . 
+	</s>
+	
+
+	<s id="207">
+		 Computational Linguistics , 23(3):377–403 . 
+	</s>
+	
+
+	<s id="208">
+		 David Yarowsky and Grace Ngai . 
+	</s>
+	
+
+	<s id="209">
+		 2001. Inducing multilingual POS taggers and NP bracketers via robust projection across aligned corpora . 
+	</s>
+	
+
+	<s id="210">
+		 In Proceedings ofNAACL . 
+	</s>
+	
+
+
+</acldoc>

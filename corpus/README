@@ -1,0 +1,19 @@
+8-25-2012
+
+Brief description of creation:
+==============================
+We took the plain text files from the ACL ARC [1] and use the
+sentence splitting that is part of TreeTagger [2], which
+marks the sentence boundaries with opening and closing XML tags.  We
+then use a regular expression to find the citations in the text and
+similarly mark them up with XML, resulting in a very simple XML file
+with sentence and citation tags.  When annotating and building the
+corpus then, we simply add the annotation label as an attribute to the
+marked up citation.
+
+TODO:
+Convert corpus to TEI P5 format [3]
+
+[1] http://acl-arc.comp.nus.edu.sg/ 
+[2] http://www.ims.uni-stuttgart.de/projekte/corplex/TreeTagger/
+[3] http://translit.i2r.a-star.edu.sg/r50/taskintro/

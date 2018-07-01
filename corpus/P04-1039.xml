@@ -1,0 +1,1466 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1039">
+	
+
+	<s id="1">
+		 Relieving The Data Acquisition Bottleneck In Word Sense Disambiguation Mona Diab Linguistics Department Stanford University mdiab@stanford.edu Abstract Supervised learning methods for WSD yield better performance than unsupervised methods . 
+	</s>
+	
+
+	<s id="2">
+		 Yet the availability of clean training data for the former is still a severe challenge . 
+	</s>
+	
+
+	<s id="3">
+		 In this paper , we present an unsupervised bootstrapping approach for WSD which exploits huge amounts of automatically generated noisy data for training within a supervised learning framework . 
+	</s>
+	
+
+	<s id="4">
+		 The method is evaluated using the 29 nouns in the English Lexical Sample task of SENSEVAL2 . 
+	</s>
+	
+
+	<s id="5">
+		 Our algorithm does as well as supervised algorithms on 31 % of this test set , which is an improvement of 11 % ( absolute ) over state-of-the-art bootstrapping WSD algorithms . 
+	</s>
+	
+
+	<s id="6">
+		 We identify seven different factors that impact the performance of our system . 
+	</s>
+	
+
+	<s id="7">
+		 1 Introduction Supervised Word Sense Disambiguation ( WSD ) systems perform better than unsupervised systems . 
+	</s>
+	
+
+	<s id="8">
+		 But lack of training data is a severe bottleneck for supervised systems due to the extensive labor and cost involved . 
+	</s>
+	
+
+	<s id="9">
+		 Indeed , one of the main goals of the SENSEVAL exercises is to create large amounts of sense-annotated data for supervised systems ( Kilgarriff&amp;Rosenzweig , 2000 ) . 
+	</s>
+	
+
+	<s id="10">
+		 The problem is even more challenging for languages which possess scarce computer readable knowledge resources . 
+	</s>
+	
+
+	<s id="11">
+		 In this paper , we investigate the role of large amounts of noisily sense annotated data obtained using an unsupervised approach in relieving the data acquisition bottleneck for the WSD task . 
+	</s>
+	
+
+	<s id="12">
+		 We bootstrap a supervised learning WSD system with an unsupervised seed set . 
+	</s>
+	
+
+	<s id="13">
+		 We use the sense annotated data produced by Diab’s unsupervised system SALAAM ( Diab&amp;Resnik , 2002 ; Diab , 2003 ) . 
+	</s>
+	
+
+	<s id="14">
+		 SALAAM is a WSD system that exploits parallel corpora for sense disambiguation of words in running text . 
+	</s>
+	
+
+	<s id="15">
+		 To date , SALAAM yields the best scores for an unsupervised system on the SENSEVAL2 English All-Words task 
+		<ref citStr="Diab , 2003" id="1" label="OEPF" position="2138">
+			( Diab , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="16">
+		 SALAAM is an appealing approach as it provides automatically sense annotated data in two languages simultaneously , thereby providing a multilingual framework for solving the data acquisition problem . 
+	</s>
+	
+
+	<s id="17">
+		 For instance , SALAAM has been used to bootstrap the WSD process for Arabic as illustrated in 
+		<ref citStr="Diab , 2004" id="2" label="OEPF" position="2470">
+			( Diab , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="18">
+		 In a supervised learning setting , WSD is cast as a classification problem , where a predefined set of sense tags constitutes the classes . 
+	</s>
+	
+
+	<s id="19">
+		 The ambiguous words in text are assigned one or more of these classes by a machine learning algorithm based on some extracted features . 
+	</s>
+	
+
+	<s id="20">
+		 This algorithm learns parameters from explicit associations between the class and the features , or combination of features , that characterize it . 
+	</s>
+	
+
+	<s id="21">
+		 Therefore , such systems are very sensitive to the training data , and those data are , generally , assumed to be as clean as possible . 
+	</s>
+	
+
+	<s id="22">
+		 In this paper , we question that assumption . 
+	</s>
+	
+
+	<s id="23">
+		 Can large amounts of noisily annotated data used in training be useful within such a learning paradigm for WSD ? 
+	</s>
+	
+
+	<s id="24">
+		 What is the nature of the quality-quantity trade-off in addressing this problem ? 
+	</s>
+	
+
+	<s id="25">
+		 2 Related Work To our knowledge , the earliest study of bootstrapping a WSD system with noisy data is by Gale et . 
+	</s>
+	
+
+	<s id="26">
+		 al. , 
+		<ref citStr="Gale et al. , 1992" id="3" label="CEPF" position="3501">
+			( Gale et al. , 1992 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="27">
+		 Their investigation was limited in scale to six data items with two senses each and a bounded number of examples per test item . 
+	</s>
+	
+
+	<s id="28">
+		 Two more recent investigations are by Yarowsky , 
+		<ref citStr="Yarowsky , 1995" id="4" label="CEPF" position="3719">
+			( Yarowsky , 1995 )
+		</ref>
+		 , and later , Mihalcea , 
+		<ref citStr="Mihalcea , 2002" id="5" label="CEPF" position="3764">
+			( Mihalcea , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="29">
+		 Each of the studies , in turn , addresses the issue of data quantity while maintaining good quality training examples . 
+	</s>
+	
+
+	<s id="30">
+		 Both investigations present algorithms for bootstrapping supervised WSD systems using clean data based on a dictionary or an ontological resource . 
+	</s>
+	
+
+	<s id="31">
+		 The general idea is to start with a clean initial seed and iteratively increase the seed size to cover more data . 
+	</s>
+	
+
+	<s id="32">
+		 Yarowsky starts with a few tagged instances to train a decision list approach . 
+	</s>
+	
+
+	<s id="33">
+		 The initial seed is manually tagged with the correct senses based on entries in Roget’ s Thesaurus . 
+	</s>
+	
+
+	<s id="34">
+		 The approach yields very successful results — 95 % — on a handful of data items . 
+	</s>
+	
+
+	<s id="35">
+		 Mihalcea , on the other hand , bases the bootstrapping approach on a generation algorithm , G e n C o r ( Mihalcea&amp;Moldovan , 1999 ) . 
+	</s>
+	
+
+	<s id="36">
+		 GenCor creates seeds from monosemous words in WordNet , Semcor data , sense tagged examples from the glosses of polysemous words in WordNet , and other hand tagged data if available . 
+	</s>
+	
+
+	<s id="37">
+		 This initial seed set is used for querying the Web for more examples and the retrieved contexts are added to the seed corpus . 
+	</s>
+	
+
+	<s id="38">
+		 The words in the contexts of the seed words retrieved are then disambiguated . 
+	</s>
+	
+
+	<s id="39">
+		 The disambiguated contexts are then used for querying the Web for yet more examples , and so on . 
+	</s>
+	
+
+	<s id="40">
+		 It is an iterative algorithm that incrementally generates large amounts of sense tagged data . 
+	</s>
+	
+
+	<s id="41">
+		 The words found are restricted to either part of noun compounds or internal arguments of verbs . 
+	</s>
+	
+
+	<s id="42">
+		 Mihalcea’s supervised learning system is an instance-based-learning algorithm . 
+	</s>
+	
+
+	<s id="43">
+		 In the study , Mihalcea compares results yielded by the supervised learning system trained on the automatically generated data , GenCor , against the same system trained on manually annotated data . 
+	</s>
+	
+
+	<s id="44">
+		 She reports successful results on six of the data items tested . 
+	</s>
+	
+
+	<s id="45">
+		 3 Empirical Layout Similar to Mihalcea’s approach , we compare results obtained by a supervised WSD system for English using manually sense annotated training examples against results obtained by the same WSD system trained on SALAAM sense tagged examples . 
+	</s>
+	
+
+	<s id="46">
+		 The test data is the same , namely , the SENSEVAL 2 English Lexical Sample test set . 
+	</s>
+	
+
+	<s id="47">
+		 The supervised WSD system chosen here is the University of Maryland System for SENSEVAL 2 Tagging ( ) 
+		<ref citStr="Cabezas et al. , 2002" id="6" label="OEPF" position="6223">
+			( Cabezas et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="48">
+		 3.1 The learning approach adopted by is based on Support Vector Machines ( S VM ) . 
+	</s>
+	
+
+	<s id="49">
+		 uses SVM- by Joachims 
+		<ref citStr="Joachims , 1998" id="7" label="CEPF" position="6368">
+			( Joachims , 1998)
+		</ref>
+		.1 For each target word , where a target word is a test item , a family of classifiers is constructed , one for each of the target word senses . 
+	</s>
+	
+
+	<s id="50">
+		 All the positive examples for a sense are considered the nega- tive examples of , where .
+		<ref citStr="Allwein et al. , 2000" id="8" label="CEPF" position="6635">
+			(Allwein et al. , 2000 )
+		</ref>
+		 In , each target word is considered an independent classification problem . 
+	</s>
+	
+
+	<s id="51">
+		 The features used for are mainly con- textual features with weight values associated with each feature . 
+	</s>
+	
+
+	<s id="52">
+		 The features are space delimited units , 1http://www.ai.cs.uni.dortmund.de/svmlight . 
+	</s>
+	
+
+	<s id="53">
+		 tokens , extracted from the immediate context of the target word . 
+	</s>
+	
+
+	<s id="54">
+		 Three types of features are extracted : Wide Context Features : All the tokens in the paragraph where the target word occurs . 
+	</s>
+	
+
+	<s id="55">
+		 Narrow Context features : The tokens that collocate in the surrounding context , to the left and right , with the target word within a fixed window size of . 
+	</s>
+	
+
+	<s id="56">
+		 Grammatical Features : Syntactic tuples such as verb-obj , subj-verb , etc. extracted from the context of the target word using a dependency parser , M IN I PAR 
+		<ref citStr="Lin , 1998" id="9" label="OEPF" position="7484">
+			( Lin , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="57">
+		 Each feature extracted is associated with a weight value . 
+	</s>
+	
+
+	<s id="58">
+		 The weight calculation is a variant on the Inverse Document Frequency ( IDF ) measure in Information Retrieval . 
+	</s>
+	
+
+	<s id="59">
+		 The weighting , in this case , is an Inverse Category Frequency ( ICF ) measure where each token is weighted by the inverse of its frequency of occurrence in the specified context of the target word . 
+	</s>
+	
+
+	<s id="60">
+		 3.1.1 Manually Annotated Training Data The manually-annotated training data is the SENSEVAL2 Lexical Sample training data for the English task , ( SV2LS Train).2 This training data corpus comprises 44856 lines and 917740 tokens . 
+	</s>
+	
+
+	<s id="61">
+		 There is a close affinity between the test data and the manually annotated training data . 
+	</s>
+	
+
+	<s id="62">
+		 The Pearson correlation between the sense distributions for the test data and the manually annotated training data , per test item , ranges between .3 3.2 SALAAM SALAAM exploits parallel corpora for sense annotation . 
+	</s>
+	
+
+	<s id="63">
+		 The key intuition behind SALAAM is that when words in one language , L1 , are translated into the same word in a second language , L2 , then those L 1 words are semantically similar . 
+	</s>
+	
+
+	<s id="64">
+		 For example , when the English — L 1— words bank , brokerage , mortgage-lender translate into the French — L2 — word banque in a parallel corpus , where bank is polysemous , SALAAM discovers that the intended sense for bank is the financial institution sense , not the geological formation sense , based on the fact that it is grouped with brokerage and mortgage-lender . 
+	</s>
+	
+
+	<s id="65">
+		 SALAAM’s algorithm is as follows : SALAAM expects a word aligned parallel corpus as input ; 2 http://www.senseval.org 3 The correlation is measured between two frequency distributions . 
+	</s>
+	
+
+	<s id="66">
+		 Throughout this paper , we opt for using the parametric Pearson correlation rather than KL distance in order to test statistical significance . 
+	</s>
+	
+
+	<s id="67">
+		 L 1 words that translate into the same L2 word are grouped into clusters ; SALAAM identifies the appropriate senses for the words in those clusters based on the words senses’ proximity in WordNet . 
+	</s>
+	
+
+	<s id="68">
+		 The word sense proximity is measured in information theoretic terms based on an algorithm by Resnik 
+		<ref citStr="Resnik , 1999" id="10" label="CERF" position="9714">
+			( Resnik , 1999 )
+		</ref>
+		 ; A sense selection criterion is applied to choose the appropriate sense label or set of sense labels for each word in the cluster ; The chosen sense tags for the words in the cluster are propagated back to their respective contexts in the parallel text . 
+	</s>
+	
+
+	<s id="69">
+		 Simultaneously , SALAAM projects the propagated sense tags for L1 words onto their L2 corresponding translations . 
+	</s>
+	
+
+	<s id="70">
+		 3.2.1 Automatically Generated SALAAM Training Data Three sets of SALAAM tagged training corpora are created : SV2LS TR : English SENSEVAL2 Lexical Sample trial and training corpora with no manual annotations . 
+	</s>
+	
+
+	<s id="71">
+		 It comprises 61879 lines and 1084064 tokens . 
+	</s>
+	
+
+	<s id="72">
+		 MT : The English Brown Corpus , SENSEVAL1 ( trial , training and test corpora ) , Wall Street Journal corpus , and SENSEVAL 2 All Words corpus . 
+	</s>
+	
+
+	<s id="73">
+		 All of which comprise 151762 lines and 37945517 tokens . 
+	</s>
+	
+
+	<s id="74">
+		 HT : UN English corpus which comprises 71672 lines of 1734001 tokens The SALAAM-tagged corpora are rendered in a format similar to that of the manually annotated training data . 
+	</s>
+	
+
+	<s id="75">
+		 The automatic sense tagging for MT and SV2LS TR training data is based on using SALAAM with machine translated parallel corpora . 
+	</s>
+	
+
+	<s id="76">
+		 The HT training corpus is automatically sense tagged based on using SALAAM with the English- Spanish UN naturally occurring parallel corpus . 
+	</s>
+	
+
+	<s id="77">
+		 3.3 Experimental Conditions Experimental conditions are created based on three of SALAAM’s tagging factors , Corpus , Language and Threshold : Corpus : There are 4 different combinations for the training corpora : MT+SV2LS TR ; MT+HT+SV2LS TR ; HT+SV2LS TR ; or SV2LS TR alone . 
+	</s>
+	
+
+	<s id="78">
+		 Language : The context language of the parallel corpus used by SALAAM to obtain the sense tags for the English training corpus . 
+	</s>
+	
+
+	<s id="79">
+		 There are three options : French ( FR ) , Spanish ( SP ) , or , Merged languages ( ML ) , where the results are obtained by merging the English output of FR and SP . 
+	</s>
+	
+
+	<s id="80">
+		 Threshold : Sense selection criterion , in SALAAM , is set to either MAX ( M ) or THRESH ( T ) . 
+	</s>
+	
+
+	<s id="81">
+		 These factors result in 39 conditions.4 3.4 Test Data The test data are the 29 noun test items for the SENSEVAL 2 English Lexical Sample task , ( SV2LSTest ) . 
+	</s>
+	
+
+	<s id="82">
+		 The data is tagged with the WordNet 1.7pre 
+		<ref citStr="Fellbaum , 1998" id="11" label="OEPF" position="11995">
+			( Fellbaum , 1998 
+		</ref>
+		<ref citStr="Cotton et al. , 2001" id="12" label="OEPF" position="12013">
+			; Cotton et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="83">
+		 The average perplexity for the test items is 3.47 ( see Section 5.3 ) , the average number of senses is 7.93 , and the total number of contexts for all senses of all test items is 1773 . 
+	</s>
+	
+
+	<s id="84">
+		 4 Evaluation In this evaluation , is the system trained with SALAAM-tagged data and is the system trained with manually annotated data . 
+	</s>
+	
+
+	<s id="85">
+		 Since we don’t expect to outperform human tagging , the results yielded by , are the upper bound for the purposes of this study . 
+	</s>
+	
+
+	<s id="86">
+		 It is important to note that is always trained with SV2LS TR as part of the training set in order to guarantee genre congruence between the training and test sets.The scores are calculated using scorer2.5 The average precision score over all the items for is 65.3 % at 100 % Coverage . 
+	</s>
+	
+
+	<s id="87">
+		 4.1 Metrics We report the results using two metrics , the harmonic mean of precision and recall , ( ) score , and the Performance Ratio ( PR ) , which we define as the ratio between two precision scores on the same test data where precision is rendered using scorer2 . 
+	</s>
+	
+
+	<s id="88">
+		 PR is measured as follows : ( 1 ) 4Originally , there are 48 conditions , 9 of which are excluded due to extreme sparseness in training contexts . 
+	</s>
+	
+
+	<s id="89">
+		 5From http://www.senseval.org , all scorer2 results are reported in fine-grain mode . 
+	</s>
+	
+
+	<s id="90">
+		 4.2 Results Table 1 shows the scores for the upper bound .is the condition in that yields the highest overall score over all noun items . 
+	</s>
+	
+
+	<s id="91">
+		 the max- imum score achievable , if we know which condition yields the best performance per test item , therefore it is an oracle condition.6 Since our approach is unsupervised , we also report the results of other unsupervised systems on this test set . 
+	</s>
+	
+
+	<s id="92">
+		 Accordingly , the last seven row entries in Table 1 present state-of-the-art SENSEVAL2 unsupervised systems performance on this test set.7 System 65.3 36.02 45.1 ITRI 45 UNED-LS-U 40.1 CLRes 29.3 IIT2 ( R ) 24.4 IIT1 ( R ) 23.9 I I T 2 23.2 IIT1 22 Table 1 : scores on SV2LS Test for , , , and state-of-the-art unsupervised systems participating in the SENSEVAL2 English Lexical Sample task . 
+	</s>
+	
+
+	<s id="93">
+		 . 
+	</s>
+	
+
+	<s id="94">
+		 is the third in the unsupervised methods . 
+	</s>
+	
+
+	<s id="95">
+		 It is worth noting that the average score across the 39 conditions is , and the lowest is . 
+	</s>
+	
+
+	<s id="96">
+		 The five best conditions for , that yield the highest average across all test items , use the HT corpus in the training data , four of which are the result of merged languages in SALAAM indicating that evidence from different languages simultaneously is desirable . 
+	</s>
+	
+
+	<s id="97">
+		 is the maximum potential among all unsupervised approaches if the best of all the conditions are combined . 
+	</s>
+	
+
+	<s id="98">
+		 One of our goals is to automatically determine which condition or set of conditions yield the best results for each test item . 
+	</s>
+	
+
+	<s id="99">
+		 Of central interest in this paper is the performance ratio ( PR ) for the individual nouns . 
+	</s>
+	
+
+	<s id="100">
+		 Table 6The different conditions are considered independent taggers and there is no interaction across target nouns 7http://www.senseval . 
+	</s>
+	
+
+	<s id="101">
+		 org 2 illustrates the PR of the different nouns yielded by and sorted in de- scending order by PR scores . 
+	</s>
+	
+
+	<s id="102">
+		 A PR indicates an equivalent performance between and . 
+	</s>
+	
+
+	<s id="103">
+		 The highest PR values are highlighted in bold . 
+	</s>
+	
+
+	<s id="104">
+		 Nouns #Ss UMH % UMSb UMSm detention 4 65.6 1.00 1.05 chair 7 83.3 1.02 1.02 bum 4 85 0.14 1.00 dyke 2 89.3 1.00 1.00 fatigue 6 80.5 1.00 1.00 hearth 3 75 1.00 1.00 spade 6 75 1.00 1.00 stress 6 50 0.05 1.00 yew 3 78.6 1.00 1.00 art 17 47.9 0.98 0.98 child 7 58.7 0.93 0.97 material 16 55.9 0.81 0.92 church 6 73.4 0.75 0.77 mouth 10 55.9 0 0.73 authority 9 62 0.60 0.70 post 12 57.6 0.66 0.66 nation 4 78.4 0.34 0.59 feeling 5 56.9 0.33 0.59 restraint 8 60 0.2 0.56 channel 7 62 0.52 0.52 facility 5 54.4 0.32 0.51 circuit 13 62.7 0.44 0.44 nature 7 45.7 0.43 0.43 bar 19 60.9 0.20 0.30 grip 6 58.8 0.27 0.27 sense 8 39.6 0.24 0.24 lady 8 72.7 0.09 0.16 day 16 62.5 0.06 0.08 holiday 6 86.7 0.08 0.08 Table 2 : The number of senses per item , in column #Ss , precision performance per item as indicated in column UMH , PR scores for in column UMSb and in column UMSm on SV2LS Test , 31 % of the test items , ( 9 nouns yield PR scores ) , do as well as . 
+	</s>
+	
+
+	<s id="105">
+		 This is an improve- ment of 11 % absolute over state-of-the-art bootstrapping WSD algorithm yielded by Mihalcea 
+		<ref citStr="Mihalcea , 2002" id="13" label="CEPN" position="16441">
+			( Mihalcea , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="106">
+		 Mihalcea reports high PR scores for six test items only : art , chair , channel , church , detention , nation . 
+	</s>
+	
+
+	<s id="107">
+		 It is worth highlighting that her bootstrapping approach is partially supervised since All of the unsupervised methods including and are significantly below the supervised method , yields PR scores for the top 12 test items listed in Table 2 . 
+	</s>
+	
+
+	<s id="108">
+		 Our algorithm does as well as supervised algorithm , , on 41.6 % of this test set . 
+	</s>
+	
+
+	<s id="109">
+		 In it depends mainly on hand labelled data as a seed for the training data . 
+	</s>
+	
+
+	<s id="110">
+		 Interestingly , two nouns , detention and chair , yield better performance than , as in- dicated by the PRs and , respectively . 
+	</s>
+	
+
+	<s id="111">
+		 This is attributed to the fact that SALAAM produces a lot more correctly annotated training data for these two words than that provided in the manually annotated training data for . 
+	</s>
+	
+
+	<s id="112">
+		 Some nouns yield very poor PR values mainly due to the lack of training contexts , which is the case for mouth in , for example . 
+	</s>
+	
+
+	<s id="113">
+		 Or lack of coverage of all the senses in the test data such as for bar and day , or simply errors in the annotation of the SALAAM-tagged training data . 
+	</s>
+	
+
+	<s id="114">
+		 If we were to include only nouns that achieve ac- ceptable PR scores of — the first 16 nouns in Table 2 for — the overall potential precision of is significantly increased to 63.8 % and the overall precision of is increased to 68.4%.8 These results support the idea that we could replace hand tagging with SALAAM’s unsupervised tagging if we did so for those items that yield an acceptable PR score . 
+	</s>
+	
+
+	<s id="115">
+		 But the question remains : How do we predict which training/test items will yield acceptable PR scores ? 
+	</s>
+	
+
+	<s id="116">
+		 5 Factors Affecting Performance Ratio In an attempt to address this question , we analyze several different factors for their impact on the performance of quanitified as PR . 
+	</s>
+	
+
+	<s id="117">
+		 In order to effectively alleviate the sense annotation acquisition bottleneck , it is crucial to predict which items would be reliably annotated automatically using . 
+	</s>
+	
+
+	<s id="118">
+		 Accordingly , in the rest of this paper , we explore 7 different factors by examining the yielded PR values in 5.1 Number of Senses The test items that possess many senses , such as art ( 17 senses ) , material ( 16 senses ) , mouth ( 10 senses ) and post ( 12 senses ) , exhibit PRs of 0.98 , 0.92 , 0.73 and 0.66 , respectively . 
+	</s>
+	
+
+	<s id="119">
+		 Overall , the correlation between number of senses per noun and its PR score is an insignificant $ A PR of is considered acceptable since achieves an overall score of in the WSD task . 
+	</s>
+	
+
+	<s id="120">
+		 ber of training examples available to for each noun in the training data . 
+	</s>
+	
+
+	<s id="121">
+		 The correlation between the number of training examples and PR is insignificant at , . 
+	</s>
+	
+
+	<s id="122">
+		 More interestingly , however , spade , with only 5 training examples , yields a PR score of . 
+	</s>
+	
+
+	<s id="123">
+		 This contrasts with nation , which has more than 4200 training examples , but yields a low PR score of . 
+	</s>
+	
+
+	<s id="124">
+		 Accordingly , the number of training examples alone does not seem to have a direct impact on PR . 
+	</s>
+	
+
+	<s id="125">
+		 5.3 Sense Perplexity This factor is a characteristic of the training data . 
+	</s>
+	
+
+	<s id="126">
+		 Perplexity is . 
+	</s>
+	
+
+	<s id="127">
+		 Entropy is measured as follows : ( 2 ) where is a sense for a polysemous noun and is the set of all its senses . 
+	</s>
+	
+
+	<s id="128">
+		 Entropy is a measure of confusability in the senses’ contexts distributions ; when the distribution is relatively uniform , entropy is high . 
+	</s>
+	
+
+	<s id="129">
+		 A skew in the senses’ contexts distributions indicates low entropy , and accordingly , low perplexity . 
+	</s>
+	
+
+	<s id="130">
+		 The lowest possible perplexity is , corresponding to entropy . 
+	</s>
+	
+
+	<s id="131">
+		 A low sense perplexity is desirable since it facilitates the discrimination of senses by the learner , therefore leading to better classification . 
+	</s>
+	
+
+	<s id="132">
+		 In the SALAAM- tagged training data , for example , bar has the highest perplexity value of over its 19 senses , while day , with 16 senses , has a much lower perplexity of . 
+	</s>
+	
+
+	<s id="133">
+		 Surprisingly , we observe nouns with high perplexity such as bum ( sense perplexity value of ) achieving PR scores of . 
+	</s>
+	
+
+	<s id="134">
+		 While nouns with relatively low perplexity values such as grip ( sense perplexity of ) yields a low PR score of . 
+	</s>
+	
+
+	<s id="135">
+		 Moreover , nouns with the same perplexity and similar number of senses yield very different PR scores . 
+	</s>
+	
+
+	<s id="136">
+		 For example , examining holiday and child , both have the same perplexity of and the number of senses is close , with 6 and 7 senses , respectively , however , the PR scores are very different ; holiday yields a PR of , and child achieves a PR of . 
+	</s>
+	
+
+	<s id="137">
+		 Furthermore , nature and art have the same perplexity of ; art has 17 senses while nature has 7 senses only , nonetheless , art yields a much higher PR score of ( ) compared to a PR of for nature . 
+	</s>
+	
+
+	<s id="138">
+		 These observations are further solidified by the insignificant correlation of , between sense perplexity and PR . 
+	</s>
+	
+
+	<s id="139">
+		 At first blush , one is inclined to hypothesize that ,. , . 
+	</s>
+	
+
+	<s id="140">
+		 Though it is a weak negative correlation , it does suggest that when the number of senses increases , PR tends to decrease . 
+	</s>
+	
+
+	<s id="141">
+		 5.2 Number of Training Examples This is a characteristic of the training data . 
+	</s>
+	
+
+	<s id="142">
+		 We examine the correlation between the PR and the num- the combination of low perplexity associated with a large number of senses — as an indication of high skew in the distribution — is a good indicator of high PR , but reviewing the data , this hypothesis is dispelled by day which has 16 senses and a sense perplexity of , yet yields a low PR score of . 
+	</s>
+	
+
+	<s id="143">
+		 5.4 Semantic Translation Entropy Semantic translation entropy ( STE ) 
+		<ref citStr="Melamed , 1997" id="14" label="CEPF" position="22174">
+			( Melamed , 1997 )
+		</ref>
+		 is a special characteristic of the SALAAM- tagged training data , since the source of evidence for SALAAM tagging is multilingual translations . 
+	</s>
+	
+
+	<s id="144">
+		 STE measures the amount of translational variation for an L1 word in L2 , in a parallel corpus . 
+	</s>
+	
+
+	<s id="145">
+		 STE is a variant on the entropy measure . 
+	</s>
+	
+
+	<s id="146">
+		 STE is expressed as follows : ( 3 ) where is a translation in the set of possible translations in L2 ; and is L 1 word . 
+	</s>
+	
+
+	<s id="147">
+		 The probability of a translation is calculated directly from the alignments of the test nouns and their corresponding translations via the maximum likelihood estimate . 
+	</s>
+	
+
+	<s id="148">
+		 Variation in translation is beneficial for SALAAM tagging , therefore , high STE is a desirable feature . 
+	</s>
+	
+
+	<s id="149">
+		 Correlation between the automatic tagging precision and STE is expected to be high if SALAAM has good quality translations and good quality alignments . 
+	</s>
+	
+
+	<s id="150">
+		 However , this correlation is a low . 
+	</s>
+	
+
+	<s id="151">
+		 Consequently , we observe a low correlation between STE and PR , . 
+	</s>
+	
+
+	<s id="152">
+		 Examining the data , the nouns bum , detention , dyke , stress , and yew exhibit both high STE and high PR ; Moreover , there are several nouns that exhibit low STE and low PR . 
+	</s>
+	
+
+	<s id="153">
+		 But the intriguing items are those that are inconsistent . 
+	</s>
+	
+
+	<s id="154">
+		 For instance , child and holiday : child has an STE of and comprises 7 senses at a low sense perplexity of , yet yields a high PR of . 
+	</s>
+	
+
+	<s id="155">
+		 As mentioned earlier , low STE indicates lack of translational variation . 
+	</s>
+	
+
+	<s id="156">
+		 In this specific experimental condition , child is translated as enfant , enfantile , ni˜no , ni˜no -peque˜no , which are words that preserve ambiguity in both French and Spanish . 
+	</s>
+	
+
+	<s id="157">
+		 On the other hand , holiday has a relatively high STE value of , yet results in the lowest PR of . 
+	</s>
+	
+
+	<s id="158">
+		 Consequently , we conclude that STE alone is not a good direct indicator of PR . 
+	</s>
+	
+
+	<s id="159">
+		 5.5 Perplexity Difference Perplexity difference ( PerpDiff ) is a measure of the absolute difference in sense perplexity between the test data items and the training data items . 
+	</s>
+	
+
+	<s id="160">
+		 For the manually annotated training data items , the overall correlation between the perplexity measures is a sig- nificant which contrasts to a low over- all correlation of between the SALAAM- tagged training data items and the test data items . 
+	</s>
+	
+
+	<s id="161">
+		 Across the nouns in this study , the correlation between PerpDiff and PR is . 
+	</s>
+	
+
+	<s id="162">
+		 It is advantageous to be as similar as possible to the training data to guarantee good classification results within a supervised framework , therefore a low PerpDiff is desirable . 
+	</s>
+	
+
+	<s id="163">
+		 We observe cases with a low PerpDiff such as holiday ( PerpDiff of ) , yet the PR is a low . 
+	</s>
+	
+
+	<s id="164">
+		 On the other hand , items such as art have a relatively high PerpDiff of , but achieves a high PR of . 
+	</s>
+	
+
+	<s id="165">
+		 Accordingly , PerpDiff alone is not a good indicator of PR . 
+	</s>
+	
+
+	<s id="166">
+		 5.6 Sense Distributional Correlation Sense Distributional Correlation ( SDC ) results from comparing the sense distributions of the test data items with those of SALAAM-tagged training data items . 
+	</s>
+	
+
+	<s id="167">
+		 It is worth noting that the correlation between the SDC of manually annotated training data and that of the test data ranges from . 
+	</s>
+	
+
+	<s id="168">
+		 A strong significant correlation of high SDC values , and , respectively , in , but they score lower PR values than detention which has a comparatively lower SDC value of . 
+	</s>
+	
+
+	<s id="169">
+		 The fact that both circuit and post have many senses , 13 and 12 , respectively , while detention has 4 senses only is noteworthy . 
+	</s>
+	
+
+	<s id="170">
+		 detention has a higher STE and lower sense perplexity than either of them however . 
+	</s>
+	
+
+	<s id="171">
+		 Overall , the data suggests that SDC is a very good direct indicator of PR . 
+	</s>
+	
+
+	<s id="172">
+		 5.7 Sense Context Confusability A situation of sense context confusability ( SCC ) arises when two senses of a noun are very similar and are highly uniformly represented in the training examples . 
+	</s>
+	
+
+	<s id="173">
+		 This is an artifact of the fine granularity of senses in WordNet 1.7pre . 
+	</s>
+	
+
+	<s id="174">
+		 Highly similar senses typically lead to similar usages , therefore similar contexts , which in a learning framework detract from the learning algorithm’s discriminatory power . 
+	</s>
+	
+
+	<s id="175">
+		 Upon examining the 29 polysemous nouns in the training and test sets , we observe that a significant number of the words have similar senses according , , between SDC and PR exists for SALAAM-tagged training data and the test data . 
+	</s>
+	
+
+	<s id="176">
+		 Overall , nouns that yield high PR have high SDC values . 
+	</s>
+	
+
+	<s id="177">
+		 However , there are some in- stances where this strong correlation is not exhib- ited . 
+	</s>
+	
+
+	<s id="178">
+		 For example , circuit and post have relatively to a manual grouping provided by Palmer , in 2002.9 For example , senses 2 and 3 of nature , meaning trait and quality , respectively , are considered similar by the manual grouping . 
+	</s>
+	
+
+	<s id="179">
+		 The manual grouping does not provide total coverage of all the noun senses in this test set . 
+	</s>
+	
+
+	<s id="180">
+		 For instance , it only considers the homonymic senses 1 , 2 and 3 of spade , yet , in the current test set , spade has 6 senses , due to the existence of sub senses . 
+	</s>
+	
+
+	<s id="181">
+		 26 of the 29 test items exhibit multiple groupings based on the manual grouping . 
+	</s>
+	
+
+	<s id="182">
+		 Only three nouns , detention , dyke , spade do not have any sense groupings . 
+	</s>
+	
+
+	<s id="183">
+		 They all , in turn , achieve high PR scores of . 
+	</s>
+	
+
+	<s id="184">
+		 There are several nouns that have relatively high SDC values yet their performance ratios are low such as post , nation , channel and circuit . 
+	</s>
+	
+
+	<s id="185">
+		 For in- stance , nation has a very high SDC value of , a low sense perplexity of — relatively close to the sense perplexity of the test data — a suffi- cient number of contexts ( 4350 ) , yet it yields a PR of . 
+	</s>
+	
+
+	<s id="186">
+		 According to the manual sense grouping , senses 1 and 3 are similar , and indeed , upon inspection of the context distributions , we find the bulk of the senses’ instance examples in the SALAAM- tagged training data for the condition that yields this PR in are annotated with either sense 1 or sense 3 , thereby creating confusable contexts for the learning algorithm . 
+	</s>
+	
+
+	<s id="187">
+		 All the cases of nouns that achieve high PR and possess sense groups do not have any SCC in the training data which strongly suggests that SCC is an important factor to consider when predicting the PR of a system . 
+	</s>
+	
+
+	<s id="188">
+		 5.8 Discussion We conclude from the above exploration that SDC and SCC affect PR scores directly . 
+	</s>
+	
+
+	<s id="189">
+		 PerpDiff , STE , and Sense Perplexity , number of senses and number of contexts seem to have no noticeable direct impact on the PR . 
+	</s>
+	
+
+	<s id="190">
+		 Based on this observation , we calculate the SDC values for all the training data used in our experimental conditions for the 29 test items . 
+	</s>
+	
+
+	<s id="191">
+		 Table 3 illustrates the items with the highest SDC values , in descending order , as yielded from any of the SALAAM conditions . 
+	</s>
+	
+
+	<s id="192">
+		 We use an empirical cut-off value of for SDC . 
+	</s>
+	
+
+	<s id="193">
+		 The SCC values are reported as a boolean Y/N value , where a Y indicates the presence of a sense confusable context . 
+	</s>
+	
+
+	<s id="194">
+		 As shown a high SDC can serve as a means of auto- 9http://www.senseval.org/sense-groups . 
+	</s>
+	
+
+	<s id="195">
+		 The manual sense grouping comprises 400 polysemous nouns including the 29 nouns in this evaluation . 
+	</s>
+	
+
+	<s id="196">
+		 Noun SDC SCC PR dyke 1 N 1.00 bum 1 N 1.00 fatigue 1 N 1.00 hearth 1 N 1.00 yew 1 N 1.00 chair 0.99 N 1.02 child 0.99 N 0.95 detention 0.98 N 1.0 spade 0.97 N 1.00 mouth 0.96 Y 0.73 nation 0.96 N 0.59 material 0.92 N 0.92 post 0.90 Y 0.63 authority 0.86 Y 0.70 art 0.83 N 0.98 church 0.80 N 0.77 circuit 0.79 N 0.44 stress 0.77 N 1.00 Table 3 : Highest SDC values for the test items associated with their respective SCC and PR values . 
+	</s>
+	
+
+	<s id="197">
+		 11 matically predicting a high PR , but it is not sufficient . 
+	</s>
+	
+
+	<s id="198">
+		 If we eliminate the items where an SCC exists , namely , mouth , post , and authority , we are still left with nation and circuit , where both yield very low PR scores . 
+	</s>
+	
+
+	<s id="199">
+		 nation has the desirable low Per- pDiff of . 
+	</s>
+	
+
+	<s id="200">
+		 The sense annotation tagging pre- cision of the in this condition which yields the highest SDC — Spanish UN data with the for training — is a low and a low STE value of . 
+	</s>
+	
+
+	<s id="201">
+		 This is due to the fact that both French and Spanish preserve ambiguity in similar ways to English which does not make it a good target word for disambiguation within the SALAAM framework , given these two languages as sources of evidence . 
+	</s>
+	
+
+	<s id="202">
+		 Accordingly , in this case , STE coupled with the noisy tagging could have resulted in the low PR . 
+	</s>
+	
+
+	<s id="203">
+		 However , for circuit , the STE value for its respective condition is a high , but we observe a relatively high PerpDiff of compared to the PerpDiff of for the manually annotated data . 
+	</s>
+	
+
+	<s id="204">
+		 Therefore , a combination of high SDC and nonexistent SCC can reliably predict good PR . 
+	</s>
+	
+
+	<s id="205">
+		 But the other factors still have a role to play in order to achieve accurate prediction . 
+	</s>
+	
+
+	<s id="206">
+		 It is worth emphasizing that two of the identified factors are dependent on the test data in this study , SDC and PerpDiff . 
+	</s>
+	
+
+	<s id="207">
+		 One solution to this problem is to estimate SDC and PerpDiff using a held out data set that is hand tagged . 
+	</s>
+	
+
+	<s id="208">
+		 Such a held out data set would be considerably smaller than the required size of a manually tagged training data for a classical supervised WSD system . 
+	</s>
+	
+
+	<s id="209">
+		 Hence , SALAAM- tagged training data offers a viable solution to the annotation acquisition bottleneck . 
+	</s>
+	
+
+	<s id="210">
+		 6 Conclusion and Future Directions In this paper , we applied an unsupervised approach within a learning framework for the sense annotation of large amounts of data . 
+	</s>
+	
+
+	<s id="211">
+		 The ultimate goal of is to alleviate the data labelling bottleneck by means of a trade-off between quality and quantity of the training data . 
+	</s>
+	
+
+	<s id="212">
+		 is competitive with state-of-the-art unsupervised systems evaluated on the same test set from SENSEVAL2 . 
+	</s>
+	
+
+	<s id="213">
+		 Moreover , it yields superior results to those obtained by the only comparable bootstrapping approach when tested on the same data set . 
+	</s>
+	
+
+	<s id="214">
+		 Moreover , we explore , in depth , different factors that directly and indirectly affect the performance of quantified as a performance ratio , PR . 
+	</s>
+	
+
+	<s id="215">
+		 Sense Distribution Correlation ( SDC ) and Sense Context Confusability ( SCC ) have the highest direct impact on performance ratio , PR . 
+	</s>
+	
+
+	<s id="216">
+		 However , evidence suggests that probably a confluence of all the different factors leads to the best prediction of an acceptable PR value . 
+	</s>
+	
+
+	<s id="217">
+		 An investigation into the feasibility of combining these different factors with the different attributes of the experimental conditions for SALAAM to automatically predict when the noisy training data can reliably replace manually annotated data is a matter of future work . 
+	</s>
+	
+
+	<s id="218">
+		 7 Acknowledgements I would like to thank Philip Resnik for his guidance and insights that contributed tremendously to this paper . 
+	</s>
+	
+
+	<s id="219">
+		 Also I would like to acknowledge Daniel Jurafsky and Kadri Hacioglu for their helpful comments . 
+	</s>
+	
+
+	<s id="220">
+		 I would like to thank the three anonymous reviewers for their detailed reviews . 
+	</s>
+	
+
+	<s id="221">
+		 This work has been supported , in part , by NSF Award #IIS0325646 . 
+	</s>
+	
+
+	<s id="222">
+		 References Erin L. Allwein , Robert E. Schapire , and Yoram Singer . 
+	</s>
+	
+
+	<s id="223">
+		 2000. Reducing multiclass to binary : A unifying approach for margin classifiers . 
+	</s>
+	
+
+	<s id="224">
+		 Journal of Machine Learning Research , 1:113-141 . 
+	</s>
+	
+
+	<s id="225">
+		 Clara Cabezas , Philip Resnik , and Jessica Stevens . 
+	</s>
+	
+
+	<s id="226">
+		 2002 . 
+	</s>
+	
+
+	<s id="227">
+		 Supervised Sense Tagging using Support Vector Machines . 
+	</s>
+	
+
+	<s id="228">
+		 Proceedings of the Second International Workshop on Evaluating Word Sense Disambiguation Systems ( SENSEVAL-2 ) . 
+	</s>
+	
+
+	<s id="229">
+		 Toulouse , France . 
+	</s>
+	
+
+	<s id="230">
+		 Scott Cotton , Phil Edmonds , Adam Kilgarriff , and Martha Palmer , ed . 
+	</s>
+	
+
+	<s id="231">
+		 2001. SENSEVAL-2 : Second International Workshop on Evaluating Word Sense Disambiguation Systems . 
+	</s>
+	
+
+	<s id="232">
+		 ACL SIGLEX , Toulouse , France . 
+	</s>
+	
+
+	<s id="233">
+		 Mona Diab . 
+	</s>
+	
+
+	<s id="234">
+		 2004. An Unsupervised Approach for Bootstrapping Arabic Word Sense Tagging . 
+	</s>
+	
+
+	<s id="235">
+		 Proceedings of Arabic Based Script Languages , COLING 2004 . 
+	</s>
+	
+
+	<s id="236">
+		 Geneva , Switzerland . 
+	</s>
+	
+
+	<s id="237">
+		 Mona Diab and Philip Resnik . 
+	</s>
+	
+
+	<s id="238">
+		 2002. An Unsupervised Method for Word Sense Tagging Using Parallel Corpora . 
+	</s>
+	
+
+	<s id="239">
+		 Proceedings of 40th meeting of ACL . 
+	</s>
+	
+
+	<s id="240">
+		 Pennsylvania , USA . 
+	</s>
+	
+
+	<s id="241">
+		 Mona Diab . 
+	</s>
+	
+
+	<s id="242">
+		 2003. Word Sense Disambiguation Within a Multilingual Framework . 
+	</s>
+	
+
+	<s id="243">
+		 PhD Thesis . 
+	</s>
+	
+
+	<s id="244">
+		 University of Maryland College Park , USA . 
+	</s>
+	
+
+	<s id="245">
+		 Christiane Fellbaum . 
+	</s>
+	
+
+	<s id="246">
+		 1998. WordNet : An Electronic Lexical Database . 
+	</s>
+	
+
+	<s id="247">
+		 MIT Press . 
+	</s>
+	
+
+	<s id="248">
+		 William A. Gale and Kenneth W. Church and David Yarowsky . 
+	</s>
+	
+
+	<s id="249">
+		 1992. Using Bilingual Materials to Develop Word Sense Disambiguation Methods . 
+	</s>
+	
+
+	<s id="250">
+		 Proceedings of the Fourth International Conference on Theoretical and Methodological Issues in Machine Translation . 
+	</s>
+	
+
+	<s id="251">
+		 Montr´eal , Canada . 
+	</s>
+	
+
+	<s id="252">
+		 Thorsten Joachims . 
+	</s>
+	
+
+	<s id="253">
+		 1998. Text Categorization with Support Vector Machines : Learning with Many Relevant Features . 
+	</s>
+	
+
+	<s id="254">
+		 Proceedings of the European Conference on Machine Learning . 
+	</s>
+	
+
+	<s id="255">
+		 Springer . 
+	</s>
+	
+
+	<s id="256">
+		 A. Kilgarriff and J. Rosenzweig . 
+	</s>
+	
+
+	<s id="257">
+		 2000. Framework and Resultsfor English SENSE VAL . 
+	</s>
+	
+
+	<s id="258">
+		 Journal of Computers and the Humanities . 
+	</s>
+	
+
+	<s id="259">
+		 pages 15—48 , 34 . 
+	</s>
+	
+
+	<s id="260">
+		 Dekang Lin . 
+	</s>
+	
+
+	<s id="261">
+		 1998. Dependency-Based Evaluation of MINIPAR . 
+	</s>
+	
+
+	<s id="262">
+		 Proceedings of the Workshop on the Evaluation of Parsing Systems , First International Conference on Language Resources and Evaluation . 
+	</s>
+	
+
+	<s id="263">
+		 Granada , Spain . 
+	</s>
+	
+
+	<s id="264">
+		 Dan I. Melamed . 
+	</s>
+	
+
+	<s id="265">
+		 1997. Measuring Semantic Entropy . 
+	</s>
+	
+
+	<s id="266">
+		 ACL SIGLEX , Washington , DC . 
+	</s>
+	
+
+	<s id="267">
+		 Rada Mihalcea and Dan Moldovan . 
+	</s>
+	
+
+	<s id="268">
+		 1999. A methodfor Word Sense Disambiguation of unrestricted text . 
+	</s>
+	
+
+	<s id="269">
+		 Proceedings of the 37th Annual Meeting of ACL . 
+	</s>
+	
+
+	<s id="270">
+		 Maryland , USA . 
+	</s>
+	
+
+	<s id="271">
+		 Rada Mihalcea . 
+	</s>
+	
+
+	<s id="272">
+		 2002. Bootstrapping Large sense tagged corpora . 
+	</s>
+	
+
+	<s id="273">
+		 Proceedings of the 3rd International Conference on Languages Resources and Evaluations ( LREC ) . 
+	</s>
+	
+
+	<s id="274">
+		 Las Palmas , Canary Islands , Spain . 
+	</s>
+	
+
+	<s id="275">
+		 Philip Resnik . 
+	</s>
+	
+
+	<s id="276">
+		 1999. Semantic Similarity in a Taxonomy : An Information-Based Measure and its Application to Problems of Ambiguity in Natural Language . 
+	</s>
+	
+
+	<s id="277">
+		 Journal Artificial Intelligence Research . 
+	</s>
+	
+
+	<s id="278">
+		 ( 11 ) p. 95- 130. David Yarowsky . 
+	</s>
+	
+
+	<s id="279">
+		 1995. Unsupervised Word Sense Disambiguation Rivaling Supervised Methods . 
+	</s>
+	
+
+	<s id="280">
+		 Proceedings of the 33rd Annual Meeting of ACL . 
+	</s>
+	
+
+	<s id="281">
+		 Cambridge , MA . 
+	</s>
+	
+
+
+</acldoc>

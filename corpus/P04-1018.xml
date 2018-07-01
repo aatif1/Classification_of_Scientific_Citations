@@ -1,0 +1,1615 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1018">
+	
+
+	<s id="1">
+		 A Mention-Synchronous Coreference Resolution Algorithm Based on the Bell Tree Xiaoqiang Luo and Abe Ittycheriah Hongyan Jing and Nanda Kambhatla and Salim Roukos 1101 Kitchawan Road Yorktown Heights , NY 10598 , U.S.A. {xiaoluo,abei,hjing,nanda,roukos}@us.ibm.com Abstract This paper proposes a new approach for coreference resolution which uses the Bell tree to represent the search space and casts the coreference resolution problem as finding the best path from the root of the Bell tree to the leaf nodes . 
+	</s>
+	
+
+	<s id="2">
+		 A Maximum Entropy model is used to rank these paths . 
+	</s>
+	
+
+	<s id="3">
+		 The coreference performance on the 2002 and 2003 Automatic Content Extraction ( ACE ) data will be reported . 
+	</s>
+	
+
+	<s id="4">
+		 We also train a coreference system using the MUC6 data and competitive results are obtained . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction In this paper , we will adopt the terminologies used in the Automatic Content Extraction ( ACE ) task ( NIST , 2003 ) . 
+	</s>
+	
+
+	<s id="6">
+		 Coreference resolution in this context is defined as partitioning mentions into entities . 
+	</s>
+	
+
+	<s id="7">
+		 A mention is an instance of reference to an object , and the collection of mentions referring to the same object in a document form an entity . 
+	</s>
+	
+
+	<s id="8">
+		 For example , in the following sentence , mentions are underlined : “The American Medical Association voted yesterday to install the heir apparent as its president-elect , rejecting a strong , upstart challenge by a District doctor who argued that the nation’s largest physicians’ group needs stronger ethics and new leadership.” “American Medical Association” , “its” and “group” belong to the same entity as they refer to the same object . 
+	</s>
+	
+
+	<s id="9">
+		 Early work of anaphora resolution focuses on finding antecedents of pronouns 
+		<ref citStr="Hobbs , 1976" id="1" label="CEPF" position="1745">
+			( Hobbs , 1976 
+		</ref>
+		<ref citStr="Ge et al. , 1998" id="2" label="CEPF" position="1760">
+			; Ge et al. , 1998 
+		</ref>
+		<ref citStr="Mitkov , 1998" id="3" label="CEPF" position="1779">
+			; Mitkov , 1998 )
+		</ref>
+		 , while recent advances 
+		<ref citStr="Soon et al. , 2001" id="4" label="CEPF" position="1821">
+			( Soon et al. , 2001 
+		</ref>
+		<ref citStr="Yang et al. , 2003" id="5" label="CEPF" position="1842">
+			; Yang et al. , 2003 
+		</ref>
+		<ref citStr="Ng and Cardie , 2002" id="6" label="CEPF" position="1863">
+			; Ng and Cardie , 2002 
+		</ref>
+		<ref citStr="Ittycheriah et al. , 2003" id="7" label="CEPF" position="1886">
+			; Ittycheriah et al. , 2003 )
+		</ref>
+		 employ statistical machine learning methods and try to resolve reference among all kinds of noun phrases ( NP ) , be it a name , nominal , or pronominal phrase – which is the scope of this paper as well . 
+	</s>
+	
+
+	<s id="10">
+		 One common strategy shared by 
+		<ref citStr="Soon et al. , 2001" id="8" label="CEPF" position="2161">
+			( Soon et al. , 2001 
+		</ref>
+		<ref citStr="Ng and Cardie , 2002" id="9" label="CEPF" position="2182">
+			; Ng and Cardie , 2002 
+		</ref>
+		<ref citStr="Ittycheriah et al. , 2003" id="10" label="CEPF" position="2205">
+			; Ittycheriah et al. , 2003 )
+		</ref>
+		 is that a statistical model is trained to measure how likely a pair of mentions corefer ; then a greedy procedure is followed to group mentions into entities . 
+	</s>
+	
+
+	<s id="11">
+		 While this approach has yielded encouraging results , the way mentions are linked is arguably suboptimal in that an instant decision is made when considering whether two mentions are linked or not . 
+	</s>
+	
+
+	<s id="12">
+		 In this paper , we propose to use the Bell tree to represent the process of forming entities from mentions . 
+	</s>
+	
+
+	<s id="13">
+		 The Bell tree represents the search space of the coreference resolution problem– each leaf node corresponds to a possible coreference outcome . 
+	</s>
+	
+
+	<s id="14">
+		 We choose to model the process from mentions to entities represented in the Bell tree , and the problem of coreference resolution is cast as finding the “best” path from the root node to leaves . 
+	</s>
+	
+
+	<s id="15">
+		 A binary maximum entropy model is trained to compute the linking probability between a partial entity and a mention . 
+	</s>
+	
+
+	<s id="16">
+		 The rest of the paper is organized as follows . 
+	</s>
+	
+
+	<s id="17">
+		 In Section 2 , we present how the Bell tree can be used to represent the process of creating entities from mentions and the search space . 
+	</s>
+	
+
+	<s id="18">
+		 We use a maximum entropy model to rank paths in the Bell tree , which is discussed in Section 3 . 
+	</s>
+	
+
+	<s id="19">
+		 After presenting the search strategy in Section 4 , we show the experimental results on the ACE 2002 and 2003 data , and the Message Understanding Conference ( MUC ) ( MUC , 1995 ) data in Section 5 . 
+	</s>
+	
+
+	<s id="20">
+		 We compare our approach with some recent work in Section 6 . 
+	</s>
+	
+
+	<s id="21">
+		 2 Bell Tree : From Mention to Entity Let us consider traversing mentions in a document from beginning ( left ) to end ( right ) . 
+	</s>
+	
+
+	<s id="22">
+		 The process of forming entities from mentions can be represented by a tree structure . 
+	</s>
+	
+
+	<s id="23">
+		 The root node is the initial state of the process , which consists of a partial entity containing the first mention of a document . 
+	</s>
+	
+
+	<s id="24">
+		 The second mention is Figure 1 : Bell tree representation for three mentions : numbers in [ ] denote a partial entity . 
+	</s>
+	
+
+	<s id="25">
+		 In-focus entities are marked on the solid arrows , and active mentions are marked by * . 
+	</s>
+	
+
+	<s id="26">
+		 Solid arrows signify that a mention is linked with an in-focus partial entity while dashed arrows indicate starting of a new entity . 
+	</s>
+	
+
+	<s id="27">
+		 added in the next step by either linking to the existing entity , or starting a new entity . 
+	</s>
+	
+
+	<s id="28">
+		 A second layer of nodes are created to represent the two possible outcomes . 
+	</s>
+	
+
+	<s id="29">
+		 Subsequent mentions are added to the tree in the same manner . 
+	</s>
+	
+
+	<s id="30">
+		 The process is mention-synchronous in that each layer of tree nodes are created by adding one mention at a time . 
+	</s>
+	
+
+	<s id="31">
+		 Since the number of tree leaves is the number of possible coreference outcomes and it equals the Bell Number 
+		<ref citStr="Bell , 1934" id="11" label="CEPF" position="5063">
+			( Bell , 1934 )
+		</ref>
+		 , the tree is called the Bell tree . 
+	</s>
+	
+
+	<s id="32">
+		 The Bell Number is the number of ways of partitioning distinguishable objects ( i.e. , mentions ) into non-empty disjoint subsets ( i.e. , entities ) . 
+	</s>
+	
+
+	<s id="33">
+		 The Bell Number has a “closed” formula and it increases rapidly as increases : ! 
+	</s>
+	
+
+	<s id="34">
+		 Clearly , an efficient search strategy is necessary , and it will be addressed in Section 4 . 
+	</s>
+	
+
+	<s id="35">
+		 Figure 1 illustrates how the Bell tree is created for a document with three mentions . 
+	</s>
+	
+
+	<s id="36">
+		 The initial node consists of the first partial entity [ 1 ] ( i.e. , node ( a ) in Figure 1 ) . 
+	</s>
+	
+
+	<s id="37">
+		 Next , mention 2 becomes active ( marked by “*” in node ( a ) ) and can either link with the partial entity [ 1 ] and result in a new node ( b 1 ) , or start a new entity and create another node ( b2 ) . 
+	</s>
+	
+
+	<s id="38">
+		 The partial entity which the active mention considers linking with is said to be in -focus . 
+	</s>
+	
+
+	<s id="39">
+		 In-focus entities are highlighted on the solid arrows in Figure 1 . 
+	</s>
+	
+
+	<s id="40">
+		 Similarly , mention 3 will be active in the next stage and can take five possible actions , which create five possible coreference results shown in node ( c1 ) through ( c5 ) . 
+	</s>
+	
+
+	<s id="41">
+		 Under the derivation illustrated in Figure 1 , each leaf node in the Bell tree corresponds to a possible coreference outcome , and there is no other way to form entities . 
+	</s>
+	
+
+	<s id="42">
+		 The Bell tree clearly represents the search space of the coreference resolution problem . 
+	</s>
+	
+
+	<s id="43">
+		 The coreference resolution can therefore be cast equivalently as finding the “best” leaf node . 
+	</s>
+	
+
+	<s id="44">
+		 Since the search space is large ( even for a document with a moderate number of mentions ) , it is difficult to estimate a distribution over leaves directly . 
+	</s>
+	
+
+	<s id="45">
+		 Instead , we choose to model the process from mentions to entities , or in other words , score paths from the root to leaves in the Bell tree . 
+	</s>
+	
+
+	<s id="46">
+		 A nice property of the Bell tree representation is that the number of linking or starting steps is the same for all the hypotheses . 
+	</s>
+	
+
+	<s id="47">
+		 This makes it easy to rank them using the “local” linking and starting probabilities as the number of factors is the same . 
+	</s>
+	
+
+	<s id="48">
+		 The Bell tree representation is also incremental in that mentions are added sequentially . 
+	</s>
+	
+
+	<s id="49">
+		 This makes it easy to design a decoder and search algorithm . 
+	</s>
+	
+
+	<s id="50">
+		 3 Coreference Model 3.1 Linking and Starting Model We use a binary conditional model to compute the probability that an active mention links with an in- focus partial entity . 
+	</s>
+	
+
+	<s id="51">
+		 The conditions include all the partially-formed entities before , the focus entity index , and the active mention . 
+	</s>
+	
+
+	<s id="52">
+		 Formally , let be mentions in a document . 
+	</s>
+	
+
+	<s id="53">
+		 Mention index represents the order it appears in the document . 
+	</s>
+	
+
+	<s id="54">
+		 Let be an entity , and be the ( many-to-one ) map from mention index to entity index . 
+	</s>
+	
+
+	<s id="55">
+		 For an active mention index , define for some the set of indices of the partially-established entities to the left of ( note that ) , and the set of the partially-established entities . 
+	</s>
+	
+
+	<s id="56">
+		 The link model is then ( 1 ) the probability linking the active mention with the in-focus entity . 
+	</s>
+	
+
+	<s id="57">
+		 The random variable takes value from the set and signifies which entity is in focus ; takes binary value and is if links with . 
+	</s>
+	
+
+	<s id="58">
+		 As an example , for the branch from ( b2 ) to ( c4 ) in Figure 1 , the active mention is “3” , the set of partial entities to the left of “3” is , the active entity is the second partial entity “[2]” . 
+	</s>
+	
+
+	<s id="59">
+		 Probability measures how likely mention “3” links with the entity “[2].” The model only computes how likely links with ; It does not say anything about the possibility that starts a new entity . 
+	</s>
+	
+
+	<s id="60">
+		 Fortu- nately , the starting probability can be computed using link probabilities ( 1 ) , as shown now . 
+	</s>
+	
+
+	<s id="61">
+		 Since starting a new entity means that does not link with any entities in , the probability of starting ( b1 ) [ 12 ] 3* ( b2 ) [1][2] 3* [ 123 ] [ 1 ] 2* 3 ( a ) [ 1 ] [ 1 ] [ 2 ] [ 1 ] [ 23 ] [ 12 ] ( c1 ) ( c2 ) ( c3 ) ( c4 ) ( c5 ) [12][3] [13][2] [1][2][3] a new entity , , can be computed as ( 2 ) ( 3 ) ( 3 ) indicates that the probability of starting an entity can be computed using the linking probabilities , provided that the marginal is known . 
+	</s>
+	
+
+	<s id="62">
+		 In this paper , is approximated as : ( 4 ) With the approximation ( 4 ) , the starting probability ( 3 ) is ( 5 ) The linking model ( 1 ) and approximated starting model ( 5 ) can be used to score paths in the Bell tree . 
+	</s>
+	
+
+	<s id="63">
+		 For example , the score for the path (a)-(b2)-(c4) in Figure 1 is the product of the start probability from ( a ) to ( b2 ) and the linking probability from ( b2 ) to ( c4 ) . 
+	</s>
+	
+
+	<s id="64">
+		 Since ( 5 ) is an approximation , not true probability , a constant is introduced to balance the linking probability and starting probability and the starting probability becomes : ( 6 ) If , it penalizes creating new entities ; Therefore , is called start penalty . 
+	</s>
+	
+
+	<s id="65">
+		 The start penalty can be used to balance entity miss and false alarm . 
+	</s>
+	
+
+	<s id="66">
+		 3.2 Model Training and Features The model depends on all par- tial entities , which can be very expensive . 
+	</s>
+	
+
+	<s id="67">
+		 After making some modeling assumptions , we can approximate it as : ( 7 ) ( 8 ) ( 9 ) From ( 7 ) to ( 8 ) , entities other than the one in focus , , are assumed to have no influence on the decision of linking with . 
+	</s>
+	
+
+	<s id="68">
+		 ( 9 ) further assumes that the entity-mention score can be obtained by the maximum mention pair score . 
+	</s>
+	
+
+	<s id="69">
+		 The model ( 9 ) is very similar to the model in 
+		<ref citStr="Morton , 2000" id="12" label="CEPF" position="10654">
+			( Morton , 2000 
+		</ref>
+		<ref citStr="Soon et al. , 2001" id="13" label="CEPF" position="10670">
+			; Soon et al. , 2001 
+		</ref>
+		<ref citStr="Ng and Cardie , 2002" id="14" label="CEPF" position="10691">
+			; Ng and Cardie , 2002 )
+		</ref>
+		 while ( 8 ) has more conditions . 
+	</s>
+	
+
+	<s id="70">
+		 We use maximum entropy model 
+		<ref citStr="Berger et al. , 1996" id="15" label="CERF" position="10812">
+			( Berger et al. , 1996 )
+		</ref>
+		 for both the mention-pair model ( 9 ) and the entity-mention model ( 8 ) : ( 10 ) ( 11 ) where is a feature and is its weight ; is a normalizing factor to ensure that ( 10 ) or ( 11 ) is a probability . 
+	</s>
+	
+
+	<s id="71">
+		 Effective training algorithm exists 
+		<ref citStr="Berger et al. , 1996" id="16" label="CEPF" position="11085">
+			( Berger et al. , 1996 )
+		</ref>
+		 once the set of features is selected . 
+	</s>
+	
+
+	<s id="72">
+		 The basic features used in the models are tabulated in Table 1 . 
+	</s>
+	
+
+	<s id="73">
+		 Features in the lexical category are applicable to non-pronominal mentions only . 
+	</s>
+	
+
+	<s id="74">
+		 Distance features characterize how far the two mentions are , either by the number of tokens , by the number of sentences , or by the number of mentions in-between . 
+	</s>
+	
+
+	<s id="75">
+		 Syntactic features are derived from parse trees output from a maximum entropy parser ( Ratnaparkhi,1997 ) . 
+	</s>
+	
+
+	<s id="76">
+		 The “Count” feature calculates how many times a mention string is seen . 
+	</s>
+	
+
+	<s id="77">
+		 For pronominal mentions , attributes such as gender , number , possessiveness and reflexiveness are also used . 
+	</s>
+	
+
+	<s id="78">
+		 Apart from basic features in Table 1 , composite features can be generated by taking conjunction of basic features . 
+	</s>
+	
+
+	<s id="79">
+		 For example , a distance feature together with reflexiveness of a pronoun mention can help to capture that the antecedent of a reflexive pronoun is often closer than that of a non-reflexive pronoun . 
+	</s>
+	
+
+	<s id="80">
+		 The same set of basic features in Table 1 is used in the entity-mention model , but feature definitions are slightly different . 
+	</s>
+	
+
+	<s id="81">
+		 Lexical features , including the acronym features , and the apposition feature are computed by testing any mention in the entity against the active mention . 
+	</s>
+	
+
+	<s id="82">
+		 Editing distance for is defined as the minimum distance over any non-pronoun mentions and the active mention . 
+	</s>
+	
+
+	<s id="83">
+		 Distance features are computed by taking minimum between mentions in the entity and the active mention . 
+	</s>
+	
+
+	<s id="84">
+		 In the ACE data , mentions are annotated with three levels : NAME , NOMINAL and PRONOUN . 
+	</s>
+	
+
+	<s id="85">
+		 For each ACE entity , a canonical mention is defined as the longest NAME mention if available ; or if the entity does not have a NAME mention , the most recent NOMINAL mention ; if there is no NAME and NOMINAL mention , the most recent pronoun mention . 
+	</s>
+	
+
+	<s id="86">
+		 In the entity-mention model , “ncd”,“spell” and “count” features are computed over the canonical mention of the in-focus entity and the active mention . 
+	</s>
+	
+
+	<s id="87">
+		 Conjunction features are used in the entity-mention model too . 
+	</s>
+	
+
+	<s id="88">
+		 The mention-pair model is appealing for its simplicity : features are easy to compute over a pair of men- if otherwise Category Features Remark Lexical exact_strm left_subsm right_subsm acronym edit_dist 1 if two mentions have the same spelling ; 0 otherwise spell 1 if one mention is a left substring of the other ; 0 otherwise ncd 1 if one mention is a right substring of the other ; 0 otherwise 1 if one mention is an acronym of the other ; 0 otherwise quantized editing distance between two mention strings pair of actual mention strings number of different capitalized words in two mentions Distance token dist sent_1st gap_dist how many tokens two mentions are apart ( quantized ) how many sentences two mentions are apart ( quantized ) how many mentions in between the two mentions in question ( quantized ) Syntax POS_pair apposition POS-pair of two mention heads 1 if two mentions are appositive ; 0 otherwise Count count pair of ( quantized ) numbers , each counting how many times a mention string is seen Pronoun gender number possessive reflexive pair of attributes of { female , male , neutral , unknown } pair of attributes of { singular , plural , unknown } 1 if a pronoun is possessive ; 0 otherwise 1 if a pronoun is reflexive ; 0 otherwise Table 1 : Basic features used in the maximum entropy model . 
+	</s>
+	
+
+	<s id="89">
+		 tions ; its drawback is that information outside the mention pair is ignored . 
+	</s>
+	
+
+	<s id="90">
+		 Suppose a document has three mentions “Mr . 
+	</s>
+	
+
+	<s id="91">
+		 Clinton” , “Clinton” and “she” , appearing in that order . 
+	</s>
+	
+
+	<s id="92">
+		 When considering the mention pair “Clinton” and “she” , the model may tend to link them because of their proximity ; But this mistake can be easily avoided if “Mr . 
+	</s>
+	
+
+	<s id="93">
+		 Clinton” and “Clinton” have been put into the same entity and the model knows “Mr . 
+	</s>
+	
+
+	<s id="94">
+		 Clinton” referring to a male while “she” is female . 
+	</s>
+	
+
+	<s id="95">
+		 Since gender and number information is propagated at the entity level , the entity-mention model is able to check the gender consistency when considering the active mention “she” . 
+	</s>
+	
+
+	<s id="96">
+		 3.3 Discussion There is an in-focus entity in the condition of the linking model ( 1 ) while the starting model ( 2 ) conditions on all left entities . 
+	</s>
+	
+
+	<s id="97">
+		 The disparity is intentional as the starting action is influenced by all established entities on the left . 
+	</s>
+	
+
+	<s id="98">
+		 ( 4 ) is not the only way can be approximated . 
+	</s>
+	
+
+	<s id="99">
+		 For example , one could use a uniform distribution over . 
+	</s>
+	
+
+	<s id="100">
+		 We experimented several schemes of approximation , including a uniform distribution , and ( 4 ) worked the best and is adopted here . 
+	</s>
+	
+
+	<s id="101">
+		 One may consider training directly and use it to score paths in the Bell tree . 
+	</s>
+	
+
+	<s id="102">
+		 The problem is that 1 ) the size of from which takes value is variable ; 2 ) the start action depends on all entities in , which makes it difficult to train directly . 
+	</s>
+	
+
+	<s id="103">
+		 4 Search Issues As shown in Section 2 , the search space of the coreference problem can be represented by the Bell tree . 
+	</s>
+	
+
+	<s id="104">
+		 Thus , the search problem reduces to creating the Bell tree while keeping track of path scores and picking the top-N best paths . 
+	</s>
+	
+
+	<s id="105">
+		 This is exactly what is described in Algorithm 1 . 
+	</s>
+	
+
+	<s id="106">
+		 In Algorithm 1 , contains all the hypotheses , or paths from the root to the current layer of nodes . 
+	</s>
+	
+
+	<s id="107">
+		 Vari- able stores the cumulative score for a corefer- ence result . 
+	</s>
+	
+
+	<s id="108">
+		 At line 1 , is initialized with a single entity consisting of mention , which corresponds to the root node of the Bell tree in Figure 1 . 
+	</s>
+	
+
+	<s id="109">
+		 Line 2 to 15 loops over the remaining mentions ( to ) , and for each mention , the algorithm extends each result in ( or a path in the Bell tree ) by either linking with an existing entity ( line 5 to 10 ) , or starting an entity ( line 11 to 14 ) . 
+	</s>
+	
+
+	<s id="110">
+		 The loop from line 2 to 12 corresponds to creating a new layer of nodes for the active mention in the Bell tree . 
+	</s>
+	
+
+	<s id="111">
+		 in line 4 and in line 6 and 11 have to do with pruning , which will be discussed shortly . 
+	</s>
+	
+
+	<s id="112">
+		 The last line returns top results , where denotes the result ranked by : Algorithm 1 Search Algorithm if ( ) { 8 : Extend to by linking with 9 : 10 : } 11 : if( ) { 12 : Extend to by starting . 
+	</s>
+	
+
+	<s id="113">
+		 13 : 14 : } 15 : 16:return Input : mentions ; Output : top entity results 1:Initialize : 2:for to 3 : foreach node 4 : compute . 
+	</s>
+	
+
+	<s id="114">
+		 5 : foreach 6 : . 
+	</s>
+	
+
+	<s id="115">
+		 The complexity of the search Algorithm 1 is the total number of nodes in the Bell tree , which is , where is the Bell Number . 
+	</s>
+	
+
+	<s id="116">
+		 Since the Bell number increases rapidly as a function of the number of mentions , pruning is necessary . 
+	</s>
+	
+
+	<s id="117">
+		 We prune the search space in the following places : Local pruning : any children with a score below a fixed factor of the maximum score are pruned . 
+	</s>
+	
+
+	<s id="118">
+		 This is done at line 6 and 11 in Algorithm 1 . 
+	</s>
+	
+
+	<s id="119">
+		 The operation in line 4 is : first aligns the system entities with the reference entities so that the number of common mentions is maximized . 
+	</s>
+	
+
+	<s id="120">
+		 Each system entity is constrained to align with at most one reference entity , and vice versa . 
+	</s>
+	
+
+	<s id="121">
+		 For example , suppose that a reference document contains three entities : while a system out- puts four entities : , then the best alignment ( from reference to system ) would be , and other entities are not aligned . 
+	</s>
+	
+
+	<s id="122">
+		 The number of common mentions of the best alignment is ( i.e. , and ) , which leads to a mention recall and precision . 
+	</s>
+	
+
+	<s id="123">
+		 The ECM-F measures the percentage of mentions that are in the “right” entities . 
+	</s>
+	
+
+	<s id="124">
+		 For tests on the MUC data , we report both F-measure using the official MUC score 
+		<ref citStr="Vilain et al. , 1995" id="17" label="CEPF" position="18951">
+			( Vilain et al. , 1995 )
+		</ref>
+		 and ECM-F . 
+	</s>
+	
+
+	<s id="125">
+		 The MUC score counts the common links between the reference and the system output . 
+	</s>
+	
+
+	<s id="126">
+		 5.2 Results on the ACE data The system is first developed and tested using the ACE data . 
+	</s>
+	
+
+	<s id="127">
+		 The ACE coreference system is trained with documents ( about words ) of ACE 2002 training data . 
+	</s>
+	
+
+	<s id="128">
+		 A separate documents ( words ) is used as the development-test ( Devtest ) set . 
+	</s>
+	
+
+	<s id="129">
+		 In 2002 , NIST released two test sets in February ( Feb02 ) and September ( Sep02 ) , respectively . 
+	</s>
+	
+
+	<s id="130">
+		 Statistics of the three test sets is summarized in Table 2 . 
+	</s>
+	
+
+	<s id="131">
+		 We will report coreference results on the true mentions of the three test sets . 
+	</s>
+	
+
+	<s id="132">
+		 TestSet #-docs #-words #-mentions #-entities Devtest 90 50426 7470 2891 Feb02 97 52677 7665 3104 Sep02 186 69649 10577 4355 Table 2 : Statistics of three test sets . 
+	</s>
+	
+
+	<s id="133">
+		 Block 8-9 is carried out only if and block 12-13 is car- ried out only if. . 
+	</s>
+	
+
+	<s id="134">
+		 Global pruning : similar to local pruning except that this is done using the cumulative score . 
+	</s>
+	
+
+	<s id="135">
+		 Pruning based on the global scores is carried out at line 15 of Algorithm 1 . 
+	</s>
+	
+
+	<s id="136">
+		 Limit hypotheses : we set a limit on the maximum number of live paths . 
+	</s>
+	
+
+	<s id="137">
+		 This is useful when a document contains many mentions , in which case excessive number of paths may survive local and global pruning . 
+	</s>
+	
+
+	<s id="138">
+		 Whenever available , we check the compatibility of entity types between the in-focus entity and the active mention . 
+	</s>
+	
+
+	<s id="139">
+		 A hypothesis with incompatible entity types is discarded . 
+	</s>
+	
+
+	<s id="140">
+		 In the ACE annotation , every mention has an entity type . 
+	</s>
+	
+
+	<s id="141">
+		 Therefore we can eliminate hypotheses with two mentions of different types . 
+	</s>
+	
+
+	<s id="142">
+		 5 Experiments 5.1 Performance Metrics The official performance metric for the ACE task is ACE-value . 
+	</s>
+	
+
+	<s id="143">
+		 ACE-value is computed by first calculating the weighted cost of entity insertions , deletions and substitutions ; The cost is then normalized against the cost of a nominal coreference system which outputs no entities ; The ACE-value is obtained by subtracting the normalized cost from . 
+	</s>
+	
+
+	<s id="144">
+		 Weights are designed to emphasize NAME entities , while PRONOUN entities ( i.e. , an entity consisting of only pronominal mentions ) carry very low weights . 
+	</s>
+	
+
+	<s id="145">
+		 A perfect coreference system will get a ACE-value while a system outputs no entities will get a ACE-value . 
+	</s>
+	
+
+	<s id="146">
+		 Thus , the ACE-value can be interpreted as percentage of value a system has , relative to the perfect system . 
+	</s>
+	
+
+	<s id="147">
+		 Since the ACE-value is an entity-level metric and is weighted heavily toward NAME entities , we also measure our system’s performance by an entity-constrained mention F-measure ( henceforth “ECM-F” ) . 
+	</s>
+	
+
+	<s id="148">
+		 The metric For the mention-pair model , training events are generated for all compatible mention-pairs , which results in about events , about of which are positive examples . 
+	</s>
+	
+
+	<s id="149">
+		 The full mention-pair model uses about features ; Most are conjunction features . 
+	</s>
+	
+
+	<s id="150">
+		 For the entity-mention model , events are generated by walking through the Bell tree . 
+	</s>
+	
+
+	<s id="151">
+		 Only events on the true path ( i.e. , positive examples ) and branches emitting from a node on the true path to a node not on the true path ( i.e. , negative examples ) are generated . 
+	</s>
+	
+
+	<s id="152">
+		 For example , in Figure 1 , suppose that the path (a)-(b2)-(c4) is the truth , then positive training examples are starting event from ( a ) to ( b2 ) and linking event from ( b2 ) to ( c4 ) ; While the negative examples are linking events from ( a ) to ( b1 ) , ( b2 ) to ( c3 ) , and the starting event from ( b2 ) to ( c5 ) . 
+	</s>
+	
+
+	<s id="153">
+		 This scheme generates about events , out of which about are positive training examples . 
+	</s>
+	
+
+	<s id="154">
+		 The full entity-mention model has about features , due to less number of conjunction features and training examples . 
+	</s>
+	
+
+	<s id="155">
+		 Coreference results on the true mentions of the De- vtest , Feb02 , and Sep02 test sets are tabulated in Table 3 . 
+	</s>
+	
+
+	<s id="156">
+		 These numbers are obtained with a fixed search beam and pruning threshold ( widening the search beam or using a smaller pruning threshold did not change results significantly ) . 
+	</s>
+	
+
+	<s id="157">
+		 The mention-pair model in most cases performs better than the mention-entity model by both ACE-value and ECM-F measure although none of the differences is statistically significant ( pair-wise t-test ) at p-value . 
+	</s>
+	
+
+	<s id="158">
+		 Note that , however , the mention-pair model uses times more features than the entity-pair model . 
+	</s>
+	
+
+	<s id="159">
+		 We also observed that , because the score between the in- focus entity and the active mention is computed by ( 9 ) in the mention-pair model , the mention-pair sometimes mistakenly places a male pronoun and female pronoun into the same entity , while the same mistake is avoided in the entity-mention model . 
+	</s>
+	
+
+	<s id="160">
+		 Using the canonical mentions when computing some features ( e.g. , “spell” ) in the entity-mention model is probably not optimal and it is an area that needs further research . 
+	</s>
+	
+
+	<s id="161">
+		 When the same mention-pair model is used to score the ACE 2003 evaluation data , an ACE-value is obtained on the systems mentions . 
+	</s>
+	
+
+	<s id="162">
+		 After retrained with Chinese and Arabic data ( much less training data than English ) , the system got and ACE-value on the system mentions of ACE 2003 evaluation data for Chinese and Arabic , respectively . 
+	</s>
+	
+
+	<s id="163">
+		 The results for all three languages are among the top-tier submission systems . 
+	</s>
+	
+
+	<s id="164">
+		 Details of the mention detection and coreference system can be found in 
+		<ref citStr="Florian et al. , 2004" id="18" label="CERF" position="24505">
+			( Florian et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="165">
+		 Since the mention-pair model is better , subsequent analyses are done with the mention pair model only . 
+	</s>
+	
+
+	<s id="166">
+		 5.2.1 Feature Impact To see how each category of features affects the performance , we start with the aforementioned mention- pair model , incrementally remove each feature category , retrain the system and test it on the Devtest set . 
+	</s>
+	
+
+	<s id="167">
+		 The result is summarized in Table 4 . 
+	</s>
+	
+
+	<s id="168">
+		 The last column lists the number of features . 
+	</s>
+	
+
+	<s id="169">
+		 The second row is the full mention-pair model , the third through seventh row correspond to models by removing the syntactic features ( i.e. , POS tags and apposition features ) , count features , distance features , mention type and level information , and pair of mention-spelling features . 
+	</s>
+	
+
+	<s id="170">
+		 If a basic feature is removed , conjunction features using that basic feature are also removed . 
+	</s>
+	
+
+	<s id="171">
+		 It is striking that the smallest system consisting of only features ( string and substring match , acronym , edit distance and number of different capitalized words ) can get as much as ACE-value . 
+	</s>
+	
+
+	<s id="172">
+		 Table 4 shows clearly that these lexical features and the distance features are the most important . 
+	</s>
+	
+
+	<s id="173">
+		 Sometimes the ACE-value increases after removing a set of features , but the ECM-F measure tracks nicely the trend that the more features there are , the better the performance is . 
+	</s>
+	
+
+	<s id="174">
+		 This is because the ACE-value 1 System mentions are output from a mention detection system . 
+	</s>
+	
+
+	<s id="175">
+		 log a Figure 2 : Performance vs. log start penalty is a weighted metric . 
+	</s>
+	
+
+	<s id="176">
+		 A small fluctuation of NAME entities will impact the ACE-value more than many NOMINAL or PRONOUN entities . 
+	</s>
+	
+
+	<s id="177">
+		 Model ACE-val(%) ECM-F(%) #-features Full 89.8 73.20( 2.9 ) 171K -syntax 89.0 72.6( 2.5 ) 71K -count 89.4 72.0( 3.3 ) 70K -dist 86.7 *66.2 ( 3.9 ) 24K -type/level 86.8 65.7( 2.2 ) 5.4K -spell 86.0 64.4( 1.9 ) 39 Table 4 : Impact of feature categories . 
+	</s>
+	
+
+	<s id="178">
+		 Numbers after are the standard deviations . 
+	</s>
+	
+
+	<s id="179">
+		 * indicates that the result is significantly ( pair-wise t-test ) different from the line above at . 
+	</s>
+	
+
+	<s id="180">
+		 5.2.2 Effect of Start Penalty As discussed in Section 3.1 , the start penalty can be used to balance the entity miss and false alarm . 
+	</s>
+	
+
+	<s id="181">
+		 To see this effect , we decode the Devtest set by varying the start penalty and the result is depicted in Figure 2 . 
+	</s>
+	
+
+	<s id="182">
+		 The ACE-value and ECM-F track each other fairly well . 
+	</s>
+	
+
+	<s id="183">
+		 Both achieve the optimal when . 
+	</s>
+	
+
+	<s id="184">
+		 5.3 Experiments on the MUC data To see how the proposed algorithm works on the MUC data , we test our algorithm on the MUC6 data . 
+	</s>
+	
+
+	<s id="185">
+		 To minimize the change to the coreference system , we first map the MUC data into the ACE style . 
+	</s>
+	
+
+	<s id="186">
+		 The original MUC coreference data does not have entity types ( i.e. , “ORGANIZATION” , “LOCATION” etc ) , required in the ACE style . 
+	</s>
+	
+
+	<s id="187">
+		 Part of entity types can be recovered from the corresponding named-entity annotations . 
+	</s>
+	
+
+	<s id="188">
+		 The recovered named-entity label is propagated to all mentions belonging to the same entity . 
+	</s>
+	
+
+	<s id="189">
+		 There are 504 out of 2072 mentions of the MUC6 formal test set and 695 out of 2141 mentions of the MUC6 dry-run test set that cannot be assigned labels by this procedure . 
+	</s>
+	
+
+	<s id="190">
+		 A 0.9 085 ECM^F ACE^value 0.8 075 0.7 065 ^2.5 ^2 ^1.5 ^1 ^0.5 0 Devtest Feb02 Sep02 Model ACE-val(%) ECM-F(%) ACE-val(%) ECM-F(%) ACE-val(%) ECM-F(%) MP EM 89.8 73.2( 2.9 ) 90.0 73.1( 4.0 ) 88.0 73.1( 6.8 ) 89.9 71.7( 2.4 ) 88.2 70.8( 3.9 ) 87.6 72.4( 6.2 ) Table 3 : Coreference results on true mentions : MP – mention-pair model ; EM – entity-mention model ; ACE-val : ACE-value ; ECM-F : Entity-constrained Mention F-measure . 
+	</s>
+	
+
+	<s id="191">
+		 MP uses features while EM uses only features . 
+	</s>
+	
+
+	<s id="192">
+		 None of the ECM-F differences between MP and EM is statistically significant at . 
+	</s>
+	
+
+	<s id="193">
+		 generic type “UNKNOWN” is assigned to these mentions . 
+	</s>
+	
+
+	<s id="194">
+		 Mentions that can be found in the named-entity annotation are assumed to have the ACE mention level “NAME” ; All other mentions other than English pronouns are assigned the level “NOMINAL.” After the MUC data is mapped into the ACE-style , the same set of feature templates is used to train a coreference system . 
+	</s>
+	
+
+	<s id="195">
+		 Two coreference systems are trained on the MUC6 data : one trained with 30 dry-run test documents ( henceforth “MUC6-small” ) ; the other trained with 191 “dryrun-train” documents that have both coreference and named-entity annotations ( henceforth “MUC6-big” ) in the latest LDC release . 
+	</s>
+	
+
+	<s id="196">
+		 To use the official MUC scorer , we convert the output of the ACE-style coreference system back into the MUC format . 
+	</s>
+	
+
+	<s id="197">
+		 Since MUC does not require entity label and level , the conversion from ACE to MUC is “loss- less.” Table 5 tabulates the test results on the true mentions of the MUC6 formal test set . 
+	</s>
+	
+
+	<s id="198">
+		 The numbers in the table represent the optimal operating point determined by ECM-F . 
+	</s>
+	
+
+	<s id="199">
+		 The MUC scorer cannot be used since it inherently favors systems that output fewer number of entities ( e.g. , putting all mentions of the MUC6 formal test set into one entity will yield a recall and precision of links , which gives an F-measure ) . 
+	</s>
+	
+
+	<s id="200">
+		 The MUC6-small system compares favorably with the similar experiment in 
+		<ref citStr="Harabagiu et al . ( 2001 )" id="19" label="CEPN" position="29835">
+			Harabagiu et al . ( 2001 )
+		</ref>
+		 in which an F-measure is reported . 
+	</s>
+	
+
+	<s id="201">
+		 When measured by the ECM-F measure , the MUC6-small system has the same level of performance as the ACE system , while the MUC6-big system performs better than the ACE system . 
+	</s>
+	
+
+	<s id="202">
+		 The results show that the algorithm works well on the MUC6 data despite some information is lost in the conversion from the MUC format to the ACE format . 
+	</s>
+	
+
+	<s id="203">
+		 System MUC F-measure ECM-F MUC6-small MUC6-big 83.9 % 72.1 % 85.7 % 76.8 % Table 5 : Results on the MUC6 formal test set . 
+	</s>
+	
+
+	<s id="204">
+		 6 Related Work There exists a large body of literature on the topic of coreference resolution . 
+	</s>
+	
+
+	<s id="205">
+		 We will compare this study with some relevant work using machine learning or statistical methods only . 
+	</s>
+	
+
+	<s id="206">
+		 
+		<ref citStr="Soon et al . ( 2001 )" id="20" label="CEPF" position="30602">
+			Soon et al . ( 2001 )
+		</ref>
+		 uses a decision tree model for coreference resolution on the MUC6 and MUC7 data . 
+	</s>
+	
+
+	<s id="207">
+		 Leaves of the decision tree are labeled with “link” or “not-link” in training . 
+	</s>
+	
+
+	<s id="208">
+		 At test time , the system checks a mention against all its preceding mentions , and the first one labeled with “link” is picked as the antecedent . 
+	</s>
+	
+
+	<s id="209">
+		 Their work is later enhanced by 
+		<ref citStr="Ng and Cardie , 2002" id="21" label="CEPF" position="31002">
+			( Ng and Cardie , 2002 )
+		</ref>
+		 in several aspects : first , the decision tree returns scores instead of a hard-decision of“link” or “not-link” so that 
+		<ref citStr="Ng and Cardie ( 2002 )" id="22" label="CEPF" position="31149">
+			Ng and Cardie ( 2002 )
+		</ref>
+		 is able to pick the “best” candidate on the left , as opposed the first in 
+		<ref citStr="Soon et al. , 2001" id="23" label="CEPF" position="31249">
+			( Soon et al. , 2001 )
+		</ref>
+		 ; Second , 
+		<ref citStr="Ng and Cardie ( 2002 )" id="24" label="CEPF" position="31283">
+			Ng and Cardie ( 2002 )
+		</ref>
+		 expands the feature sets of 
+		<ref citStr="Soon et al. , 2001" id="25" label="CEPF" position="31334">
+			( Soon et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="210">
+		 The model in 
+		<ref citStr="Yang et al. , 2003" id="26" label="CEPF" position="31381">
+			( Yang et al. , 2003 )
+		</ref>
+		 expands the conditioning scope by including a competing candidate . 
+	</s>
+	
+
+	<s id="211">
+		 Neither 
+		<ref citStr="Soon et al. , 2001" id="27" label="CJPF" position="31489">
+			( Soon et al. , 2001 )
+		</ref>
+		 nor 
+		<ref citStr="Ng and Cardie , 2002" id="28" label="CJPF" position="31518">
+			( Ng and Cardie , 2002 )
+		</ref>
+		 searches for the global optimal entity in that they make locally independent decisions during search . 
+	</s>
+	
+
+	<s id="212">
+		 In contrast , our decoder always searches for the best result ranked by the cumulative score ( subject to pruning ) , and subsequent decisions depend on earlier ones . 
+	</s>
+	
+
+	<s id="213">
+		 Recently , 
+		<ref citStr="McCallum and Wellner ( 2003 )" id="29" label="CEPF" position="31848">
+			McCallum and Wellner ( 2003 )
+		</ref>
+		 proposed to use graphical models for computing probabilities of entities . 
+	</s>
+	
+
+	<s id="214">
+		 The model is appealing in that it can potentially overcome the limitation of mention-pair model in which dependency among mentions other than the two in question is ignored . 
+	</s>
+	
+
+	<s id="215">
+		 However , models in 
+		<ref citStr="McCallum and Wellner , 2003" id="30" label="CEPF" position="32168">
+			( McCallum and Wellner , 2003 )
+		</ref>
+		 compute directly the probability of an entity configuration conditioned on mentions , and it is not clear how the models can be factored to do the incremental search , as it is impractical to enumerate all possible entities even for documents with a moderate number of mentions . 
+	</s>
+	
+
+	<s id="216">
+		 The Bell tree representation proposed in this paper , however , provides us with a naturally incremental framework for coreference resolution . 
+	</s>
+	
+
+	<s id="217">
+		 Maximum entropy method has been used in coreference resolution before . 
+	</s>
+	
+
+	<s id="218">
+		 For example , 
+		<ref citStr="Kehler ( 1997 )" id="31" label="CJPF" position="32721">
+			Kehler ( 1997 )
+		</ref>
+		 uses a mention-pair maximum entropy model , and two methods are proposed to compute entity scores based on the mention-pair model : 1 ) a distribution over entity space is deduced ; 2 ) the most recent mention of an entity , together with the candidate mention , is used to compute the entity-mention score . 
+	</s>
+	
+
+	<s id="219">
+		 In contrast , in our mention pair model , an entity-mention pair is scored by taking the maximum score among possible mention pairs . 
+	</s>
+	
+
+	<s id="220">
+		 Our entity-mention model eliminates the need to synthesize an entity-mention score from mention-pair scores . 
+	</s>
+	
+
+	<s id="221">
+		 
+		<ref citStr="Morton ( 2000 )" id="32" label="CEPF" position="33317">
+			Morton ( 2000 )
+		</ref>
+		 also uses a maximum entropy mention-pair model , and a special “dummy” mention is used to model the event of starting a new entity . 
+	</s>
+	
+
+	<s id="222">
+		 Features involving the dummy mention are essentially computed with the single ( normal ) mention , and therefore the starting model is weak . 
+	</s>
+	
+
+	<s id="223">
+		 In our model , the starting model is obtained by “complementing” the linking scores . 
+	</s>
+	
+
+	<s id="224">
+		 The advantage is that we do not need to train a starting model . 
+	</s>
+	
+
+	<s id="225">
+		 To compensate the model inaccuracy , we introduce a “starting penalty” to balance the linking and starting scores . 
+	</s>
+	
+
+	<s id="226">
+		 To our knowledge , the paper is the first time the Bell tree is used to represent the search space of the coreference resolution problem . 
+	</s>
+	
+
+	<s id="227">
+		 7 Conclusion We propose to use the Bell tree to represent the process of forming entities from mentions . 
+	</s>
+	
+
+	<s id="228">
+		 The Bell tree represents the search space of the coreference resolution problem . 
+	</s>
+	
+
+	<s id="229">
+		 We studied two maximum entropy models , namely the mention-pair model and the entity- mention model , both of which can be used to score entity hypotheses . 
+	</s>
+	
+
+	<s id="230">
+		 A beam search algorithm is used to search the best entity result . 
+	</s>
+	
+
+	<s id="231">
+		 State-of-the-art performance has been achieved on the ACE coreference data across three languages . 
+	</s>
+	
+
+	<s id="232">
+		 Acknowledgments This work was partially supported by the Defense Advanced Research Projects Agency and monitored by SPAWAR under contract No . 
+	</s>
+	
+
+	<s id="233">
+		 N66001-99-2-8916 . 
+	</s>
+	
+
+	<s id="234">
+		 The views and findings contained in this material are those of the authors and do not necessarily reflect the position of policy of the Government and no official endorsement should be inferred . 
+	</s>
+	
+
+	<s id="235">
+		 We also would like to thank the anonymous reviewers for suggestions of improving the paper . 
+	</s>
+	
+
+	<s id="236">
+		 References E.T. Bell . 
+	</s>
+	
+
+	<s id="237">
+		 1934. Exponential numbers . 
+	</s>
+	
+
+	<s id="238">
+		 Amer . 
+	</s>
+	
+
+	<s id="239">
+		 Math . 
+	</s>
+	
+
+	<s id="240">
+		 Monthly , pages 411–419 . 
+	</s>
+	
+
+	<s id="241">
+		 Adam L. Berger , Stephen A. Della Pietra , and Vincent J. Della Pietra . 
+	</s>
+	
+
+	<s id="242">
+		 1996. A maximum entropy approach to natural language processing . 
+	</s>
+	
+
+	<s id="243">
+		 Computational Linguistics , 22(1):39–71 , March . 
+	</s>
+	
+
+	<s id="244">
+		 R Florian , H Hassan , A Ittycheriah , H Jing , N Kambhatla , X Luo , N Nicolov , and S Roukos . 
+	</s>
+	
+
+	<s id="245">
+		 2004. A statistical model for multilingual entity detection and tracking . 
+	</s>
+	
+
+	<s id="246">
+		 In Daniel Marcu Susan Dumais and Salim Roukos , editors , HLT-NAACL 2004 : Main Proceedings , pages 1–8 , Boston , Massachusetts , USA , May 2 - May 7 . 
+	</s>
+	
+
+	<s id="247">
+		 Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="248">
+		 Niyu Ge , John Hale , and Eugene Charniak . 
+	</s>
+	
+
+	<s id="249">
+		 1998. A statistical approach to anaphora resolution . 
+	</s>
+	
+
+	<s id="250">
+		 In Proc . 
+	</s>
+	
+
+	<s id="251">
+		 of the sixth Workshop on Very Large Corpora . 
+	</s>
+	
+
+	<s id="252">
+		 Sanda M. Harabagiu , Razvan C. Bunescu , and Steven J. Maiorano . 
+	</s>
+	
+
+	<s id="253">
+		 2001. Text and knowledge mining for coreference resolution . 
+	</s>
+	
+
+	<s id="254">
+		 In Proc . 
+	</s>
+	
+
+	<s id="255">
+		 ofNAACL . 
+	</s>
+	
+
+	<s id="256">
+		 J. Hobbs . 
+	</s>
+	
+
+	<s id="257">
+		 1976. Pronoun resolution . 
+	</s>
+	
+
+	<s id="258">
+		 Technical report , Dept. of Computer Science , CUNY , Technical Report TR76-1 . 
+	</s>
+	
+
+	<s id="259">
+		 A. Ittycheriah , L. Lita , N. Kambhatla , N. Nicolov , S. Roukos , and M. Stys . 
+	</s>
+	
+
+	<s id="260">
+		 2003. Identifying and tracking entity mentions in a maximum entropy framework . 
+	</s>
+	
+
+	<s id="261">
+		 In HLT-NAACL 2003 : Short Papers , May 27 - June 1 . 
+	</s>
+	
+
+	<s id="262">
+		 Andrew Kehler . 
+	</s>
+	
+
+	<s id="263">
+		 1997. Probabilistic coreference in information extraction . 
+	</s>
+	
+
+	<s id="264">
+		 In Proc . 
+	</s>
+	
+
+	<s id="265">
+		 ofEMNLP . 
+	</s>
+	
+
+	<s id="266">
+		 Andrew McCallum and Ben Wellner . 
+	</s>
+	
+
+	<s id="267">
+		 2003. Toward conditional models of identity uncertainty with application to proper noun coreference . 
+	</s>
+	
+
+	<s id="268">
+		 In IJCAI Workshop on Information Integration on the Web. R. Mitkov . 
+	</s>
+	
+
+	<s id="269">
+		 1998 . 
+	</s>
+	
+
+	<s id="270">
+		 Robust pronoun resolution with limited knowledge . 
+	</s>
+	
+
+	<s id="271">
+		 In Procs . 
+	</s>
+	
+
+	<s id="272">
+		 of the 17th Internaltional Conference on Computational Linguistics , pages 869–875 . 
+	</s>
+	
+
+	<s id="273">
+		 Thomas S. Morton . 
+	</s>
+	
+
+	<s id="274">
+		 2000. Coreference for NLP applications . 
+	</s>
+	
+
+	<s id="275">
+		 In In Proceedings of the 38th Annual Meeting ofthe Associationfor Computational Linguistics . 
+	</s>
+	
+
+	<s id="276">
+		 MUC-6 . 
+	</s>
+	
+
+	<s id="277">
+		 1995. Proceedings of the Sixth Message Understanding Conference(MUC-6) , San Francisco , CA . 
+	</s>
+	
+
+	<s id="278">
+		 Morgan Kaufmann. Vincent Ng and Claire Cardie . 
+	</s>
+	
+
+	<s id="279">
+		 2002. Improving machine learning approaches to coreference resolution . 
+	</s>
+	
+
+	<s id="280">
+		 In Proc . 
+	</s>
+	
+
+	<s id="281">
+		 ofACL , pages 104–111 . 
+	</s>
+	
+
+	<s id="282">
+		 NIST . 
+	</s>
+	
+
+	<s id="283">
+		 2003. The ACE evaluation plan . 
+	</s>
+	
+
+	<s id="284">
+		 www.nist.gov/speech/tests/ace/index.htm . 
+	</s>
+	
+
+	<s id="285">
+		 Adwait Ratnaparkhi . 
+	</s>
+	
+
+	<s id="286">
+		 1997. A Linear Observed Time Statistical Parser Based on Maximum Entropy Models . 
+	</s>
+	
+
+	<s id="287">
+		 In Second Conference on Empirical Methods in Natural Language Processing , pages 1 –10 . 
+	</s>
+	
+
+	<s id="288">
+		 Wee Meng Soon , Hwee Tou Ng , and Chung Yong Lim . 
+	</s>
+	
+
+	<s id="289">
+		 2001. A machine learning approach to coreference resolution of noun phrases . 
+	</s>
+	
+
+	<s id="290">
+		 Computational Linguistics , 27(4):521–544 . 
+	</s>
+	
+
+	<s id="291">
+		 M. Vilain , J. Burger , J. Aberdeen , D. Connolly , , and L. Hirschman . 
+	</s>
+	
+
+	<s id="292">
+		 1995. A model-theoretic coreference scoring scheme . 
+	</s>
+	
+
+	<s id="293">
+		 In In Proc . 
+	</s>
+	
+
+	<s id="294">
+		 ofMUC6 , pages 45–52 . 
+	</s>
+	
+
+	<s id="295">
+		 Xiaofeng Yang , Guodong Zhou , Jian Su , and Chew Lim Tan . 
+	</s>
+	
+
+	<s id="296">
+		 2003. Coreference resolution using competition learning approach . 
+	</s>
+	
+
+	<s id="297">
+		 In Proc . 
+	</s>
+	
+
+	<s id="298">
+		 of the ACL . 
+	</s>
+	
+
+
+</acldoc>

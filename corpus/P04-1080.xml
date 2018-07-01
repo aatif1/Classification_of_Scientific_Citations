@@ -1,0 +1,1403 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1080">
+	
+
+	<s id="1">
+		 Learning Word Senses With Feature Selection and Order Identification Capabilities Zheng-Yu Niu , Dong-Hong Ji Institute for Infocomm Research 21 Heng Mui Keng Terrace 119613 Singapore { zniu , dhji}@i2r.a-star.edu.sg Chew-Lim Tan Department of Computer Science National University of Singapore 3 Science Drive 2 117543 Singapore tancl@comp.nus.edu.sg Abstract This paper presents an unsupervised word sense learning algorithm , which induces senses of target word by grouping its occurrences into a “natural” number of clusters based on the similarity of their contexts . 
+	</s>
+	
+
+	<s id="2">
+		 For removing noisy words in feature set , feature selection is conducted by optimizing a cluster validation criterion subject to some constraint in an unsupervised manner . 
+	</s>
+	
+
+	<s id="3">
+		 Gaussian mixture model and Minimum Description Length criterion are used to estimate cluster structure and cluster number . 
+	</s>
+	
+
+	<s id="4">
+		 Experimental results show that our algorithm can find important feature subset , estimate model order ( cluster number ) and achieve better performance than another algorithm which requires cluster number to be provided . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction Sense disambiguation is essential for many language applications such as machine translation , information retrieval , and speech processing ( Ide and V´eronis , 1998 ) . 
+	</s>
+	
+
+	<s id="6">
+		 Almost all of sense disambiguation methods are heavily dependant on manually compiled lexical resources . 
+	</s>
+	
+
+	<s id="7">
+		 However these lexical resources often miss domain specific word senses , even many new words are not included inside . 
+	</s>
+	
+
+	<s id="8">
+		 Learning word senses from free text will help us dispense of outside knowledge source for defining sense by only discriminating senses of words . 
+	</s>
+	
+
+	<s id="9">
+		 Another application of word sense learning is to help enriching or even constructing semantic lexicons 
+		<ref citStr="Widdows , 2003" id="1" label="CEPF" position="1849">
+			( Widdows , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="10">
+		 The solution of word sense learning is closely related to the interpretation of word senses . 
+	</s>
+	
+
+	<s id="11">
+		 Different interpretations of word senses result in different solutions to word sense learning . 
+	</s>
+	
+
+	<s id="12">
+		 One interpretation strategy is to treat a word sense as a set of synonyms like synset in WordNet . 
+	</s>
+	
+
+	<s id="13">
+		 The committee based word sense discovery algorithm 
+		<ref citStr="Pantel and Lin , 2002" id="2" label="CEPF" position="2253">
+			( Pantel and Lin , 2002 )
+		</ref>
+		 followed this strategy , which treated senses as clusters of words occurring in similar contexts . 
+	</s>
+	
+
+	<s id="14">
+		 Their algorithm initially discovered tight clusters called committees by grouping top n words similar with target word using average link clustering . 
+	</s>
+	
+
+	<s id="15">
+		 Then the target word was assigned to committees if the similarity between them was above a given threshold . 
+	</s>
+	
+
+	<s id="16">
+		 Each committee that the target word belonged to was interpreted as one of its senses . 
+	</s>
+	
+
+	<s id="17">
+		 There are two difficulties with this committee based sense learning . 
+	</s>
+	
+
+	<s id="18">
+		 The first difficulty is about derivation of feature vectors . 
+	</s>
+	
+
+	<s id="19">
+		 A feature for target word here consists of a contextual content word and its grammatical relationship with target word . 
+	</s>
+	
+
+	<s id="20">
+		 Acquisition of grammatical relationship depends on the output of a syntactic parser . 
+	</s>
+	
+
+	<s id="21">
+		 But for some languages , ex . 
+	</s>
+	
+
+	<s id="22">
+		 Chinese , the performance of syntactic parsing is still a problem . 
+	</s>
+	
+
+	<s id="23">
+		 The second difficulty with this solution is that two parameters are required to be provided , which control the number of committees and the number of senses of target word . 
+	</s>
+	
+
+	<s id="24">
+		 Another interpretation strategy is to treat a word sense as a group of similar contexts of target word . 
+	</s>
+	
+
+	<s id="25">
+		 The context group discrimination ( CGD ) algorithm presented in ( Sch¨utze , 1998 ) adopted this strategy . 
+	</s>
+	
+
+	<s id="26">
+		 Firstly , their algorithm selected important contextual words using x2 or local frequency criterion . 
+	</s>
+	
+
+	<s id="27">
+		 With the x2 based criterion , those contextual words whose occurrence depended on whether the ambiguous word occurred were chosen as features . 
+	</s>
+	
+
+	<s id="28">
+		 When using local frequency criterion , their algorithm selected top n most frequent contextual words as features . 
+	</s>
+	
+
+	<s id="29">
+		 Then each context of occurrences of target word was represented by second order co- occurrence based context vector . 
+	</s>
+	
+
+	<s id="30">
+		 Singular value decomposition ( SVD ) was conducted to reduce the dimensionality of context vectors . 
+	</s>
+	
+
+	<s id="31">
+		 Then the reduced context vectors were grouped into a pre-defined number of clusters whose centroids corresponded to senses of target word . 
+	</s>
+	
+
+	<s id="32">
+		 Some observations can be made about their feature selection and clustering procedure . 
+	</s>
+	
+
+	<s id="33">
+		 One observation is that their feature selection uses only first order information although the second order co- occurrence data is available . 
+	</s>
+	
+
+	<s id="34">
+		 The other observation is about their clustering procedure . 
+	</s>
+	
+
+	<s id="35">
+		 Similar with committee based sense discovery algorithm , their clustering procedure also requires the predefinition of cluster number . 
+	</s>
+	
+
+	<s id="36">
+		 Their method can capture both coarse-gained and fine-grained sense distinction as the predefined cluster number varies . 
+	</s>
+	
+
+	<s id="37">
+		 But from a point of statistical view , there should exist a partitioning of data at which the most reliable , “natural” sense clusters appear . 
+	</s>
+	
+
+	<s id="38">
+		 In this paper , we follow the second order representation method for contexts of target word , since it is supposed to be less sparse and more robust than first order information ( Sch¨utze , 1998 ) . 
+	</s>
+	
+
+	<s id="39">
+		 We introduce a cluster validation based unsupervised feature wrapper to remove noises in contextual words , which works by measuring the consistency between cluster structures estimated from disjoint data subsets in selected feature space . 
+	</s>
+	
+
+	<s id="40">
+		 It is based on the assumption that if selected feature subset is important and complete , cluster structure estimated from data subset in this feature space should be stable and robust against random sampling . 
+	</s>
+	
+
+	<s id="41">
+		 After determination of important contextual words , we use a Gaussian mixture model ( GMM ) based clustering algorithm 
+		<ref citStr="Bouman et al. , 1998" id="3" label="CERF" position="5988">
+			( Bouman et al. , 1998 )
+		</ref>
+		 to estimate cluster structure and cluster number by minimizing Minimum Description Length ( MDL ) criterion 
+		<ref citStr="Rissanen , 1978" id="4" label="CERF" position="6116">
+			( Rissanen , 1978 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="42">
+		 We construct several subsets from widely used benchmark corpus as test data . 
+	</s>
+	
+
+	<s id="43">
+		 Experimental results show that our algorithm ( FSGMM ) can find important feature subset , estimate cluster number and achieve better performance compared with CGD algorithm . 
+	</s>
+	
+
+	<s id="44">
+		 This paper is organized as follows . 
+	</s>
+	
+
+	<s id="45">
+		 In section 2 we will introduce our word sense learning algorithm , which incorporates unsupervised feature selection and model order identification technique . 
+	</s>
+	
+
+	<s id="46">
+		 Then we will give out the experimental results of our algorithm and discuss some findings from these results in section 3 . 
+	</s>
+	
+
+	<s id="47">
+		 Section 4 will be devoted to a brief review of related efforts on word sense discrimination . 
+	</s>
+	
+
+	<s id="48">
+		 In section 5 we will conclude our work and suggest some possible improvements . 
+	</s>
+	
+
+	<s id="49">
+		 2 Learning Procedure 2.1 Feature selection Feature selection for word sense learning is to find important contextual words which help to discriminate senses of target word without using class labels in data set . 
+	</s>
+	
+
+	<s id="50">
+		 This problem can be generalized as selecting important feature subset in an unsupervised manner . 
+	</s>
+	
+
+	<s id="51">
+		 Many unsupervised feature selection algorithms have been presented , which can be categorized as feature filter 
+		<ref citStr="Dash et al. , 2002" id="5" label="CEPF" position="7381">
+			( Dash et al. , 2002 
+		</ref>
+		<ref citStr="Talavera , 1999" id="6" label="CEPF" position="7402">
+			; Talavera , 1999 )
+		</ref>
+		 and feature wrapper 
+		<ref citStr="Dy and Brodley , 2000" id="7" label="CEPF" position="7442">
+			( Dy and Brodley , 2000 
+		</ref>
+		<ref citStr="Law et al. , 2002" id="8" label="CEPF" position="7466">
+			; Law et al. , 2002 
+		</ref>
+		<ref citStr="Mitra et al. , 2002" id="9" label="CEPF" position="7486">
+			; Mitra et al. , 2002 
+		</ref>
+		<ref citStr="Modha and Spangler , 2003" id="10" label="CEPF" position="7508">
+			; Modha and Spangler , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="52">
+		 In this paper we propose a cluster validation based unsupervised feature subset evaluation method . 
+	</s>
+	
+
+	<s id="53">
+		 Cluster validation has been used to solve model order identification problem 
+		<ref citStr="Lange et al. , 2002" id="11" label="CEPF" position="7735">
+			( Lange et al. , 2002 
+		</ref>
+		<ref citStr="Levine and Domany , 2001" id="12" label="CEPF" position="7757">
+			; Levine and Domany , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="54">
+		 Table 1 gives out our feature subset evaluation algorithm . 
+	</s>
+	
+
+	<s id="55">
+		 If some features in feature subset are noises , the estimated cluster structure on data subset in selected feature space is not stable , which is more likely to be the artifact of random splitting . 
+	</s>
+	
+
+	<s id="56">
+		 Then the consistency between cluster structures estimated from disjoint data subsets will be lower . 
+	</s>
+	
+
+	<s id="57">
+		 Otherwise the estimated cluster structures should be more consistent . 
+	</s>
+	
+
+	<s id="58">
+		 Here we assume that splitting does not eliminate some of the underlying modes in data set . 
+	</s>
+	
+
+	<s id="59">
+		 For comparison of different clustering structures , predictors are constructed based on these clustering solutions , then we use these predictors to classify the same data subset . 
+	</s>
+	
+
+	<s id="60">
+		 The agreement between class memberships computed by different predictors can be used as the measure of consistency between cluster structures . 
+	</s>
+	
+
+	<s id="61">
+		 We use the stability measure 
+		<ref citStr="Lange et al. , 2002" id="13" label="CEPF" position="8760">
+			( Lange et al. , 2002 )
+		</ref>
+		 ( given in Table 1 ) to assess the agreement between class memberships . 
+	</s>
+	
+
+	<s id="62">
+		 For each occurrence , one strategy is to construct its second order context vector by summing the vectors of contextual words , then let the feature selection procedure start to work on these second order contextual vectors to select features . 
+	</s>
+	
+
+	<s id="63">
+		 However , since the sense associated with a word’s occurrence is always determined by very few feature words in its contexts , it is always the case that there exist more noisy words than the real features in the contexts . 
+	</s>
+	
+
+	<s id="64">
+		 So , simply summing the contextual word’s vectors together may result in noise-dominated second order context vectors . 
+	</s>
+	
+
+	<s id="65">
+		 To deal with this problem , we extend the feature selection procedure further to the construction of second order context vectors : to select better feature words in contexts to construct better second order context vectors enabling better feature selection . 
+	</s>
+	
+
+	<s id="66">
+		 Since the sense associated with a word’s occurrence is always determined by some feature words in its contexts , it is reasonable to suppose that the selected features should cover most of occurrences . 
+	</s>
+	
+
+	<s id="67">
+		 Formally , let coverage(D,T) be the coverage rate of the feature set T with respect to a set of contexts D , i.e. , the ratio of the number of the occurrences with at least one feature in their local contexts against the total number of occurrences , then we assume that coverage(D,T) &gt; ^ . 
+	</s>
+	
+
+	<s id="68">
+		 In practice , we set ^ = 0.9 . 
+	</s>
+	
+
+	<s id="69">
+		 This assumption also helps to avoid the bias toward the selection of fewer features , since with fewer features , there are more occurrences without features in contexts , and their context vectors will be zero valued , which tends to result in more stable cluster structure . 
+	</s>
+	
+
+	<s id="70">
+		 Let D be a set of local contexts of occurrences of target word , then D = {di}Ni_1 , where di represents local context of the i-th occurrence , and N is the total number of this word’s occurrences . 
+	</s>
+	
+
+	<s id="71">
+		 W is used to denote bag of words occurring in context set D , then W = {wi}Mi_1 , where wi denotes a word occurring in D , and M is the total number of different contextual words . 
+	</s>
+	
+
+	<s id="72">
+		 Let V denote a M x M second-order co- occurrence symmetric matrix . 
+	</s>
+	
+
+	<s id="73">
+		 Suppose that the i-th , 1 &lt; i &lt; M , row in the second order matrix corresponds to word wi and the j-th , 1 &lt; j &lt; M , column corresponds to word wj , then the entry specified by i-th row and j-th column records the number of times that word wi occurs close to wj in corpus . 
+	</s>
+	
+
+	<s id="74">
+		 We use v(wi) to represent the word vector of contextual word wi , which is the i-th row in matrix V. HT is a weight matrix of contextual word subset T , T ^ W . 
+	</s>
+	
+
+	<s id="75">
+		 Then each entry hi J represents the weight of word wj in di , wj E T , 1 &lt; i &lt; N . 
+	</s>
+	
+
+	<s id="76">
+		 We use binary term weighting method to derive context vectors : hiJ = 1 if word wj occurs in di , otherwise zero . 
+	</s>
+	
+
+	<s id="77">
+		 Let CT = { cTi }Ni_ 1 be a set of context vectors in feature space T , where cT i is the context vector of the i-th occurrence . 
+	</s>
+	
+
+	<s id="78">
+		 cTi is defined as : ( hijv(wj)) , wj E T , 1 &lt; i &lt; N. ( 1 ) The feature subset selection in word set W can be formulated as : Tˆ = arg maxfcriterion(T , H , V , q)1 , T C W , ( 2 ) T subject to coverage(D , T ) ^ ^ , where Tˆ is the optimal feature subset , criterion is the cluster validation based evaluation function ( the function in Table 1 ) , q is the resampling frequency for estimate of stability , and coverage(D,T) is the proportion of contexts with occurrences of features in T . 
+	</s>
+	
+
+	<s id="79">
+		 This constrained optimization results in a solution which maximizes the criterion and meets the given constraint at the same time . 
+	</s>
+	
+
+	<s id="80">
+		 In this paper we use sequential greedy forward floating search 
+		<ref citStr="Pudil et al. , 1994" id="14" label="CEPF" position="12609">
+			( Pudil et al. , 1994 )
+		</ref>
+		 in sorted word list based on ^2 or local frequency criterion . 
+	</s>
+	
+
+	<s id="81">
+		 We set l = 1 , m = 1 , where l is plus step , and m is take-away step . 
+	</s>
+	
+
+	<s id="82">
+		 2.2 Clustering with order identification After feature selection , we employ a Gaussian mixture modelling algorithm , Cluster ( Bouman et al. , Table 1 : Unsupervised Feature Subset Evaluation Algorithm . 
+	</s>
+	
+
+	<s id="83">
+		 Intuitively , for a given feature subset T , we iteratively split data set into disjoint halves , and compute the agreement of clustering solutions estimated from these sets using stability measure . 
+	</s>
+	
+
+	<s id="84">
+		 The average of stability over q resampling is the estimation of the score of T. Function criterion(T , H , V , q ) Input parameter : feature subset T , weight matrix H , second order co-occurrence matrix V , resampling frequency q ; ( 1 ) ST = 0 ; ( 2 ) For i = 1 to q do ( 2.1 ) Randomly split CT into disjoint halves , denoted as CTA and CTB ; ( 2.2 ) Estimate GMM parameter and cluster number on CTA using Cluster , and the parameter set is denoted as ˆBA ; The solution ˆBA can be used to construct a predictor PA ; ( 2.3 ) Estimate GMM parameter and cluster number on CTB using Cluster , and the parameter set is denoted as ˆBB , The solution ˆBB can be used to construct a predictor PB ; ( 2.4 ) Classify CTB using PA and PB ; The class labels assigned by PA and PB are denoted as LA and LB ; ( 2.5 ) ST+ = max^ CTBlPi 1 f ir(LA(cTBi)) = LB(cTBi)1 , where ir denotes possible permutation relating indices between LA and LB , and cTBi E CTB ; ( 3 ) ST = 1qST ; ( 4 ) Return ST ; 1998 ) , to estimate cluster structure and cluster number . 
+	</s>
+	
+
+	<s id="85">
+		 Let Y = { yn}Nn_ 1 be a set of M dimensional vectors to be modelled by GMM . 
+	</s>
+	
+
+	<s id="86">
+		 Assuming that this model has K subclasses , let Irk denote the prior probability of subclass k , µk denote the M dimensional mean vector for subclass k , Rk denote the M x M dimensional covariance matrix for subclass k , 1 &lt; k &lt; K . 
+	</s>
+	
+
+	<s id="87">
+		 The subclass label for pixel yn is represented by xn. MDL criterion is used for GMM parameter estimation and order identification , which is given by : log (pvnlxn(ynIE)))+ 12Llog ( NM ) , ( 3 ) pvnlxn(ynIk,B)irk , ( 4 ) L = K(1 + M + ( M +21)M ) — 1 , ( 5 ) The log likelihood measures the goodness of fit of a model to data sample , while the second term penalizes complex model . 
+	</s>
+	
+
+	<s id="88">
+		 This estimator works by attempting to find a model order with minimum code length to describe the data sample Y and parameter set O . 
+	</s>
+	
+
+	<s id="89">
+		 If the cluster number is fixed , the estimation of GMM parameter can be solved using EM algorithm E T ci = j N E n_1 MDL(K , B ) = — K E k_1 pvnlxn(ynIE)) = to address this type of incomplete data problem 
+		<ref citStr="Dempster et al. , 1977" id="15" label="CEPF" position="15346">
+			( Dempster et al. , 1977 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="90">
+		 The initialization of mixture parameter 0M is given by : 1 7rk = ( 1 ) Ko ( 6 ) µk 1 ) = yn , where n = L(k — 1)(N — 1)/(Ko — 1)J + 1 ( 7 ) R(1) = 1NENn_1ynytn(8) Ko is a given initial subclass number . 
+	</s>
+	
+
+	<s id="91">
+		 Then EM algorithm is used to estimate model parameters by minimizing MDL : E-step : re-estimate the expectations based on previous iteration : pXnvn(kJyn,0(i)) = pvnlXn(yn Jk , 0(i))7rk 9 t{1(PvnIXn(YnI&quot;0(i))70 ( ) E M-step : estimate the model parameter 0(i) to maximize the log-likelihood in MDL : pXnvn(kJyn,0(i)) ( 10 ) 7rk = Nk ( 11 ) N ( 13 ) pvnXn ( yn Jk,0(i)) = ( 27r1M/2JRkJ^1/2exp{^} ( 14 ) ^= — 2 ( yn — µk ) Rk ^1 ( yn— µk ) ( 15 ) The EM iteration is terminated when the change of MDL(K , 0 ) is less than E : e= 100 ( 1 + M + ( M 21)M )log(NM) ( 16 ) For inferring the cluster number , EM algorithm is applied for each value of K , 1 G K G Ko , and the value Kˆ which minimizes the value of MDL is chosen as the correct cluster number . 
+	</s>
+	
+
+	<s id="92">
+		 To make this process more efficient , two cluster pair l and m are selected to minimize the change in MDL crite- ria when reducing K to K — 1 . 
+	</s>
+	
+
+	<s id="93">
+		 These two clusters l and m are then merged . 
+	</s>
+	
+
+	<s id="94">
+		 The resulting parameter set is chosen as an initial condition for EM iteration with K — 1 subclasses . 
+	</s>
+	
+
+	<s id="95">
+		 This operation will avoid a complete minimization with respect to ^ , µ , and R for each value of K. Table 2 : Four ambiguous words , their senses and frequency distribution of each sense . 
+	</s>
+	
+
+	<s id="96">
+		 Word Sense Percentage hard not easy ( difficult ) 82.8 % ( adjective ) not soft ( metaphoric ) 9.6 % not soft ( physical ) 7.6 % interest money paid for the use of money 52.4 % a share in a company or business 20.4 % readiness to give attention 14 % advantage , advancement or favor 9.4 % activity that one gives attention to 3.6 % causing attention to be given to 0.2 % line product 56 % ( noun ) telephone connection 10.6 % written or spoken text 9.8 % cord 8.6 % division 8.2 % formation 6.8 % serve supply with food 42.6 % ( verb ) hold an office 33.6 % function as something 16 % provide a service 7.8 % 3 Experiments and Evaluation 3.1 Test data We constructed four datasets from hand-tagged corpus 1 by randomly selecting 500 instances for each ambiguous word - “hard” , “interest” , “line” , and “serve” . 
+	</s>
+	
+
+	<s id="97">
+		 The details of these datasets are given in Table 2 . 
+	</s>
+	
+
+	<s id="98">
+		 Our preprocessing included lowering the upper case characters , ignoring all words that contain digits or non alpha-numeric characters , removing words from a stop word list , and filtering out low frequency words which appeared only once in entire set . 
+	</s>
+	
+
+	<s id="99">
+		 We did not use stemming procedure . 
+	</s>
+	
+
+	<s id="100">
+		 The sense tags were removed when they were used by FSGMM and CGD . 
+	</s>
+	
+
+	<s id="101">
+		 In evaluation procedure , these sense tags were used as ground truth classes . 
+	</s>
+	
+
+	<s id="102">
+		 A second order co-occurrence matrix for English words was constructed using English version of Xinhua News ( Jan. 1998-Dec. 1999 ) . 
+	</s>
+	
+
+	<s id="103">
+		 The window size for counting second order co-occurrence was 50 words . 
+	</s>
+	
+
+	<s id="104">
+		 3.2 Evaluation method for feature selection For evaluation of feature selection , we used mutual information between feature subset and class label set to assess the importance of selected feature subset . 
+	</s>
+	
+
+	<s id="105">
+		 Our assessment measure is defined as : p(w , l)logp(( )p(l) , ( 17 ) where T is the feature subset to be evaluated , T C W , L is class label set , p(w , l ) is the joint distribution of two variables w and l , p(w) and p(l) are marginal probabilities . 
+	</s>
+	
+
+	<s id="106">
+		 p(w , l ) is estimated based 1http://www.d.umn.edu/^tpederse/data.html ynpXnlvn(kJyn,0(i)) ( 12 ) 1 Nk ~N n_1 µk = 1 Rk = Nk ( yn — µk ) ( yn — µk)tpXn l vn ( k Jyn , 0(i) ) N E n_1 N E n_1 Nk = X M(T)= J1 J wET X lEL on contingency table of contextual word set W and class label set L. Intuitively , if M(T1) &gt; M(T2) , T1 is more important than T2 since T1 contains more information about L. 3.3 Evaluation method for clustering result When assessing the agreement between clustering result and hand-tagged senses ( ground truth classes ) in benchmark data , we encountered the difficulty that there was no sense tag for each cluster . 
+	</s>
+	
+
+	<s id="107">
+		 In 
+		<ref citStr="Lange et al. , 2002" id="16" label="CERF" position="19608">
+			( Lange et al. , 2002 )
+		</ref>
+		 , they defined a permutation procedure for calculating the agreement between two cluster memberships assigned by different unsupervised learners . 
+	</s>
+	
+
+	<s id="108">
+		 In this paper , we applied their method to assign different sense tags to only min ( I UI,I CI ) clusters by maximizing the accuracy , where I U I is the number of clusters , and ICI is the number of ground truth classes . 
+	</s>
+	
+
+	<s id="109">
+		 The underlying assumption here is that each cluster is considered as a class , and for any two clusters , they do not share same class labels . 
+	</s>
+	
+
+	<s id="110">
+		 At most ICI clusters are assigned sense tags , since there are only ICI classes in benchmark data . 
+	</s>
+	
+
+	<s id="111">
+		 Given the contingency table Q between clusters and ground truth classes , each entry Qj j gives the number of occurrences which fall into both the ith cluster and the j-th ground truth class . 
+	</s>
+	
+
+	<s id="112">
+		 If I U I &lt; ICI , we constructed empty clusters so that IUI = ICI . 
+	</s>
+	
+
+	<s id="113">
+		 Let Q represent a one-to-one mapping function from C to U . 
+	</s>
+	
+
+	<s id="114">
+		 It means that Q ( j 1 ) =~ Q ( j2 ) if j 1 =~ j2 and vice versa , 1 &lt; j1 , j2 &lt; ICI . 
+	</s>
+	
+
+	<s id="115">
+		 Then Q(j) is the index of the cluster associated with the j-th class . 
+	</s>
+	
+
+	<s id="116">
+		 Searching a mapping function to maximize the accuracy of U can be formulated as : IjiIj In fact , Ejj Qj j is equal to N , the number of occurrences of target word in test set . 
+	</s>
+	
+
+	<s id="117">
+		 3.4 Experiments and results For each dataset , we tested following procedures : CGDterr,t:We implemented the context group discrimination algorithm . 
+	</s>
+	
+
+	<s id="118">
+		 Top max ( IWI x 20 % , 100 ) words in contextual word list was selected as features using frequency or k2 based ranking . 
+	</s>
+	
+
+	<s id="119">
+		 Then k-means clustering2 was performed on context vector matrix using normalized Euclidean distance . 
+	</s>
+	
+
+	<s id="120">
+		 K-means clustering was repeated 5 times 2We used k-means function in statistics toolbox ofMatlab . 
+	</s>
+	
+
+	<s id="121">
+		 and the partition with best quality was chosen as final result . 
+	</s>
+	
+
+	<s id="122">
+		 The number of clusters used by k-means was set to be identical with the number of ground truth classes . 
+	</s>
+	
+
+	<s id="123">
+		 We tested CGDterr,t using various word vector weighting methods when deriving context vectors , ex . 
+	</s>
+	
+
+	<s id="124">
+		 binary , idf , t f • idf . 
+	</s>
+	
+
+	<s id="125">
+		 CGDSVD : The context vector matrix was derived using same method in CGDterr,t . 
+	</s>
+	
+
+	<s id="126">
+		 Then k- means clustering was conducted on latent semantic space transformed from context vector matrix , using normalized Euclidean distance . 
+	</s>
+	
+
+	<s id="127">
+		 Specifically , context vectors were reduced to 100 dimensions using SVD . 
+	</s>
+	
+
+	<s id="128">
+		 If the dimension of context vector was less than 100 , all of latent semantic vectors with non-zero eigenvalue were used for subsequent clustering . 
+	</s>
+	
+
+	<s id="129">
+		 We also tested it using different weighting methods , ex . 
+	</s>
+	
+
+	<s id="130">
+		 binary , idf , t f • idf . 
+	</s>
+	
+
+	<s id="131">
+		 F5GMM : We performed cluster validation based feature selection in feature set used by CGD . 
+	</s>
+	
+
+	<s id="132">
+		 Then Cluster algorithm was used to group target word’s instances using Euclidean distance measure . 
+	</s>
+	
+
+	<s id="133">
+		 ^ was set as 0.90 in feature subset search procedure . 
+	</s>
+	
+
+	<s id="134">
+		 The random splitting frequency is set as 10 for estimation of the score of feature subset . 
+	</s>
+	
+
+	<s id="135">
+		 The initial subclass number was 20 and full covariance matrix was used for parameter estimation of each subclass . 
+	</s>
+	
+
+	<s id="136">
+		 For investigating the effect of different context window size on the performance of three procedures , we tested these procedures using various context window sizes : ±1 , ±5 , ±15 , ±25 , and all of contextual words . 
+	</s>
+	
+
+	<s id="137">
+		 The average length of sentences in 4 datasets is 32 words before preprocessing . 
+	</s>
+	
+
+	<s id="138">
+		 Performance on each dataset was assessed by equation 19 . 
+	</s>
+	
+
+	<s id="139">
+		 The scores of feature subsets selected by F5GMM and CGD are listed in Table 3 and 4 . 
+	</s>
+	
+
+	<s id="140">
+		 The average accuracy of three procedures with different feature ranking and weighting method is given in Table 5 . 
+	</s>
+	
+
+	<s id="141">
+		 Each figure is the average over 5 different context window size and 4 datasets . 
+	</s>
+	
+
+	<s id="142">
+		 We give out the detailed results of these three procedures in Figure 1 . 
+	</s>
+	
+
+	<s id="143">
+		 Several results should be noted specifically : From Table 3 and 4 , we can find that F5GMM achieved better score on mutual information ( MI ) measure than CGD over 35 out of total 40 cases . 
+	</s>
+	
+
+	<s id="144">
+		 This is the evidence that our feature selection procedure can remove noise and retain important features . 
+	</s>
+	
+
+	<s id="145">
+		 As it was shown in Table 5 , with both k2 and f req based feature ranking , F5GMM algorithm performed better than CGDterr,t and CGDSVD if we used average accuracy to evaluate their performance . 
+	</s>
+	
+
+	<s id="146">
+		 Specifically , with k2 based feature ^ˆ = arg max ICI QO(j)Ij . 
+	</s>
+	
+
+	<s id="147">
+		 ( 18 ) O L j=1 Then the accuracy of solution U is given by Accuracy(U) = Ej QˆO(j)Ij . 
+	</s>
+	
+
+	<s id="148">
+		 Q ( 19 ) ranking , FSGMM attained 55.4 % average accuracy , while the best average accuracy of CGDterm and CGDSVD were 40.9 % and 51.3 % respectively . 
+	</s>
+	
+
+	<s id="149">
+		 With f req based feature ranking , FSGMM achieved 51.2 % average accuracy , while the best average accuracy of CGDterm and CGDSVD were 45.1 % and 50.2 % . 
+	</s>
+	
+
+	<s id="150">
+		 The automatically estimated cluster numbers by FSGMM over 4 datasets are given in Table 6 . 
+	</s>
+	
+
+	<s id="151">
+		 The estimated cluster number was 2 - 4 for “hard” , 3 - 6 for “interest” , 3 - 6 for “line” , and 2 - 4 for “serve” . 
+	</s>
+	
+
+	<s id="152">
+		 It is noted that the estimated cluster number was less than the number of ground truth classes in most cases . 
+	</s>
+	
+
+	<s id="153">
+		 There are some reasons for this phenomenon . 
+	</s>
+	
+
+	<s id="154">
+		 First , the data is not balanced , which may lead to that some important features cannot be retrieved . 
+	</s>
+	
+
+	<s id="155">
+		 For example , the fourth sense of “serve” , and the sixth sense of “line” , their corresponding features are not up to the selection criteria . 
+	</s>
+	
+
+	<s id="156">
+		 Second , some senses can not be distinguished using only bag-of-words information , and their difference lies in syntactic information held by features . 
+	</s>
+	
+
+	<s id="157">
+		 For example , the third sense and the sixth sense of “interest” may be distinguished by syntactic relation of feature words , while the bag of feature words occurring in their context are similar . 
+	</s>
+	
+
+	<s id="158">
+		 Third , some senses are determined by global topics , rather than local contexts . 
+	</s>
+	
+
+	<s id="159">
+		 For example , according to global topics , it may be easier to distinguish the first and the second sense of “interest” . 
+	</s>
+	
+
+	<s id="160">
+		 Figure 2 shows the average accuracy over three procedures in Figure 1 as a function of context window size for 4 datasets . 
+	</s>
+	
+
+	<s id="161">
+		 For “hard” , the performance dropped as window size increased , and the best accuracy(77.0%) was achieved at window size 1 . 
+	</s>
+	
+
+	<s id="162">
+		 For “interest” , sense discrimination did not benefit from large window size and the best accuracy(40 . 
+	</s>
+	
+
+	<s id="163">
+		 1 % ) was achieved at window size 5 . 
+	</s>
+	
+
+	<s id="164">
+		 For “line” , accuracy dropped when increasing window size and the best accuracy(50.2%) was achieved at window size 1 . 
+	</s>
+	
+
+	<s id="165">
+		 For “serve” , the performance benefitted from large window size and the best accuracy(46.8%) was achieved at window size 15 . 
+	</s>
+	
+
+	<s id="166">
+		 In 
+		<ref citStr="Leacock et al. , 1998" id="17" label="CJPF" position="26708">
+			( Leacock et al. , 1998 )
+		</ref>
+		 , they used Bayesian approach for sense disambiguation of three ambiguous words , “hard” , “line” , and “serve” , based on cues from topical and local context . 
+	</s>
+	
+
+	<s id="167">
+		 They observed that local context was more reliable than topical context as an indicator of senses for this verb and adjective , but slightly less reliable for this noun . 
+	</s>
+	
+
+	<s id="168">
+		 Compared with their conclusion , we can find that our result is consistent with it for “hard” . 
+	</s>
+	
+
+	<s id="169">
+		 But there is some differences for verb “serve” and noun “line” . 
+	</s>
+	
+
+	<s id="170">
+		 For Table 3 : Mutual information between feature subset and class label with x2 based feature ranking . 
+	</s>
+	
+
+	<s id="171">
+		 Word Cont . 
+	</s>
+	
+
+	<s id="172">
+		 Size of MI Size of MI wind . 
+	</s>
+	
+
+	<s id="173">
+		 size feature subset of CGD x 10-2 feature X10-2 subset of FSGMM hard 1 18 6.4495 14 8.1070 5 100 0.4018 80 0.4300 15 100 0.1362 80 0.1416 25 133 0.0997 102 0.1003 all 145 0.0937 107 0.0890 interest 1 64 1.9697 55 2.0639 5 100 0.3234 89 0.3355 15 157 0.1558 124 0.1531 25 190 0.1230 138 0.1267 all 200 0.1163 140 0.1191 line 1 39 4.2089 32 4.6456 5 100 0.4628 84 0.4871 15 183 0.1488 128 0.1429 25 263 0.1016 163 0.0962 all 351 0.0730 192 0.0743 serve 1 22 6.8169 20 6.7043 5 100 0.5057 85 0.5227 15 188 0.2078 164 0.2094 25 255 0.1503 225 0.1536 all 320 0.1149 244 0.1260 Table 4 : Mutual information between feature subset and class label with f req based feature ranking . 
+	</s>
+	
+
+	<s id="174">
+		 Word Cont . 
+	</s>
+	
+
+	<s id="175">
+		 Size of MI Size of MI wind . 
+	</s>
+	
+
+	<s id="176">
+		 size feature subset of CGD x 10-2 feature X10-2 subset of FSGMM hard 1 18 6.4495 14 8.1070 5 100 0.4194 80 0.4832 15 100 0.1647 80 0.1774 25 133 0.1150 102 0.1259 all 145 0.1064 107 0.1269 interest 1 64 1.9697 55 2.7051 5 100 0.6015 89 0.8309 15 157 0.2526 124 0.3495 25 190 0.1928 138 0.2982 all 200 0.1811 140 0.2699 line 1 39 4.2089 32 4.4606 5 100 0.6895 84 0.7816 15 183 0.2301 128 0.2929 25 263 0.1498 163 0.2181 all 351 0.1059 192 0.1630 serve 1 22 6.8169 20 7.0021 5 100 0.7045 85 0.8422 15 188 0.2763 164 0.3418 25 255 0.1901 225 0.2734 all 320 0.1490 244 0.2309 “serve” , the possible reason is that we do not use position of local word and part of speech information , which may deteriorate the performance when local context(&lt;_ 5 words ) is used . 
+	</s>
+	
+
+	<s id="177">
+		 For “line” , the reason might come from the feature subset , which is not good enough to provide improvement when Table 5 : Average accuracy of three procedures with various settings over 4 datasets . 
+	</s>
+	
+
+	<s id="178">
+		 Algorithm Feature Feature Average ranking method weighting method accuracy FSGMM x2 binary 0.554 CGDte ,. , x2 binary 0.404 CGDte ,. , x2 idf 0.407 CGDte ,. , x2 t f • idf 0.409 CGDSVD x2 binary 0.513 CGDSVD x2 idf 0.512 CGDSVD x2 t f • idf 0.508 FSGMM f req binary 0.512 CGDte ,. , f req binary 0.451 CGDte ,. , f req idf 0.437 CGDte ,. , f req t f • idf 0.447 CGDSVD f req binary 0.502 CGDSVD f req idf 0.498 CGDSVD f req t f • idf 0.485 Table 6 : Automatically determined mixture component num- ber . 
+	</s>
+	
+
+	<s id="179">
+		 Word Context Model Model window order order size with x2 with f req hard 1 3 4 5 2 2 15 2 3 25 2 3 all 2 3 interest 1 5 4 5 3 4 15 4 6 25 4 6 all 3 4 line 1 5 6 5 4 3 15 5 4 25 5 4 all 3 4 serve 1 3 3 5 3 4 15 3 3 25 3 3 all 2 4 context window size is no less than 5 . 
+	</s>
+	
+
+	<s id="180">
+		 4 Related Work Besides the two works ( Pantel and Lin , 2002 ; Sch¨utze , 1998 ) , there are other related efforts on word sense discrimination 
+		<ref citStr="Dorow and Widdows , 2003" id="18" label="CEPF" position="30091">
+			( Dorow and Widdows , 2003 
+		</ref>
+		<ref citStr="Fukumoto and Suzuki , 1999" id="19" label="CEPF" position="30118">
+			; Fukumoto and Suzuki , 1999 
+		</ref>
+		<ref citStr="Pedersen and Bruce , 1997" id="20" label="CEPF" position="30147">
+			; Pedersen and Bruce , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="181">
+		 In 
+		<ref citStr="Pedersen and Bruce , 1997" id="21" label="CEPF" position="30220">
+			( Pedersen and Bruce , 1997 )
+		</ref>
+		 , they described an experimental comparison of three clustering algorithms for word sense discrimination . 
+	</s>
+	
+
+	<s id="182">
+		 Their feature sets included morphology of target word , part of speech of contextual words , absence or presence of particular contextual words , and collocation of fre- Figure 1 : Results for three procedures over 4 datases.aThe horizontal axis corresponds to the context window size . 
+	</s>
+	
+
+	<s id="183">
+		 Solid line represents the result of FSGMM + binary , dashed line denotes the result of CGDSVD + idf , and dotted line is the result of CGDte ,. , + idf . 
+	</s>
+	
+
+	<s id="184">
+		 Square marker denotes x2 based feature ranking , while cross marker denotes f req based feature ranking . 
+	</s>
+	
+
+	<s id="185">
+		 Figure 2 : Average accuracy over three procedures in Figure 1 as a function of context window size ( horizontal axis ) for 4 datasets . 
+	</s>
+	
+
+	<s id="186">
+		 quent words . 
+	</s>
+	
+
+	<s id="187">
+		 Then occurrences of target word were grouped into a pre-defined number of clusters . 
+	</s>
+	
+
+	<s id="188">
+		 Similar with many other algorithms , their algorithm also required the cluster number to be provided . 
+	</s>
+	
+
+	<s id="189">
+		 In 
+		<ref citStr="Fukumoto and Suzuki , 1999" id="22" label="CEPN" position="31318">
+			( Fukumoto and Suzuki , 1999 )
+		</ref>
+		 , a term weight learning algorithm was proposed for verb sense disambiguation , which can automatically extract nouns co-occurring with verbs and identify the number of senses of an ambiguous verb . 
+	</s>
+	
+
+	<s id="190">
+		 The weakness of their method is to assume that nouns co-occurring with verbs are disambiguated in advance and the number of senses of target verb is no less than two . 
+	</s>
+	
+
+	<s id="191">
+		 The algorithm in 
+		<ref citStr="Dorow and Widdows , 2003" id="23" label="CEPF" position="31749">
+			( Dorow and Widdows , 2003 )
+		</ref>
+		 represented target noun word , its neighbors and their relationships using a graph in which each node denoted a noun and two nodes had an edge between them if they co-occurred with more than a given number of times . 
+	</s>
+	
+
+	<s id="192">
+		 Then senses of target word were iteratively learned by clustering the local graph of similar words around target word . 
+	</s>
+	
+
+	<s id="193">
+		 Their algorithm required a threshold as input , which controlled the number of senses . 
+	</s>
+	
+
+	<s id="194">
+		 5 Conclusion and Future Work Our word sense learning algorithm combined two novel ingredients : feature selection and order identification . 
+	</s>
+	
+
+	<s id="195">
+		 Feature selection was formalized as a constrained optimization problem , the output of which was a set of important features to determine word senses . 
+	</s>
+	
+
+	<s id="196">
+		 Both cluster structure and cluster number were estimated by minimizing a MDL criterion . 
+	</s>
+	
+
+	<s id="197">
+		 Experimental results showed that our algorithm can retrieve important features , estimate cluster number automatically , and achieve better performance in terms of average accuracy than CGD algorithm which required cluster number as input . 
+	</s>
+	
+
+	<s id="198">
+		 Our word sense learning algorithm is unsupervised in two folds : no requirement of sense tagged data , and no requirement of predefinition of sense number , which enables the automatic discovery of word senses from free text . 
+	</s>
+	
+
+	<s id="199">
+		 In our algorithm , we treat bag of words in local contexts as features . 
+	</s>
+	
+
+	<s id="200">
+		 It has been shown that local collocations and morphology of target word play important roles in word sense disambiguation or discrimination 
+		<ref citStr="Leacock et al. , 1998" id="24" label="CEPF" position="33319">
+			( Leacock et al. , 1998 
+		</ref>
+		<ref citStr="Widdows , 2003" id="25" label="CEPF" position="33343">
+			; Widdows , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="201">
+		 It is necessary to incorporate these more structural information to improve the performance of word sense learning . 
+	</s>
+	
+
+	<s id="202">
+		 References Bouman , C. A. , Shapiro , M. , Cook , G. W. , Atkins , C. B. , &amp; Cheng , H. ( 1998 ) Cluster : An Unsupervsied Algorithm for Modeling Gaussian Mixtures . 
+	</s>
+	
+
+	<s id="203">
+		 http://dynamo.ecn.purdue.edu/ — bouman/software/cluster/ . 
+	</s>
+	
+
+	<s id="204">
+		 Dash , M. , Choi , K. , Scheuermann , P. , &amp; Liu , H. ( 2002 ) Feature Selection for Clustering - A Filter Solution . 
+	</s>
+	
+
+	<s id="205">
+		 Proc . 
+	</s>
+	
+
+	<s id="206">
+		 of IEEE Int. Conf . 
+	</s>
+	
+
+	<s id="207">
+		 on Data Mining(pp . 
+	</s>
+	
+
+	<s id="208">
+		 115– 122 ) . 
+	</s>
+	
+
+	<s id="209">
+		 Dempster , A. P. , Laird , N. M. , &amp; Rubin , D. B. ( 1977 ) Maximum likelihood from incomplete data using the EM algorithm . 
+	</s>
+	
+
+	<s id="210">
+		 Journal of the Royal Statistical Society , 39(B) . 
+	</s>
+	
+
+	<s id="211">
+		 Dorow , B , &amp; Widdows , D. ( 2003 ) Discovering Corpus- Specific Word Senses . 
+	</s>
+	
+
+	<s id="212">
+		 Proc . 
+	</s>
+	
+
+	<s id="213">
+		 of the 10th Conf . 
+	</s>
+	
+
+	<s id="214">
+		 of the European Chapter of the Association for Computa- tional Linguistics , Conference Companion ( research notes and demos)(pp.79–82) . 
+	</s>
+	
+
+	<s id="215">
+		 Dy , J. G. , &amp; Brodley , C. E. ( 2000 ) Feature Subset Selection and Order Identification for Unsupervised Learning . 
+	</s>
+	
+
+	<s id="216">
+		 Proc . 
+	</s>
+	
+
+	<s id="217">
+		 of the 17th Int. Conf . 
+	</s>
+	
+
+	<s id="218">
+		 on Machine Learning(pp . 
+	</s>
+	
+
+	<s id="219">
+		 247–254 ) . 
+	</s>
+	
+
+	<s id="220">
+		 Fukumoto , F. , &amp; Suzuki , Y. ( 1999 ) Word Sense Disambiguation in Untagged Text Based on Term Weight Learning . 
+	</s>
+	
+
+	<s id="221">
+		 Proc . 
+	</s>
+	
+
+	<s id="222">
+		 of the 9th Conf . 
+	</s>
+	
+
+	<s id="223">
+		 ofEuropean Chapter of the Association for Computational Linguistics(pp . 
+	</s>
+	
+
+	<s id="224">
+		 209–216 ) . 
+	</s>
+	
+
+	<s id="225">
+		 Ide , N. , &amp; V´eronis , J. ( 1998 ) Word Sense Disambiguation : The State of the Art . 
+	</s>
+	
+
+	<s id="226">
+		 Computational Linguistics , 24:1,1–41 . 
+	</s>
+	
+
+	<s id="227">
+		 Lange , T. , Braun , M. , Roth , V. , &amp; Buhmann , J. M. ( 2002 ) Stability-Based Model Selection . 
+	</s>
+	
+
+	<s id="228">
+		 Advances in Neural Information Processing Systems 15 . 
+	</s>
+	
+
+	<s id="229">
+		 Law , M. H. , Figueiredo , M. , &amp; Jain , A. K. ( 2002 ) Feature Selection in Mixture-Based Clustering . 
+	</s>
+	
+
+	<s id="230">
+		 Advances in Neural Information Processing Systems 15 . 
+	</s>
+	
+
+	<s id="231">
+		 Leacock , C. , Chodorow , M. , &amp; Miller A. G. ( 1998 ) Using Corpus Statistics and WordNet Relations for Sense Identification . 
+	</s>
+	
+
+	<s id="232">
+		 Computational Linguistics , 24:1 , 147– 165 . 
+	</s>
+	
+
+	<s id="233">
+		 Levine , E. , &amp; Domany , E. ( 2001 ) Resampling Method for Unsupervised Estimation of Cluster Validity . 
+	</s>
+	
+
+	<s id="234">
+		 Neural Computation , Vol. 13 , 2573–2593 . 
+	</s>
+	
+
+	<s id="235">
+		 Mitra , P. , Murthy , A. C. , &amp; Pal , K. S. ( 2002 ) Unsupervised Feature Selection Using Feature Similarity . 
+	</s>
+	
+
+	<s id="236">
+		 IEEE Transactions on Pattern Analysis and Machine Intelligence , 24:4 , 301–312 . 
+	</s>
+	
+
+	<s id="237">
+		 Modha , D. S. , &amp; Spangler , W. S. ( 2003 ) Feature Weighting in k-Means Clustering . 
+	</s>
+	
+
+	<s id="238">
+		 Machine Learning , 52:3 , 217–237 . 
+	</s>
+	
+
+	<s id="239">
+		 Pantel , P. &amp; Lin , D. K. ( 2002 ) Discovering Word Senses from Text . 
+	</s>
+	
+
+	<s id="240">
+		 Proc . 
+	</s>
+	
+
+	<s id="241">
+		 of ACM SIGKDD Conf . 
+	</s>
+	
+
+	<s id="242">
+		 on Knowledge Discovery and Data Mining(pp . 
+	</s>
+	
+
+	<s id="243">
+		 613-619 ) . 
+	</s>
+	
+
+	<s id="244">
+		 Pedersen , T. , &amp; Bruce , R. ( 1997 ) Distinguishing Word Senses in Untagged Text . 
+	</s>
+	
+
+	<s id="245">
+		 Proceedings of the 2nd Conference on Empirical Methods in Natural Language Processing(pp . 
+	</s>
+	
+
+	<s id="246">
+		 197–207 ) . 
+	</s>
+	
+
+	<s id="247">
+		 Pudil , P. , Novovicova , J. , &amp; Kittler , J. ( 1994 ) Floating Search Methods in Feature Selection . 
+	</s>
+	
+
+	<s id="248">
+		 Pattern Recognigion Letters , Vol. 15 , 1119-1125 . 
+	</s>
+	
+
+	<s id="249">
+		 Rissanen , J. ( 1978 ) Modeling by Shortest Data Description . 
+	</s>
+	
+
+	<s id="250">
+		 Automatica , Vol. 14 , 465–471 . 
+	</s>
+	
+
+	<s id="251">
+		 Sch¨utze , H. ( 1998 ) Automatic Word Sense Discrimination . 
+	</s>
+	
+
+	<s id="252">
+		 Computational Linguistics , 24:1 , 97–123 . 
+	</s>
+	
+
+	<s id="253">
+		 Talavera , L. ( 1999 ) Feature Selection as a Preprocessing Step for Hierarchical Clustering . 
+	</s>
+	
+
+	<s id="254">
+		 Proc . 
+	</s>
+	
+
+	<s id="255">
+		 of the 16th Int. Conf . 
+	</s>
+	
+
+	<s id="256">
+		 on Machine Learning(pp . 
+	</s>
+	
+
+	<s id="257">
+		 389–397 ) . 
+	</s>
+	
+
+	<s id="258">
+		 Widdows , D. ( 2003 ) Unsupervised methods for developing taxonomies by combining syntactic and statistical information . 
+	</s>
+	
+
+	<s id="259">
+		 Proc . 
+	</s>
+	
+
+	<s id="260">
+		 of the Human Language Technology / Conference of the North American Chapter of the Association for Computational Linguistics(pp . 
+	</s>
+	
+
+	<s id="261">
+		 276–283 ) . 
+	</s>
+	
+
+
+</acldoc>

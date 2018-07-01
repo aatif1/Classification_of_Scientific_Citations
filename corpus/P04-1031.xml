@@ -1,0 +1,1185 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1031">
+	
+
+	<s id="1">
+		 Balancing Clarity and Efficiency in Typed Feature Logic through Delaying Gerald Penn University of Toronto 10 King’s College Rd. Toronto M5S 3G4 Canada gpenn@cs.toronto.edu Abstract The purpose of this paper is to re-examine the balance between clarity and efficiency in HPSG design , with particular reference to the design decisions made in the English Resource Grammar ( LinGO , 1999 , ERG ) . 
+	</s>
+	
+
+	<s id="2">
+		 It is argued that a simple generalization of the conventional delay statements used in logic programming is sufficient to restore much of the functionality and concomitant benefit that the ERG elected to forego , with an acceptable although still perceptible computational cost . 
+	</s>
+	
+
+	<s id="3">
+		 1 Motivation By convention , current HPSGs consist , at the very least , of a deductive backbone of extended phrase structure rules , in which each category is a description of a typed feature structure ( TFS ) , augmented with constraints that enforce the principles of grammar . 
+	</s>
+	
+
+	<s id="4">
+		 These principles typically take the form of statements , “for all TFSs , 0 holds,” where 0 is usually an implication . 
+	</s>
+	
+
+	<s id="5">
+		 Historically , HPSG used a much richer set of formal descriptive devices , however , mostly on analogy to developments in the use of types and description logics in programming language theory ( A¨ít-Ka´ci , 1984 ) , which had served as the impetus for HPSG’s invention 
+		<ref citStr="Pollard , 1998" id="1" label="CEPF" position="1413">
+			( Pollard , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="6">
+		 This included logic-programming-style relations ( H¨ohfeld and Smolka , 1988 ) , a powerful description language in which expressions could denote sets of TFSs through the use of an explicit disjunction operator , and the full expressive power of implications , in which antecedents of the above- mentioned 0 principles could be arbitrarily complex . 
+	</s>
+	
+
+	<s id="7">
+		 Early HPSG-based natural language processing systems faithfully supported large chunks of this richer functionality , in spite of their inability to handle it efficiently — so much so that when the designers of the ERG set out to select formal descriptive devices for their implementation with the aim of “balancing clarity and efficiency,” 
+		<ref citStr="Flickinger , 2000" id="2" label="CJPN" position="2151">
+			( Flickinger , 2000 )
+		</ref>
+		 , they chose to include none of these ameni ties . 
+	</s>
+	
+
+	<s id="8">
+		 The ERG uses only phrase-structure rules and type-antecedent constraints , pushing all would-be description-level disjunctions into its type system or rules . 
+	</s>
+	
+
+	<s id="9">
+		 In one respect , this choice was successful , because it did at least achieve a respectable level of efficiency . 
+	</s>
+	
+
+	<s id="10">
+		 But the ERG’s selection of functionality has acquired an almost liturgical status within the HPSG community in the intervening seven years . 
+	</s>
+	
+
+	<s id="11">
+		 Keeping this particular faith , moreover , comes at a considerable cost in clarity , as will be argued below . 
+	</s>
+	
+
+	<s id="12">
+		 This paper identifies what it is precisely about this extra functionality that we miss ( modularity , Section 2 ) , determines what it would take at a minimum computationally to get it back ( delaying , Section 3 ) , and attempts to measure exactly how much that minimal computational overhead would cost ( about 4 ps per delay , Section 4 ) . 
+	</s>
+	
+
+	<s id="13">
+		 This study has not been undertaken before ; the ERG designers’ decision was based on largely anecdotal accounts of performance relative to then-current implementations that had not been designed with the intention of minimizing this extra cost ( indeed , the ERG baseline had not yet been devised ) . 
+	</s>
+	
+
+	<s id="14">
+		 2 Modularity : the cost in clarity Semantic types and inheritance serve to organize the constraints and overall structure of an HPSG grammar . 
+	</s>
+	
+
+	<s id="15">
+		 This is certainly a familiar , albeit vague justification from programming languages research , but the comparison between HPSG and modern programming languages essentially ends with this statement . 
+	</s>
+	
+
+	<s id="16">
+		 Programming languages with inclusional polymorphism ( subtyping ) invariably provide functions or relations and allow these to be reified as methods within user-defined subclasses/subtypes . 
+	</s>
+	
+
+	<s id="17">
+		 In HPSG , however , values of features must necessarily be TFSs themselves , and the only method ( implicitly ) provided by the type signature to act on these values is unification . 
+	</s>
+	
+
+	<s id="18">
+		 In the absence of other methods and in the absence of an explicit disjunction operator , the type signature itself has the responsibility of not only declaring definitional sub- fi n-wh-fi ll-rel-clinf-wh-fi ll-rel-cl red-rel-cl simp-inf-rel-cl fi n-hd-fi ll-ph inf-hd-fi ll-ph wh-rel-cl non-wh-rel-cl hd-fi ll-ph hd-comp-ph inter-cl rel-cl hd-adj-ph hd-nexus-ph clause non-hd-ph hd-ph headed phrase phrase Figure 1 : Relative clauses in the ERG ( partial ) . 
+	</s>
+	
+
+	<s id="19">
+		 class relationships , but expressing all other non- definitional disjunctions in the grammar ( as subtyping relationships ) . 
+	</s>
+	
+
+	<s id="20">
+		 It must also encode the necessary accoutrements for implementing all other necessary means of combination as unification , such as difference lists for appending lists , or the so-called qeq constraints of Minimal Recursion Semantics 
+		<ref citStr="Copestake et al. , 2003" id="3" label="CEPF" position="5056">
+			( Copestake et al. , 2003 )
+		</ref>
+		 to encode semantic embedding constraints . 
+	</s>
+	
+
+	<s id="21">
+		 Unification , furthermore , is an inherently non- modular , global operation because it can only be defined relative to the structure of the entire partial order of types ( as a least upper bound ) . 
+	</s>
+	
+
+	<s id="22">
+		 Of course , some partial orders are more modularizable than others , but legislating the global form that type signatures must take on is not an easy property to enforce without more local guidance . 
+	</s>
+	
+
+	<s id="23">
+		 The conventional wisdom in programming languages research is indeed that types are responsible for mediating the communication between modules . 
+	</s>
+	
+
+	<s id="24">
+		 A simple type system such as HPSG’s can thus only mediate very simple communication . 
+	</s>
+	
+
+	<s id="25">
+		 Modern programming languages incorporate some degree of parametric polymorphism , in addition to subtyping , in order to accommodate more complex communication . 
+	</s>
+	
+
+	<s id="26">
+		 To date , HPSG’s use of parametric types has been rather limited , although there have been some recent attempts to apply them to the ERG 
+		<ref citStr="Penn and Hoetmer , 2003" id="4" label="CEPF" position="6114">
+			( Penn and Hoetmer , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="27">
+		 Without this , one obtains type signatures such as Figure 1 ( a portion of the ERG’s for relative clauses ) , in which both the semantics of the subtyping links themselves ( normally , subset inclusion ) and the multi-dimensionality of the empirical domain’s analysis erode into a collection of arbitrary naming conventions that are difficult to validate or modify . 
+	</s>
+	
+
+	<s id="28">
+		 A more avant-garde view of typing in programming languages research , inspired by the Curry- Howard isomorphism , is that types are equivalent to relations , which is to say that a relation can mediate communication between modules through its arguments , just as a parametric type can through its parameters . 
+	</s>
+	
+
+	<s id="29">
+		 The fact that we witness some of these mediators as types and others as relations is simply an intensional reflection of how the grammar writer thinks of them . 
+	</s>
+	
+
+	<s id="30">
+		 In classical HPSG , relations were generally used as goals in some proof resolution strategy ( such as Prolog’s SLD resolution ) , but even this has a parallel in the world of typing . 
+	</s>
+	
+
+	<s id="31">
+		 Using the type signature and principles of Figure 2 , for ex- appendbase appendrec Arg1 : e list Arg1:ne list Junk:append append Arg1 : list Arg2 : list Arg3 : list 1 appendbase=~ Arg2 : L n Arg3 : L. appendrec=~ Arg1 : [ HIL1 ] n Arg2 : L2 n Arg3 : [ HIL3 ] n Junk : ( append n A1 : L1 n A2 : L2 n Arg3 : L3 ) . 
+	</s>
+	
+
+	<s id="32">
+		 Figure 2 : Implementing SLD resolution over the append relation as sort resolution . 
+	</s>
+	
+
+	<s id="33">
+		 ample , we can perform proof resolution by attempting to sort resolve every TFS to a maximally specific type . 
+	</s>
+	
+
+	<s id="34">
+		 This is actually consistent with HPSG’s use of feature logic , although most TFS-based NLP systems do not sort resolve because type inference under sort resolution is NP-complete 
+		<ref citStr="Penn , 2001" id="5" label="CEPF" position="7920">
+			( Penn , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="35">
+		 Phrase structure rules , on the other hand , while they can be encoded inside a logic programming relation , are more naturally viewed as algebraic generators . 
+	</s>
+	
+
+	<s id="36">
+		 In this respect , they are more similar to the immediate subtyping declarations that grammar writers use to specify type signatures — both chart parsing and transitive closure are instances of all- source shortest-path problems on the same kind of algebraic structure , called a closed semi-ring . 
+	</s>
+	
+
+	<s id="37">
+		 The only notion of modularity ever proven to hold of phrase structure rule systems 
+		<ref citStr="Wintner , 2002" id="6" label="CEPF" position="8511">
+			( Wintner , 2002 )
+		</ref>
+		 , furthermore , is an algebraic one . 
+	</s>
+	
+
+	<s id="38">
+		 3 Delaying : the missing link of functionality If relations are used in the absence of recursive data structures , a grammar could be specified using relations , and the relations could then be unfolded off- line into relation-free descriptions . 
+	</s>
+	
+
+	<s id="39">
+		 In this usage , relations are just macros , and not at all inefficient . 
+	</s>
+	
+
+	<s id="40">
+		 Early HPSG implementations , however , used quite a lot of recursive structure where it did not need to be , and the structures they used , such as lists , buried important data deep inside substructures that made parsing much slower . 
+	</s>
+	
+
+	<s id="41">
+		 Provided that grammar writers use more parsimonious structures , which is a good idea even in the absence of relations , there is nothing wrong with the speed of logic programming relations 
+		<ref citStr="Van Roy , 1990" id="7" label="CEPF" position="9350">
+			( Van Roy , 1990 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="42">
+		 Recursive datatypes are also prone to non- termination problems , however . 
+	</s>
+	
+
+	<s id="43">
+		 This can happen when partially instantiated and potentially recursive data structures are submitted to a proof resolution procedure which explores the further instantiations of these structures too aggressively . 
+	</s>
+	
+
+	<s id="44">
+		 Although this problem has received significant attention over the last fifteen years in the constraint logic programming ( CLP ) community , no true CLP implementation yet exists for the logic of typed feature structures ( Carpenter , 1992 , LTFS ) . 
+	</s>
+	
+
+	<s id="45">
+		 Some aspects of general solution strategies , including incremental entailment simplification ( A¨ít-Kaci et al. , 1992 ) , deterministic goal expansion 
+		<ref citStr="Doerre , 1993" id="8" label="CEPF" position="10101">
+			( Doerre , 1993 )
+		</ref>
+		 , and guard statements for relations 
+		<ref citStr="Doerre et al. , 1996" id="9" label="CEPF" position="10163">
+			( Doerre et al. , 1996 )
+		</ref>
+		 have found their way into the less restrictive sorted feature constraint systems from which LTFS descended . 
+	</s>
+	
+
+	<s id="46">
+		 The CUF implementation 
+		<ref citStr="Doerre et al. , 1996" id="10" label="CERF" position="10329">
+			( Doerre et al. , 1996 )
+		</ref>
+		 , notably , allowed for delay statements to be attached to relation definitions , which would wait until each argument was at least as specific as some variable-free , disjunction-free description before resolving . 
+	</s>
+	
+
+	<s id="47">
+		 In the remainder of this section , a method is presented for reducing delays on any inequationfree description , including variables and disjunctions , to the SICStus Prolog when/2 primitive ( Sections 3.4 ) . 
+	</s>
+	
+
+	<s id="48">
+		 This method takes full advantage of the restrictions inherent to LTFS ( Section 3.1 ) to maximize run-time efficiency . 
+	</s>
+	
+
+	<s id="49">
+		 In addition , by delaying calls to subgoals individually rather than the ( universally quantified ) relation definitions themselves , ) we can also use delays to postpone non-deterministic search on disjunctive descriptions ( Section 3.3 ) and to implement complex- antecedent constraints ( Section 3.2 ) . 
+	</s>
+	
+
+	<s id="50">
+		 As a result , this single method restores all of the functionality we were missing . 
+	</s>
+	
+
+	<s id="51">
+		 For simplicity , it will be assumed that the target language of our compiler is Prolog itself . 
+	</s>
+	
+
+	<s id="52">
+		 This is inconsequential to the general proposal , although implementing logic programs in Prolog certainly involves less effort . 
+	</s>
+	
+
+	<s id="53">
+		 ' Delaying relational definitions is a subcase of this func- tionality , which can be made more accessible through some extra syntactic sugar . 
+	</s>
+	
+
+	<s id="54">
+		 3.1 Restrictions inherent to LTFS LTFS is distinguished by its possession of appropriateness conditions that mediate the occurrence of features and types in these records . 
+	</s>
+	
+
+	<s id="55">
+		 Appropriateness conditions stipulate , for every type , a finite set of features that can and must have values in TFSs of that type . 
+	</s>
+	
+
+	<s id="56">
+		 This effectively forces TFSs to be finite- branching terms with named attributes . 
+	</s>
+	
+
+	<s id="57">
+		 Appropriateness conditions also specify a type to which the value of an appropriate feature is restricted ( a value restriction ) . 
+	</s>
+	
+
+	<s id="58">
+		 These conditions make LTFS very convenient for linguistic purposes because the combination of typing with named attributes allows for a very terse description language that can easily make reference to a sparse amount of information in what are usually extremely large structures/records : Definition : Given afinite meet semi-lattice of types , Type , a fixedfinite set offeatures , Feat , and a countable set of variables , Var , 4b is the least set of descriptions that contains : • v , v E Var , •~,~EType , • F : 0 , F E Feat , 0 E 4b , • 01 A 02 , 01 , 02 E 4b , and • 01 V 02 , 01 , 02 E 4b . 
+	</s>
+	
+
+	<s id="59">
+		 A nice property of this description language is that every non-disjunctive description with a non- empty denotation has a unique most general TFS in its denotation . 
+	</s>
+	
+
+	<s id="60">
+		 This is called its most general satisfier . 
+	</s>
+	
+
+	<s id="61">
+		 We will assume that appropriateness guarantees that there is a unique most general type , Intro(F) to which a given feature , F , is appropriate . 
+	</s>
+	
+
+	<s id="62">
+		 This is called unique feature introduction . 
+	</s>
+	
+
+	<s id="63">
+		 Where unique feature introduction is not assumed , it can be added automatically in O ( F · T ) time , where F is the number of features and T is the number of types 
+		<ref citStr="Penn , 2001" id="11" label="CEPF" position="13502">
+			( Penn , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="64">
+		 Meet semi-latticehood can also be restored automatically , although this involves adding exponentially many new types in the worst case . 
+	</s>
+	
+
+	<s id="65">
+		 3.2 Complex Antecedent Constraints It will be assumed here that all complex-antecedent constraints are implicitly universally quantified , and are of the form : a=~ ( ' yAp ) where a , -y are descriptions from the core description language , 4b , and p is drawn from a definite clause language of relations , whose arguments are also descriptions from 4b . 
+	</s>
+	
+
+	<s id="66">
+		 As mentioned above , the ERG uses the same form , but where a can only be a type description , T , and p is the trivial goal , true . 
+	</s>
+	
+
+	<s id="67">
+		 The approach taken here is to allow for arbitrary antecedents , a , but still to interpret the implications of principles using subsumption by a , i.e. , for every TFS ( the implicit universal quantification is still there ) , either the consequent holds , or the TFS is not subsumed by the most general satisfier of a . 
+	</s>
+	
+
+	<s id="68">
+		 The subsumption convention dates back to the TDL ( Krieger and Sch¨afer , 1994 ) and ALE 
+		<ref citStr="Carpenter and Penn , 1996" id="12" label="CEPF" position="14619">
+			( Carpenter and Penn , 1996 )
+		</ref>
+		 systems , and has earlier antecedents in work that applied lexical rules by subsumption 
+		<ref citStr="Krieger and Nerbone , 1991" id="13" label="CEPF" position="14738">
+			( Krieger and Nerbone , 1991 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="69">
+		 The Con- Troll constraint solver 
+		<ref citStr="Goetz and Meurers , 1997" id="14" label="CJPN" position="14811">
+			( Goetz and Meurers , 1997 )
+		</ref>
+		 attempted to handle complex antecedents , but used a classical interpretation of implication and no deductive phrase-structure backbone , which created a very large search space with severe non-termination problems . 
+	</s>
+	
+
+	<s id="70">
+		 Within CLP more broadly , there is some related work on guarded constraints 
+		<ref citStr="Smolka , 1994" id="15" label="CEPF" position="15131">
+			( Smolka , 1994 )
+		</ref>
+		 and on inferring guards automatically by residuation of implicational rules 
+		<ref citStr="Smolka , 1991" id="16" label="CEPF" position="15225">
+			( Smolka , 1991 )
+		</ref>
+		 , but implicit universal quantification of all constraints seems to be unique to linguistics . 
+	</s>
+	
+
+	<s id="71">
+		 In most CLP , constraints on a class of terms or objects must be explicitly posted to a store for each member of that class . 
+	</s>
+	
+
+	<s id="72">
+		 If a constraint is not posted for a particular term , then it does not apply to that term . 
+	</s>
+	
+
+	<s id="73">
+		 The subsumption-based approach is sound with respect to the classical interpretation of implication for those principles where the classical interpretation really is the correct one . 
+	</s>
+	
+
+	<s id="74">
+		 For completeness , some additional resolution method ( in the form of a logic program with relations ) must be used . 
+	</s>
+	
+
+	<s id="75">
+		 As is normally the case in CLP , deductive search is used alongside constraint resolution . 
+	</s>
+	
+
+	<s id="76">
+		 Under such assumptions , our principles can be converted to : trigger(a) ==&gt; . 
+	</s>
+	
+
+	<s id="77">
+		 v A whenfs((v = a ) , ( ( v = ~)~p ) ) Thus , with an implementation of type-antecedent constraints and an implementation of when f s / 2 ( Section 3.3 ) , which delays the goal in its second argument until v is subsumed by ( one of ) the most general satisfier(s) of description a , all that remains is a method for finding the trigger , the most efficient type antecedent to use , i.e. , the most general one that will not violate soundness . 
+	</s>
+	
+
+	<s id="78">
+		 trigger(a) can be defined as follows : • trigger(v) = L , • trigger(~) 7 , = T , • trigger(F : 0 ) = Intro ( F ) , • trigger(01 ~ 02 ) = trigger(01) U trigger(02) , and • trigger(01V02) = trigger(01)fltrigger(02) , where U and n are respectively unification and generalization in the type semi-lattice . 
+	</s>
+	
+
+	<s id="79">
+		 In this and the next two subsections , we can use Figure 3 as a running example of the various stages of compilation of a typical complex-antecedent constraint , namely the Finiteness Marking Principle for German ( 1 ) . 
+	</s>
+	
+
+	<s id="80">
+		 This constraint is stated relative to the signature shown in Figure 4 . 
+	</s>
+	
+
+	<s id="81">
+		 The description to the left of the arrow in Figure 3 ( 1 ) selects TFSs whose substructure on the path SYNSEM:LOC:CAT satisfies two requirements : its HEAD value has type verb , and its MARKING value has type fin . 
+	</s>
+	
+
+	<s id="82">
+		 The principle says that every TFS that satisfies that description must also have a SYNSEM : LOC : CAT : HEAD : VFORM value of type bse . 
+	</s>
+	
+
+	<s id="83">
+		 To find the trigger in Figure 3 ( 1 ) , we can observe that the antecedent is a feature value description ( F:0 ) , so the trigger is Intro(SYNSEM) , the unique introducer of the SYNSEM feature , which happens to be the type sign . 
+	</s>
+	
+
+	<s id="84">
+		 We can then transform this constraint as above ( Figure 3 ( 2 ) ) . 
+	</s>
+	
+
+	<s id="85">
+		 The cons and goal operators in (2)–(5) are ALE syntax , used respectively to separate the type antecedent of a constraint from the description component of the consequent ( in this case , just the variable , x ) , and to separate the description component of the consequent from its relational attachment . 
+	</s>
+	
+
+	<s id="86">
+		 We know that any TFS subsumed by the original antecedent will also be subsumed by the most general TFS of type sign , because sign introduces SYNSEM . 
+	</s>
+	
+
+	<s id="87">
+		 3.3 Reducing Complex Conditionals Let us now implement our delay predicate , whenfs ( V=Desc , Goal ) . 
+	</s>
+	
+
+	<s id="88">
+		 Without loss of generality , it can be assumed that the first argument is actually drawn from a more general conditional language , including those of the form Vi = Desci closed under conjunction and disjunction . 
+	</s>
+	
+
+	<s id="89">
+		 It can also be assumed that the variables of each Desci are distinct . 
+	</s>
+	
+
+	<s id="90">
+		 Such a complex conditional can easily be converted into a normal form in which each atomic conditional contains a non-disjunctive description . 
+	</s>
+	
+
+	<s id="91">
+		 Conjunction and disjunction of atomic conditionals then reduce as follows ( using the Prolog convention of comma for AND and semi-colon for OR ) : whenfs((VD1,VD2),Goal) :- whenfs(VD1,whenfs(VD2,Goal)) . 
+	</s>
+	
+
+	<s id="92">
+		 whenfs((VD1;VD2),Goal) :- whenfs(VD1,(Trigger = 0 -&gt; Goal ; true ) ) , whenfs(VD2,(Trigger = 1 -&gt; Goal ; true ) ) . 
+	</s>
+	
+
+	<s id="93">
+		 The binding of the variable Trigger is necessary to ensure that Goal is only resolved once in case the ( 1 ) synsem:loc:cat : ( head : verb , marking : fin ) =#- synsem:loc : cat : head : vform:bse . 
+	</s>
+	
+
+	<s id="94">
+		 ( 2 ) sign cons X goal whenfs((X=synsem:loc:cat:(head:verb,marking:fin)) , ( X=synsem:loc:cat:head:vform:bse ) ) . 
+	</s>
+	
+
+	<s id="95">
+		 ( 3 ) sign cons X goal whentype(sign,X,(farg(synsem,X,SynVal) , whentype(synsem,SynVal,(farg(loc,SynVal,LocVal) , whentype(local,LocVal,(farg(cat,LocVal,CatVal) , whenfs((CatVal=(head:verb,marking:fin)) , ( X=synsem:loc:cat:head:vform:bse ) ) ) ) ) ) ) ) . 
+	</s>
+	
+
+	<s id="96">
+		 ( 4 ) sign cons X goal ( whentype(sign,X,(farg(synsem,X,SynVal) , whentype(synsem,SynVal,(farg(loc,SynVal,LocVal) , whentype(local,LocVal,(farg(cat,LocVal,CatVal) , whentype(category,CatVal,(farg(head,CatVal,HdVal) , whentype(verb,HdVal , whentype(category,CatVal,(farg(marking,CatVal,MkVal) , whentype(fin,MkVal , ( X=synsem:loc:cat:head:vform:bse ) ) ) ) ) ) ) ) ) ) ) ) ) ) . 
+	</s>
+	
+
+	<s id="97">
+		 ( 5 ) sign cons X goal ( farg(synsem,X,SynVal) , farg(loc,SynVal,LocVal) , farg(cat,LocVal,CatVal) , farg(head,CatVal,HdVal) , whentype(verb,HdVal,(farg(marking,CatVal,MkVal) , whentype(fin,MkVal , ( X=synsem:loc:cat:head:vform:bse ) ) ) ) ) . 
+	</s>
+	
+
+	<s id="98">
+		 ( 6 ) sign ( e list( ) , e list( ) , SynVal , DelayVar ) ( 7 ) whentype(Type,FS,Goal) :- functor(FS,CurrentType,Arity) , ( sub type ( Type , CurrentType ) -&gt; call(Goal) ; arg(Arity,FS,DelayVar) , whentype(Type,DelayVar,Goal)) . 
+	</s>
+	
+
+	<s id="99">
+		 Figure 4 : Part of the signature underlying the constraint in Figure 3 . 
+	</s>
+	
+
+	<s id="100">
+		 Figure 3 : Reduction stages for the Finiteness Marking Principle . 
+	</s>
+	
+
+	<s id="101">
+		 bse ind fin inf verb noun vform marking head VFORM:vform sign CAT:category QRETR:list QSTORE:list SYNSEM:synsem synsem LOC:local category HEAD:head MARKING:marking local goals for both conditionals eventually unsuspend . 
+	</s>
+	
+
+	<s id="102">
+		 For atomic conditionals , we must thread two extra arguments , Vs In , and V s O u t , which track which variables have been seen so far . 
+	</s>
+	
+
+	<s id="103">
+		 Delaying on atomic type conditionals is implemented by a special whentype/3 primitive ( Section 3.4 ) , and feature descriptions reduce using unique feature introduction : whenfs(V=T,Goal,Vs,Vs) :- type(T) -&gt; whentype ( T , V , Goal ) . 
+	</s>
+	
+
+	<s id="104">
+		 whenfs(V=(F:Desc),Goal,VsIn,VsOut):- unique introducer ( F , Intro ) , whentype(Intro,V , ( farg(F,V,FVal) , whenfs(FVal=Desc,Goal,VsIn , VsOut ) ) ) . 
+	</s>
+	
+
+	<s id="105">
+		 farg ( F , V , FVal ) binds FVal to the argument position of V that corresponds to the feature F once V has been instantiated to a type for which F is appropriate . 
+	</s>
+	
+
+	<s id="106">
+		 In the variable case , whenf s / 4 simply binds the variable when it first encounters it , but subsequent occurrences of that variable create a suspension using Prolog when/2 , checking for identity with the previous occurrences . 
+	</s>
+	
+
+	<s id="107">
+		 This implements a primitive delay on structure sharing ( Section 3.4 ) : whenfs(V=X,Goal,VsIn,VsOut):- var ( X ) , ( select(VsIn,X,VsOut) -&gt; % not first X - - wait when ( ?= ( V , X ) , ( ( V==X ) -&gt; call(Goal) ; true ) ) ; % first X - - bind VsOut=VsIn,V=X,call(Goal)) . 
+	</s>
+	
+
+	<s id="108">
+		 In practice , whe n f s / 2 can be partially evaluated by a compiler . 
+	</s>
+	
+
+	<s id="109">
+		 In the running example , Figure 3 , we can compile the when f s / 2 subgoal in ( 2 ) into simpler whentype/2 subgoals , that delay until X reaches a particular type . 
+	</s>
+	
+
+	<s id="110">
+		 The second case of when f s / 4 tells us that this can be achieved by successively waiting for the types that introduce each of the features , SYNSEM , LOC , and CAT . 
+	</s>
+	
+
+	<s id="111">
+		 As shown in Figure 4 , those types are sign , synsem and local , respectively ( Figure 3 ( 3 ) ) . 
+	</s>
+	
+
+	<s id="112">
+		 The description that CatVal is suspended on is a conjunction , so we successively suspend on each conjunct . 
+	</s>
+	
+
+	<s id="113">
+		 The type that introduces both HEAD and MARKING is category ( 4 ) . 
+	</s>
+	
+
+	<s id="114">
+		 In practice , static analysis can greatly reduce the complexity of the resulting relational goals . 
+	</s>
+	
+
+	<s id="115">
+		 In this case , static analysis of the type system tells us that all four of these whentype/2 calls can be eliminated ( 5 ) , since X must be a sign in this context , synsem is the least appropriate type of any SYNSEM value , local is the least appropriate type of any LOC value , and category is the least appropriate type of any CAT value . 
+	</s>
+	
+
+	<s id="116">
+		 3.4 Primitive delay statements The two fundamental primitives typically provided for Prolog terms , e.g. , by SICStus Prolog when/2 , are : ( 1 ) suspending until a variable is instantiated , and ( 2 ) suspending until two variables are equated or inequated . 
+	</s>
+	
+
+	<s id="117">
+		 The latter corresponds exactly to structure-sharing in TFSs , and to shared variables in descriptions ; its implementation was already discussed in the previous section . 
+	</s>
+	
+
+	<s id="118">
+		 The former , if carried over directly , would correspond to delaying until a variable is promoted to a type more specific than L , the most general type in the type semi- lattice . 
+	</s>
+	
+
+	<s id="119">
+		 There are degrees of instantiation in LTFS , however , corresponding to long subtyping chains that terminate in L . 
+	</s>
+	
+
+	<s id="120">
+		 A more general and useful primitive in a typed language with such chains is suspending until a variable is promoted to a particular type . 
+	</s>
+	
+
+	<s id="121">
+		 whentype ( Type , X , Goal ) , i.e. , delaying subgoal Goal until variable X reaches Type , is then the non-universally-quantified cousin of the type-antecedent constraints that are already used in the ERG . 
+	</s>
+	
+
+	<s id="122">
+		 How whentype ( Type , X , Goal ) is implemented depends on the data structure used for TFSs , but in Prolog they invariably use the underlying Prolog implementation of when/2 . 
+	</s>
+	
+
+	<s id="123">
+		 In ALE , for example , TFSs are represented with reference chains that extend every time their type changes . 
+	</s>
+	
+
+	<s id="124">
+		 One can simply wait for a variable position at the end of this chain to be instantiated , and then compare the new type to Type . 
+	</s>
+	
+
+	<s id="125">
+		 Figure 3 ( 6 ) shows a schematic representation of a sign-typed TFS with SYNSEM value SynVal , and two other appropriate feature values . 
+	</s>
+	
+
+	<s id="126">
+		 Acting upon this as its second argument , the corresponding definition of whentype ( Type , X , Goal ) in Figure 3 ( 7 ) delays on the variable in the extra , fourth argument position . 
+	</s>
+	
+
+	<s id="127">
+		 This variable will be instantiated to a similar term when this TFS promotes to a subtype of sign . 
+	</s>
+	
+
+	<s id="128">
+		 As described above , delaying until the antecedent of the principle in Figure 3 ( 1 ) is true or false ultimately reduces to delaying until various feature values attain certain types using whentype/3 . 
+	</s>
+	
+
+	<s id="129">
+		 A TFS may not have substructures that are specific enough to determine whether an antecedent holds or not . 
+	</s>
+	
+
+	<s id="130">
+		 In this case , we must wait until it is known whether the antecedent is true or false before applying the consequent . 
+	</s>
+	
+
+	<s id="131">
+		 If we reach a deadlock , where several constraints are suspended on their antecedents , then we must use another resolution method to begin testing more specific extensions of the TFS in turn . 
+	</s>
+	
+
+	<s id="132">
+		 The choice of these other methods characterizes a true CLP solution for LTFS , all of which are enabled by the method presented in this paper . 
+	</s>
+	
+
+	<s id="133">
+		 In the case of the signature in Figure 4 , one of these methods may test whether a marking-typed substructure is consistent with either fin or inf . 
+	</s>
+	
+
+	<s id="134">
+		 If it is consistent with fin , then this branch of the search may unsuspend the Finiteness Marking Principle on a sign-typed TFS that contains this substructure . 
+	</s>
+	
+
+	<s id="135">
+		 4 Measuring the cost of delaying How much of a cost do we pay for using delaying ? 
+	</s>
+	
+
+	<s id="136">
+		 In order to answer this question definitively , we would need to reimplement a large-scale grammar which was substantially identical in every way to the ERG but for its use of delay statements . 
+	</s>
+	
+
+	<s id="137">
+		 The construction of such a grammar is outside the scope of this research programme , but we do have access to MERGE,2 which was designed to have the same extensional coverage of English as the ERG . 
+	</s>
+	
+
+	<s id="138">
+		 Internally , the MERGE is quite unlike the ERG . 
+	</s>
+	
+
+	<s id="139">
+		 Its TFSs are far larger because each TFS category carries inside it the phrase structure daughters of the rule that created it . 
+	</s>
+	
+
+	<s id="140">
+		 It also has far fewer types , more feature values , a heavy reliance on lists , about a third as many phrase structure rules with daughter categories that are an average of 32 % larger , and many more constraints . 
+	</s>
+	
+
+	<s id="141">
+		 Because of these differences , this version of MERGE runs on average about 300 times slower than the ERG . 
+	</s>
+	
+
+	<s id="142">
+		 On the other hand , MERGE uses delaying for all three of the purposes that have been discussed in this paper : complex antecedents , explicit when f s / 2 calls to avoid non-termination problems , and explicit whe n f s / 2 calls to avoid expensive non- deterministic searches . 
+	</s>
+	
+
+	<s id="143">
+		 While there is currently no delay-free grammar to compare it to , we can pop open the hood on our implementation and measure delaying relative to other system functions on MERGE with its test suite . 
+	</s>
+	
+
+	<s id="144">
+		 The results are shown in Figure 5 . 
+	</s>
+	
+
+	<s id="145">
+		 These results show that while the per call Function avg . 
+	</s>
+	
+
+	<s id="146">
+		 avg . 
+	</s>
+	
+
+	<s id="147">
+		 # calls per sent . 
+	</s>
+	
+
+	<s id="148">
+		 µs avg . 
+	</s>
+	
+
+	<s id="149">
+		 % / call parse time PS rules 1458 410 0.41 Chart access 13.3 13426 0.12 Relations 4.0 1380288 1.88 Delays 2.6 3633406 6.38 Path compression 2.0 955391 1.31 Constraints 1.6 1530779 1.62 Unification 1.5 37187128 38.77 Dereferencing 0.5 116731777 38.44 Add type MGSat 0.3 5131391 0.97 Retrieve feat . 
+	</s>
+	
+
+	<s id="150">
+		 val . 
+	</s>
+	
+
+	<s id="151">
+		 0.02 19617973 0.21 Figure 5 : Run-time allocation of functionality in MERGE . 
+	</s>
+	
+
+	<s id="152">
+		 Times were measured on an HP Omni- book XE3 laptop with an 850MHz Pentium II processor and 512MB of RAM , running SICStus Prolog 3.11.0 on Windows 98 SE . 
+	</s>
+	
+
+	<s id="153">
+		 cost of delaying is on a par with other system functions such as constraint enforcement and relational goal resolution , delaying takes between three and five times more of the percentage of sentence parse 2The author sincerely thanks Kordula DeKuthy and Detmar Meurers for their assistance in providing the version of MERGE ( 0.9.6 ) and its test suite ( 1347 sentences , average word length 6.3 , average chart size 410 edges ) for this evaluation . 
+	</s>
+	
+
+	<s id="154">
+		 MERGE is still under development . 
+	</s>
+	
+
+	<s id="155">
+		 time because it is called so often . 
+	</s>
+	
+
+	<s id="156">
+		 This reflects , in part , design decisions of the MERGE grammar writers , but it also underscores the importance of having an efficient implementation of delaying for large- scale use . 
+	</s>
+	
+
+	<s id="157">
+		 Even if delaying could be eliminated entirely from this grammar at no cost , however , a 6 % reduction in parsing speed would not , in the present author’s view , warrant the loss of modularity in a grammar of this size . 
+	</s>
+	
+
+	<s id="158">
+		 5 Conclusion It has been shown that a simple generalization of conventional delay statements to LTFS , combined with a subsumption-based interpretation of implicational constraints and unique feature introduction are sufficient to restore much of the functionality and concomitant benefit that has been routinely sacrificed in HPSG in the name of parsing efficiency . 
+	</s>
+	
+
+	<s id="159">
+		 While a definitive measurement of the computational cost of this functionality has yet to emerge , there is at least no apparent indication from the experiments that we can conduct that disjunction , complex antecedents and/or a judicious use of recursion pose a significant obstacle to tractable grammar design when the right control strategy ( CLP with subsumption testing ) is adopted . 
+	</s>
+	
+
+	<s id="160">
+		 References H. A¨ít-Kaci , A. Podelski , and G. Smolka . 
+	</s>
+	
+
+	<s id="161">
+		 1992. A feature-based constraint system for logic programming with entailment . 
+	</s>
+	
+
+	<s id="162">
+		 In Proceedings of the International Conference on Fifth Generation Computer Systems . 
+	</s>
+	
+
+	<s id="163">
+		 H. A¨ít-Ka´ci . 
+	</s>
+	
+
+	<s id="164">
+		 1984. A Lattice-theoretic Approach to Computation based on a Calculus ofPartially Ordered Type Structures . 
+	</s>
+	
+
+	<s id="165">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="166">
+		 thesis , University of Pennsylvania . 
+	</s>
+	
+
+	<s id="167">
+		 B. Carpenter and G. Penn. 1996 . 
+	</s>
+	
+
+	<s id="168">
+		 Compiling typed attribute-value logic grammars . 
+	</s>
+	
+
+	<s id="169">
+		 In H. Bunt and M. Tomita , editors , Recent Advances in Parsing Technologies , pages 145–168 . 
+	</s>
+	
+
+	<s id="170">
+		 Kluwer . 
+	</s>
+	
+
+	<s id="171">
+		 B. Carpenter . 
+	</s>
+	
+
+	<s id="172">
+		 1992. The Logic of Typed Feature Structures . 
+	</s>
+	
+
+	<s id="173">
+		 Cambridge . 
+	</s>
+	
+
+	<s id="174">
+		 A. Copestake , D. Flickinger , C. Pollard , and I. Sag . 
+	</s>
+	
+
+	<s id="175">
+		 2003 . 
+	</s>
+	
+
+	<s id="176">
+		 Minimal Recursion Semantics : An introduction . 
+	</s>
+	
+
+	<s id="177">
+		 Journal submission , November 2003 . 
+	</s>
+	
+
+	<s id="178">
+		 J. Doerre , M. Dorna , J. Junger , and K. Schneider , 1996 . 
+	</s>
+	
+
+	<s id="179">
+		 The CUF User’s Manual . 
+	</s>
+	
+
+	<s id="180">
+		 IMS Stuttgart , 2.0 edition . 
+	</s>
+	
+
+	<s id="181">
+		 J. Doerre . 
+	</s>
+	
+
+	<s id="182">
+		 1993. Generalizing Earley deduction for constraint-based grammars . 
+	</s>
+	
+
+	<s id="183">
+		 Technical Report R1.2.A , DYANA Deliverable . 
+	</s>
+	
+
+	<s id="184">
+		 D. Flickinger . 
+	</s>
+	
+
+	<s id="185">
+		 2000. On building a more efficient grammar by exploiting types . 
+	</s>
+	
+
+	<s id="186">
+		 Natural Language Engineering , 6(1):15–28 . 
+	</s>
+	
+
+	<s id="187">
+		 T. Goetz and W.D. Meurers . 
+	</s>
+	
+
+	<s id="188">
+		 1997. Interleaving universal principles and relational constraints over typed feature logic . 
+	</s>
+	
+
+	<s id="189">
+		 In Proceedings of the 35th ACL / 8th EACL , pages 1–8 . 
+	</s>
+	
+
+	<s id="190">
+		 M. H¨ohfeld and G. Smolka . 
+	</s>
+	
+
+	<s id="191">
+		 1988 . 
+	</s>
+	
+
+	<s id="192">
+		 Definite relations over constraint languages . 
+	</s>
+	
+
+	<s id="193">
+		 LILOG Report 53 , IBM Deutschland . 
+	</s>
+	
+
+	<s id="194">
+		 H.-U. Krieger and J. Nerbone . 
+	</s>
+	
+
+	<s id="195">
+		 1991. Feature-based inheritance networks for computational lexicons . 
+	</s>
+	
+
+	<s id="196">
+		 In Proceedings of the ACQUILEX Workshop on Default Inheritance in the Lexicon , number 238 in University of Cambridge , Computer Laboratory Technical Report . 
+	</s>
+	
+
+	<s id="197">
+		 H.-U. Krieger and U. Sch¨afer . 
+	</s>
+	
+
+	<s id="198">
+		 1994. TDL — a type description language for HPSG part 1 : Overview . 
+	</s>
+	
+
+	<s id="199">
+		 Technical Report RR-94-37 , Deutsches Forschungszentrum f¨ur K¨unstliche Intelligenz ( DFKI ) , November . 
+	</s>
+	
+
+	<s id="200">
+		 LinGO . 
+	</s>
+	
+
+	<s id="201">
+		 1999. The LinGO grammar and lexicon . 
+	</s>
+	
+
+	<s id="202">
+		 Available on-line at http://lingo.stanford.edu . 
+	</s>
+	
+
+	<s id="203">
+		 G. Penn and K. Hoetmer . 
+	</s>
+	
+
+	<s id="204">
+		 2003. In search of epistemic primitives in the english resource grammar . 
+	</s>
+	
+
+	<s id="205">
+		 In Proceedings of the 10th International Conference on Head-driven Phrase Structure Grammar , pages 318–337 . 
+	</s>
+	
+
+	<s id="206">
+		 G. Penn. 2001 . 
+	</s>
+	
+
+	<s id="207">
+		 Tractability and structural closures in attribute logic signatures . 
+	</s>
+	
+
+	<s id="208">
+		 In Proceedings of the 39th ACL , pages 410–417 . 
+	</s>
+	
+
+	<s id="209">
+		 C. J. Pollard . 
+	</s>
+	
+
+	<s id="210">
+		 1998. Personal communiciation to the author . 
+	</s>
+	
+
+	<s id="211">
+		 G. Smolka . 
+	</s>
+	
+
+	<s id="212">
+		 1991. Residuation and guarded rules for constraint logic programming . 
+	</s>
+	
+
+	<s id="213">
+		 Technical Report RR-91-13 , DFKI . 
+	</s>
+	
+
+	<s id="214">
+		 G. Smolka . 
+	</s>
+	
+
+	<s id="215">
+		 1994. A calculus for higher-order concurrent constraint programming with deep guards . 
+	</s>
+	
+
+	<s id="216">
+		 Technical Report RR-94-03 , DFKI . 
+	</s>
+	
+
+	<s id="217">
+		 P. Van Roy . 
+	</s>
+	
+
+	<s id="218">
+		 1990. Can Logic Programming Execute as Fast as Imperative Programming ? 
+	</s>
+	
+
+	<s id="219">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="220">
+		 thesis , University of California , Berkeley . 
+	</s>
+	
+
+	<s id="221">
+		 S. Wintner . 
+	</s>
+	
+
+	<s id="222">
+		 2002. Modular context-free grammars . 
+	</s>
+	
+
+	<s id="223">
+		 Grammars , 5(1):41–63 . 
+	</s>
+	
+
+
+</acldoc>

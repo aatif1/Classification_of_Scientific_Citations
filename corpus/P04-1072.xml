@@ -1,0 +1,1184 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1072">
+	
+
+	<s id="1">
+		 Splitting Complex Temporal Questions for Question Answering systems E. Saquete , P. Martinez-Barco , R. Mu˜noz , J.L. Vicedo Grupo de investigaci´on del Procesamiento del Lenguaje y Sistemas de Informaci´on . 
+	</s>
+	
+
+	<s id="2">
+		 Departamento de Lenguajes y Sistemas Inform´aticos . 
+	</s>
+	
+
+	<s id="3">
+		 Universidad de Alicante . 
+	</s>
+	
+
+	<s id="4">
+		 Alicante , Spain stela,patricio,rafael,vicedo @dlsi.ua.es Abstract This paper presents a multi-layered Question Answering ( Q.A. ) architecture suitable for enhancing current Q.A. capabilities with the possibility of processing complex questions . 
+	</s>
+	
+
+	<s id="5">
+		 That is , questions whose answer needs to be gathered from pieces of factual information scattered in different documents . 
+	</s>
+	
+
+	<s id="6">
+		 Specifically , we have designed a layer oriented to process the different types of temporal questions . 
+	</s>
+	
+
+	<s id="7">
+		 Complex temporal questions are first decomposed into simpler ones , according to the temporal relationships expressed in the original question . 
+	</s>
+	
+
+	<s id="8">
+		 In the same way , the answers of each simple question are re-composed , fulfilling the temporal restrictions of the original complex question . 
+	</s>
+	
+
+	<s id="9">
+		 Using this architecture , a Temporal Q.A. system has been developed . 
+	</s>
+	
+
+	<s id="10">
+		 In this paper , we focus on explaining the first part of the process : the decomposition of the complex questions . 
+	</s>
+	
+
+	<s id="11">
+		 Furthermore , it has been evaluated with the TERQAS question corpus of 112 temporal questions . 
+	</s>
+	
+
+	<s id="12">
+		 For the task of question splitting our system has performed , in terms of precision and recall , 85 % and 71 % , respectively . 
+	</s>
+	
+
+	<s id="13">
+		 1 Introduction Question Answering could be defined as the process of computer-answering to precise or arbitrary questions formulated by users . 
+	</s>
+	
+
+	<s id="14">
+		 Q.A. systems are especially useful to obtain a specific piece of information without the need of manually going through all the available documentation related to the topic . 
+	</s>
+	
+
+	<s id="15">
+		 Research in Question Answering mainly focuses on the treatment offactual questions . 
+	</s>
+	
+
+	<s id="16">
+		 These require as an answer very specific items of data , such as dates , names of entities or quantities , e.g. , “What is the capital ofBrazil?” . 
+	</s>
+	
+
+	<s id="17">
+		 This paper has been supported by the Spanish government , projects FIT-150500-2002-244 , FIT-150500-2002-416 , TIC- 2003-07158-C04-01 and TIC2000-0664-C02-02 . 
+	</s>
+	
+
+	<s id="18">
+		 Temporal Q.A. is not a trivial task due to the complexity temporal questions may reach . 
+	</s>
+	
+
+	<s id="19">
+		 Current operational Q.A. systems can deal with simple factual temporal questions . 
+	</s>
+	
+
+	<s id="20">
+		 That is , questions requiring to be answered with a date , e.g. “When did Bob Marley die ? 
+	</s>
+	
+
+	<s id="21">
+		 ” . 
+	</s>
+	
+
+	<s id="22">
+		 or questions that include simple temporal expressions in their formulation , e.g. , “Who won the U.S. Open in 1999 ? 
+	</s>
+	
+
+	<s id="23">
+		 ” . 
+	</s>
+	
+
+	<s id="24">
+		 Processing this sort of questions is usually performed by identifying explicit temporal expressions in questions and relevant documents , in order to gather the necessary information to answer the queries . 
+	</s>
+	
+
+	<s id="25">
+		 Even though , it seems necessary to emphasize that the system described in 
+		<ref citStr="Breck et al. , 2000" id="1" label="CEPN" position="3099">
+			( Breck et al. , 2000 )
+		</ref>
+		 is the only one also using implicit temporal expression recognition for Q.A. purposes . 
+	</s>
+	
+
+	<s id="26">
+		 It does so by applying the temporal tagger developed by 
+		<ref citStr="Mani and Wilson ( 2000 )" id="2" label="OEPF" position="3277">
+			Mani and Wilson ( 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="27">
+		 However , issues like addressing the temporal properties or the ordering of events in questions , remain beyond the scope of current Q.A. systems : “Who was spokesman of the Soviet Embassy in Baghdad during the invasion of Kuwait?” “Is Bill Clinton currently the President of the United States?” This work presents a Question Answering system capable of answering complex temporal questions . 
+	</s>
+	
+
+	<s id="28">
+		 This approach tries to imitate human behavior when responding this type of questions . 
+	</s>
+	
+
+	<s id="29">
+		 For example , a human that wants to answer the question : “Who was spokesman of the Soviet Embassy in Baghdad during the invasion of Kuwait?” would follow this process : 1 . 
+	</s>
+	
+
+	<s id="30">
+		 First , he would decompose this question into two simpler ones : “Who was spokesman of the Soviet Embassy in Baghdad?” and “When did the invasion ofKuwait occur?” . 
+	</s>
+	
+
+	<s id="31">
+		 2. He would look for all the possible answers to the first simple question : “Who was spokesman of the Soviet Embassy in Baghdad ? 
+	</s>
+	
+
+	<s id="32">
+		 ” . 
+	</s>
+	
+
+	<s id="33">
+		 3. After that , he would look for the answer to the second simple question : “When did the invasion ofKuwait occur?” 4 . 
+	</s>
+	
+
+	<s id="34">
+		 Finally , he would give as a final answer one of the answers to the first question ( if there is any ) , whose associated date stays within the period of dates implied by the answer to the second question . 
+	</s>
+	
+
+	<s id="35">
+		 That is , he would obtain the final answer by discarding all answers to the simple questions which do not accomplish the restrictions imposed by the temporal signal provided by the original question ( during ) . 
+	</s>
+	
+
+	<s id="36">
+		 Therefore , the treatment of complex question is based on the decomposition of these questions into simpler ones , to be resolved using conventional Question Answering systems . 
+	</s>
+	
+
+	<s id="37">
+		 Answers to simple questions are used to build the answer to the original question . 
+	</s>
+	
+
+	<s id="38">
+		 This paper has been structured in the following fashion : first of all , section 2 presents our proposal of a taxonomy for temporal questions . 
+	</s>
+	
+
+	<s id="39">
+		 Section 3 describes the general architecture of our temporal Q.A. system . 
+	</s>
+	
+
+	<s id="40">
+		 Section 4 deepens into the first part of the system : the decomposition unit . 
+	</s>
+	
+
+	<s id="41">
+		 Finally , the evaluation of the decomposition unit and some conclusions are shown . 
+	</s>
+	
+
+	<s id="42">
+		 2 Proposal of a Temporal Questions Taxonomy Before explaining how to answer temporal questions , it is necessary to classify them , since the way to solve them will be different in each case . 
+	</s>
+	
+
+	<s id="43">
+		 Our classification distinguishes first between simple questions and complex questions . 
+	</s>
+	
+
+	<s id="44">
+		 We will consider as simple those questions that can be solved directly by a current General Purpose Question Answering system , since they are formed by a single event . 
+	</s>
+	
+
+	<s id="45">
+		 On the other hand , we will consider as complex those questions that are formed by more than one event related by a temporal signal which establishes an order relation between these events . 
+	</s>
+	
+
+	<s id="46">
+		 Simple Temporal Questions : Type 1 : Single event temporal questions without temporal expression ( TE ) . 
+	</s>
+	
+
+	<s id="47">
+		 This kind of questions are formed by a single event and can be directly resolved by a Q.A. System , without pre- or post- processing them . 
+	</s>
+	
+
+	<s id="48">
+		 There are not temporal expressions in the question . 
+	</s>
+	
+
+	<s id="49">
+		 Example : “When did Jordan close the port ofAqaba to Kuwait?” Type 2 : Single event temporal questions with temporal expression . 
+	</s>
+	
+
+	<s id="50">
+		 There is a single event in the ques tion , but there are one or more temporal expressions that need to be recognized , resolved and annotated . 
+	</s>
+	
+
+	<s id="51">
+		 Each piece of temporal information could help to search for an answer . 
+	</s>
+	
+
+	<s id="52">
+		 Example : “Who won the 1988 New Hampshire republican primary?” . 
+	</s>
+	
+
+	<s id="53">
+		 TE : 1988 Complex Temporal Questions : Type 3 : Multiple events temporal questions with temporal expression . 
+	</s>
+	
+
+	<s id="54">
+		 Questions that contain two or more events , related by a temporal signal . 
+	</s>
+	
+
+	<s id="55">
+		 This signal establishes the order between the events in the question . 
+	</s>
+	
+
+	<s id="56">
+		 Moreover , there are one or more temporal expressions in the question . 
+	</s>
+	
+
+	<s id="57">
+		 These temporal expressions need to be recognized , resolved and annotated , and they introduce temporal constraints to the answers of the question . 
+	</s>
+	
+
+	<s id="58">
+		 Example : “What did George Bush do after the U.N. Security Council ordered a global embargo on trade with Iraq in August 90 ? 
+	</s>
+	
+
+	<s id="59">
+		 ” In this example , the temporal signal is after and the temporal constraint is “between 8/1/1990 and 8/31/1990” . 
+	</s>
+	
+
+	<s id="60">
+		 This question can be divided into the following ones : Q1 : What did George Bush do ? 
+	</s>
+	
+
+	<s id="61">
+		 Q2 : When the U.N. Security Council ordered a global embargo on trade with Iraq ? 
+	</s>
+	
+
+	<s id="62">
+		 Type 4 : Multiple events temporal questions without temporal expression . 
+	</s>
+	
+
+	<s id="63">
+		 Questions that consist of two or more events , related by a temporal signal . 
+	</s>
+	
+
+	<s id="64">
+		 This signal establishes the order between the events in the question . 
+	</s>
+	
+
+	<s id="65">
+		 Example : “What happened to world oil prices after the Iraqi annexation of Kuwait?” . 
+	</s>
+	
+
+	<s id="66">
+		 In this example , the temporal signal is after and the question would be decomposed into : Q1 : What happened to world oil prices ? 
+	</s>
+	
+
+	<s id="67">
+		 Q2 : When did the Iraqi “annexation” of Kuwait occur ? 
+	</s>
+	
+
+	<s id="68">
+		 How to process each type will be explained in detail in the following sections . 
+	</s>
+	
+
+	<s id="69">
+		 3 Multi-layered Question-Answering System Architecture Current Question Answering system architectures do not allow to process complex questions . 
+	</s>
+	
+
+	<s id="70">
+		 That is , questions whose answer needs to be gathered from pieces of factual information that is scattered in a document or through different documents . 
+	</s>
+	
+
+	<s id="71">
+		 In order to be able to process these complex questions , we propose a multi-layered architecture . 
+	</s>
+	
+
+	<s id="72">
+		 This architecture increases the functionality of the current Question-Answering systems , allowing us to solve any type of temporal questions . 
+	</s>
+	
+
+	<s id="73">
+		 Moreover , this system could be easily augmented with new layers to cope with questions that need complex processing and are not temporal oriented . 
+	</s>
+	
+
+	<s id="74">
+		 Some examples of complex questions are : Temporal questions like “Where did Michael Milken study before going to the University of Pennsylvania?” . 
+	</s>
+	
+
+	<s id="75">
+		 This kind of questions needs to use temporal information and event ordering to obtain the right answer . 
+	</s>
+	
+
+	<s id="76">
+		 Script questions like “How do I assemble a bicycle?” . 
+	</s>
+	
+
+	<s id="77">
+		 In these questions , the final answer is a set of ordered answers . 
+	</s>
+	
+
+	<s id="78">
+		 Template-based questions like “Which are the main biographical data ofNelson Mandela?” . 
+	</s>
+	
+
+	<s id="79">
+		 This question should be divided in a number of factual questions asking for different aspects of Nelson Mandela’s biography . 
+	</s>
+	
+
+	<s id="80">
+		 Gathering their respective answers will make it possible to answer the original question . 
+	</s>
+	
+
+	<s id="81">
+		 These three types of question have in common the necessity of an additional processing in order to be solved . 
+	</s>
+	
+
+	<s id="82">
+		 Our proposal to deal with them is to superpose an additional processing layer , one by each type , to a current General Purpose Question Answering system , as it is shown in Figure 1 . 
+	</s>
+	
+
+	<s id="83">
+		 This layer will perform the following steps : Decomposition of the question into simple events to generate simple questions ( sub- questions ) and the ordering of the sub- questions . 
+	</s>
+	
+
+	<s id="84">
+		 Sending simple questions to a current General Purpose Question Answering system . 
+	</s>
+	
+
+	<s id="85">
+		 Receiving the answers to the simple questions from the current General Purpose Question Answering system . 
+	</s>
+	
+
+	<s id="86">
+		 Filtering and comparison between sub-answers to build the final complex answer . 
+	</s>
+	
+
+	<s id="87">
+		 Figure 1 : Multi-layered Architecture of a Q.A. . 
+	</s>
+	
+
+	<s id="88">
+		 The main advantages of performing this multi- layered system are : It allows you to use any existing general Q.A. system , with the only effort of adapting the output of the processing layer to the type of input that the Q.A. system uses . 
+	</s>
+	
+
+	<s id="89">
+		 Due to the fact that the process of complex questions is performed at an upper layer , it is not necessary to modify the Q.A. system when you want to deal with more complex questions . 
+	</s>
+	
+
+	<s id="90">
+		 Each additional processing layer is independent from each other and only processes those questions within the type accepted by that layer . 
+	</s>
+	
+
+	<s id="91">
+		 Next , we present a layer oriented to process temporal questions according to the taxonomy shown in section 2 . 
+	</s>
+	
+
+	<s id="92">
+		 3.1 Architecture of a Question Answering System applied to Temporality The main components of the Temporal Question Answering System are ( c.f. figure 2 ) top-down : Question Decomposition Unit , General purpose Q.A. system and Answer , Recomposition Unit . 
+	</s>
+	
+
+	<s id="93">
+		 Figure 2 : Temporal Question Answering System These components work all together for the obtainment of a final answer . 
+	</s>
+	
+
+	<s id="94">
+		 The Question Decomposition Unit and the Answer Recomposition Unit are the units that conform the Temporal Q.A. layer Complex Answ Complex Question ~~~~~~AC~ ~~~~~~A~ Q~ A~ ~~~C~SS~~~ SC~~~~ Q~ A~ ~~~C~SS~~~ ~~~~~A~~ Q~ A~ ~~~C~SS~~~ Simple Questions Simple Answers ~~~~~A~ ~~~~~S~ Q~~S~~~~ A~S~~~~~~ S~S~~~ ~~~~~~ ~ ~ ~ ~n S ~ ~ ~ gewi- Qu..nen ~~~e~~e~~~en ~n~~ ~~n~~~~ ~u~~e~~ Q~ S~~~~~ Q Q~ ... 
+	</s>
+	
+
+	<s id="95">
+		 Q. ~~~~e~~~ ~~~ Sn ~~ ~n~~~~ ~~~e~~e~~~~en ~n~~ ~~ ~~~e~n~~en ~n~ ~~~e~u~~en ~~~~ ~~~n~~~~~~en Qu~~~en S~~~~~~ ~ ~n~~~~~u~~ ~n~~~ ~~~~n~ ~n~~~e~~~~~~en ~n~ ~e~~e~~~en which process the temporal questions , before and after using a General Purpose Q.A. system . 
+	</s>
+	
+
+	<s id="96">
+		 The Question Decomposition Unit is a preprocessing unit which performs three main tasks . 
+	</s>
+	
+
+	<s id="97">
+		 First of all , the recognition and resolution of temporal expressions in the question . 
+	</s>
+	
+
+	<s id="98">
+		 Secondly , there are different types of questions , according to the taxonomy shown in section 2 . 
+	</s>
+	
+
+	<s id="99">
+		 Each type of them needs to be treated in a different manner . 
+	</s>
+	
+
+	<s id="100">
+		 For this reason , type identification must be done . 
+	</s>
+	
+
+	<s id="101">
+		 After that , complex questions of types 3 and 4 only , are split into simple ones , which are used as the input of a General Purpose Question-Answering system . 
+	</s>
+	
+
+	<s id="102">
+		 For example , the question “Where did Bill Clinton study before going to Oxford University?” , is divided into two sub-questions related through the temporal signal before : – Q1 : Where did Bill Clinton study ? 
+	</s>
+	
+
+	<s id="103">
+		 – Q2 : When did Bill Clinton go to Oxford University ? 
+	</s>
+	
+
+	<s id="104">
+		 A General Purpose Question Answering system . 
+	</s>
+	
+
+	<s id="105">
+		 Simple factual questions generated are processed by a General Purpose Question Answering system . 
+	</s>
+	
+
+	<s id="106">
+		 Any Question Answering system could be used here . 
+	</s>
+	
+
+	<s id="107">
+		 In this case , the SEMQA system ( Vicedo and Ferr´andez , 2000 ) has been used . 
+	</s>
+	
+
+	<s id="108">
+		 The only condition is to know the output format of the Q.A. system to accordingly adapt the layer interface . 
+	</s>
+	
+
+	<s id="109">
+		 For the example above , a current Q.A. system returns the following answers : – Q1 Answers : Georgetown University ( 1964-68 ) // Oxford University ( 1968-70 ) // Yale Law School ( 1970-73 ) – Q2 Answer : 1968 The Answer Recomposition Unit is the last stage in the process . 
+	</s>
+	
+
+	<s id="110">
+		 This unit builds the answer to the original question from the answers to the sub-questions and the temporal information extracted from the questions ( temporal signals or temporal expressions ) . 
+	</s>
+	
+
+	<s id="111">
+		 As a result , the correct answer to the original question is returned . 
+	</s>
+	
+
+	<s id="112">
+		 Apart from proposing a taxonomy of temporal questions , we have presented a multi- layered Q.A. architecture suitable for enhancing current Q.A. capabilities with the possibility of adding new layers for processing different kinds of complex questions . 
+	</s>
+	
+
+	<s id="113">
+		 Moreover , we have proposed a specific layer oriented to process each type of temporal questions . 
+	</s>
+	
+
+	<s id="114">
+		 The final goal of this paper is to introduce and evaluate the first part of the temporal question processing layer : the Question Decomposition Unit . 
+	</s>
+	
+
+	<s id="115">
+		 Next section shows the different parts of the unit together with some examples of their behavior . 
+	</s>
+	
+
+	<s id="116">
+		 4 Question Decomposition Unit The main task of this unit is the decomposition of the question , which is divided in three main tasks or modules : Type Identification ( according to the taxonomy proposed in section 2 ) Temporal Expression Recognition and Resolution Question Splitter These modules are fully explained below . 
+	</s>
+	
+
+	<s id="117">
+		 Once the decomposition of the question has been made , the output of this unit is : A set of sub-questions , that are the input of the General Purpose Question-Answering system . 
+	</s>
+	
+
+	<s id="118">
+		 Temporal tags , containing concrete dates returned by TERSEO system 
+		<ref citStr="Saquete et al. , 2003" id="3" label="OEPF" position="15939">
+			( Saquete et al. , 2003 )
+		</ref>
+		 , that are part of the input of the Answer Recomposition Unit and are used by this unit as temporal constraints in order to filter the individual answers . 
+	</s>
+	
+
+	<s id="119">
+		 A set of temporal signals that are part of the input of the Answer Recomposition Unit as well , because this information is necessary in order to compose the final answer . 
+	</s>
+	
+
+	<s id="120">
+		 Once the decomposition has been made , the General Purpose Question-Answering system is used to treat with simple questions . 
+	</s>
+	
+
+	<s id="121">
+		 The temporal information goes directly to the Answer Recomposition unit . 
+	</s>
+	
+
+	<s id="122">
+		 4.1 Type Identification The Type Identification Unit classifies the question in one of the four types of the taxonomy proposed in section 2 . 
+	</s>
+	
+
+	<s id="123">
+		 This identification is necessary because each type of question causes a different behavior ( scenario ) in the system . 
+	</s>
+	
+
+	<s id="124">
+		 Type 1 and Type 2 questions are classified as simple , and the answer can be obtained without splitting the original question . 
+	</s>
+	
+
+	<s id="125">
+		 However , Type 3 and Type 4 questions need to be split in a set of simple sub-questions . 
+	</s>
+	
+
+	<s id="126">
+		 The types of these sub-questions are always Type 1 or Type 2 or a non-temporal question , which are considered simple questions . 
+	</s>
+	
+
+	<s id="127">
+		 The question type is established according to the rules in figure 3 : Figure 3 : Decision tree for Type Identification 4.2 Temporal Expression Recognition and Resolution This module uses TERSEO system 
+		<ref citStr="Saquete et al. , 2003" id="4" label="OEPF" position="17386">
+			( Saquete et al. , 2003 )
+		</ref>
+		 to recognize , annotate and resolve temporal expressions in the question . 
+	</s>
+	
+
+	<s id="128">
+		 The tags this module returns exhibit the following structure : Explicit dates : &lt;DATE_TIME ID=&quot;value&quot; TYPE=&quot;value&quot; VALDATE1=&quot;value&quot;VALTIME1=&quot;value&quot; VALDATE2=&quot;value&quot; VALTIME2=&quot;value&quot;&gt; expression &lt;/DATE_TIME&gt; Implicit dates : &lt;DATE_TIME_REF ID=&quot;value&quot; TYPE=&quot;value&quot; VALDATE1=&quot;value&quot;VALTIME1=&quot;value&quot; VALDATE2=&quot;value&quot; VALTIME2=&quot;value&quot;&gt; expression &lt;/DATE_TIME_REF&gt; Every expression is identified by a numeric ID . 
+	</s>
+	
+
+	<s id="129">
+		 VALDATE# and VALTIME# store the range of dates and times obtained from the system , where VALDATE2 and VALTIME2 are only used to establish ranges . 
+	</s>
+	
+
+	<s id="130">
+		 Furthermore , VALTIME1 could be omitted if a single date is specified . 
+	</s>
+	
+
+	<s id="131">
+		 VALDATE2 , VALTIME1 and VALTIME2 are optional attributes . 
+	</s>
+	
+
+	<s id="132">
+		 These temporal tags are the output of this module and they are used in the Answer Recomposition Unit in order to filter the individual answers obtained by the General Purpose Question-Answering system . 
+	</s>
+	
+
+	<s id="133">
+		 The tags are working as temporal constraints . 
+	</s>
+	
+
+	<s id="134">
+		 Following , a working example is introduced . 
+	</s>
+	
+
+	<s id="135">
+		 Given the next question “Which U.S. ship was attacked by Israeli forces during the Six Day war in the sixties?” : 1 . 
+	</s>
+	
+
+	<s id="136">
+		 Firstly , the unit recognizes the temporal expression in the question , resolves and tags it , resulting in : &lt;DATETIMEREF valdate1=&quot;01/01/1960&quot; valdate2=&quot;31/12/1969&quot;&gt; in the sixties &lt;/DATETIMEREF&gt; 2 . 
+	</s>
+	
+
+	<s id="137">
+		 The temporal constraint is that the date of the answers should be between the values valdate1 and valdate2 . 
+	</s>
+	
+
+	<s id="138">
+		 4.3 Question Splitter This task is only necessary when the type of the question , obtained by the Type Identification Module , is 3 or 4 . 
+	</s>
+	
+
+	<s id="139">
+		 These questions are considered complex questions and need to be divided into simple ones ( Type 1 , Type 2 ) . 
+	</s>
+	
+
+	<s id="140">
+		 The decomposition of a complex question is based on the identification of temporal signals , which relate simple events in the question and establish an order between the answers of the sub-questions . 
+	</s>
+	
+
+	<s id="141">
+		 Finally , these signals are the output of this module and are described in next subsection . 
+	</s>
+	
+
+	<s id="142">
+		 4.3.1 Temporal Signals Temporal signals denote the relationship between the dates of the related events . 
+	</s>
+	
+
+	<s id="143">
+		 Assuming that F1 is the date related to the first event in the question and F2 is the date related to the second event , the signal will establish an order between them . 
+	</s>
+	
+
+	<s id="144">
+		 This we have named the ordering key . 
+	</s>
+	
+
+	<s id="145">
+		 An example of some ordering keys is introduced in table 1 . 
+	</s>
+	
+
+	<s id="146">
+		 SIGNAL ORDERING KEY After F1 &gt; F2 When F1 = F2 Before F1 &lt; F2 During F2i F2f &lt;= F1 &lt;= From F2 to F3 F2 &lt;= F1 &lt;= F3 About F2 -- -- F3 F2 &lt;= F1 &lt;= F3 On / in F1 = F2 While F2i F2f &lt;= F1 &lt;= For F2i F2f &lt;= F1 &lt;= At the time of F1 = F2 Since F1 &gt; F2 Table 1 : Example of signals and ordering keys ~Y~E~ ~Y~E ~ ~Y~E~ ~Y~E~ ~~ES~~ON ~N~~YS~S ~~ES~ON ~~~ NO ~~O~ YES E~~~ESS~ON~ NO YES NO YES ~E~~O~~~ S~~N~~~ ~E~~O~~~ S~~N~~~ 4.3.2 Implementation One have divided each complex question into two parts , based on the temporal signal . 
+	</s>
+	
+
+	<s id="147">
+		 The former is a simple question , therefore , no transformation is required . 
+	</s>
+	
+
+	<s id="148">
+		 However , the latter ( the bit after the temporal signal ) needs transformation into a correct question pattern , always corresponding to a “When” type-question . 
+	</s>
+	
+
+	<s id="149">
+		 Moreover , three different kinds of question structures have been determined , being the transformation different for each of them . 
+	</s>
+	
+
+	<s id="150">
+		 The implementation of this module is shown in figure 4 . 
+	</s>
+	
+
+	<s id="151">
+		 Figure 4 : Decision tree for the Question Splitter The three possible cases are : The question that follows the temporal signal does not contain any verb , for example : “What happened to the world oil prices after the Iraqi annexation of Kuwait?” In this case , our system returns the following transformation : “When did the Iraqi annexation of Kuwait occur?” This case is the simplest , since the only transformation needed is adding the words “When did ... occur?” to the second sentence . 
+	</s>
+	
+
+	<s id="152">
+		 The question that follows the temporal signal contains a verb , but this verb is a gerund tense , for example : “Where did Bill Clinton study before going to Oxford University?” In this case two previous steps to the transformation are necessary : 1 . 
+	</s>
+	
+
+	<s id="153">
+		 Extracting the subject of the previous question . 
+	</s>
+	
+
+	<s id="154">
+		 Converting the verb of the second sentence to infinitive tense . 
+	</s>
+	
+
+	<s id="155">
+		 The final question returned by the system is : “When did Bill Clinton go to Oxford University ? 
+	</s>
+	
+
+	<s id="156">
+		 ” . 
+	</s>
+	
+
+	<s id="157">
+		 In the last type of transformation the second sentence in the question contains a tensed verb and its own subject , e.g. , “What did George Bush do after the U.N. Security Council ordered a global embargo on trade with Iraq?” In this case , the infinitive and the tense of the sentence are obtained . 
+	</s>
+	
+
+	<s id="158">
+		 Hence , the question results in the following form : “When did the U.N. Security Council order a global embargo on trade with Iraq?” . 
+	</s>
+	
+
+	<s id="159">
+		 4.3.3 Example In the following example a part of the returned file of our Decomposition Unit is shown . 
+	</s>
+	
+
+	<s id="160">
+		 1.Where did Bill Clinton study before going to Oxford University ? 
+	</s>
+	
+
+	<s id="161">
+		 Temporal Signal : before Q1 : Where did Bill Clinton study ? 
+	</s>
+	
+
+	<s id="162">
+		 Q2 : When did Bill Clinton go to Oxford University ? 
+	</s>
+	
+
+	<s id="163">
+		 2.What did George Bush do after the U.N. Security Council ordered a global embargo on trade with Iraq in August 90 ? 
+	</s>
+	
+
+	<s id="164">
+		 Temporal Signal : after Temporal Expression : in August 90 Q1 : What did George Bush do ? 
+	</s>
+	
+
+	<s id="165">
+		 Q2 : When did the U.N. Security Council order a global embargo on trade with Iraq in August 90 ? 
+	</s>
+	
+
+	<s id="166">
+		 DateQ2:[01/08/1990--31/08/1990] 3.When did Iraq invade Kuwait ? 
+	</s>
+	
+
+	<s id="167">
+		 Temporal Signal : - Temporal Expression : - Q1 : When did Iraq invade Kuwait ? 
+	</s>
+	
+
+	<s id="168">
+		 4.Who became governor of New Hampshire in 1949 ? 
+	</s>
+	
+
+	<s id="169">
+		 Temporal Signal : - Temporal Expression : in 1949 Q1 : Who became governor of New Hampshire in 1949 ? 
+	</s>
+	
+
+	<s id="170">
+		 DateQ1:[01/01/1949--31/12/1949] 4.4 Decomposition Unit Evaluation This section presents an evaluation of the Decomposition Unit for the treatment of complex questions . 
+	</s>
+	
+
+	<s id="171">
+		 For the evaluation a corpus of questions containing as many simple as complex questions is required . 
+	</s>
+	
+
+	<s id="172">
+		 Due to the fact that question corpora used in TREC ( TREC , ) and CLEF ( CLEF , ) do not contain complex questions , the TERQAS question corpus has been chosen 
+		<ref citStr="Radev and Sundheim , 2002" id="5" label="CEPF" position="23961">
+			( Radev and Sundheim , 2002 
+		</ref>
+		<ref citStr="Pustejovsky , 2002" id="6" label="CEPF" position="23989">
+			; Pustejovsky , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="173">
+		 It consists of 123 temporal questions . 
+	</s>
+	
+
+	<s id="174">
+		 YES NO ~RAN~OR~A~~ON ~~~ ~~~~ ~~~ ~~~~~ ~~EVERB ~SA GER~ND~ ~~ES~~ON ~~~ NO VERB ~N YES SECOND ~AR~~ OB~A~N~NG SUB]ECY O~ ~~ OB~A~N~NG ~~ ~N~~N~~~VE VERB ~RAN~OR~A~~ON ~~~ ~~~~ S~~~~~ ~~~~~ ~~~~~~~~ ~~~ ~RAN~OR~A~~ON ~~~ ~~~~ ~~ ~~~~ ~~~~~~~~ OB~A~N~NG ~~ ~N~~N~~~VE VERB TOTAL TREATED SUCCESSES PRECISION RECALL F- MEASURE TE Recognition and Resolu- tion 62 52 47 90 % 75 % 86 % Type Identification 112 112 104 92 % 100 % 93 % Signal Detection 17 14 14 100 % 82 % 95 % Question Splitter 17 14 12 85 % 71 % 81 % DECOMPOSITION UNIT 112 112 93 83 % 83 % 83 % Table 2 : Evaluation of the system From these , 11 were discarded due to requiring the need of a treatment beyond the capabilities of the system introduced hereby . 
+	</s>
+	
+
+	<s id="175">
+		 Questions of the type : “Who was the second man on the moon” can not be answered by applying the question decomposition . 
+	</s>
+	
+
+	<s id="176">
+		 They need a special treatment . 
+	</s>
+	
+
+	<s id="177">
+		 For the aforementioned phrase , this would consist of obtaining the names of all the men having been on the moon , ordering the dates and picking the second in the ordered list of names . 
+	</s>
+	
+
+	<s id="178">
+		 Therefore , for this evaluation , we have just been focusing on trying to resolve the 112 left . 
+	</s>
+	
+
+	<s id="179">
+		 The evaluation has been made manually by three annotators . 
+	</s>
+	
+
+	<s id="180">
+		 Four different aspects of the unit have been considered : Recognition and resolution of Temporal Expressions : In this corpus , there were 62 temporal expressions and our system was able to recognize 52 , from which 47 were properly resolved by this module . 
+	</s>
+	
+
+	<s id="181">
+		 Type Identification : There were 112 temporal questions in the corpus . 
+	</s>
+	
+
+	<s id="182">
+		 Each of them was processed by the module , resulting in 104 properly identified according to the taxonomy proposed in section 2 . 
+	</s>
+	
+
+	<s id="183">
+		 Signal Detection : In the corpus , there were 17 questions that were considered complex ( Type 3 and Type 4 ) . 
+	</s>
+	
+
+	<s id="184">
+		 Our system was able to treat and recognize correctly the temporal signal of 14 of these questions . 
+	</s>
+	
+
+	<s id="185">
+		 Question Splitter : From this set of 17 complex questions , the system was able to process 14 questions and divided properly 12 of them . 
+	</s>
+	
+
+	<s id="186">
+		 The results , in terms of precision and recall are shown in Table 2 . 
+	</s>
+	
+
+	<s id="187">
+		 In the evaluation , only 19 questions are wrongly pre-processed . 
+	</s>
+	
+
+	<s id="188">
+		 Errors provoking a wrong pre-processing have been analyzed thoroughly : There were 8 errors in the identification of the type of the question and they were due to : – Not treated TE or wrong TE recognition : 6 questions . 
+	</s>
+	
+
+	<s id="189">
+		 – Wrong Temporal Signal detection : 2 questions . 
+	</s>
+	
+
+	<s id="190">
+		 There were 5 errors in the Question Splitter module : – Wrong Temporal Signal detection : 3 questions . 
+	</s>
+	
+
+	<s id="191">
+		 – Syntactic parser problems : 2 questions . 
+	</s>
+	
+
+	<s id="192">
+		 There were 15 errors not affecting the treatment of the question by the General Purpose Question Answering system . 
+	</s>
+	
+
+	<s id="193">
+		 Nevertheless , they do affect the recomposition of the final answer . 
+	</s>
+	
+
+	<s id="194">
+		 They are due to : – Not treated TE or wrong TE recognition : 6 questions . 
+	</s>
+	
+
+	<s id="195">
+		 – Wrong temporal expression resolution : 9 questions . 
+	</s>
+	
+
+	<s id="196">
+		 Some of these questions provoke more than one problem , causing that both , type identification and division turn to be wrong . 
+	</s>
+	
+
+	<s id="197">
+		 5 Conclusions This paper presents a new and intuitive method for answering complex temporal questions using an embedded current factual-based Q.A. system . 
+	</s>
+	
+
+	<s id="198">
+		 The method proposed is based on a new procedure for the decomposition of temporal questions , where complex questions are divided into simpler ones by means of the detection of temporal signals . 
+	</s>
+	
+
+	<s id="199">
+		 The TERSEO system , a temporal information extraction system applied to event ordering has been used to detect and resolve temporal expressions in questions and answers . 
+	</s>
+	
+
+	<s id="200">
+		 Moreover , this work proposes a new multi- layered architecture that enables to solve complex questions by enhancing current Q.A. capabilities . 
+	</s>
+	
+
+	<s id="201">
+		 The multi-layered approach can be applied to any kind of complex questions that allow question decomposition such as script questions , e.g. , “How do I assemble a bicycle?” , or template-like questions , e.g. , “Which are the main biographical data ofNelson Mandela?” . 
+	</s>
+	
+
+	<s id="202">
+		 This paper has specifically focused on a process of decomposition of complex temporal questions and on its evaluation on a temporal question corpus . 
+	</s>
+	
+
+	<s id="203">
+		 In the future , our work is directed to fine tune this system and increase its capabilities towards processing questions of higher complexity . 
+	</s>
+	
+
+	<s id="204">
+		 References E. Breck , J. Burger , L. Ferro , W. Greiff , M . 
+	</s>
+	
+
+	<s id="205">
+		 Light , I. Mani , and J. Rennie . 
+	</s>
+	
+
+	<s id="206">
+		 2000. Another sys called quanda . 
+	</s>
+	
+
+	<s id="207">
+		 In Ninth Text REtrieval Conference , volume 500-249 of NIST Special Publication , pages 369–378 , Gaithersburg , USA , nov . 
+	</s>
+	
+
+	<s id="208">
+		 National Institute of Standards and Technology . 
+	</s>
+	
+
+	<s id="209">
+		 CLEF . 
+	</s>
+	
+
+	<s id="210">
+		 Cross-language evaluation forum . 
+	</s>
+	
+
+	<s id="211">
+		 http://clef.iei.pi.cnr.it/ . 
+	</s>
+	
+
+	<s id="212">
+		 I. Mani and G. Wilson . 
+	</s>
+	
+
+	<s id="213">
+		 2000 . 
+	</s>
+	
+
+	<s id="214">
+		 Robust temporal processing of news . 
+	</s>
+	
+
+	<s id="215">
+		 In ACL , editor , Proceedings of the 38th Meeting of the Association of Computational Linguistics ( ACL 2000 ) , Hong Kong , October . 
+	</s>
+	
+
+	<s id="216">
+		 J. Pustejovsky . 
+	</s>
+	
+
+	<s id="217">
+		 2002. Terqas:time and event recognition for question answering systems . 
+	</s>
+	
+
+	<s id="218">
+		 http://time2002.org/ . 
+	</s>
+	
+
+	<s id="219">
+		 D. Radev and B. Sundheim . 
+	</s>
+	
+
+	<s id="220">
+		 2002. Us- ing timeml in question answering . 
+	</s>
+	
+
+	<s id="221">
+		 http://www.cs.brandeis.edu/ jamesp/ arda/ time/ documentation/ TimeML-use-in-qa-v1.0.pdf . 
+	</s>
+	
+
+	<s id="222">
+		 E. Saquete , R. Munoz , and P. Mart´ínez-Barco . 
+	</s>
+	
+
+	<s id="223">
+		 2003. Terseo : Temporal expression resolution system applied to event ordering . 
+	</s>
+	
+
+	<s id="224">
+		 In TSD , editor , Proceedings of the 6th International Conference , TSD 2003 , Text , Speech and Dialogue , pages 220–228 , Ceske Budejovice,Czech Republic , September . 
+	</s>
+	
+
+	<s id="225">
+		 TREC . 
+	</s>
+	
+
+	<s id="226">
+		 Text retrieval conference . 
+	</s>
+	
+
+	<s id="227">
+		 http://trec.nist.gov/ . 
+	</s>
+	
+
+	<s id="228">
+		 J. L. Vicedo and A. Ferr´andez . 
+	</s>
+	
+
+	<s id="229">
+		 2000. A semantic approach to question answering systems . 
+	</s>
+	
+
+	<s id="230">
+		 In Ninth Text REtrieval Conference , volume 500- 249 of NIST Special Publication , pages 13–16 , Gaithersburg , USA , nov . 
+	</s>
+	
+
+	<s id="231">
+		 National Institute of Standards and Technology . 
+	</s>
+	
+
+
+</acldoc>

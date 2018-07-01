@@ -1,0 +1,862 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-3003">
+	
+
+	<s id="1">
+		 Constructing Transliteration Lexicons from Web Corpora Jin-Shea Kuo1 , 2 Ying-Kuei Yang2 1Chung-Hwa Telecommunication 2E . 
+	</s>
+	
+
+	<s id="2">
+		 E. Dept. , National Taiwan University of Science Laboratories , Taiwan , R. O. C. , 326 and Technology , Taiwan , R.O.C. , 106 jskuo@cht.com.tw ykyang@mouse.ee.ntust.edu.tw Abstract This paper proposes a novel approach to automating the construction of transliterated-term lexicons . 
+	</s>
+	
+
+	<s id="3">
+		 A simple syllable alignment algorithm is used to construct confusion matrices for cross-language syllable-phoneme conversion . 
+	</s>
+	
+
+	<s id="4">
+		 Each row in the confusion matrix consists of a set of syllables in the source language that are ( correctly or erroneously ) matched phonetically and statistically to a syllable in the target language . 
+	</s>
+	
+
+	<s id="5">
+		 Two conversions using phoneme-to-phoneme and text-to-phoneme syllabification algorithms are automatically deduced from a training corpus of paired terms and are used to calculate the degree of similarity between phonemes for transliterated-term extraction . 
+	</s>
+	
+
+	<s id="6">
+		 In a large-scale experiment using this automated learning process for conversions , more than 200,000 transliterated-term pairs were successfully extracted by analyzing query results from Internet search engines . 
+	</s>
+	
+
+	<s id="7">
+		 Experimental results indicate the proposed approach shows promise in transliterated-term extraction . 
+	</s>
+	
+
+	<s id="8">
+		 1 Introduction Machine transliteration plays an important role in machine translation . 
+	</s>
+	
+
+	<s id="9">
+		 The importance of term transliteration can be realized from our analysis of the terms used in 200 qualifying sentences that were randomly selected from English-Chinese mixed news pages . 
+	</s>
+	
+
+	<s id="10">
+		 Each qualifying sentence contained at least one English word . 
+	</s>
+	
+
+	<s id="11">
+		 Analysis showed that 17.43 % of the English terms were transliterated , and that most of them were content words ( words that carry essential meaning , as opposed to grammatical function words such as conjunctions , prepositions , and auxiliary verbs ) . 
+	</s>
+	
+
+	<s id="12">
+		 In general , a transliteration process starts by first examining a pre-compiled lexicon which contains many transliterated-term pairs collected manually or automatically . 
+	</s>
+	
+
+	<s id="13">
+		 If a term is not found in the lexicon , the transliteration system then deals with this out-ofvocabulary ( OOV ) term to try to generate a transliterated-term via a sequence of pipelined conversions 
+		<ref citStr="Knight , 1998" id="1" label="CEPF" position="2405">
+			( Knight , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="14">
+		 Before this issue can be dealt with , a large quantity of transliterated-term pairs are required to train conversion models . 
+	</s>
+	
+
+	<s id="15">
+		 Preparing a lexicon composed of transliterated term pairs is time- and labor-intensive . 
+	</s>
+	
+
+	<s id="16">
+		 Constructing such a lexicon automatically is the most important goal of this paper . 
+	</s>
+	
+
+	<s id="17">
+		 The problem is how to collect transliterated-term pairs from text resources . 
+	</s>
+	
+
+	<s id="18">
+		 Query logs recorded by Internet search engines reveal users ' intentions and contain much information about users ' behaviors . 
+	</s>
+	
+
+	<s id="19">
+		 
+		<ref citStr="Brill , 2001" id="2" label="CEPF" position="2984">
+			( Brill , 2001 )
+		</ref>
+		 proposed an interactive process that used query logs for extracting English-Japanese transliterated-terms . 
+	</s>
+	
+
+	<s id="20">
+		 Under this method , a large initial number of term pairs were compiled manually . 
+	</s>
+	
+
+	<s id="21">
+		 It is time-consuming to prepare such an initial training set , and the resource used is not publicly accessible . 
+	</s>
+	
+
+	<s id="22">
+		 The Internet is one of the largest distributed databases in the world . 
+	</s>
+	
+
+	<s id="23">
+		 It comprises various kinds of data and at the same time is growing rapidly . 
+	</s>
+	
+
+	<s id="24">
+		 Though the World Wide Web is not systematically organized , much invaluable information can be obtained from this large text corpus . 
+	</s>
+	
+
+	<s id="25">
+		 Many researchers dealing with natural language processing , machine translation , and information retrieval have focused on exploiting such non-parallel Web data 
+		<ref citStr="Al-Onaizan , 2002" id="3" label="CEPF" position="3788">
+			( Al-Onaizan , 2002 
+		</ref>
+		<ref citStr="Fung , 1998" id="4" label="CEPF" position="3808">
+			; Fung , 1998 
+		</ref>
+		<ref citStr="" id="5" label="CEPF" position="3822">
+			; )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="26">
+		 Also , online texts contain the latest terms that may not be found in existing dictionaries . 
+	</s>
+	
+
+	<s id="27">
+		 Regularly exploring Web corpora is a good way to update dictionaries . 
+	</s>
+	
+
+	<s id="28">
+		 Transliterated-term extraction using non-parallel corpora has also been conducted 
+		<ref citStr="Kuo , 2003" id="6" label="CEPF" position="4116">
+			( Kuo , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="29">
+		 Automated speech recognition-generated confusion matrices ( AGCM ) have been used successfully to bootstrap term extraction from Web pages collected by a software spider . 
+	</s>
+	
+
+	<s id="30">
+		 AGCM were used successfully not only to alleviate pronunciation variation , especially the sociolinguistic causes , but also to construct a method for cross- language syllable-phoneme conversion ( CLSPC ) . 
+	</s>
+	
+
+	<s id="31">
+		 This is a mapping from a source-language syllable into its target-language counterpart . 
+	</s>
+	
+
+	<s id="32">
+		 The problem is how to produce such conversions if AGCM are not available for the targeted language pair . 
+	</s>
+	
+
+	<s id="33">
+		 To generate confusion matrices from automated speech recognition requires the effort of collecting many speech corpora for model training , costing time and labor . 
+	</s>
+	
+
+	<s id="34">
+		 Automatically constructing a CLSPC without AGCM is the other main focus of this paper . 
+	</s>
+	
+
+	<s id="35">
+		 Web pages , which are dynamically updated and publicly accessible , are important to many researchers . 
+	</s>
+	
+
+	<s id="36">
+		 However , if many personally guided spiders were simultaneously collecting Web pages , they might cause a network traffic jam . 
+	</s>
+	
+
+	<s id="37">
+		 Internet search engines , which update their data periodically , provide search services that are also publicly accessible . 
+	</s>
+	
+
+	<s id="38">
+		 A user can select only the pages of interest from Internet search engines ; this mitigates the possibility that a network traffic jam will be caused by many personally guided spiders . 
+	</s>
+	
+
+	<s id="39">
+		 Possibly aligned candidate strings in two languages , which may belong to two completely different language families , are selected using local context analysis from non-parallel corpora 
+		<ref citStr="Kuo , 2003" id="7" label="CEPF" position="5788">
+			( Kuo , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="40">
+		 In order to determine the degree of similarity between possible candidate strings , a method for converting such aligned terms cross-linguistically into the same representation in syllables is needed . 
+	</s>
+	
+
+	<s id="41">
+		 A syllable is the basic pronunciation unit used in this paper . 
+	</s>
+	
+
+	<s id="42">
+		 The tasks discussed in this paper are first to align syllables cross-linguistically , then to construct a cross- linguistic relation , and third to use the trained relation to extract transliterated-term pairs . 
+	</s>
+	
+
+	<s id="43">
+		 The remainder of the paper is organized as follows : Section 2 describes how English-Chinese transliterated-term pairs can be extracted automatically . 
+	</s>
+	
+
+	<s id="44">
+		 Experimental results are presented in Section 3 . 
+	</s>
+	
+
+	<s id="45">
+		 Section 4 analyzes on the performance achieved by the extraction . 
+	</s>
+	
+
+	<s id="46">
+		 Conclusions are drawn in Section 5. 2 . 
+	</s>
+	
+
+	<s id="47">
+		 The Proposed Approach An algorithm based on minimizing the edit distance between words with the same representation has been proposed 
+		<ref citStr="Brill , 2001" id="8" label="CEPN" position="6800">
+			( Brill , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="48">
+		 However , the mapping between cross-linguistic phonemes is obtained only after the cross-linguistic relation is constructed . 
+	</s>
+	
+
+	<s id="49">
+		 Such a relation is not available at the very beginning . 
+	</s>
+	
+
+	<s id="50">
+		 A simple and fast approach is proposed here to overcome this problem . 
+	</s>
+	
+
+	<s id="51">
+		 Initially , 200 verified correct English-Chinese transliterated-term pairs are collected manually . 
+	</s>
+	
+
+	<s id="52">
+		 One of the most important attributes of these term pairs is that the numbers of syllables in the source-language term and the target- language term are equal . 
+	</s>
+	
+
+	<s id="53">
+		 The syllables of both languages can also be decomposed further into phonemes . 
+	</s>
+	
+
+	<s id="54">
+		 The algorithm that adopts equal syllable numbers to align syllables and phonemes cross- linguistically is called the simple syllable alignment algorithm ( SSAA ) . 
+	</s>
+	
+
+	<s id="55">
+		 This algorithm generates syllable and phoneme mapping tables between the source and target languages . 
+	</s>
+	
+
+	<s id="56">
+		 These two mapping tables can be used to calculate similarity between candidate strings in transliterated-term extraction . 
+	</s>
+	
+
+	<s id="57">
+		 With the mapping , the transliterated-term pairs can be extracted . 
+	</s>
+	
+
+	<s id="58">
+		 The obtained term pairs can be selected according to the criterion of equal syllable segments . 
+	</s>
+	
+
+	<s id="59">
+		 These qualified term pairs can then be merged with the previous set to form a larger set of qualified term pairs . 
+	</s>
+	
+
+	<s id="60">
+		 The new set of qualified term pairs can be used again to construct a new cross-linguistic mapping for the next term extraction . 
+	</s>
+	
+
+	<s id="61">
+		 This process iterates until no more new term pairs are produced or until other criteria are met . 
+	</s>
+	
+
+	<s id="62">
+		 The conversions used in the last round of the training phase are then used to extract large-scale transliterated-term pairs from query results . 
+	</s>
+	
+
+	<s id="63">
+		 Two types of cross-linguistic relations , phonemeto-phoneme ( PP ) and text-to-phoneme ( TP ) , can be used depending on whether a source-language letterto-sound system is available or not . 
+	</s>
+	
+
+	<s id="64">
+		 2.1 Construction of a Relation Using Phoneme-toPhoneme Mapping If a letter-to-phoneme system is available , a phoneme-based syllabification algorithm ( PSA ) is used for constructing a cross-linguistic relation , then a phoneme-to-phoneme ( PP ) mapping is selected . 
+	</s>
+	
+
+	<s id="65">
+		 Each word in the located English string is converted into phonemes using MBRDICO 
+		<ref citStr="Pagel , 1998" id="9" label="OEPF" position="9155">
+			( Pagel , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="66">
+		 In order to compare English terms with Chinese terms in syllables , the generated English phonemes are syllabified into consonant-vowel pairs . 
+	</s>
+	
+
+	<s id="67">
+		 Each consonant-vowel pair is then converted into a Chinese syllable . 
+	</s>
+	
+
+	<s id="68">
+		 The PSA used here is basically the same as the classical one 
+		<ref citStr="Jurafsky , 2000" id="10" label="CEPF" position="9479">
+			( Jurafsky , 2000 )
+		</ref>
+		 , but has some minor modifications . 
+	</s>
+	
+
+	<s id="69">
+		 Traditionally , an English syllable is composed of an initial consonant cluster followed by a vowel and then a final consonant cluster . 
+	</s>
+	
+
+	<s id="70">
+		 However , in order to convert English syllables to Chinese ones , the final consonant cluster is appended only when it is a nasal . 
+	</s>
+	
+
+	<s id="71">
+		 The other consonants in the final consonant cluster are then segmented into isolated consonants . 
+	</s>
+	
+
+	<s id="72">
+		 Such a syllable may be viewed as the basic pronunciation unit in transliterated-term extraction . 
+	</s>
+	
+
+	<s id="73">
+		 After English phonemes are grouped into syllables , the English syllables can be converted into Chinese ones according to the results produced by using SSAA . 
+	</s>
+	
+
+	<s id="74">
+		 The accuracy of the conversion can improve progressively if the cross-linguistic relation is deduced from a large quantity of transliterated-term pairs . 
+	</s>
+	
+
+	<s id="75">
+		 Take the word &quot; polder &quot; as an example . 
+	</s>
+	
+
+	<s id="76">
+		 First , it is converted into /polda/ using the letter-to-phoneme system , and then according to the phoneme-based syllabification algorithm ( PSA ) , it is divided into /po/ , /l/ , and /do/ , where /l/ is an isolated consonant . 
+	</s>
+	
+
+	<s id="77">
+		 Second , these English syllables are then converted into Chinese syllables using the trained cross- linguistic relation ; for example , /po/ , /l/ , and /dO/ are converted into /po/ , /er/ , and /de/ ( in Pin-yin ) , respectively . 
+	</s>
+	
+
+	<s id="78">
+		 /l/ is a syllable with only an isolated consonant . 
+	</s>
+	
+
+	<s id="79">
+		 A final is appended to its converted Chinese syllable in order to make it complete because not all Chinese initials are legal syllables . 
+	</s>
+	
+
+	<s id="80">
+		 The other point worth noting is that /l/ , a consonant in English , is converted into its Chinese equivalent , /er/ , but , /er/ is a final ( a kind of complex vowel ) in Chinese . 
+	</s>
+	
+
+	<s id="81">
+		 2.2 Construction of a Relation Using Text-toPhoneme Mapping If a source language letter-to-phoneme system is not available , a simple text-based syllabification algorithm ( TSA ) is used and a text-to-phoneme ( TP ) mapping is selected . 
+	</s>
+	
+
+	<s id="82">
+		 An English word is frequently composed of multiple syllables ; whereas , every Chinese character is a monosyllable . 
+	</s>
+	
+
+	<s id="83">
+		 First , each English character in an English term is identified as a consonant , a vowel or a nasal . 
+	</s>
+	
+
+	<s id="84">
+		 For example , the characters “a” , “b” and “n” are viewed as a vowel , a consonant and a nasal , respectively . 
+	</s>
+	
+
+	<s id="85">
+		 Second , consecutive characters of the same attribute form a cluster . 
+	</s>
+	
+
+	<s id="86">
+		 However , some characters , such as “ch” , “ng” and “ph” , always combine together to form complex consonants . 
+	</s>
+	
+
+	<s id="87">
+		 Such complex consonants are also taken into account in the syllabification process . 
+	</s>
+	
+
+	<s id="88">
+		 A Chinese syllable is composed of an initial and a final . 
+	</s>
+	
+
+	<s id="89">
+		 An initial is similar to a consonant in English , and a final is analogous to a vowel or a combination of a vowel and a nasal . 
+	</s>
+	
+
+	<s id="90">
+		 Using the proposed simple syllable alignment algorithm , a conversion using TP mapping can be produced . 
+	</s>
+	
+
+	<s id="91">
+		 The conversion can also be used in transliterated-term extraction from nonparallel web corpora . 
+	</s>
+	
+
+	<s id="92">
+		 The automated construction of a cross-linguistic mapping eliminates the dependency on AGCM reported in 
+		<ref citStr="Kuo , 2003" id="11" label="CEPF" position="12740">
+			( Kuo , 2003 )
+		</ref>
+		 and makes transliterated- term extraction for other language pairs possible . 
+	</s>
+	
+
+	<s id="93">
+		 The cross-linguistic relation constructed using TSA and TP is called CTP ; on the other hand , the cross- linguistic relation using PSA and PP is called CPP . 
+	</s>
+	
+
+	<s id="94">
+		 3 The Experimental Results 3.1 Training Cross-language Syllable-phoneme Conversions An English-Chinese text corpus of 500MB in 15,822,984 pages , which was collected from the Internet using a web spider and was converted to plain text , was used as a training set . 
+	</s>
+	
+
+	<s id="95">
+		 This corpus is called SET 1 . 
+	</s>
+	
+
+	<s id="96">
+		 From SET 1 , 80,094 qualifying sentences that occupied 5MB were extracted . 
+	</s>
+	
+
+	<s id="97">
+		 A qualifying sentence was a sentence composed of at least one English string . 
+	</s>
+	
+
+	<s id="98">
+		 Two experiments were conducted using either CPP or CTP on SET 1 . 
+	</s>
+	
+
+	<s id="99">
+		 Figure 1 shows the progress of extracting transliterated-term pairs achieved using CPP mapping . 
+	</s>
+	
+
+	<s id="100">
+		 A noteworthy phenomenon was that phoneme conversion produced more term pairs than syllable conversion did at the very beginning of training . 
+	</s>
+	
+
+	<s id="101">
+		 This is because , initially , the quality of the syllable combinations is not good enough . 
+	</s>
+	
+
+	<s id="102">
+		 The phonemes exerted finer-grained control than syllables did . 
+	</s>
+	
+
+	<s id="103">
+		 However , when the generated syllable combinations improved in quality , the situation changed . 
+	</s>
+	
+
+	<s id="104">
+		 Finally , extraction performed using syllable conversion outperformed that achieved using phoneme conversion . 
+	</s>
+	
+
+	<s id="105">
+		 Note also that the results produced by using phonemes quickly approached the saturation state . 
+	</s>
+	
+
+	<s id="106">
+		 This is because the English phoneme set is small . 
+	</s>
+	
+
+	<s id="107">
+		 When phonemes were used independently to perform term extraction , fewer extracted term pairs were produced than were produced using syllables or a combination of syllables and phonemes . 
+	</s>
+	
+
+	<s id="108">
+		 Iter #1 Iter #2 Iter #3 Iter #4 Iter #5 Iter #6 Figure 1 . 
+	</s>
+	
+
+	<s id="109">
+		 The progress of extracting transliterated- term pairs using CPP conversion Figure 2 shows the progress of extracting transliterated-term pairs using CTP . 
+	</s>
+	
+
+	<s id="110">
+		 The same situation also occurred at the very beginning of training . 
+	</s>
+	
+
+	<s id="111">
+		 Comparing the results generated using CPP and CTP , CPP outperformed CTP in terms of the quantity of extracted term pairs because the combinations obtained using TSA are larger than those obtained using PSA . 
+	</s>
+	
+
+	<s id="112">
+		 This is also revealed by the results generated at iteration 1 and shown in Figures 1 and 2 . 
+	</s>
+	
+
+	<s id="113">
+		 Figure 2 . 
+	</s>
+	
+
+	<s id="114">
+		 The progress of extracting transliterated- term pairs using CTP conversion . 
+	</s>
+	
+
+	<s id="115">
+		 7000 6500 6000 5500 5000 4500 4000 3500 3000 2500 2000 1500 1000 500 0 Syllable ( S ) Phoneme ( P ) S+P Iter #1 Iter #2 Iter #3 Iter #4 Iter #5 Iter #6 6000 5500 5000 4500 4000 3500 3000 2500 2000 1500 1000 500 0 Syllable ( S ) Phoneme ( P ) S+P 3.2 Transliterated-term Extraction The Web is growing rapidly . 
+	</s>
+	
+
+	<s id="116">
+		 It is a rich information source for many researchers . 
+	</s>
+	
+
+	<s id="117">
+		 Internet search engines have collected a huge number of Web pages for public searching 
+		<ref citStr="Brin , 1998" id="12" label="CEPF" position="15798">
+			( Brin , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="118">
+		 Submitting queries to these search engines and analyzing the results can help researchers to understand the usages of transliterated-term pairs . 
+	</s>
+	
+
+	<s id="119">
+		 Query results are text snippets shown in a page returned from an Internet search engine in response to a query . 
+	</s>
+	
+
+	<s id="120">
+		 These text snippets may be composed of texts that are extracted from the beginning of pages or from the texts around the keywords matched in the pages . 
+	</s>
+	
+
+	<s id="121">
+		 Though a snippet presents only a portion of the full text , it provides an alternative way to summarize the pages matched . 
+	</s>
+	
+
+	<s id="122">
+		 Initially , 200 personal names were randomly selected from the names in the 1990 census conducted by the US Census Bureau1 as queries to be submitted to Internet search engines . 
+	</s>
+	
+
+	<s id="123">
+		 CPP and CTP were obtained in the last round of the training phase . 
+	</s>
+	
+
+	<s id="124">
+		 The estimated numbers of distinct qualifying term pairs ( EDQTP ) obtained by analyzing query results and by using CPP and CTP mappings for 7 days are shown in Table 1 . 
+	</s>
+	
+
+	<s id="125">
+		 A qualifying term pair means a term pair that is verified manually to be correct . 
+	</s>
+	
+
+	<s id="126">
+		 EDQTP are term pairs that are not verified manually but are estimated according to the precision achieved during the training phase . 
+	</s>
+	
+
+	<s id="127">
+		 Finally , a text corpus called SET2 was obtained by iteratively submitting queries to search engines . 
+	</s>
+	
+
+	<s id="128">
+		 SET2 occupies 3.17GB and is composed of 67,944 pages in total . 
+	</s>
+	
+
+	<s id="129">
+		 The term pairs extracted using CTP were much fewer in number than those extracted using CPP . 
+	</s>
+	
+
+	<s id="130">
+		 This is because the TSA used in this study , though effective , is very simple and rudimentary . 
+	</s>
+	
+
+	<s id="131">
+		 A finer-grained syllabification algorithm would improve performance . 
+	</s>
+	
+
+	<s id="132">
+		 EDQTP Table 1 . 
+	</s>
+	
+
+	<s id="133">
+		 The term pairs extracted from Internet search engines using PP and TP mappings . 
+	</s>
+	
+
+	<s id="134">
+		 4 Discussion Comparing the performances achieved by CPP and CTP , the results obtained by using CPP were better than those with CTP . 
+	</s>
+	
+
+	<s id="135">
+		 The reason is that TSA is very simple . 
+	</s>
+	
+
+	<s id="136">
+		 A better TSA would produce better results . 
+	</s>
+	
+
+	<s id="137">
+		 Though TSA is simple , it is still effective in automatically extracting a large quantity of term 1http://www.census.gov/genealogy/names/ pairs . 
+	</s>
+	
+
+	<s id="138">
+		 Also , TSA has an advantage over PSA is that no letter-to-phoneme system is required . 
+	</s>
+	
+
+	<s id="139">
+		 It could be helpful when applying the proposed approach to other language pairs , where such a mapping may not be available . 
+	</s>
+	
+
+	<s id="140">
+		 5 Conclusions An approach to constructing transliterated-term lexicons has been presented in this paper . 
+	</s>
+	
+
+	<s id="141">
+		 A simple alignment algorithm has been used to automatically construct confusion matrices for cross-language syllable-phoneme conversion using phoneme-tophoneme ( PP ) and text-to-phoneme ( TP ) syllabification algorithms . 
+	</s>
+	
+
+	<s id="142">
+		 The proposed approach not only reduces the need for using automated speech recognition-generated confusion matrices , but also eliminates the need for a letter-to-phoneme system for source-language terms if TP is used to construct a cross-language syllable-phoneme conversion and to successfully extract transliterated- term pairs from query results returned by Internet search engines . 
+	</s>
+	
+
+	<s id="143">
+		 The performance achieved using PP and TP has been compared and discussed . 
+	</s>
+	
+
+	<s id="144">
+		 The overall experimental results show that this approach is very promising for transliterated-term extraction . 
+	</s>
+	
+
+	<s id="145">
+		 References Al-Onaizan Y. and Knight K. 2002 . 
+	</s>
+	
+
+	<s id="146">
+		 Machine Transliteration of Names in Arabic Text , In Proceedings of ACL Workshop on Computational Approaches to Semitic Languages , pp. 34-46 . 
+	</s>
+	
+
+	<s id="147">
+		 Brill E. , Kacmarcik G. , Brockett C. 2001 . 
+	</s>
+	
+
+	<s id="148">
+		 Automatically Harvesting Katakana-English Term Pairs from Search Engine Query Logs , In Proceedings of Natural Language Processing Pacific Rim Symposium , pp. 393- 399 . 
+	</s>
+	
+
+	<s id="149">
+		 Brin S. and Page L. 1998 . 
+	</s>
+	
+
+	<s id="150">
+		 The Anatomy of a Large-scale Hypertextual Web Search Engine , In Proceedings of 7th International World Wide Web Conference , pp. 107-117 . 
+	</s>
+	
+
+	<s id="151">
+		 Fung P. and Yee L.-Y. 1998 . 
+	</s>
+	
+
+	<s id="152">
+		 An IR Approach for Translating New Words from Nonparallel , Comparable Texts . 
+	</s>
+	
+
+	<s id="153">
+		 In Proceedings of the 36th Annual Meeting of the Association for Computational Linguistics and 7th International Conference on Computational Linguistics , pp. 414-420 . 
+	</s>
+	
+
+	<s id="154">
+		 Jurafsky D. and Martin J. H. 2000 . 
+	</s>
+	
+
+	<s id="155">
+		 Speech and Language Processing , pp. 102-120 , Prentice-Hall , New Jersey . 
+	</s>
+	
+
+	<s id="156">
+		 Knight K. and Graehl J. 1998 . 
+	</s>
+	
+
+	<s id="157">
+		 Machine Transliteration , Computational Linguistics , Vol. 24 , No. 4 , pp.599-612 . 
+	</s>
+	
+
+	<s id="158">
+		 Kuo J. S. and Yang Y. K. 2003 . 
+	</s>
+	
+
+	<s id="159">
+		 Automatic Transliterated- term Extraction Using Confusion Matrix from Nonparallel Corpora , In Proceedings of ROCLING XV Computational Linguistics Conference , pp. 17-32 . 
+	</s>
+	
+
+	<s id="160">
+		 Pagel V. , Lenzo K. , and Black A. 1998 . 
+	</s>
+	
+
+	<s id="161">
+		 Letter to Sound Rules for Accented Lexicon Compression , In Proceedings of ICSLP , pp. 2015-2020 . 
+	</s>
+	
+
+	<s id="162">
+		 CPP CTP 201,732 110,295 
+	</s>
+	
+
+
+</acldoc>

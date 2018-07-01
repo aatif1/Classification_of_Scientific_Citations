@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-3013">
+	
+
+	<s id="1">
+		 Exploiting Unannotated Corpora for Tagging and Chunking Rie Kubota Ando IBM T.J. Watson Research Center 19 Skyline Dr. , Hawthorne , NY 10532 riel@us.ibm.com Abstract We present a method that exploits unannotated corpora for compensating the paucity of anno- tated training data on the chunking and tagging tasks . 
+	</s>
+	
+
+	<s id="2">
+		 It collects and compresses feature frequencies from a large unannotated corpus for use by linear classifiers . 
+	</s>
+	
+
+	<s id="3">
+		 Experiments on two tasks show that it consistently produces significant performance improvements . 
+	</s>
+	
+
+	<s id="4">
+		 1 Introduction This paper presents a method for exploiting large unannotated corpora for the tagging and chunking tasks . 
+	</s>
+	
+
+	<s id="5">
+		 We report experiments on entity mention detection ) and part-of-speech ( POS ) tagging . 
+	</s>
+	
+
+	<s id="6">
+		 To apply classification tech- niques to chunking tasks , a common approach is to cast the task to that of token tagging , where token tags encode chunk information , e.g. , `13-PERSON ' ( beginning of person chunk ) , ` I-PERSON ' ( inside of person chunk ) , and ` O ' ( outside of any entity chunk ) . 
+	</s>
+	
+
+	<s id="7">
+		 The challenge for a classifier is to learn unknown relationships between token tags and features ( such as token strings and context information ) from tagged examples . 
+	</s>
+	
+
+	<s id="8">
+		 To achieve reasonable performance , a sufficiently large number of representative ex- amples are required . 
+	</s>
+	
+
+	<s id="9">
+		 Our goal is to compensate for the paucity of tagged examples or their differences from test data , by using untagged examples . 
+	</s>
+	
+
+	<s id="10">
+		 One type of approaches to this problem involves iterative and automatic tagging of the untagged data such as bootstrapping or co- training . 
+	</s>
+	
+
+	<s id="11">
+		 Expectation Maximization ( EM ) also uses untagged data for iteratively improving model parameters . 
+	</s>
+	
+
+	<s id="12">
+		 Another type uses untagged ' The task objective of entity mention detection is to detect and classify text spans that mention ( or refer to ) certain types of entities in the real world such as per sons and organizations . 
+	</s>
+	
+
+	<s id="13">
+		 We experiment with the data from the ACE ( Automatic Content Extraction ) program ( http://www.nist.gov/speech/index.htm ) . 
+	</s>
+	
+
+	<s id="14">
+		 corpora for improving feature representation , e.g. 
+		<ref citStr="Schuetze , 1992" id="1" label="CEPF" position="2229">
+			( Schuetze , 1992 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="15">
+		 We take the latter ap- proach . 
+	</s>
+	
+
+	<s id="16">
+		 To see how unannotated corpora may help tagging , consider the following examples : • • • the president W13-PERSON and • • • • • • our chairman/13-PERSON is • • • Suppose that &quot; president &quot; appeared in the train- ing data , but &quot; chairman &quot; did n't , and that in a large corpus , both words ( &quot; chairman &quot; and &quot; president &quot; ) often appear as the subject of &quot; said &quot; , &quot; visited &quot; , etc. , and that both are often modified by &quot; vice &quot; , &quot; powerful &quot; , etc. . 
+	</s>
+	
+
+	<s id="17">
+		 It is intuitive that such corpus statistics would help a classifier to tag &quot; chairman &quot; correctly even if &quot; chairman &quot; did not appear in the training data . 
+	</s>
+	
+
+	<s id="18">
+		 Given some set of features designed for the task ( see Figure 1 for example ) , we count feature occurrences in all the word instances in the unannotated corpus to generate feature-byword co-occurrence frequency matrices . 
+	</s>
+	
+
+	<s id="19">
+		 When we encounter a training or test instance of word w , we generate two kinds of features . 
+	</s>
+	
+
+	<s id="20">
+		 One is the features observed in that instance ( as usual ) . 
+	</s>
+	
+
+	<s id="21">
+		 The other is the features derived from the columns ( corresponding to w ) of the featureby-word co-occurrence matrices — collections of w 's context in the untagged corpus — which we call corpus-context features . 
+	</s>
+	
+
+	<s id="22">
+		 Our experiments show that the corpus- context features consistently improve performance on the two tasks . 
+	</s>
+	
+
+	<s id="23">
+		 There are two important elements for achieving such effectiveness in this simple framework . 
+	</s>
+	
+
+	<s id="24">
+		 One is a high- performance linear classifier , Robust Risk Minimization ( RRM ) 
+		<ref citStr="Zhang et al. , 2002" id="2" label="OEPF" position="3878">
+			( Zhang et al. , 2002 )
+		</ref>
+		 , which has an ability to ignore irrelevant features while cop- ing with mutually-dependent features . 
+	</s>
+	
+
+	<s id="25">
+		 ( RRM learns feature weights by minimizing classifica- tion errors with regularization on the tagged training data . 
+	</s>
+	
+
+	<s id="26">
+		 ) Therefore , we take a ` feature- rich ' strategy to use a variety of types of cor- pus context information . 
+	</s>
+	
+
+	<s id="27">
+		 To enable classifier training with many types of corpus statistics , such vast amounts of information from a large corpus must be compressed . 
+	</s>
+	
+
+	<s id="28">
+		 Hence , the sec- ond key element is a dimension reduction tech- nique . 
+	</s>
+	
+
+	<s id="29">
+		 We adapt a variation of LSI , specifi- cally designed for feature occurrence frequen- cies 
+		<ref citStr="Ando , 2004" id="3" label="CERF" position="4576">
+			( Ando , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="30">
+		 As such , the objective of this paper is to show that a right combination of techniques produces a useful tool for coping with the paucity of tagged training data . 
+	</s>
+	
+
+	<s id="31">
+		 2 Method 2.1 Collecting corpus statistics From a given set of features designed for the task ( see Figure 1 and Figure 6 for example ) , we use context features only ( i.e. , excluding features that strongly depend on words 2 ) to gener- ate feature-by-word co-occurrence matrices . 
+	</s>
+	
+
+	<s id="32">
+		 We generate one matrix for each type , e.g. , a ` left adjacent word'-by-word matrix , a ` right adja- cent word'-by-word matrix , and so forth . 
+	</s>
+	
+
+	<s id="33">
+		 2.2 Vector compression To compress feature-by-word matrices , we adapt a procedure proposed for semantic lexicon construction 
+		<ref citStr="Ando , 2004" id="4" label="CERF" position="5350">
+			( Ando , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="34">
+		 That is to apply singular value decomposition ( SVD ) only to a smaller matrix consisting of several selected columns of the co-occurrence matrix and to ` fold in ' the rest of the columns to the reduced dimensions . 
+	</s>
+	
+
+	<s id="35">
+		 The choice of columns is important . 
+	</s>
+	
+
+	<s id="36">
+		 The columns corresponding to the most frequent words should be selected . 
+	</s>
+	
+
+	<s id="37">
+		 The intuition behind its theoretical justification 
+		<ref citStr="Ando , 2004" id="5" label="CEPF" position="5783">
+			( Ando , 2004 )
+		</ref>
+		 is that more reliable statistics from high-frequency words should produce a better representation space , which should result in improving statistically ` poor ' vectors for low-frequency words . 
+	</s>
+	
+
+	<s id="38">
+		 Thus , we choose k most frequent words and reduce the dimensions to h . 
+	</s>
+	
+
+	<s id="39">
+		 The dimensionality h should be no smaller than the number of target classes3 . 
+	</s>
+	
+
+	<s id="40">
+		 We compress each of feature-by-word co- occurrence matrix independently of one another . 
+	</s>
+	
+
+	<s id="41">
+		 This is important , as it gives more freedom to 2For instance , it is useless to count ` co-occurrences ' of words and their endings . 
+	</s>
+	
+
+	<s id="42">
+		 Moreover , features that are nearly conditionally independent of words given classes are more useful for the purpose , since ultimately we want to capture correlations of words to classes ( through their co-occurrences with features ) rather than their correlations to specific features . 
+	</s>
+	
+
+	<s id="43">
+		 3Intuitively , there need at least h dimensions to express correlations to h classes . 
+	</s>
+	
+
+	<s id="44">
+		 Ptoken , capitalization , POS in 3-token window Pbi-grams of adjacent words in ~-token window Pwords in the same syntactic chunk ~ Phead words in ~-chunk window Pword uni- and bi-grams based on subject-verbobject and preposition-noun constructions . 
+	</s>
+	
+
+	<s id="45">
+		 Psyntactic chunk types Ptags in 2-token window to the left Ptri-grams of POS , capitalization , and word ending Ptri-gra~s of POS , capitalization , and left tag Figure 1 : Features for entity detection sophisticated classifiers to weight relevant types of features more heavily than irrelevant ones . 
+	</s>
+	
+
+	<s id="46">
+		 If all are compressed together , the classifiers can not tear them apart . 
+	</s>
+	
+
+	<s id="47">
+		 For efficient training , though optionally , we further reduce non-zero entries by zeroing out all but n entries that have the largest absolute values in each compressed vector . 
+	</s>
+	
+
+	<s id="48">
+		 We call the entries of the resultant vec- tors ÑÍÕÓîØÖÑÍ~~~ö~ features . 
+	</s>
+	
+
+	<s id="49">
+		 For a training or test instance of word w , we have two kinds of features : features derived from the instance ( as usual ) , and the corpus-context features generated from w 's context in the corpus . 
+	</s>
+	
+
+	<s id="50">
+		 For our experiments , we set ( k , h , n ) _ ( 1000 , 50 , 6 ) using held-out data ( the development set described below ) . 
+	</s>
+	
+
+	<s id="51">
+		 Performance is rel- atively insensitive to the changes of these pa- rameters4 . 
+	</s>
+	
+
+	<s id="52">
+		 We use the same parameter setting for both entity mention detection and part-ofspeech tagging experiments . 
+	</s>
+	
+
+	<s id="53">
+		 3 Entity mention detection experiments 3.1 Experimental framework Entity classes and evaluation metric We experiment with 10 classes from the ACE entity classes — obtained by combining five entity types ( Person , Organization , Facility , GPE , Location ) and two mention types ( Name , Nominal ) , which make 21-way classification when chunk boundary information is encoded into token tags . 
+	</s>
+	
+
+	<s id="54">
+		 Proposed mention chunks are counted as correct only if both mention boundaries and classes are correct . 
+	</s>
+	
+
+	<s id="55">
+		 We combine precision and recall into F-measure with equal weight . 
+	</s>
+	
+
+	<s id="56">
+		 Features Figure 1 describes features used for entity mention detection experiments . 
+	</s>
+	
+
+	<s id="57">
+		 We generate corpus-context features from the features ~~n the held-out data , k E [ 1000,5000 ] produced essentially similar performance , and so did h E [ 30,60 ] and n E [ 6,10 ] . 
+	</s>
+	
+
+	<s id="58">
+		 50 40 30 20 10 0 Per Name Loc nom Fac Name Loc Name Fac nom GPE nom Org nom Org Name Per nom GPE Name Ptoken , capitalization in 5-token windows ending ( length 1 to 4 ) Puni - and bi-grams of tags at the left Ptag-word bi-grams in 3-token windows Pbi-grams of adjacent words in 5-token windows Figure 6 : Features for POS tagging RRM HMM Corpus-ctx ~- with BW w/o 5K 90.2 ( + 7.4 ) 82 .8 82.1 ( +5.0 ) 77 .1 9K 92.7 ( + 5.0 ) 87 .7 84.9 ( +2.7 ) 82 .2 19K 93.7 ( + 2.8 ) 90 .9 87.1 ( +0.3 ) 86 .8 38K 94.7 ( + 1.8 ) 92 .9 89.8 ( -0.2 ) 89 .6 75K 95.2 ( + 1.6 ) 93 .6 91.2 ( -0.6 ) 91 .8 149K 95.6 ( + 0.9 ) 94 .7 92.3 ( -1.0 ) 93.3 Figure 7 : POS tagging accuracy results . 
+	</s>
+	
+
+	<s id="59">
+		 ~umbers in parentheses are differences from their counterparts that do not use the untagged corpus . 
+	</s>
+	
+
+	<s id="60">
+		 pus ) , indeed , compensates for the differences between tagged training data ( ACE ) and test data ( CNS ) . 
+	</s>
+	
+
+	<s id="61">
+		 The other classifiers are apparently suffering from the dissimilarity . 
+	</s>
+	
+
+	<s id="62">
+		 4 POS Tagging Experiments Features Figure 6 shows the features we use for POS tagging . 
+	</s>
+	
+
+	<s id="63">
+		 Among them , we use word uni- and bi-grams that do not overlap with the current word , to generate corpus-context fea- tures . 
+	</s>
+	
+
+	<s id="64">
+		 Baseline As our baseline , we implement an HMM tagger with and without ~Ôî~ÖW~ðÑÙ reestimation ( EM for HMM ) . 
+	</s>
+	
+
+	<s id="65">
+		 We smooth transition probabilities by deleted interpolation . 
+	</s>
+	
+
+	<s id="66">
+		 For unseen and low-frequency words , word emission probabilities are estimated as 
+		<ref citStr="Weischedel et al . ( 1993 )" id="6" label="CEPF" position="10693">
+			Weischedel et al . ( 1993 )
+		</ref>
+		 do while interpolating emission probabilities of words and endings ( length 1 to 4 ) . 
+	</s>
+	
+
+	<s id="67">
+		 We estimate these probabilities by relative frequencies in tagged training corpora , and perform 10 EM iterations using unannotated data . 
+	</s>
+	
+
+	<s id="68">
+		 To avoid underestimating the baseline , we report its best performance among the iterations . 
+	</s>
+	
+
+	<s id="69">
+		 POS tagging results We report results on the standard Brown corpus . 
+	</s>
+	
+
+	<s id="70">
+		 The test data was fixed to arbitrarily-drawn one fifth of the corpus ( 230K words ) . 
+	</s>
+	
+
+	<s id="71">
+		 We use the rest ( 930K words ) as tagged and untagged training data : all 930K words as untagged data for collecting corpus context and for the BW reestima- tion ; and arbitrarily-drawn various portions as tagged training data . 
+	</s>
+	
+
+	<s id="72">
+		 Figure 7 shows accuracy ( # of correctly tagged words divided by # of words ) in relation to the number of tagged training examples . 
+	</s>
+	
+
+	<s id="73">
+		 The performance differ- ences between HMM and RRM mainly derive from the differences in the ` richness ' of information they make use of . 
+	</s>
+	
+
+	<s id="74">
+		 The additional fea- tures5 used by RRM are apparently effective for compensating for the paucity of the tagged data . 
+	</s>
+	
+
+	<s id="75">
+		 Corpus-context features further improve the performance up to 7.4 % . 
+	</s>
+	
+
+	<s id="76">
+		 This is in contrast to the Baum-Welch reestimation , which sometimes rather degrades performance . 
+	</s>
+	
+
+	<s id="77">
+		 5 Conclusion The method we present is intended for the chunking tagging tasks in which words serve as strongly effective features . 
+	</s>
+	
+
+	<s id="78">
+		 Performance im- provements obtained by corpus-context features are especially large when tagged training is small or different from test data , which is useful for expediting the adaptation of the system to new domains . 
+	</s>
+	
+
+	<s id="79">
+		 Acknowledgements This work was supported by the Advanced Re- search and Development Activity under the Novel Intelligence and Massive Data ( NIMD ) program PNWD-SW-6059 . 
+	</s>
+	
+
+	<s id="80">
+		 References Rie Kubota Ando . 
+	</s>
+	
+
+	<s id="81">
+		 2004. Semantic lexicon con- struction : Learning from unlabeled data via spectral analysis . 
+	</s>
+	
+
+	<s id="82">
+		 In Proceedings of CoNLL- 2004 . 
+	</s>
+	
+
+	<s id="83">
+		 Hinrich Schuetze . 
+	</s>
+	
+
+	<s id="84">
+		 1992. Dimensions of mean- ing . 
+	</s>
+	
+
+	<s id="85">
+		 In Proceedings of Supercomputing'92 , pages 787-796 . 
+	</s>
+	
+
+	<s id="86">
+		 Ralph Weischedel , Marie Meteer , Richard Schwartz , Lance Ramshaw , and Jeff Pal- mucci . 
+	</s>
+	
+
+	<s id="87">
+		 1993. Coping with ambiguity and unknown words through probabilistic models . 
+	</s>
+	
+
+	<s id="88">
+		 Computational Linguistics , 19(2):359-382 . 
+	</s>
+	
+
+	<s id="89">
+		 Tong Zhang , Fred Damerau , and David Johnson . 
+	</s>
+	
+
+	<s id="90">
+		 2002. Text chunking based on a generalization of Winnow . 
+	</s>
+	
+
+	<s id="91">
+		 Journal of Machine Learning Research , 2:615-637 . 
+	</s>
+	
+
+	<s id="92">
+		 ' As many of the features used with RRM are mutually dependent , there is no easy way to exploit them with HMM . 
+	</s>
+	
+
+	<s id="93">
+		 However , we note that when trained with over one million tagged examples , RRM ( with and without corpus context ) and HMM taggers produce essentially similar high accuracy . 
+	</s>
+	
+
+	<s id="94">
+		 That is , the mutually-dependent features become redundant once sufficiently large tagged data becomes available . 
+	</s>
+	
+
+
+</acldoc>

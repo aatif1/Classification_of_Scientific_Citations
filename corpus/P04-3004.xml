@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-3004">
+	
+
+	<s id="1">
+		 Subsentential Translation Memory for Computer Assisted Writing and Translation Jian-Cheng Wu Department of Computer Science National Tsing Hua University 101 , Kuangfu Road , Hsinchu , 300 , Taiwan , ROC D928322@oz.nthu.edu.tw Thomas C. Chuang Department of Computer Science Van Nung Institute of Technology No. 1 Van-Nung Road Chung-Li Tao-Yuan , Taiwan , ROC tomchuang@cc.vit.edu.tw Wen-Chi Shei , Jason S. Chang Department of Computer Science National Tsing Hua University 101 , Kuangfu Road , Hsinchu , 300 , Taiwan , ROC jschang@cs.nthu.edu.tw Abstract This paper describes a database of translation memory , TotalRecall , developed to encourage authentic and idiomatic use in second language writing . 
+	</s>
+	
+
+	<s id="2">
+		 TotalRecall is a bilingual concordancer that support search query in English or Chinese for relevant sentences and translations . 
+	</s>
+	
+
+	<s id="3">
+		 Although initially intended for learners of English as Foreign Language ( EFL ) in Taiwan , it is a gold mine of texts in English or Mandarin Chinese . 
+	</s>
+	
+
+	<s id="4">
+		 TotalRecall is particularly useful for those who write in or translate into a foreign language . 
+	</s>
+	
+
+	<s id="5">
+		 We exploited and structured existing high-quality translations from bilingual corpora from a Taiwan-based Sinorama Magazine and Official Records of Hong Kong Legislative Council to build a bilingual concordance . 
+	</s>
+	
+
+	<s id="6">
+		 Novel approaches were taken to provide high- precision bilingual alignment on the subsentential and lexical levels . 
+	</s>
+	
+
+	<s id="7">
+		 A browser- based user interface was developed for ease of access over the Internet . 
+	</s>
+	
+
+	<s id="8">
+		 Users can search for word , phrase or expression in English or Mandarin . 
+	</s>
+	
+
+	<s id="9">
+		 The Web-based user interface facilitates the recording of the user actions to provide data for further research . 
+	</s>
+	
+
+	<s id="10">
+		 1 Introduction Translation memory has been found to be more effective alternative to machine translation for translators , especially when working with batches of similar texts . 
+	</s>
+	
+
+	<s id="11">
+		 That is particularly true with so- called delta translation of the next versions for publications that need continuous revision such as an encyclopaedia or user’s manual . 
+	</s>
+	
+
+	<s id="12">
+		 On another area of language study , researchers on English Language Teaching ( ELT ) have increasingly looked to concordancer of very large corpora as a new re-source for translation and language learning . 
+	</s>
+	
+
+	<s id="13">
+		 Concordancers have been indispensable for lexicographers . 
+	</s>
+	
+
+	<s id="14">
+		 But now language teachers and students also embrace the concordancer to foster data-driven , student-centered learning . 
+	</s>
+	
+
+	<s id="15">
+		 A bilingual concordance , in a way , meets the needs of both communities , the computer assisted translation ( CAT ) and computer assisted language learning ( CALL ) . 
+	</s>
+	
+
+	<s id="16">
+		 A bilingual concordancer is like a monolingual concordance , except that each sentence is followed by its translation counterpart in a second language . 
+	</s>
+	
+
+	<s id="17">
+		 “Existing translations contain more solutions to more translation problems than any other existing resource.” 
+		<ref citStr="Isabelle 1993" id="1" label="CEPF" position="3028">
+			( Isabelle 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="18">
+		 The same can be argued for language learning ; existing texts offer more answers for the learner than any teacher or reference work do . 
+	</s>
+	
+
+	<s id="19">
+		 However , it is important to provide easy access for translators and learning writers alike to find the relevant and informative citations quickly . 
+	</s>
+	
+
+	<s id="20">
+		 For instance , the English-French concordance system , TransSearch provides a familiar interface for the users 
+		<ref citStr="Macklovitch et al . 2000" id="2" label="OEPF" position="3483">
+			( Macklovitch et al . 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="21">
+		 The user type in the expression in question , a list of citations will come up and it is easy to scroll down until one finds translation that is useful much like using a search engine . 
+	</s>
+	
+
+	<s id="22">
+		 TransSearch exploits sentence alignment techniques 
+		<ref citStr="Brown et al 1990" id="3" label="CEPF" position="3741">
+			( Brown et al 1990 
+		</ref>
+		<ref citStr="Gale and Church 1990" id="4" label="CEPF" position="3760">
+			; Gale and Church 1990 )
+		</ref>
+		 to facilitate bilingual search at the granularity level of sentences . 
+	</s>
+	
+
+	<s id="23">
+		 In this paper , we describe a bilingual concordancer which facilitate search and visualization with fine granularity . 
+	</s>
+	
+
+	<s id="24">
+		 TotalRecall exploits subsentential and word alignment to provide a new kind of bilingual concordancer . 
+	</s>
+	
+
+	<s id="25">
+		 Through the interactive interface and clustering of short subsentential bi-lingual citations , it helps translators and non-native speakers find ways to translate or express them-selves in a foreign language . 
+	</s>
+	
+
+	<s id="26">
+		 2 Aligning the corpus Central to TotalRecall is a bilingual corpus and a set of programs that provide the bilingual analyses to yield a translation memory database out of the bilingual corpus . 
+	</s>
+	
+
+	<s id="27">
+		 Currently , we are working with A : Database selection B : English query C : Chinese query D : Number of items per page E : Normal view F : Clustered summary according to translation G : Order by counts or lengths H : Submit bottom I : Help file J : Page index K : English citation L : Chinese citation M : Date and title N : All citations in the cluster O : Full text context P : Side-by-side sentence alignment Figure 2 . 
+	</s>
+	
+
+	<s id="28">
+		 The results of searching for “hard” bilingual corpora from a Taiwan-based Sinorama Magazine and Official Records of Hong Kong Legislative Council . 
+	</s>
+	
+
+	<s id="29">
+		 A large bilingual collection of Studio Classroom English lessons will be provided in the near future . 
+	</s>
+	
+
+	<s id="30">
+		 That would allow us to offer bilingual texts in both translation directions and with different levels of difficulty . 
+	</s>
+	
+
+	<s id="31">
+		 Currently , the articles from Sinorama seems to be quite usefully by its own , covering a wide range of topics , reflecting the personalities , places , and events in Taiwan for the past three decades . 
+	</s>
+	
+
+	<s id="32">
+		 The concordance database is composed of bilingual sentence pairs , which are mutual translation . 
+	</s>
+	
+
+	<s id="33">
+		 In addition , there are also tables to record additional information , including the source of each sentence pairs , metadata , and the information on phrase and word level alignment . 
+	</s>
+	
+
+	<s id="34">
+		 With that additional information , TotalRecall provides various functions , including 1. viewing of the full text of the source with a simple click . 
+	</s>
+	
+
+	<s id="35">
+		 2. highlighted translation counterpart of the query word or phrase . 
+	</s>
+	
+
+	<s id="36">
+		 3. ranking that is pedagogically useful for translation and language learning . 
+	</s>
+	
+
+	<s id="37">
+		 We are currently running an operational system with Sinorama Magazine articles and HK LEGCO records . 
+	</s>
+	
+
+	<s id="38">
+		 These bilingual texts that go into TotalRecall must be rearranged and structured . 
+	</s>
+	
+
+	<s id="39">
+		 We describe the main steps below : 2.1 Subsentential alignment While the length-based approach 
+		<ref citStr="Church and Gale 1991" id="5" label="CJPN" position="6520">
+			( Church and Gale 1991 )
+		</ref>
+		 to sentence alignment produces very good results for close language pairs such as French and English at success rates well over 96 % , it does not fair as well for disparate language pairs such as English and Mandarin Chinese . 
+	</s>
+	
+
+	<s id="40">
+		 Also sentence alignment tends to produce pairs of a long Chinese sentence and several English sentences . 
+	</s>
+	
+
+	<s id="41">
+		 Such pairs of mutual translation make it difficult for the user to read and grasp the answers embedded in the retrieved citations . 
+	</s>
+	
+
+	<s id="42">
+		 We develop a new approach to aligning English and Mandarin texts at sub-sentential level in parallel corpora based on length and punctuation marks . 
+	</s>
+	
+
+	<s id="43">
+		 The subsentential alignment starts with parsing each article from corpora and putting them into the database . 
+	</s>
+	
+
+	<s id="44">
+		 Subsequently articles are segmented into subsentential segments . 
+	</s>
+	
+
+	<s id="45">
+		 Finally , segments in the two languages which are mutual translation are aligned . 
+	</s>
+	
+
+	<s id="46">
+		 Sentences and subsentenial phrases and clauses are broken up by various types of punctuation in the two languages . 
+	</s>
+	
+
+	<s id="47">
+		 For fragments much shorter than sentences , the variances of length ratio are larger leading to unacceptably low precision rate for alignment . 
+	</s>
+	
+
+	<s id="48">
+		 We combine length-based and punctuation-based approach to cope with the difficulties in subsentential alignment . 
+	</s>
+	
+
+	<s id="49">
+		 Punctuations in one language translate more or less consistently into punctuations in the other language . 
+	</s>
+	
+
+	<s id="50">
+		 Therefore the information is useful in compensating for the weakness of length-based approach . 
+	</s>
+	
+
+	<s id="51">
+		 In addition , we seek to further improve the accuracy rates by employing cognates and lexical information . 
+	</s>
+	
+
+	<s id="52">
+		 We experimented with an implementation of the pro-posed method on a very large Mandarin-English parallel corpus of records of Hong Kong Legislative Council with satisfactory results . 
+	</s>
+	
+
+	<s id="53">
+		 Experiment results show that the punctuation-based approach outperforms the length-based approach with precision rates approaching 98 % . 
+	</s>
+	
+
+	<s id="54">
+		 Subsentential alignment results From 1983 to 1991 , the average rate of wage growth for all trades and industries was only 1.6 % . 
+	</s>
+	
+
+	<s id="55">
+		 1.6 % This was far lower than the growth in labour productivity , which averaged 5.3 % . 
+	</s>
+	
+
+	<s id="56">
+		 5.3 % But , it must also be noted that the average inflation rate was as high as 7.7 % during the same period . 
+	</s>
+	
+
+	<s id="57">
+		 ^^^^^^^^^^^^ 7.7 % As I have said before , even when the economy is booming , the workers are unable to share the fruit of economic success . 
+	</s>
+	
+
+	<s id="58">
+		 Figure 1 The result of subsentential alignment and collocation alignment . 
+	</s>
+	
+
+	<s id="59">
+		 2.2 Word and Collocation Alignment After sentences and their translation counterparts are identified , we proceeded to carry out finer- grained alignment on the word level . 
+	</s>
+	
+
+	<s id="60">
+		 We employed the Competitive Linking Algorithm 
+		<ref citStr="Melamed 2000" id="6" label="CERF" position="9377">
+			( Melamed 2000 )
+		</ref>
+		 produce high precision word alignment . 
+	</s>
+	
+
+	<s id="61">
+		 We also extract English collocations and their translation equivalent based on the result of word alignment . 
+	</s>
+	
+
+	<s id="62">
+		 These alignment results were subsequently used to cluster citations and highlight translation equivalents of the query . 
+	</s>
+	
+
+	<s id="63">
+		 3 Aligning the corpus TotalRecall allows a user to look for instances of specific words or expressions and its translation counterpart . 
+	</s>
+	
+
+	<s id="64">
+		 For this purpose , the system opens up two text boxes for the user to enter queries in any or both of the two languages involved . 
+	</s>
+	
+
+	<s id="65">
+		 We offer some special expressions for users to specify the following queries : • Single or multi-word query – spaces between words in a query are considered as “and.” For disjunctive query , use “||” to de-note “or.” • Every word in the query will be expanded to all surface forms for search . 
+	</s>
+	
+
+	<s id="66">
+		 That includes singular and plural forms , and various tense of the verbs . 
+	</s>
+	
+
+	<s id="67">
+		 • TotalRecall automatically ignore high frequency words in a stoplist such as “the,” “to,” and “of.” • It is also possible to ask for exact match by submitting query in quotes . 
+	</s>
+	
+
+	<s id="68">
+		 Any word within the quotes will not be ignored . 
+	</s>
+	
+
+	<s id="69">
+		 It is useful for searching named entities . 
+	</s>
+	
+
+	<s id="70">
+		 Once a query is submitted , TotalRecall displays the results on Web pages . 
+	</s>
+	
+
+	<s id="71">
+		 Each result appears as a pair of segments in English and Chinese , in sideby-side format . 
+	</s>
+	
+
+	<s id="72">
+		 A “context” hypertext link is included for each citation . 
+	</s>
+	
+
+	<s id="73">
+		 If this link is selected , a new page appears displaying the original document of the pair . 
+	</s>
+	
+
+	<s id="74">
+		 If the user so wishes , she can scroll through the following or preceding pages of context in the original document . 
+	</s>
+	
+
+	<s id="75">
+		 TotalRecall present the results in a way that makes it easy for the user to grasp the information returned to her : • When operating in the monolingual mode , TotalRecall presents the citation according to lengths . 
+	</s>
+	
+
+	<s id="76">
+		 • When operating in the bilingual mode , TotalRecall clusters the citations according to the translation counterparts and presents the user with a summary page of one example each for different translations . 
+	</s>
+	
+
+	<s id="77">
+		 The query words and translation counterparts are high-lighted . 
+	</s>
+	
+
+	<s id="78">
+		 4 Conclusion In this paper , we describe a bilingual concordance designed as a computer assisted translation and language learning tool . 
+	</s>
+	
+
+	<s id="79">
+		 Currently , TotalRecll uses Sinorama Magazine and HKLEGCO corpora as the databases of translation memory . 
+	</s>
+	
+
+	<s id="80">
+		 We have already put a beta version on line and experimented with a focus group of second language learners . 
+	</s>
+	
+
+	<s id="81">
+		 Novel features of TotalRecall include highlighting of query and corresponding translations , clustering and ranking of search results according translation and frequency . 
+	</s>
+	
+
+	<s id="82">
+		 TotalRecall enable the non-native speaker who is looking for a way to express an idea in English or Mandarin . 
+	</s>
+	
+
+	<s id="83">
+		 We are also adding on the basic functions to include a log of user activities , which will record the users’ query behavior and their background . 
+	</s>
+	
+
+	<s id="84">
+		 We could then analyze the data and find useful information for future research . 
+	</s>
+	
+
+	<s id="85">
+		 Acknowledgement We acknowledge the support for this study through grants from National Science Council and Ministry of Education , Taiwan ( NSC 91-2213-E007-061 and MOE EX-92-E-FA06-4-4 ) and a special grant for preparing the Sinorama Corpus for distri-bution by the Association for Computational Lin-guistics and Chinese Language Processing . 
+	</s>
+	
+
+	<s id="86">
+		 References Brown P. , Cocke J. , Della Pietra S. , Jelinek F. , Lafferty J. , Mercer R. , &amp; Roossin P. ( 1990 ) . 
+	</s>
+	
+
+	<s id="87">
+		 A statistical approach to machine translation . 
+	</s>
+	
+
+	<s id="88">
+		 Computational Linguistics , vol. 16 . 
+	</s>
+	
+
+	<s id="89">
+		 Gale , W. &amp; K. W. Church , &quot; A Program for Aligning Sen-tences in Bilingual Corpora &quot; Proceedings of the 29th An-nual Meeting of the Association for Computational Linguistics , Berkeley , CA , 1991 . 
+	</s>
+	
+
+	<s id="90">
+		 Isabelle , Pierre , M. Dymetman , G. Foster , J-M. Jutras , E. Macklovitch , F. Perrault , X. Ren and M. Simard . 
+	</s>
+	
+
+	<s id="91">
+		 1993. Translation Analysis and Translation Automation . 
+	</s>
+	
+
+	<s id="92">
+		 In Pro-ceedings of the Fifth International Conference on Theoreti-cal and Methodological Issues in Machine Translation , Kyoto , Japan , pp. 12-20 . 
+	</s>
+	
+
+	<s id="93">
+		 I. Dan Melamed . 
+	</s>
+	
+
+	<s id="94">
+		 2000. Models of translational equivalence among words . 
+	</s>
+	
+
+	<s id="95">
+		 Computational Linguistics , 26(2):221–249 , June . 
+	</s>
+	
+
+
+</acldoc>

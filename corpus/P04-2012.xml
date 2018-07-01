@@ -1,0 +1,886 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-2012">
+	
+
+	<s id="1">
+		 A Framework for Unsupervised Natural Language Morphology Induction Christian Monson Language Technologies Institute Carnegie Mellon University 5000 Forbes Ave. . 
+	</s>
+	
+
+	<s id="2">
+		 Pittsburgh , PA , USA 15213 cmonson@cs.cmu.edu Abstract This paper presents a framework for unsupervised natural language morphology induction wherein candidate suffixes are grouped into candidate inflection classes , which are then arranged in a lattice structure . 
+	</s>
+	
+
+	<s id="3">
+		 With similar candidate inflection classes placed near one another in the lattice , I propose this structure is an ideal search space in which to isolate the true inflection classes of a language . 
+	</s>
+	
+
+	<s id="4">
+		 This paper discusses and motivates possible search strategies over the inflection class lattice structure . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction Many natural language processing tasks , including parsing and machine translation , frequently require a morphological analysis of the language(s) at hand . 
+	</s>
+	
+
+	<s id="6">
+		 The task of a morphological analyzer is to identify the lexeme , citation form , or inflection class of surface word forms in a language . 
+	</s>
+	
+
+	<s id="7">
+		 Striving to bypass the time consuming , labor intensive task of constructing a morphological analyzer by hand , unsupervised morphology induction techniques seek to automatically discover the morphological structure of a natural language through the analysis of corpora . 
+	</s>
+	
+
+	<s id="8">
+		 This paper presents a framework for automatic natural language morphology induction inspired by the traditional and linguistic concept of inflection classes . 
+	</s>
+	
+
+	<s id="9">
+		 
+		<ref citStr="Monson et al . ( 2004 )" id="1" label="CEPF" position="1577">
+			Monson et al . ( 2004 )
+		</ref>
+		 uses the framework discussed in this paper and presents results using an intuitive baseline search strategy . 
+	</s>
+	
+
+	<s id="10">
+		 This paper presents a discussion of the candidate inflection class framework as a generalization of corpus tries used in early work 
+		<ref citStr="Harris , 1955" id="2" label="CEPF" position="1829">
+			( Harris , 1955 
+		</ref>
+		<ref citStr="Harris , 1967" id="3" label="CEPF" position="1845">
+			; Harris , 1967 
+		</ref>
+		<ref citStr="Hafer and Weiss , 1974" id="4" label="CEPF" position="1861">
+			; Hafer and Weiss , 1974 )
+		</ref>
+		 and discusses an as yet unimplemented statistically motivated search strategy . 
+	</s>
+	
+
+	<s id="11">
+		 This paper employs English to illustrate its main conjectures and a Spanish newswire corpus of 40,011 tokens and 6,975 types for concrete examples . 
+	</s>
+	
+
+	<s id="12">
+		 2 Previous Work It is possible to organize much of the recent work on unsupervised morphology induction by considering the bias each approach has toward discovering morphologically related words that are also orthographically similar . 
+	</s>
+	
+
+	<s id="13">
+		 
+		<ref citStr="Yarowsky et al . ( 2001 )" id="5" label="CEPF" position="2405">
+			Yarowsky et al . ( 2001 )
+		</ref>
+		 , who acquire a morphological analyzer for a language by projecting the morphological analysis of a second language onto the first through a clever application of statistical machine translation style word alignment probabilities , place no constraints on the orthographic shape of related word forms . 
+	</s>
+	
+
+	<s id="14">
+		 Next along the spectrum of orthographic similarity bias is the work of Schone and Jurafsky ( 2000 ; 2001 ) , who first acquire a list of potential morphological variants using an orthographic similarity technique due to 
+		<ref citStr="Gaussier ( 1999 )" id="6" label="CEPF" position="2955">
+			Gaussier ( 1999 )
+		</ref>
+		 in which pairs of words with the same initial string are identified . 
+	</s>
+	
+
+	<s id="15">
+		 They then apply latent semantic analysis ( LSA ) to score the potential morphological variants with a semantic distance . 
+	</s>
+	
+
+	<s id="16">
+		 Word forms with small semantic distance are proposed as morphological variants of one anther . 
+	</s>
+	
+
+	<s id="17">
+		 
+		<ref citStr="Goldsmith ( 2001 )" id="7" label="CEPF" position="3288">
+			Goldsmith ( 2001 )
+		</ref>
+		 , by searching over a space of morphology models limited to substitution of suffixes , ties morphology yet closer to orthography . 
+	</s>
+	
+
+	<s id="18">
+		 Segmenting word forms in a corpus , Goldsmith creates an inventory of stems and suffixes . 
+	</s>
+	
+
+	<s id="19">
+		 Suffixes which can interchangeably concatenate onto a set of stems form a signature . 
+	</s>
+	
+
+	<s id="20">
+		 After defining the space of signatures , Goldsmith searches for that choice of word segmentations resulting in a minimum description length local optimum . 
+	</s>
+	
+
+	<s id="21">
+		 Finally , the work of Harris ( 1955 ; 1967 ) , and later 
+		<ref citStr="Hafer and Weiss ( 1974 )" id="8" label="CERF" position="3870">
+			Hafer and Weiss ( 1974 )
+		</ref>
+		 , has direct bearing on the approach taken in this paper . 
+	</s>
+	
+
+	<s id="22">
+		 Couched in modern terms , their work involves first building tries over a corpus vocabulary and then selecting , as morpheme boundaries , those character boundaries with corresponding high branching count in the tries . 
+	</s>
+	
+
+	<s id="23">
+		 The work in this paper also has a strong bias toward discovering morphologically related words that share a similar orthography . 
+	</s>
+	
+
+	<s id="24">
+		 In particular , the morphology model I use is , akin to Goldsmith , limited to suffix substitution . 
+	</s>
+	
+
+	<s id="25">
+		 The novel proposal I bring to the table , however , is a formalization of the full search space of all candidate inflection classes . 
+	</s>
+	
+
+	<s id="26">
+		 With this framework in place , defining search strategies for morpheme discovery becomes a natural and straightforward activity . 
+	</s>
+	
+
+	<s id="27">
+		 3 Inflection Classes as Motivation When learning the morphology of a foreign language , it is common for a student to study tables of inflection classes . 
+	</s>
+	
+
+	<s id="28">
+		 Carstairs-McCarthy formalizes the concept of an inflection class in chapter 16 of The Handbook of 
+		<ref citStr="Morphology ( 1998 )" id="9" label="CEPF" position="4980">
+			Morphology ( 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="29">
+		 In his terminology , a language with inflectional morphology contains lexemes which occur in a variety of word forms . 
+	</s>
+	
+
+	<s id="30">
+		 Each word form carries two pieces of information : 1 ) Lexical content and 2 ) Morphosyntactic properties . 
+	</s>
+	
+
+	<s id="31">
+		 For example , the English word form gave expresses the lexeme GIVE plus the morphosyntactic property Past , while gives expresses GIVE plus the properties 3rd Person , Singular , and Non-Past . 
+	</s>
+	
+
+	<s id="32">
+		 A set of morphosyntactic properties realized with a single word form is defined to be a cell , while a paradigm is a set of cells exactly filled by the word forms of some lexeme . 
+	</s>
+	
+
+	<s id="33">
+		 A particular natural language may have many paradigms . 
+	</s>
+	
+
+	<s id="34">
+		 In English , a language with very little inflectional morphology , there are at least two paradigms , a noun paradigm consisting of two cells , Singular and Plural , and a paradigm for verbs , consisting of the five cells given ( with one choice of naming convention ) as the first column of Table 1 . 
+	</s>
+	
+
+	<s id="35">
+		 Lexemes that belong to the same paradigm may still differ in their morphophonemic realizations of various cells in that paradigm—each paradigm may have several associated inflection classes which specify , for the lexemes belonging to that inflection class , the surface instantiation for each cell of the paradigm . 
+	</s>
+	
+
+	<s id="36">
+		 Three of the many inflection classes within the English verb paradigm are found in Table 1 under the columns labeled A through C . 
+	</s>
+	
+
+	<s id="37">
+		 The task the morphology induction system presented in this paper engages is exactly the discovery of the inflection classes of a natural language . 
+	</s>
+	
+
+	<s id="38">
+		 Unlike the analysis in Table 1 , however , the rest of this paper treats word forms as simply strings of characters as opposed to strings of phonemes . 
+	</s>
+	
+
+	<s id="39">
+		 4 Empirical Inflection Classes There are two stages in the approach to unsupervised morphology induction proposed in this paper . 
+	</s>
+	
+
+	<s id="40">
+		 First , a search space over a set of candidate Verb Inflection Classes Paradigm A B C Basic blame roam solve show sow saw sing ring 3rd Person Singular Non -past -/z/ -/z/ -/z/ blames roams solves shows sows saws sings rings Past -/d/ -/d/ V /eI/ blamed roamed solved showed sowed sawed sang rang Perfective or Passive -/d/ -/n/ V / / blamed roamed solved shown sown sawn sung rung Progressive -/i / -/i / -/i / blaming roaming solving showing sowing sawing singing ringing Table 1 : A few inflection classes of the Eng- lish verb paradigm inflection classes is defined , and second , this space is searched for those candidates most likely to be part of a true inflection class in the language . 
+	</s>
+	
+
+	<s id="41">
+		 I have written a program to create the search space but the search strategies described in this paper have yet to be implemented . 
+	</s>
+	
+
+	<s id="42">
+		 4.1 Candidate Inflection Class Search Space To define a search space wherein inflection classes of a natural language can be identified , my algorithm accepts as input a monolingual corpus for the language and proposes candidate morpheme boundaries at every character boundary in every word form in the corpus vocabulary . 
+	</s>
+	
+
+	<s id="43">
+		 I call each string before a candidate morpheme boundary a candidate stem or c-stem , and each string after a boundary a c-suffix . 
+	</s>
+	
+
+	<s id="44">
+		 I define a candidate inflection class ( CIC ) to be a set of c-suffixes for which there exists at least one c-stem , t , such that each c-suffix in the CIC concatenated to t produces a word form in the vocabulary . 
+	</s>
+	
+
+	<s id="45">
+		 I let the set of c-stems which generate a CIC , C , be called the adherent c-stems of C ; the size of the set of adherent c-stems of C be C’s adherent size ; and the size of the set of c- suffixes in C be the level of C. I then define a lattice of relations between CIC’s . 
+	</s>
+	
+
+	<s id="46">
+		 In particular , two types of relations are defined : 1 ) C-suffix set inclusion relations relate pairs of CIC’s when the c-suffixes of one CIC are a superset of the c-suffixes of the other , and 2 ) Morpheme boundary relations occur between CIC’s which propose different mor- pheme boundaries within the same word forms . 
+	</s>
+	
+
+	<s id="47">
+		 Figure 1 diagrams a portion of a CIC lattice over a toy vocabulary consisting of a subset of the word forms found under inflection class A from Table 1 . 
+	</s>
+	
+
+	<s id="48">
+		 The c-suffix set inclusion relations , represented vertically by solid lines , connect such CIC’s as e.es.ed and e.ed , both of which originate from the c-stem blam , since the first is a superset of the second . 
+	</s>
+	
+
+	<s id="49">
+		 Morpheme boundary relations , drawn horizontally with dashed lines , connect such CIC’s as me.mes.med and e.es.ed , each derived from exactly the triple of word forms blame , blames , and blamed , but differing in the placement of the hypothesized morpheme boundary Hierarchical links , connect any given CIC to often more than one parent and more than one child . 
+	</s>
+	
+
+	<s id="50">
+		 The empty CIC ( not pictured in Figure 1 ) can be considered the child of all level one CIC’s ( including the Ø CIC ) , but there is no universal parent of all top level CIC’s . 
+	</s>
+	
+
+	<s id="51">
+		 Horizontal morpheme boundary links , dashed lines , connect a CIC , C , with a neighbor to the right if each c-suffix in C begins with the same character . 
+	</s>
+	
+
+	<s id="52">
+		 This entails that there is at most one morpheme boundary link leading to the right of each CIC . 
+	</s>
+	
+
+	<s id="53">
+		 There may be , however , as many links leading to the left as there are characters in the orthography . 
+	</s>
+	
+
+	<s id="54">
+		 The only CIC with depicted multiple left links in Figure 1 is Ø , which has left links to the CIC’s e , s , and d . 
+	</s>
+	
+
+	<s id="55">
+		 A number of left links emanating from the CIC’s in Figure 1 are not shown ; among others absent from the figure is the left link from the CIC e.es leading to the CIC ve.ves with the adherent sol . 
+	</s>
+	
+
+	<s id="56">
+		 While many ridiculous CIC’s are found in Figure 1 , such as ame.ames.amed from the vocabulary items blame , blames , and blamed and the c- stem bl , there are also CIC’s that seem very reasonable , such as Ø.s from the c-stems blame and tease . 
+	</s>
+	
+
+	<s id="57">
+		 The key task in automatic morphology induction is to autonomously separate the nonsense CIC’s from the useful ones , thus identifying linguistically plausible inflection classes . 
+	</s>
+	
+
+	<s id="58">
+		 To better visualize what a CIC lattice looks like when derived from real data , Figure 2 contains a portion of a hierarchical lattice automatically generated from the Spanish newswire corpus . 
+	</s>
+	
+
+	<s id="59">
+		 Each entry in Figure 2 contains the c-suffixes comprising the CIC , the adherent size of the CIC , and a sample of adherent c-stems . 
+	</s>
+	
+
+	<s id="60">
+		 The lattice in Figure 2 covers : 1 ) The productive Spanish inflection class for adjectives , a.as.o.os , covering the four cells feminine singular , feminine plural , masculine singular , and masculine plural , respectively ; Hierarchical c-suffix set inclusion links Morpheme boundary links Figure 1 : Portion of a CIC lattice from the toy vocabulary : blame , blames , blamed , roams , roamed , roaming , solve , solves , solving 2 ) All possible CIC subsets of the adjective CIC , e.g. a.as.o , a.os , etc. ; and 3 ) The imposter CIC a.as.o.os.tro , together with its rogue descendents , a.tro and tro . 
+	</s>
+	
+
+	<s id="61">
+		 Other CIC’s that are descendents of a.as.o.os.tro and that contain the c-suffix tro do not supply additional adherents and hence are not present either in Figure 2 or in my program’s representation of the CIC lattice . 
+	</s>
+	
+
+	<s id="62">
+		 The CIC’s a.as.tro and os.tro , for example , both have only the one adherent , cas , already possessed by their common ancestor a.as.o.os.tro . 
+	</s>
+	
+
+	<s id="63">
+		 4.2 Search With the space of candidate inflection classes defined , it seems natural to treat this lattice of CIC’s as a hypothesis space of valid inflection classes and to search this space for CIC’s most likely to be true inflection classes in a language . 
+	</s>
+	
+
+	<s id="64">
+		 There are many possible search strategies applicable to the CIC lattice . 
+	</s>
+	
+
+	<s id="65">
+		 
+		<ref citStr="Monson et al . ( 2004 )" id="10" label="CEPF" position="12928">
+			Monson et al . ( 2004 )
+		</ref>
+		 investigate a series of heuristic search algorithms . 
+	</s>
+	
+
+	<s id="66">
+		 Using the same Spanish newswire corpus as this paper , the implemented algorithms have achieved F1 measures above 0.5 when identifying CIC’s belonging to true inflection classes in Spanish . 
+	</s>
+	
+
+	<s id="67">
+		 In Ø.s.d blame e.es.ed blam Ø.s blame solve e.es blam solv me.mes bla Ø.d blame me.med bla e.ed blam s.d blame es.ed blam e blam solv me bla es blam solv s blame roam solve mes bla ed blam roam d blame roame med bla roa mes.med bla blame blames blamed roams roamed roaming solve solves solving me.mes.med bla this paper I discuss some theoretical motivations underlying CIC lattice search . 
+	</s>
+	
+
+	<s id="68">
+		 Since there are two types of relations in the CIC lattices I construct , search can be broken into two phases . 
+	</s>
+	
+
+	<s id="69">
+		 One phase searches the c-suffix set inclusion relations , and the other phase searches the morpheme boundary relations . 
+	</s>
+	
+
+	<s id="70">
+		 The search algorithms discussed in 
+		<ref citStr="Monson et al . ( 2004 )" id="11" label="CEPF" position="13905">
+			Monson et al . ( 2004 )
+		</ref>
+		 focus on searching the c-suffix set inclusion relations and only utilize morpheme boundary links as a constraint . 
+	</s>
+	
+
+	<s id="71">
+		 In previous related work , morpheme boundary relations and c-suffix set inclusion relations are implicitly present but not explicitly referred to . 
+	</s>
+	
+
+	<s id="72">
+		 For example , 
+		<ref citStr="Goldsmith ( 2001 )" id="12" label="CEPF" position="14219">
+			Goldsmith ( 2001 )
+		</ref>
+		 does not separate these two types of search . 
+	</s>
+	
+
+	<s id="73">
+		 Goldsmith’s triage search strategies , which make small changes in the segmentation positions in words , primarily search the morpheme boundary relations , while the vertical search is primarily performed by heuristics that suggest initial word segmentations . 
+	</s>
+	
+
+	<s id="74">
+		 To illustrate , if , using the Spanish newswire corpus from this paper , Goldsmith’s algorithm decided to segment the word form castro as cas-tro , then there is an implicit vote for the CIC a.as.o.os.tro in Figure 2 . 
+	</s>
+	
+
+	<s id="75">
+		 If , on the other hand , his algorithm decided not to segment castro then there is a vote for the lower level CIC a.as.o.os . 
+	</s>
+	
+
+	<s id="76">
+		 The next two subsections motivate search over the morpheme boundary relations and the c-suffix set inclusion relations respectively . 
+	</s>
+	
+
+	<s id="77">
+		 4.2.1 Searching Morpheme Boundary Relations Harris ( 1955 ; 1967 ) and 
+		<ref citStr="Hafer and Weiss ( 1974 )" id="13" label="CEPF" position="15148">
+			Hafer and Weiss ( 1974 )
+		</ref>
+		 obtain intriguing results at segmenting word forms into morphemes by first placing the word forms from a vocabulary in a trie , such as the trie pictured in the top half of Figure 3 , and then proposing morpheme boundaries after trie nodes that have a large branching factor . 
+	</s>
+	
+
+	<s id="78">
+		 The rationale behind their procedure is that the phoneme , or grapheme , sequence within a morpheme is completely restricted , while at a morpheme boundary any number of new morphemes ( many with different initial phonemes ) could occur . 
+	</s>
+	
+
+	<s id="79">
+		 To assess the flavor of Harris’ algorithms , the bottom branch of the trie in Figure 3 begins with roam and subsequently encounters a branching factor of three , leading to the trie nodes Ø , i , and s . 
+	</s>
+	
+
+	<s id="80">
+		 Such a high branching factor suggests there may be a morpheme boundary after roam . 
+	</s>
+	
+
+	<s id="81">
+		 One way to view the horizontal morpheme boundary links in a CIC lattice is as a character trie generalization where identical sub-tries within the full vocabulary trie are conflated . 
+	</s>
+	
+
+	<s id="82">
+		 Figure 3 illustrates the correspondences between a trie and a portion of a CIC lattice for a small vocabulary con- Figure 2 : Hierarchical CIC lattice automati- cally derived from Spanish sisting of the word forms : rest , rests , resting , retreat , retreats , retreating , retry , retries , retrying , roam , roams , and roaming . 
+	</s>
+	
+
+	<s id="83">
+		 Each circled sub-trie of the trie in the top portion of the figure corresponds to one of the four CIC’s in the bottom portion of the figure . 
+	</s>
+	
+
+	<s id="84">
+		 For example , the right- branching children of the y node in retry form a sub-trie consisting of Ø and ing , but this same subtrie is also found following the t node in rest , the t node in retreat , and the m node in roam . 
+	</s>
+	
+
+	<s id="85">
+		 The CIC lattice conflates all these sub-tries into the single CIC Ø.ing with the four adherents rest , retreat , retry , and roam . 
+	</s>
+	
+
+	<s id="86">
+		 Taking this congruency further , branching factor in the trie corresponds roughly to the level of a CIC . 
+	</s>
+	
+
+	<s id="87">
+		 A level 3 CIC such as Ø.ing.s corresponds to sub-tries with initial branching factor of 3 . 
+	</s>
+	
+
+	<s id="88">
+		 If separate c-suffixes in a CIC happen to begin with the same character , then a lower branching factor may correspond to a higher level CIC . 
+	</s>
+	
+
+	<s id="89">
+		 Similarly , the number of sub-tries which conflate to form a CIC corresponds to the number of adherents belonging to the CIC . 
+	</s>
+	
+
+	<s id="90">
+		 a.as.o.os.tro 1 cas a 1237 huelg ib id iglesi ... as 404 huelg huelguist incluid industri ... o 1139 hub hug human huyend ... os 534 humorístic human hígad impedid ... tro 16 catas ce cen cua ... a.tro 2 cas cen a.as 199 huelg incluid industri inundad ... a.as.o 59 cas citad jurídic l ... a.o 214 id indi indonesi inmediat ... as.o 85 intern jurídic just l ... a.as.os 50 afectad cas jurídic l ... a.as.o.os 43 african cas jurídic l ... a.os 134 impedid impuest indonesi inundad ... a.o.os 105 impuest indonesi italian jurídic ... as.os 68 cas implicad inundad jurídic ... as.o.os 54 cas implicad jurídic l ... o.os 268 human implicad indici indocumentad ... 
+	</s>
+	
+
+	<s id="91">
+		 Figure 3 : A trie ( top ) with some repeated sub- tries circled . 
+	</s>
+	
+
+	<s id="92">
+		 These sub-tries are then conflated into the corresponding CIC lattice ( bottom ) . 
+	</s>
+	
+
+	<s id="93">
+		 It is interesting to note that while Harris’ style phoneme successor criteria do often correctly identify morpheme boundaries , they posses one inherent class of errors . 
+	</s>
+	
+
+	<s id="94">
+		 Because Harris treats all word forms with the same initial string as identical , any morpheme boundary decision is global for all words that happen to begin with the same string . 
+	</s>
+	
+
+	<s id="95">
+		 For example , Harris cannot differentiate between the forms casa and castro . 
+	</s>
+	
+
+	<s id="96">
+		 If a morpheme boundary is ( correctly ) placed after the cas in casa , then a morpheme boundary must be placed ( incorrectly ) after the cas in castro . 
+	</s>
+	
+
+	<s id="97">
+		 Using a CIC lattice , however , allows an algorithm to first choose which branches of a trie are relevant and then select morpheme boundaries given the relevant sub-trie . 
+	</s>
+	
+
+	<s id="98">
+		 Exploring the vertical CIC lattice in Figure 2 , a search algorithm might hope to discover that the tro trie branch is irrelevant and search for a morpheme boundary along the sub-tries ending in a.as.o.os . 
+	</s>
+	
+
+	<s id="99">
+		 Perhaps the morpheme boundary search would use the branching factor of this restricted trie as a discriminative criterion . 
+	</s>
+	
+
+	<s id="100">
+		 4.2.2 Searching C-suffix Set Inclusion Relations Since trie branches correspond to CIC level , I turn now to outline a search method over the vertical c-suffix set inclusion relations . 
+	</s>
+	
+
+	<s id="101">
+		 This search method makes particular use of CIC adherent counts through the application of statistical independence tests . 
+	</s>
+	
+
+	<s id="102">
+		 The goal of a vertical search algorithm is to avoid c-suffixes which occur not as true suffixes that are part of an inflection class , but instead as random strings that happen to be able to attach to a given initial string . 
+	</s>
+	
+
+	<s id="103">
+		 To formalize the idea of randomness I treat each c-suffix , F , as a Boolean random variable which is true when F attaches to a given c-stem and false when F does not attach to that c-stem . 
+	</s>
+	
+
+	<s id="104">
+		 I then make the simplifying assumption that c-stems are independent identically distributed draws from the population of all possible c-stems . 
+	</s>
+	
+
+	<s id="105">
+		 Since my algorithm identifies all possible initial substrings of a vocabulary as c-stems , the c-stems are clearly not truly independent—some c-stems are actually sub- strings of other c-stems . 
+	</s>
+	
+
+	<s id="106">
+		 Nevertheless , natural language inflection classes , in the model of this paper , consist of c-suffixes which interchangeably attach to the same c-stems . 
+	</s>
+	
+
+	<s id="107">
+		 Hence , given the assumption of c-suffixes as random variables , the true inflection classes of a language are most likely those groups of c-suffixes which are positively correlated . 
+	</s>
+	
+
+	<s id="108">
+		 That is , if knowing that c-suffix F1 concatenates onto c-stem T increases the probability that the suffix F2 also concatenates onto T , then F1 and F2 are likely from the same inflection class . 
+	</s>
+	
+
+	<s id="109">
+		 On the other hand , if F1 and F2 are statistically independent , or knowing that F1 concatenates to T does not change the probability that F2 can attach to T , then it is likely that F1 or F2 ( or both ) is a c-suffix that just randomly happens to be able to concatenate onto a T . 
+	</s>
+	
+
+	<s id="110">
+		 And finally , if F1 and F2 are negatively correlated , i.e. they occur interchangeably on the same c-stem less frequently than random chance , then it may be that F1 and F2 come from different inflection classes within the same paradigm or are even associated with completely separate paradigms . 
+	</s>
+	
+
+	<s id="111">
+		 There are a number of statistical tests designed to assess the probability that two discrete random variables are independent . 
+	</s>
+	
+
+	<s id="112">
+		 Here I will look at the ^2 independence test , which computes the probability that two random variables are independent by calculating a statistic Q distributed as ^2 by comparing the expected distributions of the two random variables , assuming their independence with their actual distribution . 
+	</s>
+	
+
+	<s id="113">
+		 The larger the values of Q , the lower the probability that the random variables are independent . 
+	</s>
+	
+
+	<s id="114">
+		 Summing the results of each c-stem independent trial of the c-suffix Boolean random variables , re- t.ting Ø.ing rest retreat retry roam res retrea r o e a s t m r t Ø Ø i y e s s i i Ø i n n e a n g g s t Ø g i s n g t.ts.ting res retrea Ø.s.ing rest retreat roam sults in Bernoulli distributed random variables whose joint distributions can be described as two by two contingency tables . 
+	</s>
+	
+
+	<s id="115">
+		 Table 2 gives such contingency tables for the pairs of random variable c-suffixes ( a , as ) and ( a , tro ) . 
+	</s>
+	
+
+	<s id="116">
+		 These tables can be calculated by examining specific CIC’s in the lattices . 
+	</s>
+	
+
+	<s id="117">
+		 To fill the contingency table for ( a , as ) I proceed as follows : The number of times a occurs jointly with as is exactly the adherent size of the a.as CIC , 199 . 
+	</s>
+	
+
+	<s id="118">
+		 The marginal number of occurrences of a , 1237 , can be read from the CIC a , and similarly the marginal number of occurrences of as , 404 , can be read from the CIC as . 
+	</s>
+	
+
+	<s id="119">
+		 The bottom right-hand cell in the tables in Table 2 is the total number of trials , or in this case , the number of unique c-stems . 
+	</s>
+	
+
+	<s id="120">
+		 This quantity is easily calculated by summing the adherent sizes of all level one CIC’s together . 
+	</s>
+	
+
+	<s id="121">
+		 In the Spanish newswire corpus there are 22950 unique c-stems . 
+	</s>
+	
+
+	<s id="122">
+		 The remaining cells in the contingency table can be calculated by assuring the rows and columns sum up to their marginals . 
+	</s>
+	
+
+	<s id="123">
+		 Using these numbers we can calculate the Q statistic : Q(a , as ) = 1552 and Q(a , tro ) = 1.587 . 
+	</s>
+	
+
+	<s id="124">
+		 These values suggest that a and as are not independent while a and tro are . 
+	</s>
+	
+
+	<s id="125">
+		 5 Future Work There is clearly considerable work left to do within the CIC framework presented in this paper . 
+	</s>
+	
+
+	<s id="126">
+		 I intend to implement the search strategies outlined in this paper . 
+	</s>
+	
+
+	<s id="127">
+		 I also plan to apply these techniques to describe the morphologies of a variety of languages beyond English and Spanish . 
+	</s>
+	
+
+	<s id="128">
+		 Acknowledgements The research presented in this paper was funded in part by NSF grant number IIS-0121631 . 
+	</s>
+	
+
+	<s id="129">
+		 References Andrew Carstairs-McCarthy . 
+	</s>
+	
+
+	<s id="130">
+		 1998. “Paradigmatic Structure : Inflectional Paradigms and Morphological Classes.” The Handbook of Morphology . 
+	</s>
+	
+
+	<s id="131">
+		 Eds . 
+	</s>
+	
+
+	<s id="132">
+		 Andrew Spencer and Arnold M. Zwicky . 
+	</s>
+	
+
+	<s id="133">
+		 Blackwell Publishers Inc. , Massachusetts , USA , 322-334 . 
+	</s>
+	
+
+	<s id="134">
+		 Éric Gaussier . 
+	</s>
+	
+
+	<s id="135">
+		 1999. Unsupervised learning of derivational morphology from inflectional lexicons . 
+	</s>
+	
+
+	<s id="136">
+		 In Proceedings of ACL ’99 Workshop : Unsupervised Learning in Natural Language Processing . 
+	</s>
+	
+
+	<s id="137">
+		 John Goldsmith . 
+	</s>
+	
+
+	<s id="138">
+		 2001. Unsupervised learning of the morphology of a natural language . 
+	</s>
+	
+
+	<s id="139">
+		 Computational Linguistics , 27(2) : 153-198 . 
+	</s>
+	
+
+	<s id="140">
+		 a ~a marginal as 199 205 404 ~as 1038 21508 22546 marginal 1237 21713 22950 a ~a marginal tro 2 14 16 ~tro 1235 21699 22934 marginal 1237 21713 22950 Table 2 : Contingency tables for a few c-suffixes Margaret A. Hafer and Stephen F. Weiss . 
+	</s>
+	
+
+	<s id="141">
+		 1974. Word segmentation by letter successor varieties . 
+	</s>
+	
+
+	<s id="142">
+		 Information Storage and Retrieval , 10:371-385 . 
+	</s>
+	
+
+	<s id="143">
+		 Zellig Harris . 
+	</s>
+	
+
+	<s id="144">
+		 1955. From phoneme to morpheme . 
+	</s>
+	
+
+	<s id="145">
+		 Language , 31:190-222 . 
+	</s>
+	
+
+	<s id="146">
+		 Reprinted in Harris 1970 . 
+	</s>
+	
+
+	<s id="147">
+		 Zellig Harris . 
+	</s>
+	
+
+	<s id="148">
+		 1967. Morpheme boundaries within words : Report on a computer test . 
+	</s>
+	
+
+	<s id="149">
+		 Transformation and Discourse Analysis Papers 73 , Department of Linguistics , University of Pennsylvania . 
+	</s>
+	
+
+	<s id="150">
+		 Reprinted in Harris 1970 . 
+	</s>
+	
+
+	<s id="151">
+		 Zellig Harris . 
+	</s>
+	
+
+	<s id="152">
+		 1970. Papers in Structural and Transformational Linguistics . 
+	</s>
+	
+
+	<s id="153">
+		 D. Reidel , Dordrecht , Holland . 
+	</s>
+	
+
+	<s id="154">
+		 Christian Monson , Alon Lavie , Jaime Carbonell , and Lori Levin . 
+	</s>
+	
+
+	<s id="155">
+		 2004. Unsupervised Induction of Natural Language Morphology Inflection Classes . 
+	</s>
+	
+
+	<s id="156">
+		 In Proceedings of the Seventh Meeting of the ACL Special Interest Group in Computational Phonology ( SIGPHON’04 ) . 
+	</s>
+	
+
+	<s id="157">
+		 Patrick Schone and Daniel Jurafsky . 
+	</s>
+	
+
+	<s id="158">
+		 2000. Knowledge-free Induction of Morphology Using Latent Semantic Analysis . 
+	</s>
+	
+
+	<s id="159">
+		 In Proceedings of the Fourth Conference on Computational Natural Language Learning and of the Second Learning Language in Logic Workshop , 67-72 . 
+	</s>
+	
+
+	<s id="160">
+		 Patrick Schone and Daniel Jurafsky . 
+	</s>
+	
+
+	<s id="161">
+		 2001. Knowledge-free Induction of Inflectional Morphologies . 
+	</s>
+	
+
+	<s id="162">
+		 In Proceedings of the North American Chapter of the Association of Computational Linguistics . 
+	</s>
+	
+
+	<s id="163">
+		 183-191 . 
+	</s>
+	
+
+	<s id="164">
+		 David Yarowsky , Grace Ngai , and Richard Wicentowski . 
+	</s>
+	
+
+	<s id="165">
+		 2001. Inducing multilingual text analysis tools via robust projection across aligned corpora . 
+	</s>
+	
+
+	<s id="166">
+		 In Proceedings of the Human Language Technology Conference , 161-168 . 
+	</s>
+	
+
+
+</acldoc>

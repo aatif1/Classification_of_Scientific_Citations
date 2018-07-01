@@ -1,0 +1,1252 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-3032">
+	
+
+	<s id="1">
+		 Dyna : A Declarative Language for Implementing Dynamic Programs^ Jason Eisner and Eric Goldlust and Noah A. Smith Department of Computer Science , Johns Hopkins University Baltimore , MD 21218 U.S.A. {jason,eerat,nasmith}@cs.jhu.edu Abstract We present the first version of a new declarative programming language . 
+	</s>
+	
+
+	<s id="2">
+		 Dyna has many uses but was designed especially for rapid development of new statistical NLP systems . 
+	</s>
+	
+
+	<s id="3">
+		 A Dyna program is a small set of equations , resembling Prolog inference rules , that specify the abstract structure of a dynamic programming algorithm . 
+	</s>
+	
+
+	<s id="4">
+		 It compiles into efficient , portable , C++ classes that can be easily invoked from a larger application . 
+	</s>
+	
+
+	<s id="5">
+		 By default , these classes run a generalization of agenda- based parsing , prioritizing the partial parses by some figure of merit . 
+	</s>
+	
+
+	<s id="6">
+		 The classes can also perform an exact backward ( outside ) pass in the service ofparameter training . 
+	</s>
+	
+
+	<s id="7">
+		 The compiler already knows several implementation tricks , algorithmic transforms , and numerical optimization techniques . 
+	</s>
+	
+
+	<s id="8">
+		 It will acquire more over time : we intend for it to generalize and encapsulate best practices , and serve as a testbed for new practices . 
+	</s>
+	
+
+	<s id="9">
+		 Dyna is now being used for parsing , machine translation , morphological analysis , grammar induction , and finite-state modeling . 
+	</s>
+	
+
+	<s id="10">
+		 1 Introduction Computational linguistics has become a more experimental science . 
+	</s>
+	
+
+	<s id="11">
+		 One often uses real-world data to test one’s formal models ( grammatical , statistical , or both ) . 
+	</s>
+	
+
+	<s id="12">
+		 Unfortunately , as in other experimental sciences , testing each new hypothesis requires much tedious lab work : writing and tuning code until parameter estimation ( “training” ) and inference over unknown variables ( “decoding” ) are bug-free and tolerably fast . 
+	</s>
+	
+
+	<s id="13">
+		 This is intensive work , given complex models or a large search space ( as in modern statistical parsing and machine translation ) . 
+	</s>
+	
+
+	<s id="14">
+		 It is a major effort to break into the field with a new system , and modifying existing systems—even in a conceptually simple way—can require significant reengineering . 
+	</s>
+	
+
+	<s id="15">
+		 Such “lab work” mainly consists of reusing or reinventing various dynamic programming architectures . 
+	</s>
+	
+
+	<s id="16">
+		 We propose that it is time to jump up a level of abstraction . 
+	</s>
+	
+
+	<s id="17">
+		 We offer a new programming language , Dyna , that allows one to quickly and easily specify a model’s combinatorial structure . 
+	</s>
+	
+
+	<s id="18">
+		 We also offer a compiler , dynac , that translates from Dyna into C++ classes . 
+	</s>
+	
+
+	<s id="19">
+		 The compiler does all the tedious work of writing the training and decoding code . 
+	</s>
+	
+
+	<s id="20">
+		 It is intended to do as good a job as a clever graduate student who already knows the tricks of the trade ( and is willing to maintain hand-tuned C++ ) . 
+	</s>
+	
+
+	<s id="21">
+		 * We would like to thank Joshua Goodman , David McAllester , and Paul Ruhlen for useful early discussions , and pioneer users Markus Dreyer , David Smith , and Roy Tromble for their feedback and input . 
+	</s>
+	
+
+	<s id="22">
+		 This work was supported by NSF ITR grant IIS-0313193 to the first author , by a Fannie &amp; John Hertz Foundation fellowship to the third author , and by ONR MURI grant N00014-01-1-0685 . 
+	</s>
+	
+
+	<s id="23">
+		 The views expressed are not necessarily endorsed by the sponsors . 
+	</s>
+	
+
+	<s id="24">
+		 2 A Basic Example : PCFG Parsing We believe Dyna is a flexible and intuitive specification language for dynamic programs . 
+	</s>
+	
+
+	<s id="25">
+		 Such a program specifies how to combine partial solutions until a complete solution is reached . 
+	</s>
+	
+
+	<s id="26">
+		 2.1 The Inside Algorithm , in Dyna Fig . 
+	</s>
+	
+
+	<s id="27">
+		 1 shows a simple Dyna program that corresponds to the inside algorithm for PCFGs ( i.e. , the probabilistic generalization of CKY parsing ) . 
+	</s>
+	
+
+	<s id="28">
+		 It may be regarded as a system of equations over an arbitrary number of unknowns , which have structured names such as constit(s,0,3) . 
+	</s>
+	
+
+	<s id="29">
+		 These unknowns are called items . 
+	</s>
+	
+
+	<s id="30">
+		 They resemble variables in a C program , but we use variable instead to refer to the capitalized identifiers X , I , K , ... in lines 2–4.1 At runtime , a user must provide an input sentence and grammar by asserting values for certain items . 
+	</s>
+	
+
+	<s id="31">
+		 If the input is John loves Mary , the user should assert values of 1 for word(John,0,1) , word(loves,1,2) , word(Mary,2,3) , and end(3) . 
+	</s>
+	
+
+	<s id="32">
+		 If the PCFG contains a rewrite rule np ^ Mary with probability p(Mary I np ) = 0.003 , the user should assert that rewrite(np,Mary) has value 0.003 . 
+	</s>
+	
+
+	<s id="33">
+		 Given these base cases , the equations in Fig . 
+	</s>
+	
+
+	<s id="34">
+		 1 enable Dyna to deduce values for other items . 
+	</s>
+	
+
+	<s id="35">
+		 The deduced value of constit(s,0,3) will be the inside probability Os ( 0 , 3),2 and the deduced value of goal will be the total probability of all parses of the input . 
+	</s>
+	
+
+	<s id="36">
+		 Lines 2–4 are equational schemas that specify how to compute the value of items such as constit(s,0,3) from the values of other items . 
+	</s>
+	
+
+	<s id="37">
+		 By using the summation operator += , lines 2–3 jointly say that for any X , I , and K , constit(X,I,K) is defined by summation over the remaining variables , as PW rewrite(X,W)*word(W,I,K) + EY,Z,J rewrite(X,Y,Z)*constit(Y,I,J)*constit(Z,J,K) . 
+	</s>
+	
+
+	<s id="38">
+		 For example , constit(s,0,3) is a sum of quantities such as rewrite(s,np,vp)*constit(np,0,1)*constit(vp,1,3) . 
+	</s>
+	
+
+	<s id="39">
+		 2.2 The Execution Model Dyna’s declarative semantics state only that it will find values such that all the equations hold .3 Our implementation’s default strategy is to propagate updates from an equation’s right-hand to its left-hand side , until the system converges . 
+	</s>
+	
+
+	<s id="40">
+		 Thus , by default , Fig . 
+	</s>
+	
+
+	<s id="41">
+		 1 yields a bottom- up or data-driven parser . 
+	</s>
+	
+
+	<s id="42">
+		 1Much of our terminology ( item , chart , agenda ) is inherited from the parsing literature . 
+	</s>
+	
+
+	<s id="43">
+		 Other terminology ( variable , term , inference rule , antecedent/consequent , assert/retract , chaining ) comes from logic programming . 
+	</s>
+	
+
+	<s id="44">
+		 Dyna’s syntax borrows from both Prolog and C. 2That is , the probability that s would stochastically rewrite to the first three words of the input . 
+	</s>
+	
+
+	<s id="45">
+		 If this can happen in more than one way , the probability sums over multiple derivations . 
+	</s>
+	
+
+	<s id="46">
+		 3Thus , future versions of the compiler are free to mix any efficient strategies , even calling numerical equation solvers . 
+	</s>
+	
+
+	<s id="47">
+		 1. :- valtype(term , real ) . 
+	</s>
+	
+
+	<s id="48">
+		 % declares that all item values are real numbers 2. constit(X,I,K) += rewrite(X,W) * word(W,I,K) . 
+	</s>
+	
+
+	<s id="49">
+		 % a constituent is either a word ... 3. constit(X,I,K) += rewrite(X,Y,Z) * constit(Y,I,J) * constit(Z,J,K) . 
+	</s>
+	
+
+	<s id="50">
+		 % ... or a combination of two adjacent subconstituents 4. goal += constit(s,0,N) * end(N) . 
+	</s>
+	
+
+	<s id="51">
+		 % a parse is any s constituent that covers the input string Figure 1 : A probabilistic CKY parser written in Dyna . 
+	</s>
+	
+
+	<s id="52">
+		 Dyna may be seen as a new kind of tabled logic programming language in which theorems are not just proved , but carry values . 
+	</s>
+	
+
+	<s id="53">
+		 This suggests some terminology . 
+	</s>
+	
+
+	<s id="54">
+		 Lines 2–4 of Fig . 
+	</s>
+	
+
+	<s id="55">
+		 1 are called inference rules . 
+	</s>
+	
+
+	<s id="56">
+		 The items on the right-hand side are antecedents , and the item on the left-hand side is their consequent . 
+	</s>
+	
+
+	<s id="57">
+		 Assertions can be regarded as axioms . 
+	</s>
+	
+
+	<s id="58">
+		 And the default strategy ( unlike Prolog’s ) is forward chaining from the axioms , as in some theorem provers . 
+	</s>
+	
+
+	<s id="59">
+		 Suppose constit(verb,1,2) increases by A . 
+	</s>
+	
+
+	<s id="60">
+		 Then the program in Fig . 
+	</s>
+	
+
+	<s id="61">
+		 1 must find all the instantiated rules that have constit(verb,1,2) as an antecedent , and must update their consequents . 
+	</s>
+	
+
+	<s id="62">
+		 For example , since line 3 can be instantiated as constit(vp,1,3) += rewrite(vp,verb,np)*constit(verb,1,2)*constit(np,2,3) , then constit(vp,1,3) must be increased by rewrite(vp,verb,np) * 0 * constit(np,2,3) . 
+	</s>
+	
+
+	<s id="63">
+		 Line 3 actually requires infinitely many such updates , corresponding to all rule instantiations of the form constit(X,1,K) += rewrite(X,verb,Z)*constit(verb,1,2)*constit(Z,2,K) .4 However , most of these updates would have no effect . 
+	</s>
+	
+
+	<s id="64">
+		 We only need to consider the finitely many instantiations where rewrite(X,verb,Z) and constit(Z,2,K) have nonzero values ( because they have been asserted or updated in the past ) . 
+	</s>
+	
+
+	<s id="65">
+		 The compiled Dyna program rapidly computes this set of needed updates and adds them to a worklist of pending updates , the agenda . 
+	</s>
+	
+
+	<s id="66">
+		 Updates from the agenda are processed in some prioritized order ( which can strongly affect the speed of the program ) . 
+	</s>
+	
+
+	<s id="67">
+		 When an update is carried out ( e.g. , constit(vp,1,3) is increased ) , any further updates that it triggers ( e.g. , to constit(s,0,3)) are placed back on the agenda in the same way . 
+	</s>
+	
+
+	<s id="68">
+		 Multiple updates to the same item are consolidated on the agenda . 
+	</s>
+	
+
+	<s id="69">
+		 This cascading update process begins with axiom assertions , which are treated like other updates . 
+	</s>
+	
+
+	<s id="70">
+		 2.3 Closely Related Algorithms We now give some examples of variant algorithms . 
+	</s>
+	
+
+	<s id="71">
+		 Fig . 
+	</s>
+	
+
+	<s id="72">
+		 1 provides lattice parsing for free . 
+	</s>
+	
+
+	<s id="73">
+		 Instead of being integer positions in an string , I , J and K can be symbols denoting states in a finite-state automaton . 
+	</s>
+	
+
+	<s id="74">
+		 The code does not have to change , only the input . 
+	</s>
+	
+
+	<s id="75">
+		 Axioms should now correspond to weighted lattice arcs , e.g. , word(loves,q,r) with value p(portion of speech signal loves ) . 
+	</s>
+	
+
+	<s id="76">
+		 To find the probability of the best parse instead of the total probability of all parses , simply change the value type : replace real with viterbi in line 1 . 
+	</s>
+	
+
+	<s id="77">
+		 If a and b are viterbi values , a+b is implemented as max(a , b).5 4As well as instantiations constit(X,I,2) += rewrite(X,Y , verb)*constit(Y,I,1)*constit(verb,1,2) . 
+	</s>
+	
+
+	<s id="78">
+		 5Also , a*b is implemented as a + b , as viterbi values actually represent log probabilities ( for speed and dynamic range ) . 
+	</s>
+	
+
+	<s id="79">
+		 Similarly , replacing real with boolean obtains an unweighted parser , in which a constituent is either derived ( true value ) or not ( false value ) Then a*b is implemented as a A b , and a+b as a V b . 
+	</s>
+	
+
+	<s id="80">
+		 The Dyna programmer can declare the agenda discipline—i.e. , the order in which updates are processed—to obtain variant algorithms . 
+	</s>
+	
+
+	<s id="81">
+		 Although Dyna supports stack and queue ( LIFO and FIFO ) disciplines , its default is to use a priority queue prioritized by the size of the update . 
+	</s>
+	
+
+	<s id="82">
+		 When parsing with real values , this quickly accumulates a good approximation of the inside probabilities , which permits heuristic early stopping before the agenda is empty . 
+	</s>
+	
+
+	<s id="83">
+		 With viterbi values , it amounts to uniform-cost search for the best parse , and an item’s value is guaranteed not to change once it is nonzero . 
+	</s>
+	
+
+	<s id="84">
+		 Dyna will soon allow user-defined priority functions ( themselves dynamic programs ) , which can greatly speed up parsing 
+		<ref citStr="Caraballo and Charniak , 1998" id="1" label="CEPF" position="10856">
+			( Caraballo and Charniak , 1998 
+		</ref>
+		<ref citStr="Klein and Manning , 2003" id="2" label="CEPF" position="10888">
+			; Klein and Manning , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="85">
+		 2.4 Parameter Training Dyna provides facilities for training parameters . 
+	</s>
+	
+
+	<s id="86">
+		 For example , from Fig . 
+	</s>
+	
+
+	<s id="87">
+		 1 , it automatically derives the inside- outside ( EM ) algorithm for training PCFGs . 
+	</s>
+	
+
+	<s id="88">
+		 How is this possible ? 
+	</s>
+	
+
+	<s id="89">
+		 Once the program of Fig . 
+	</s>
+	
+
+	<s id="90">
+		 1 has run , goal’s value is the probability of the input sentence under the grammar . 
+	</s>
+	
+
+	<s id="91">
+		 This is a continuous function of the axiom values , which correspond to PCFG parameters ( e.g. , the weight of rewrite(np,Mary)) . 
+	</s>
+	
+
+	<s id="92">
+		 The function could be written out explicitly as a sum of products of sums of products of ... of axiom values , with the details depending on the sentence and grammar . 
+	</s>
+	
+
+	<s id="93">
+		 Thus , Dyna can be regarded as computing a function F(~^) , where ^~ is a vector of axiom values and F(~^) is an objective function such as the probability of one’s training data . 
+	</s>
+	
+
+	<s id="94">
+		 In learning , one wishes to repeatedly adjust ^~ so as to increase F( ~^ ) . 
+	</s>
+	
+
+	<s id="95">
+		 Dyna can be told to evaluate the gradient of the function with respect to the current parameters ~^ : e.g. , if rewrite(vp,verb,np) were increased by e , what would happen to goal ? 
+	</s>
+	
+
+	<s id="96">
+		 Then any gradient-based optimization method can be applied , using Dyna to evaluate both F(~^) and its gradient vector . 
+	</s>
+	
+
+	<s id="97">
+		 Also , EM can be applied where appropriate , since it can be shown that EM’s E counts can be derived from the gradient . 
+	</s>
+	
+
+	<s id="98">
+		 Dyna’s strategy for computing the gradient is automatic differentiation in the reverse mode 
+		<ref citStr="Griewank and Corliss , 1991" id="3" label="CERF" position="12474">
+			( Griewank and Corliss , 1991 )
+		</ref>
+		 , known in the neural network community as back-propagation . 
+	</s>
+	
+
+	<s id="99">
+		 Dyna comes with a constrained optimization module , DynaMITE,6 that can locally optimize F(~^) . 
+	</s>
+	
+
+	<s id="100">
+		 At present , DynaMITE provides the conjugate gradient and variable metric methods , using the Toolkit for Advanced Optimization 
+		<ref citStr="Benson et al. , 2000" id="4" label="OEPF" position="12804">
+			( Benson et al. , 2000 )
+		</ref>
+		 together with a softmax 6DynaMITE = Dyna Module for Iterative Training and Estimation . 
+	</s>
+	
+
+	<s id="101">
+		 technique to enforce sum-to-one constraints . 
+	</s>
+	
+
+	<s id="102">
+		 It supports maximum-entropy training and the EM algorithm.7 DynaMITE provides an object-oriented API that allows independent variation of such diverse elements of training as the model parameterization , optimization algorithm , smoothing techniques , priors , and datasets . 
+	</s>
+	
+
+	<s id="103">
+		 How about supervised or partly supervised training ? 
+	</s>
+	
+
+	<s id="104">
+		 The role of supervision is to permit some constituents to be built but not others 
+		<ref citStr="Pereira and Schabes , 1992" id="5" label="CEPF" position="13416">
+			( Pereira and Schabes , 1992 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="105">
+		 Lines 2–3 of Fig . 
+	</s>
+	
+
+	<s id="106">
+		 1 can simply be extended with an additional antecedent permitted(X,I,K) , which must be either asserted or derived for constit(X,I,K) to be derived . 
+	</s>
+	
+
+	<s id="107">
+		 In “soft” supervision , the permitted axioms may have values between 0 and 1.8 3 C++ Interface and Implementation A Dyna program compiles to a set of portable C++ classes that manage the items and perform inference . 
+	</s>
+	
+
+	<s id="108">
+		 These classes can be used in a larger C++ application.9 This strategy keeps Dyna both small and convenient . 
+	</s>
+	
+
+	<s id="109">
+		 A C++ chart object supports the computation of item values and gradients . 
+	</s>
+	
+
+	<s id="110">
+		 It keeps track of built items , their values , and their derivations , which form a proof forest . 
+	</s>
+	
+
+	<s id="111">
+		 It also holds an ordered agenda of pending updates . 
+	</s>
+	
+
+	<s id="112">
+		 Some built items may be “transient,” meaning that they are not actually stored in the chart at the moment but will be transparently recomputed upon demand . 
+	</s>
+	
+
+	<s id="113">
+		 The Dyna compiler generates a hard-coded decision tree that analyzes the structure of each item popped from the agenda to decide which inference rules apply to it . 
+	</s>
+	
+
+	<s id="114">
+		 To enable fast lookup of the other items that participate in these inference rules , it generates code to maintain appropriate indices on the chart . 
+	</s>
+	
+
+	<s id="115">
+		 Objects such as constit(vp,1,3) are called terms and may be recursively nested to any depth . 
+	</s>
+	
+
+	<s id="116">
+		 ( Items are just terms with values . 
+	</s>
+	
+
+	<s id="117">
+		 ) Dyna has a full first-order type system for terms , including primitive and disjunctive types , and permitting compile-time type inference . 
+	</s>
+	
+
+	<s id="118">
+		 These types are compiled into C++ classes that support constructors and accessors , garbage-collection , subterm sharing ( which may lead to asymptotic speedups , as in CCG parsing 
+		<ref citStr="Vijay-Shanker and Weir , 1990" id="6" label="CEPF" position="15232">
+			( Vijay-Shanker and Weir , 1990 )
+		</ref>
+		 ) , and interning . 
+	</s>
+	
+
+	<s id="119">
+		 10 Dyna can import new primitive term types and value types from C++ , as well as C++ functions to combine values and to user-define the weights of certain terms . 
+	</s>
+	
+
+	<s id="120">
+		 In the current implementation , every rule must have the restricted form c += a1*a2* • • • *ak ( where each ai is an item or side condition and ( X , + , * ) is a semiring of values ) . 
+	</s>
+	
+
+	<s id="121">
+		 The design for Dyna’s next version lifts this restriction to allow arbitrary , type-heterogeneous expressions on the right-hand side of an inference rule.11 7It will eventually offer additional methods , such as deterministic annealing , simulated annealing , and iterative scaling . 
+	</s>
+	
+
+	<s id="122">
+		 8 Such item values are not probabilities . 
+	</s>
+	
+
+	<s id="123">
+		 We are generally interested in log-linear models for parsing 
+		<ref citStr="Riezler et al. , 2000" id="7" label="CEPF" position="16065">
+			( Riezler et al. , 2000 )
+		</ref>
+		 and other tasks . 
+	</s>
+	
+
+	<s id="124">
+		 9We are also now developing a default application : a visual debugger that allows a user to assert axioms and explore the proof forest created during inference . 
+	</s>
+	
+
+	<s id="125">
+		 10Interned values are hashed so that equal values are represented by equal pointers . 
+	</s>
+	
+
+	<s id="126">
+		 It is very fast to compare and hash such representations . 
+	</s>
+	
+
+	<s id="127">
+		 11 That will make Dyna useful for a wider variety of non-NLP algo- 4 Some Further Applications Dyna is useful for any problem where partial hypotheses are assembled , or where consistency has to be maintained . 
+	</s>
+	
+
+	<s id="128">
+		 It is already being used for parsing , syntax-based machine translation , morphological analysis , grammar induction , and finite-state operations . 
+	</s>
+	
+
+	<s id="129">
+		 It is well known that various parsing algorithms for CFG and other formalisms can be simply written in terms of inference rules . 
+	</s>
+	
+
+	<s id="130">
+		 Fig . 
+	</s>
+	
+
+	<s id="131">
+		 2 renders one such example in Dyna , namely Earley’s algorithm . 
+	</s>
+	
+
+	<s id="132">
+		 Two features are worth noting : the use of recursively nested subterms such as lists , and the SIDE function , which evaluates to 1 or 0 according to whether its argument has a defined value yet . 
+	</s>
+	
+
+	<s id="133">
+		 These side conditions are used here to prevent hypothesizing a constituent until there is a possible left context that calls for it . 
+	</s>
+	
+
+	<s id="134">
+		 Several recent syntax-directed statistical machine translation models are easy to build in Dyna . 
+	</s>
+	
+
+	<s id="135">
+		 The simplest 
+		<ref citStr="Wu , 1997" id="8" label="CEPF" position="17516">
+			( Wu , 1997 )
+		</ref>
+		 uses constit(np,3,5,np,4,8) to denote a NP spanning positions 3–5 in the English string that is aligned with an NP spanning positions 4–8 in the Chinese string . 
+	</s>
+	
+
+	<s id="136">
+		 When training or decoding , the hypotheses of better-trained monolingual parsers can provide either hard or soft partial supervision ( section 2.4 ) . 
+	</s>
+	
+
+	<s id="137">
+		 Dyna can manipulate finite-state transducers . 
+	</s>
+	
+
+	<s id="138">
+		 For instance , the weighted arcs of the composed FST M1 o M2 can be deduced from the arcs of M1 and M2 . 
+	</s>
+	
+
+	<s id="139">
+		 Training M1 o M2 back-propagates to train the original weights in M1 and M2 , as in 
+		<ref citStr="Eisner , 2002" id="9" label="CEPF" position="18121">
+			( Eisner , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="140">
+		 5 Speed and Code Size One of our future priorities is speed . 
+	</s>
+	
+
+	<s id="141">
+		 Comparing informally to the best hand-written C++ code we found online for inside-outside and Dijkstra’s algorithms , Dyna ( like Java ) currently runs up to 5 times slower . 
+	</s>
+	
+
+	<s id="142">
+		 We mainly understand the reasons ( memory layout and overreliance on hashing ) and are working actively to close the gap . 
+	</s>
+	
+
+	<s id="143">
+		 12 Programmer time is also worth considering . 
+	</s>
+	
+
+	<s id="144">
+		 Our inside-outside and Dijkstra’s algorithms are each about 5 lines of Dyna code ( plus a short C driver program ) , but were compared in the previous paragraph against efficient C++ implementations of 5500 and 900 lines . 
+	</s>
+	
+
+	<s id="145">
+		 13 Our colleague Markus Dreyer , as his first Dyna program , decided to replicate the Collins parser ( 3400 lines of C ) . 
+	</s>
+	
+
+	<s id="146">
+		 His implementation used under 40 lines of Dyna code , plus a 300-line C++ driver program that mostly dealt with I/O . 
+	</s>
+	
+
+	<s id="147">
+		 One of us ( Smith ) has written substantially more complex Dyna programs ( e.g. , 56 types + 46 inference rules ) , enabling research that he would not have been willing to undertake in another language . 
+	</s>
+	
+
+	<s id="148">
+		 6 Related Work This project tries to synthesize much folk wisdom . 
+	</s>
+	
+
+	<s id="149">
+		 For NLP algorithms , three excellent longer papers have at- rithms ( e.g. , neural networks , constraint programming , clustering , and dynamic graph algorithms ) . 
+	</s>
+	
+
+	<s id="150">
+		 However , it introduces several interesting design complications in the Dyna language and the implementation . 
+	</s>
+	
+
+	<s id="151">
+		 12Dyna spends most of its time manipulating hash tables and the priority queue . 
+	</s>
+	
+
+	<s id="152">
+		 Inference is very fast because it is compiled . 
+	</s>
+	
+
+	<s id="153">
+		 13 The code size comparisons are rough ones , because of mismatches between the programs being compared . 
+	</s>
+	
+
+	<s id="154">
+		 1. need(s,0) = 1 . 
+	</s>
+	
+
+	<s id="155">
+		 % begin by looking for an s that starts at position 0 2 . 
+	</s>
+	
+
+	<s id="156">
+		 constit(Nonterm/Needed,I,I) += SIDE(need(Nonterm,I)) * rewrite(Nonterm,Needed) . 
+	</s>
+	
+
+	<s id="157">
+		 % traditional predict step 3. constit(Nonterm/Needed,I,K) += constit(Nonterm/cons(W,Needed),I,J) * word(W,J,K) . 
+	</s>
+	
+
+	<s id="158">
+		 %traditional scan step 4. constit(Nonterm/Needed,I,K) += constit(Nonterm,cons(X,Needed),I,J) * constit(X/nil,J,K) . 
+	</s>
+	
+
+	<s id="159">
+		 % traditional complete step 5. goal += constit(s/nil,0,N) * end(N) . 
+	</s>
+	
+
+	<s id="160">
+		 % we want a complete s constituent covering the sentence 6. need(Nonterm,J) += constit( /cons(Nonterm , ) , , J ) . 
+	</s>
+	
+
+	<s id="161">
+		 %Note : underscore matches anything ( anonymous wildcard ) Figure 2 : An Earley parser in Dyna . 
+	</s>
+	
+
+	<s id="162">
+		 np/Needed is syntactic sugar for slash(np,Needed) , which is the label of a partial np constituent that is still missing the list of subconstituents in Needed . 
+	</s>
+	
+
+	<s id="163">
+		 In particular , np/nil is a complete np . 
+	</s>
+	
+
+	<s id="164">
+		 ( A list [ n,pp ] is encoded here as cons(n,cons(pp,nil)) , although syntactic sugar for lists is also available . 
+	</s>
+	
+
+	<s id="165">
+		 ) need(np,3) is derived if some partial constituent seeks an np subconstituent starting at position 3 . 
+	</s>
+	
+
+	<s id="166">
+		 As usual , probabilistic , agenda-based lattice parsing comes for free , as does training . 
+	</s>
+	
+
+	<s id="167">
+		 tempted similar syntheses ( though without covering variant search and storage strategies , which Dyna handles ) . 
+	</s>
+	
+
+	<s id="168">
+		 
+		<ref citStr="Shieber et al . ( 1995 )" id="10" label="CEPF" position="21363">
+			Shieber et al . ( 1995 )
+		</ref>
+		 ( already noting that “many of the ideas we present are not new” ) showed that several unweighted parsing algorithms can be specified in terms of inference rules , and used Prolog to implement an agenda- based interpreter for such rules . 
+	</s>
+	
+
+	<s id="169">
+		 
+		<ref citStr="McAllester ( 1999 )" id="11" label="CEPF" position="21633">
+			McAllester ( 1999 )
+		</ref>
+		 made a similar case for static analysis algorithms , with a more rigorous discussion of indexing the chart . 
+	</s>
+	
+
+	<s id="170">
+		 
+		<ref citStr="Goodman ( 1999 )" id="12" label="CEPF" position="21768">
+			Goodman ( 1999 )
+		</ref>
+		 generalized this line of work to weighted parsing , using rules of the form c += a1*a2* • • • *ak ( with side conditions allowed ) ; he permitted values to fall in any semiring , and generalized the inside-outside algorithm . 
+	</s>
+	
+
+	<s id="171">
+		 Our approach extends this to a wider variety of processing orders , and in particular shows how to use a prioritized agenda in the general case , using novel algorithms . 
+	</s>
+	
+
+	<s id="172">
+		 We also extend to a wider class of formulas ( e.g. , neural networks ) . 
+	</s>
+	
+
+	<s id="173">
+		 The closest implemented work we have found is PRISM 
+		<ref citStr="Zhou and Sato , 2003" id="13" label="OJPN" position="22345">
+			( Zhou and Sato , 2003 )
+		</ref>
+		 , a kind of probabilistic Prolog that claims to be efficient ( thanks to tabling , compilation , and years of development ) and can handle a subset of the cases described by Goodman . 
+	</s>
+	
+
+	<s id="174">
+		 It is interesting because it inherits expressive power from Prolog . 
+	</s>
+	
+
+	<s id="175">
+		 On the other hand , its rigid probabilistic framework does not permit side conditions ( Fig . 
+	</s>
+	
+
+	<s id="176">
+		 2 ) , general semirings ( Goodman ) , or general formulas ( Dyna ) . 
+	</s>
+	
+
+	<s id="177">
+		 PRISM does not currently seem practical for statistical NLP research : in CKY parsing tests , it was only able to handle a small fraction of the Penn Treebank ruleset ( 2400 high- probability rules ) and tended to crash on sentences over 50 words . 
+	</s>
+	
+
+	<s id="178">
+		 Dyna , by contrast , is designed for real-world use : it consistently parses over 10x faster than PRISM , scales to full-sized problems , and attempts to cover real- world necessities such as prioritization , bottom-up inference , pruning , smoothing , underflow avoidance , maxent , non-EM optimization techniques , etc. 7 Conclusions Dyna is a declarative programming language for building efficient systems quickly . 
+	</s>
+	
+
+	<s id="179">
+		 As a language , it is inspired by previous work in deductive parsing , adding weights in a particularly general way . 
+	</s>
+	
+
+	<s id="180">
+		 Dyna’s compiler has been designed with an eye toward low-level issues ( indexing , structure-sharing , garbage collection , etc. ) so that the cost of this abstraction is minimized . 
+	</s>
+	
+
+	<s id="181">
+		 The goal of Dyna is to facilitate experimentation : a new model or algorithm automatically gets a new mem ory layout , indexing , and training code . 
+	</s>
+	
+
+	<s id="182">
+		 We hope this will lower the barrier to entry in the field , in both research and education . 
+	</s>
+	
+
+	<s id="183">
+		 In Dyna we seek to exploit as many algorithmic tricks as we can , generalizing them to as many problems as possible on behalf of future Dyna programs . 
+	</s>
+	
+
+	<s id="184">
+		 In turn the body of old programs can provide a unified testbed for new training and decoding techniques . 
+	</s>
+	
+
+	<s id="185">
+		 Our broader vision is to unify a problem’s possible algorithms by automatically deriving all of them and their possible training procedures from a single high-level Dyna program , using source-to-source program transformations and compiler directives . 
+	</s>
+	
+
+	<s id="186">
+		 We plan to choose automatically among these variants by machine learning over runs on typical data . 
+	</s>
+	
+
+	<s id="187">
+		 This involves , for example , automatically learning a figure of merit to guide decoding . 
+	</s>
+	
+
+	<s id="188">
+		 The Dyna compiler , documentation , and examples can be found at www. dyna . 
+	</s>
+	
+
+	<s id="189">
+		 org . 
+	</s>
+	
+
+	<s id="190">
+		 The compiler is available under an open-source license . 
+	</s>
+	
+
+	<s id="191">
+		 The commented C++ code that it generates is free to modify . 
+	</s>
+	
+
+	<s id="192">
+		 References S. Benson , L. C. McInnes , and J. J. Mor´e . 
+	</s>
+	
+
+	<s id="193">
+		 2000. TAO users manual . 
+	</s>
+	
+
+	<s id="194">
+		 Tech Rpt ANL/MCS-TM-242 , Argonne Nat . 
+	</s>
+	
+
+	<s id="195">
+		 Lab . 
+	</s>
+	
+
+	<s id="196">
+		 S. A. Caraballo , E. Charniak . 
+	</s>
+	
+
+	<s id="197">
+		 1998. New figures of merit for best-first probabilistic chart parsing . 
+	</s>
+	
+
+	<s id="198">
+		 Comp . 
+	</s>
+	
+
+	<s id="199">
+		 Ling. , 24(2) . 
+	</s>
+	
+
+	<s id="200">
+		 Jason Eisner . 
+	</s>
+	
+
+	<s id="201">
+		 2002. Parameter estimation for probabilistic finite-state transducers . 
+	</s>
+	
+
+	<s id="202">
+		 In Proc . 
+	</s>
+	
+
+	<s id="203">
+		 ofACL . 
+	</s>
+	
+
+	<s id="204">
+		 Joshua Goodman . 
+	</s>
+	
+
+	<s id="205">
+		 1999. Semiring parsing . 
+	</s>
+	
+
+	<s id="206">
+		 Comp . 
+	</s>
+	
+
+	<s id="207">
+		 Ling , 25(4) . 
+	</s>
+	
+
+	<s id="208">
+		 Andreas Griewank and George Corliss , editors . 
+	</s>
+	
+
+	<s id="209">
+		 1991. Automatic Differentiation ofAlgorithms . 
+	</s>
+	
+
+	<s id="210">
+		 SIAM . 
+	</s>
+	
+
+	<s id="211">
+		 Dan Klein and Christopher D. Manning . 
+	</s>
+	
+
+	<s id="212">
+		 2003. A* parsing : Fast exact Viterbi parse selection . 
+	</s>
+	
+
+	<s id="213">
+		 Proc . 
+	</s>
+	
+
+	<s id="214">
+		 ofHLT-NAACL . 
+	</s>
+	
+
+	<s id="215">
+		 David McAllester . 
+	</s>
+	
+
+	<s id="216">
+		 1999. On the complexity analysis of static analyses . 
+	</s>
+	
+
+	<s id="217">
+		 6th Intl . 
+	</s>
+	
+
+	<s id="218">
+		 Static Analysis Symposium . 
+	</s>
+	
+
+	<s id="219">
+		 F. Pereira and Y. Schabes . 
+	</s>
+	
+
+	<s id="220">
+		 1992. Inside-outside reestimation from partially bracketed corpora . 
+	</s>
+	
+
+	<s id="221">
+		 Proc . 
+	</s>
+	
+
+	<s id="222">
+		 ofACL . 
+	</s>
+	
+
+	<s id="223">
+		 S. Riezler , D. Prescher , J. Kuhn , M. Johnson . 
+	</s>
+	
+
+	<s id="224">
+		 2000. Lexicalized stochastic modeling of constraint-based grammars using log-linear measures and EM training . 
+	</s>
+	
+
+	<s id="225">
+		 Proc . 
+	</s>
+	
+
+	<s id="226">
+		 ofACL . 
+	</s>
+	
+
+	<s id="227">
+		 Stuart M. Shieber , Yves Schabes , and Fernando Pereira . 
+	</s>
+	
+
+	<s id="228">
+		 1995. Principles and implementation of deductive parsing . 
+	</s>
+	
+
+	<s id="229">
+		 Journal ofLogic Programming . 
+	</s>
+	
+
+	<s id="230">
+		 K. Vijay-Shanker and D. Weir . 
+	</s>
+	
+
+	<s id="231">
+		 1990. Polynomial-time parsing of combinatory categorial grammars . 
+	</s>
+	
+
+	<s id="232">
+		 Proc . 
+	</s>
+	
+
+	<s id="233">
+		 ofACL . 
+	</s>
+	
+
+	<s id="234">
+		 Dekai Wu . 
+	</s>
+	
+
+	<s id="235">
+		 1997. Stochastic inversion transduction grammars and bilingual parsing of parallel corpora . 
+	</s>
+	
+
+	<s id="236">
+		 Computational Linguistics , 23(3):377–404 . 
+	</s>
+	
+
+	<s id="237">
+		 N.-F. Zhou and T. Sato . 
+	</s>
+	
+
+	<s id="238">
+		 2003. Toward a high-performance system for symbolic and statistical modeling . 
+	</s>
+	
+
+	<s id="239">
+		 IJCAI-03 Workshop on Learning Statistical Models from Relational Data . 
+	</s>
+	
+
+
+</acldoc>

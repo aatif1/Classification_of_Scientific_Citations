@@ -1,0 +1,1419 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1055">
+	
+
+	<s id="1">
+		 Classifying Semantic Relations in Bioscience Texts Barbara Rosario SIMS UC Berkeley Berkeley , CA 94720 rosario@sims.berkeley.edu Marti A. Hearst SIMS UC Berkeley Berkeley , CA 94720 hearst@sims.berkeley.edu Abstract A crucial step toward the goal of automatic extraction of propositional information from natural language text is the identification of semantic relations between constituents in sentences . 
+	</s>
+	
+
+	<s id="2">
+		 We examine the problem of distinguishing among seven relation types that can occur between the entities “treatment” and “disease” in bioscience text , and the problem of identifying such entities . 
+	</s>
+	
+
+	<s id="3">
+		 We compare five generative graphical models and a neural network , using lexical , syntactic , and semantic features , finding that the latter help achieve high classification accuracy . 
+	</s>
+	
+
+	<s id="4">
+		 1 Introduction The biosciences literature is rich , complex and continually growing . 
+	</s>
+	
+
+	<s id="5">
+		 The National Library of Medicine’s MEDLINE database1 contains bibliographic citations and abstracts from more than 4,600 biomedical journals , and an estimated half a million new articles are added every year . 
+	</s>
+	
+
+	<s id="6">
+		 Much of the important , late-breaking bioscience information is found only in textual form , and so methods are needed to automatically extract semantic entities and the relations between them from this text . 
+	</s>
+	
+
+	<s id="7">
+		 For example , in the following sentences , hepatitis and its variants , which are DISEASES , are found in different semantic relationships with various TREATMENTs : 1http://www.nlm.nih.gov/pubs/factsheets/medline.html ( 1 ) Effect of interferon on hepatitis B ( 2 ) A two-dose combined hepatitis A and B vac- cine wouldfacilitate immunization programs ( 3 ) These results suggest that con A-induced hep- atitis was ameliorated by pretreatment with TJ-135 . 
+	</s>
+	
+
+	<s id="8">
+		 In ( 1 ) there is an unspecified effect of the treatment interferon on hepatitis B . 
+	</s>
+	
+
+	<s id="9">
+		 In ( 2 ) the vaccine prevents hepatitis A and B while in ( 3 ) hepatitis is cured by the treatment TJ-135 . 
+	</s>
+	
+
+	<s id="10">
+		 We refer to this problem as Relation Classification . 
+	</s>
+	
+
+	<s id="11">
+		 A related task is Role Extraction ( also called , in the literature , “information extraction” or “named entity recognition” ) , defined as : given a sentence such as “The fluoroquinolones for urinary tract infections : a review” , extract all and only the strings of text that correspond to the roles TREATMENT ( fluoroquinolones ) and DISEASE ( urinary tract infections ) . 
+	</s>
+	
+
+	<s id="12">
+		 To make inferences about the facts in the text we need a system that accomplishes both these tasks : the extraction of the semantic roles and the recognition of the relationship that holds between them . 
+	</s>
+	
+
+	<s id="13">
+		 In this paper we compare five generative graphical models and a discriminative model ( a multi- layer neural network ) on these tasks . 
+	</s>
+	
+
+	<s id="14">
+		 Recognizing subtle differences among relations is a difficult task ; nevertheless the results achieved by our models are quite promising : when the roles are not given , the neural network achieves 79.6 % accuracy and the best graphical model achieves 74.9 % . 
+	</s>
+	
+
+	<s id="15">
+		 When the roles are given , the neural net reaches 96.9 % accuracy while the best graphical model gets 91.6 % accuracy . 
+	</s>
+	
+
+	<s id="16">
+		 Part of the reason for the Relationship Definition and Example Cure TREAT cures DIS 810 ( 648 , 162 ) Intravenous immune globulin for recurrent spontaneous abortion Only DIS TREAT not mentioned 616 ( 492 , 124 ) Social ties and susceptibility to the common cold Only TREAT DIS not mentioned 166 ( 132 , 34 ) Flucticasone propionate is safe in recommended doses Prevent TREAT prevents the DIS Statinsforprevention ofstroke 63 ( 50 , 13 ) Vague Very unclear relationship Phenylbutazone and leukemia 36(28,8) Side Effect DIS is a result of a TREAT Malignant mesodermal mixed tumor ofthe uterus following irradiation 29(24,5) NO Cure TREAT does not cure DIS Evidence for double resistance to permethrin and malathion in head lice 4(3,1) Total relevant : 1724 ( 1377 , 347 ) Irrelevant TREAT and DIS not present 1771 ( 1416 , 355 ) Patients were followed up for 6 months Total : 3495 ( 2793 , 702 ) Table 1 : Candidate semantic relationships between treatments and diseases . 
+	</s>
+	
+
+	<s id="17">
+		 In parentheses are shown the numbers of sentences used for training and testing , respectively . 
+	</s>
+	
+
+	<s id="18">
+		 success of the algorithms is the use of a large domain-specific lexical hierarchy for generalization across classes of nouns . 
+	</s>
+	
+
+	<s id="19">
+		 In the remainder of this paper we discuss related work , describe the annotated dataset , describe the models , present and discuss the results of running the models on the relation classification and entity extraction tasks and analyze the relative importance of the features used . 
+	</s>
+	
+
+	<s id="20">
+		 2 Related work While there is much work on role extraction , very little work has been done for relationship recognition . 
+	</s>
+	
+
+	<s id="21">
+		 Moreover , many papers that claim to be doing relationship recognition in reality address the task of role extraction : ( usually two ) entities are extracted and the relationship is implied by the co- occurrence of these entities or by the presence of some linguistic expression . 
+	</s>
+	
+
+	<s id="22">
+		 These linguistic patterns could in principle distinguish between differ- ent relations , but instead are usually used to identify examples of one relation . 
+	</s>
+	
+
+	<s id="23">
+		 In the related work for statistical models there has been , to the best of our knowledge , no attempt to distinguish between different relations that can occur between the same semantic entities . 
+	</s>
+	
+
+	<s id="24">
+		 In 
+		<ref citStr="Agichtein and Gravano ( 2000 )" id="1" label="CJPN" position="5595">
+			Agichtein and Gravano ( 2000 )
+		</ref>
+		 the goal is to extract pairs such as ( Microsoft , Redmond ) , where Redmond is the location of the organization Microsoft . 
+	</s>
+	
+
+	<s id="25">
+		 Their technique generates and evaluates lexical patterns that are indicative of the relation . 
+	</s>
+	
+
+	<s id="26">
+		 Only the relation location of is tackled and the entities are assumed given . 
+	</s>
+	
+
+	<s id="27">
+		 In 
+		<ref citStr="Zelenko et al . ( 2002 )" id="2" label="CJPF" position="5948">
+			Zelenko et al . ( 2002 )
+		</ref>
+		 , the task is to extract the relationships person-affiliation and organization-location . 
+	</s>
+	
+
+	<s id="28">
+		 The classification ( done with Support Vector Machine and Voted Perceptron algorithms ) is between positive and negative sentences , where the positive sentences contain the two entities . 
+	</s>
+	
+
+	<s id="29">
+		 In the bioscience NLP literature there are also efforts to extract entities and relations . 
+	</s>
+	
+
+	<s id="30">
+		 In 
+		<ref citStr="Ray and Craven ( 2001 )" id="3" label="CJPN" position="6373">
+			Ray and Craven ( 2001 )
+		</ref>
+		 , Hidden Markov Models are applied to MEDLINE text to extract the entities PROTEINS and LOCATIONS in the relationship subcellular-location and the entities GENE and DISORDER in the relationship disorder- association . 
+	</s>
+	
+
+	<s id="31">
+		 The authors acknowledge that the task of extracting relations is different from the task of extracting entities . 
+	</s>
+	
+
+	<s id="32">
+		 Nevertheless , they consider positive examples to be all the sentences that simply contain the entities , rather than analyzing which relations hold between these entities . 
+	</s>
+	
+
+	<s id="33">
+		 In 
+		<ref citStr="Craven ( 1999 )" id="4" label="CJPN" position="6925">
+			Craven ( 1999 )
+		</ref>
+		 , the problem tackled is relationship extraction from MEDLINE for the relation subcellular-location . 
+	</s>
+	
+
+	<s id="34">
+		 The authors treat it as a text classification problem and propose and compare two classifiers : a Naive Bayes classifier and a relational learning algorithm . 
+	</s>
+	
+
+	<s id="35">
+		 This is a two-way classification , and again there is no mention of whether the co-occurrence of the entities actually represents the target relation . 
+	</s>
+	
+
+	<s id="36">
+		 
+		<ref citStr="Pustejovsky et al . ( 2002 )" id="5" label="CJPN" position="7394">
+			Pustejovsky et al . ( 2002 )
+		</ref>
+		 use a rule-based system to extract entities in the inhibit-relation . 
+	</s>
+	
+
+	<s id="37">
+		 Their experiments use sentences that contain verbal and nominal forms of the stem inhibit . 
+	</s>
+	
+
+	<s id="38">
+		 Thus the actual task performed is the extraction of entities that are connected by some form of the stem in- hibit , which by requiring occurrence of this word explicitly , is not the same as finding all sentences that talk about inhibiting actions . 
+	</s>
+	
+
+	<s id="39">
+		 Similarly , 
+		<ref citStr="Rindflesch et al . ( 1999 )" id="6" label="CJPF" position="7874">
+			Rindflesch et al . ( 1999 )
+		</ref>
+		 identify noun phrases surrounding forms of the stem bind which signify entities that can enter into molecular binding relationships . 
+	</s>
+	
+
+	<s id="40">
+		 In 
+		<ref citStr="Srinivasan and Rindflesch ( 2002 )" id="7" label="CJPF" position="8055">
+			Srinivasan and Rindflesch ( 2002 )
+		</ref>
+		 MeSH term co-occurrences within MEDLINE articles are used to attempt to infer relationships between different concepts , including diseases and drugs . 
+	</s>
+	
+
+	<s id="41">
+		 In the bioscience domain the work on relation classification is primary done through hand-built rules . 
+	</s>
+	
+
+	<s id="42">
+		 
+		<ref citStr="Feldman et al . ( 2002 )" id="8" label="CJPF" position="8354">
+			Feldman et al . ( 2002 )
+		</ref>
+		 use hand-built rules that make use of syntactic and lexical features and semantic constraints to find relations between genes , proteins , drugs and diseases . 
+	</s>
+	
+
+	<s id="43">
+		 The GENIES system 
+		<ref citStr="Friedman et al. , 2001" id="9" label="CJPF" position="8568">
+			( Friedman et al. , 2001 )
+		</ref>
+		 uses a hand-built semantic grammar along with hand-derived syntactic and semantic constraints , and recognizes a wide range of relationships between biological molecules . 
+	</s>
+	
+
+	<s id="44">
+		 3 Data and Features For our experiments , the text was obtained from MEDLINE 20012 . 
+	</s>
+	
+
+	<s id="45">
+		 An annotator with biology expertise considered the titles and abstracts separately and labeled the sentences ( both roles and relations ) based solely on the content of the individual sentences . 
+	</s>
+	
+
+	<s id="46">
+		 Seven possible types of relationships between TREATMENT and DISEASE were identified . 
+	</s>
+	
+
+	<s id="47">
+		 Table 1 shows , for each relation , its definition , one example sentence and the number of sentences found containing it . 
+	</s>
+	
+
+	<s id="48">
+		 We used a large domain-specific lexical hierarchy ( MeSH , Medical Subject Headings3 ) to map words into semantic categories . 
+	</s>
+	
+
+	<s id="49">
+		 There are about 19,000 unique terms in MeSH and 15 main sub-hierarchies , each corresponding to a major branch of medical ontology ; e.g. , tree A corresponds to Anatomy , tree C to Disease , and so on . 
+	</s>
+	
+
+	<s id="50">
+		 As an example , the word migraine maps to the term C 10.228 , that is , C ( a disease ) , C10 ( Nervous System Diseases ) , C10.228 ( Central Ner- 2We used the first 100 titles and the first 40 abstracts from each of the 59 files medline01n*.xml in Medline 2001 ; the labeled data is available at biotext.berkeley.edu 3http://www.nlm.nih . 
+	</s>
+	
+
+	<s id="51">
+		 gov/mesh/meshhome.html vous System Diseases ) . 
+	</s>
+	
+
+	<s id="52">
+		 When there are multiple MeSH terms for one word , we simply choose the first one . 
+	</s>
+	
+
+	<s id="53">
+		 These semantic features are shown to be very useful for our tasks ( see Section 4.3 ) . 
+	</s>
+	
+
+	<s id="54">
+		 
+		<ref citStr="Rosario et al . ( 2002 )" id="10" label="CEPF" position="10245">
+			Rosario et al . ( 2002 )
+		</ref>
+		 demonstrate the usefulness of MeSH for the classification of the semantic relationships between nouns in noun compounds . 
+	</s>
+	
+
+	<s id="55">
+		 The results reported in this paper were obtained with the following features : the word itself , its part of speech from the Brill tagger 
+		<ref citStr="Brill , 1995" id="11" label="OEPF" position="10531">
+			( Brill , 1995 )
+		</ref>
+		 , the phrase constituent the word belongs to , obtained by flattening the output of a parser 
+		<ref citStr="Collins , 1996" id="12" label="CEPF" position="10643">
+			( Collins , 1996 )
+		</ref>
+		 , and the word’s MeSH ID ( if available ) . 
+	</s>
+	
+
+	<s id="56">
+		 In addition , we identified the sub-hierarchies of MeSH that tend to correspond to treatments and diseases , and convert these into a tri-valued attribute indicating one of : disease , treatment or neither . 
+	</s>
+	
+
+	<s id="57">
+		 Finally , we included orthographic features such as ‘is the word a number’ , ‘only part of the word is a number’ , ‘first letter is capitalized’ , ‘all letters are capitalized’ . 
+	</s>
+	
+
+	<s id="58">
+		 In Section 4.3 we analyze the impact of these features . 
+	</s>
+	
+
+	<s id="59">
+		 4 Models and Results This section describes the models and their performance on both entity extraction and relation classification . 
+	</s>
+	
+
+	<s id="60">
+		 Generative models learn the prior probability of the class and the probability of the features given the class ; they are the natural choice in cases with hidden variables ( partially observed or missing data ) . 
+	</s>
+	
+
+	<s id="61">
+		 Since labeled data is expensive to collect , these models may be useful when no labels are available . 
+	</s>
+	
+
+	<s id="62">
+		 However , in this paper we test the generative models on fully observed data and show that , although not as accurate as the discriminative model , their performance is promising enough to encourage their use for the case of partially observed data . 
+	</s>
+	
+
+	<s id="63">
+		 Discriminative models learn the probability of the class given the features . 
+	</s>
+	
+
+	<s id="64">
+		 When we have fully observed data and we just need to learn the mapping from features to classes ( classification ) , a discriminative approach may be more appropriate , as shown in 
+		<ref citStr="Ng and Jordan ( 2002 )" id="13" label="CJPN" position="12203">
+			Ng and Jordan ( 2002 )
+		</ref>
+		 , but has other shortcomings as discussed below . 
+	</s>
+	
+
+	<s id="65">
+		 For the evaluation of the role extraction task , we calculate the usual metrics of precision , recall and F-measure . 
+	</s>
+	
+
+	<s id="66">
+		 Precision is a measure of how many of the roles extracted by the system are correct and recall is the measure of how many of the true roles were extracted by the system . 
+	</s>
+	
+
+	<s id="67">
+		 The F-measure is a weighted combination of precision and recall4 . 
+	</s>
+	
+
+	<s id="68">
+		 Our role evaluation is very strict : every token is assessed and we do not assign partial credit for constituents for which only some of the words are correctly labeled . 
+	</s>
+	
+
+	<s id="69">
+		 We report results for two cases : ( i ) considering only the relevant sentences and ( ii ) including also irrelevant sentences . 
+	</s>
+	
+
+	<s id="70">
+		 For the relation classification task , we report results in terms of classification accuracy , choosing one out of seven choices for ( i ) and one out of eight choices for ( ii ) . 
+	</s>
+	
+
+	<s id="71">
+		 ( Most papers report the results for only the relevant sentences , while some papers assign credit to their algorithms if their system extracts only one instance of a given relation from the collection . 
+	</s>
+	
+
+	<s id="72">
+		 By contrast , in our experiments we expect the system to extract all instances of every relation type . 
+	</s>
+	
+
+	<s id="73">
+		 ) For both tasks , 75 % of the data were used for training and the rest for testing . 
+	</s>
+	
+
+	<s id="74">
+		 4.1 Generative Models In Figure 1 we show two static and three dynamic models . 
+	</s>
+	
+
+	<s id="75">
+		 The nodes labeled “Role” represent the entities ( in this case the choices are DISEASE , TREATMENT and NULL ) and the node labeled “Relation” represents the relationship present in the sentence . 
+	</s>
+	
+
+	<s id="76">
+		 We assume here that there is a single relation for each sentence between the entities5 . 
+	</s>
+	
+
+	<s id="77">
+		 The children of the role nodes are the words and their features , thus there are as many role states as there are words in the sentence ; for the static models , this is depicted by the box ( or “plate” ) which is the standard graphical model notation for replication . 
+	</s>
+	
+
+	<s id="78">
+		 For each state , the features are those mentioned in Section 3 . 
+	</s>
+	
+
+	<s id="79">
+		 The simpler static models S1 and S2 do not assume an ordering in the role sequence . 
+	</s>
+	
+
+	<s id="80">
+		 The dynamic models were inspired by prior work on HMM-like graphical models for role extraction 
+		<ref citStr="Bikel et al. , 1999" id="14" label="CEPF" position="14516">
+			( Bikel et al. , 1999 
+		</ref>
+		<ref citStr="Freitag and McCallum , 2000" id="15" label="CEPF" position="14538">
+			; Freitag and McCallum , 2000 
+		</ref>
+		<ref citStr="Ray and Craven , 2001" id="16" label="CEPF" position="14568">
+			; Ray and Craven , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="81">
+		 These models consist of a 4In this paper , precision and recall are given equal weight , that is , F-measure = . 
+	</s>
+	
+
+	<s id="82">
+		 5We found 75 sentences which contain more than one relationship , often with multiple entities or the same entities taking part in several interconnected relationships ; we did not include these in the study . 
+	</s>
+	
+
+	<s id="83">
+		 dynamic model ( D1 ) dynamic model ( D2 ) dynamic model ( D3 ) Figure 1 : Models for role and relation extraction . 
+	</s>
+	
+
+	<s id="84">
+		 Markov sequence of states ( usually corresponding to semantic roles ) where each state generates one or multiple observations . 
+	</s>
+	
+
+	<s id="85">
+		 Model D1 in Figure 1 is typical of these models , but we have augmented it with the Relation node . 
+	</s>
+	
+
+	<s id="86">
+		 The task is to recover the sequence of Role states , given the observed features . 
+	</s>
+	
+
+	<s id="87">
+		 These models assume that there is an ordering in the semantic roles that can be captured with the Markov assumption and that the role generates the observations ( the words , for example ) . 
+	</s>
+	
+
+	<s id="88">
+		 All our models make the additional assumption that there is a relation that generates the role sequence ; thus , these static model ( S1 ) static model ( S2 ) f1 a f2 . 
+	</s>
+	
+
+	<s id="89">
+		 . 
+	</s>
+	
+
+	<s id="90">
+		 . 
+	</s>
+	
+
+	<s id="91">
+		 ^ fna f1h RolO f2 . 
+	</s>
+	
+
+	<s id="92">
+		 . 
+	</s>
+	
+
+	<s id="93">
+		 . 
+	</s>
+	
+
+	<s id="94">
+		 ^ f/n f ROlati on RolO f2 ...^ fn RolO f1 f2 . 
+	</s>
+	
+
+	<s id="95">
+		 . 
+	</s>
+	
+
+	<s id="96">
+		 .^ fn ROlati RolO on f1 f2 .. . 
+	</s>
+	
+
+	<s id="97">
+		 ^ fn ROlati on RolO ^ T f1 f2 . 
+	</s>
+	
+
+	<s id="98">
+		 . 
+	</s>
+	
+
+	<s id="99">
+		 . 
+	</s>
+	
+
+	<s id="100">
+		 ^ fn f1~ RolO f2 . 
+	</s>
+	
+
+	<s id="101">
+		 . 
+	</s>
+	
+
+	<s id="102">
+		 . 
+	</s>
+	
+
+	<s id="103">
+		 ^ fn f1~ ROlati on RolO f2...^fn RolO f1 f2 . 
+	</s>
+	
+
+	<s id="104">
+		 . 
+	</s>
+	
+
+	<s id="105">
+		 . 
+	</s>
+	
+
+	<s id="106">
+		 ^ fn f1~ RolO f2 . 
+	</s>
+	
+
+	<s id="107">
+		 . 
+	</s>
+	
+
+	<s id="108">
+		 . 
+	</s>
+	
+
+	<s id="109">
+		 ^ fn f1~ ROlati on RolO f2...^fn RolO Sentences Static Dynamic S1 S2 D1 D2 D3 No Smoothing Only rel . 
+	</s>
+	
+
+	<s id="110">
+		 0.67 0.68 0.71 0.52 0.55 Rel . 
+	</s>
+	
+
+	<s id="111">
+		 + irrel . 
+	</s>
+	
+
+	<s id="112">
+		 0.61 0.62 0.66 0.35 0.37 Absolute discounting Only rel . 
+	</s>
+	
+
+	<s id="113">
+		 0.67 0.68 0.72 0.73 0.73 Rel . 
+	</s>
+	
+
+	<s id="114">
+		 + irrel . 
+	</s>
+	
+
+	<s id="115">
+		 0.60 0.62 0.67 0.71 0.69 Table 2 : F-measures for the models of Figure 1 for role extraction . 
+	</s>
+	
+
+	<s id="116">
+		 models have the appealing property that they can simultaneously perform role extraction and relationship recognition , given the sequence of observations . 
+	</s>
+	
+
+	<s id="117">
+		 In S 1 and D 1 the observations are independent from the relation ( given the roles ) . 
+	</s>
+	
+
+	<s id="118">
+		 In S2 and D2 , the observations are dependent on both the relation and the role ( or in other words , the relation generates not only the sequence of roles but also the observations ) . 
+	</s>
+	
+
+	<s id="119">
+		 D2 encodes the fact that even when the roles are given , the observations depend on the relation . 
+	</s>
+	
+
+	<s id="120">
+		 For example , sentences containing the word prevent are more likely to represent a “prevent” kind of relationship . 
+	</s>
+	
+
+	<s id="121">
+		 Finally , in D3 only one observation per state is dependent on both the relation and the role , the motivation being that some observations ( such as the words ) depend on the relation while others might not ( like for example , the parts of speech ) . 
+	</s>
+	
+
+	<s id="122">
+		 In the experiments reported here , the observations which have edges from both the role and the relation nodes are the words . 
+	</s>
+	
+
+	<s id="123">
+		 ( We ran an experiment in which this observation node was the MeSH term , obtaining similar results . 
+	</s>
+	
+
+	<s id="124">
+		 ) Model D1 defines the following joint probabil- ity distribution over relations , roles , words and word features , assuming the leftmost Role node is , and is the number of words in the sen- tence : Model D1 is similar to the model in 
+		<ref citStr="Thompson et al . ( 2003 )" id="17" label="CEPF" position="18070">
+			Thompson et al . ( 2003 )
+		</ref>
+		 for the extraction of roles , using a different domain . 
+	</s>
+	
+
+	<s id="125">
+		 Structurally , the differences are ( i ) 
+		<ref citStr="Thompson et al . ( 2003 )" id="18" label="CJPN" position="18203">
+			Thompson et al . ( 2003 )
+		</ref>
+		 has only one observation node per role and ( ii ) it has an additional node “on top” , with an edge to the relation node , to represent a predicator “trigger word” which is always observed ; the predicator words are taken from a fixed list and one must be present in order for a sentence to be analyzed . 
+	</s>
+	
+
+	<s id="126">
+		 The joint probability distributions for D2 and D3 are similar to Equation ( 1 ) where we substitute the term with for D2 and for D3 . 
+	</s>
+	
+
+	<s id="127">
+		 The parameters and of Equation ( 1 ) are constrained to be equal . 
+	</s>
+	
+
+	<s id="128">
+		 The parameters were estimated using maximum likelihood on the training set ; we also implemented a simple absolute discounting smoothing method 
+		<ref citStr="Zhai and Lafferty , 2001" id="19" label="CERF" position="18913">
+			( Zhai and Lafferty , 2001 )
+		</ref>
+		 that improves the results for both tasks . 
+	</s>
+	
+
+	<s id="129">
+		 Table 2 shows the results ( F-measures ) for the problem of finding the most likely sequence of roles given the features observed . 
+	</s>
+	
+
+	<s id="130">
+		 In this case , the relation is hidden and we marginalize over it6 . 
+	</s>
+	
+
+	<s id="131">
+		 We experimented with different values for the smoothing factor ranging from a minimum of 0.0000005 to a maximum of 10 ; the results shown fix the smoothing factor at its minimum value . 
+	</s>
+	
+
+	<s id="132">
+		 We found that for the dynamic models , for a wide range of smoothing factors , we achieved almost identical results ; nevertheless , in future work , we plan to implement cross-validation to find the optimal smoothing factor . 
+	</s>
+	
+
+	<s id="133">
+		 By contrast , the static models were more sensitive to the value of the smoothing factor . 
+	</s>
+	
+
+	<s id="134">
+		 Using maximum likelihood with no smoothing , model D1 performs better than D2 and D3 . 
+	</s>
+	
+
+	<s id="135">
+		 This was expected , since the parameters for models D2 and D3 are more sparse than D1 . 
+	</s>
+	
+
+	<s id="136">
+		 However , when smoothing is applied , the three dynamic models achieve similar results . 
+	</s>
+	
+
+	<s id="137">
+		 Although the additional edges in models D2 and D3 did not help much for the task of role extraction , they did help for relation classification , discussed next . 
+	</s>
+	
+
+	<s id="138">
+		 Model D2 6To perform inference for the dynamic model , we used the junction tree algorithm . 
+	</s>
+	
+
+	<s id="139">
+		 We used Kevin Murphy’s BNT package , found at http://www.ai.mit.edu/ murphyk/Bayes/bnintro.html . 
+	</s>
+	
+
+	<s id="140">
+		 ( 1 ) achieves the best F-measures : 0.73 for “only relevant” and 0.71 for “rel . 
+	</s>
+	
+
+	<s id="141">
+		 + irrel.” . 
+	</s>
+	
+
+	<s id="142">
+		 It is difficult to compare results with the related work since the data , the semantic roles and the evaluation are different ; in 
+		<ref citStr="Ray and Craven ( 2001 )" id="20" label="CEPN" position="20658">
+			Ray and Craven ( 2001 )
+		</ref>
+		 however , the role extraction task is quite similar to ours and the text is also from MEDLINE . 
+	</s>
+	
+
+	<s id="143">
+		 They report approximately an F-measure of 32 % for the extraction of the entities PROTEINS and LOCATIONS , and an F-measure of 50 % for GENE and DISORDER . 
+	</s>
+	
+
+	<s id="144">
+		 The second target task is to find the most likely relation , i.e. , to classify a sentence into one of the possible relations . 
+	</s>
+	
+
+	<s id="145">
+		 Two types of experiments were conducted . 
+	</s>
+	
+
+	<s id="146">
+		 In the first , the true roles are hidden and we classify the relations given only the observable features , marginalizing over the hidden roles . 
+	</s>
+	
+
+	<s id="147">
+		 In the second , the roles are given and only the relations need to be inferred . 
+	</s>
+	
+
+	<s id="148">
+		 Table 3 reports the results for both conditions , both with absolute discounting smoothing and without . 
+	</s>
+	
+
+	<s id="149">
+		 Again model D1 outperforms the other dynamic models when no smoothing is applied ; with smoothing and when the true roles are hidden , D2 achieves the best classification accuracies . 
+	</s>
+	
+
+	<s id="150">
+		 When the roles are given D1 is the best model ; D1 does well in the cases when both roles are not present . 
+	</s>
+	
+
+	<s id="151">
+		 By contrast , D2 does better than D1 when the presence of specific words strongly determines the outcome ( e.g. , the presence “prevention” or “prevent” helps identify the Prevent relation ) . 
+	</s>
+	
+
+	<s id="152">
+		 The percentage improvements of D2 and D3 versus D1 are , respectively , 10 % and 6.5 % for relation classification and 1.4 % for role extraction ( in the “only relevant” , “only features” case ) . 
+	</s>
+	
+
+	<s id="153">
+		 This suggests that there is a dependency between the observations and the relation that is captured by the additional edges in D2 and D3 , but that this dependency is more helpful in relation classification than in role extraction . 
+	</s>
+	
+
+	<s id="154">
+		 For relation classification the static models perform worse than for role extraction ; the decreases in performance from D1 to S 1 and from D2 to S2 are , respectively ( in the “only relevant” , “only features” case ) , 7.4 % and 7.3 % for role extraction and 27.1 % and 44 % for relation classification . 
+	</s>
+	
+
+	<s id="155">
+		 This suggests the importance of modeling the sequence of roles for relation classification . 
+	</s>
+	
+
+	<s id="156">
+		 To provide an idea of where the errors occur , Table 4 shows the confusion matrix for model D2 for the most realistic and difficult case of “rel + irrel.” , “only features” . 
+	</s>
+	
+
+	<s id="157">
+		 This indicates that the algorithm performs poorly primarily for the cases for which there is little training data , with the exception of the ONLY DISEASE case , which is often mistaken for CURE . 
+	</s>
+	
+
+	<s id="158">
+		 4.2 Neural Network To compare the results of the generative models of the previous section with a discriminative method , we use a neural network , using the Matlab package to train a feed-forward network with conjugate gradient descent . 
+	</s>
+	
+
+	<s id="159">
+		 The features are the same as those used for the models in Section 4 . 
+	</s>
+	
+
+	<s id="160">
+		 1 , but are represented with indicator variables . 
+	</s>
+	
+
+	<s id="161">
+		 That is , for each feature we calculated the number of possible values and then represented an observation of the feature as a sequence of binary values in which one value is set to and the remaining values are set to . 
+	</s>
+	
+
+	<s id="162">
+		 The input layer of the NN is the concatenation of this representation for all features . 
+	</s>
+	
+
+	<s id="163">
+		 The network has one hidden layer , with a hyperbolic tangent function . 
+	</s>
+	
+
+	<s id="164">
+		 The output layer uses a logistic sigmoid function . 
+	</s>
+	
+
+	<s id="165">
+		 The number of units of the output layer is fixed to be the number of relations ( seven or eight ) for the relation classification task and the number of roles ( three ) for the role extraction task . 
+	</s>
+	
+
+	<s id="166">
+		 The network was trained for several choices of numbers of hidden units ; we chose the best- performing networks based on training set error . 
+	</s>
+	
+
+	<s id="167">
+		 We then tested these networks on held-out testing data . 
+	</s>
+	
+
+	<s id="168">
+		 The results for the neural network are reported in Table 3 in the column labeled NN. . 
+	</s>
+	
+
+	<s id="169">
+		 These results are quite strong , achieving 79.6 % accuracy in the relation classification task when the entities are hidden and 96.9 % when the entities are given , outperforming the graphical models . 
+	</s>
+	
+
+	<s id="170">
+		 Two possible reasons for this are : as already mentioned , the discriminative approach may be the most appropriate for fully labeled data ; or the graphical models we proposed may not be the right ones , i.e. , the independence assumptions they make may misrepresent underlying dependencies . 
+	</s>
+	
+
+	<s id="171">
+		 It must be pointed out that the neural network Sentences Input B Static Dynamic NN S1 S2 D1 D2 D3 No Smoothing Only rel . 
+	</s>
+	
+
+	<s id="172">
+		 only feat . 
+	</s>
+	
+
+	<s id="173">
+		 46.7 51.9 50.4 65.4 58.2 61.4 79.8 roles given 51.3 52.9 66.6 43.8 49.3 92.5 Rel . 
+	</s>
+	
+
+	<s id="174">
+		 + irrel . 
+	</s>
+	
+
+	<s id="175">
+		 only feat . 
+	</s>
+	
+
+	<s id="176">
+		 50.6 51.2 50.2 68.9 58.7 61.4 79.6 roles given 55.7 54.4 82.3 55.2 58.8 96.6 Absolute discounting Only rel . 
+	</s>
+	
+
+	<s id="177">
+		 only feat . 
+	</s>
+	
+
+	<s id="178">
+		 46.7 51.9 50.4 66.0 72.6 70.3 roles given 51.9 53.6 83.0 76.6 76.6 Rel . 
+	</s>
+	
+
+	<s id="179">
+		 + irrel . 
+	</s>
+	
+
+	<s id="180">
+		 only feat . 
+	</s>
+	
+
+	<s id="181">
+		 50.6 51.1 50.2 68.9 74.9 74.6 roles given 56.1 54.8 91.6 82.0 82.3 Table 3 : Accuracies of relationship classification for the models in Figure 1 and for the neural network ( NN ) . 
+	</s>
+	
+
+	<s id="182">
+		 For absolute discounting , the smoothing factor was fixed at the minimum value . 
+	</s>
+	
+
+	<s id="183">
+		 B is the baseline of always choosing the most frequent relation . 
+	</s>
+	
+
+	<s id="184">
+		 The best results are indicated in boldface . 
+	</s>
+	
+
+	<s id="185">
+		 is much slower than the graphical models , and requires a great deal of memory ; we were not able to run the neural network package on our machines for the role extraction task , when the feature vectors are very large . 
+	</s>
+	
+
+	<s id="186">
+		 The graphical models can perform both tasks simultaneously ; the percentage decrease in relation classification of model D2 with respect to the NN is of 8.9 % for “only relevant” and 5.8 % for “relevant + irrelevant” . 
+	</s>
+	
+
+	<s id="187">
+		 4.3 Features In order to analyze the relative importance of the different features , we performed both tasks using the dynamic model D1 of Figure 1 , leaving out single features and sets of features ( grouping all of the features related to the MeSH hierarchy , meaning both the classification of words into MeSH IDs and the domain knowledge as defined in Section 3 ) . 
+	</s>
+	
+
+	<s id="188">
+		 The results reported here were found with maximum likelihood ( no smoothing ) and are for the “relevant only” case ; results for “relevant + irrelevant” were similar . 
+	</s>
+	
+
+	<s id="189">
+		 For the role extraction task , the most important feature was the word : not using it , the GM achieved only 0.65 F-measure ( a decrease of 9.7 % from 0.72 F-measure using all the features ) . 
+	</s>
+	
+
+	<s id="190">
+		 Leaving out the features related to MeSH the F- measure obtained was 0.69 % ( a 4.1 % decrease ) and the next most important feature was the partof-speech ( 0.70 F-measure not using this feature ) . 
+	</s>
+	
+
+	<s id="191">
+		 For all the other features , the F-measure ranged between 0.71 and 0.73 . 
+	</s>
+	
+
+	<s id="192">
+		 For the task of relation classification , the MeSH-based features seem to be the most important . 
+	</s>
+	
+
+	<s id="193">
+		 Leaving out the word again lead to the biggest decrease in the classification accuracy for a single feature but not so dramatically as in the role extraction task ( 62.2 % accuracy , for a decrease of 4 % from the original value ) , but leaving out all the MeSH features caused the accuracy to decrease the most ( a decrease of 13.2 % for 56.2 % accuracy ) . 
+	</s>
+	
+
+	<s id="194">
+		 For both tasks , the impact of the domain knowledge alone was negligible . 
+	</s>
+	
+
+	<s id="195">
+		 As described in Section 3 , words can be mapped to different levels of the MeSH hierarchy . 
+	</s>
+	
+
+	<s id="196">
+		 Currently , we use the “second” level , so that , for example , surgery is mapped to G02.403 ( when the whole MeSH ID is G02.403.810.762 ) . 
+	</s>
+	
+
+	<s id="197">
+		 This is somewhat arbitrary ( and mainly chosen with the sparsity issue in mind ) , but in light of the importance of the MeSH features it may be worthwhile investigating the issue of finding the optimal level of description . 
+	</s>
+	
+
+	<s id="198">
+		 ( This can be seen as another form of smoothing . 
+	</s>
+	
+
+	<s id="199">
+		 ) 5 Conclusions We have addressed the problem of distinguishing between several different relations that can hold between two semantic entities , a difficult and important task in natural language understanding . 
+	</s>
+	
+
+	<s id="200">
+		 We have presented five graphical models and a neural network for the tasks of semantic relation classification and role extraction from bioscience text . 
+	</s>
+	
+
+	<s id="201">
+		 The methods proposed yield quite promising results . 
+	</s>
+	
+
+	<s id="202">
+		 We also discussed the strengths and weaknesses of the discriminative and generative Prediction Num . 
+	</s>
+	
+
+	<s id="203">
+		 Sent . 
+	</s>
+	
+
+	<s id="204">
+		 ( Train , Test ) Relation accuracy Truth Vague OD NC Cure Prev. OT SE Irr . 
+	</s>
+	
+
+	<s id="205">
+		 Vague 0 3 0 4 0 0 0 1 28,8 0 Only DIS ( OD ) 2 69 0 27 1 1 0 24 492,124 55.6 No Cure ( NC ) 0 0 0 1 0 0 0 0 3,1 0 Cure 2 5 0 150 1 1 0 3 648,162 92.6 Prevent 0 1 0 2 5 0 0 5 50,13 38.5 Only TREAT ( OT ) 0 0 0 16 0 6 1 11 132,34 17.6 Side effect ( SE ) 0 0 0 3 1 0 0 1 24,5 20 Irrelevant 1 32 1 16 2 7 0 296 1416,355 83.4 Table 4 : Confusion matrix for the dynamic model D2 for “rel + irrel.” , “only features” . 
+	</s>
+	
+
+	<s id="206">
+		 In column “Num . 
+	</s>
+	
+
+	<s id="207">
+		 Sent.” the numbers of sentences used for training and testing and in the last column the classification accuracies for each relation . 
+	</s>
+	
+
+	<s id="208">
+		 The total accuracy for this case is 74.9 % . 
+	</s>
+	
+
+	<s id="209">
+		 approaches and the use of a lexical hierarchy . 
+	</s>
+	
+
+	<s id="210">
+		 Because there is no existing gold-standard for this problem , we have developed the relation definitions of Table 1 ; this however may not be an exhaustive list . 
+	</s>
+	
+
+	<s id="211">
+		 In the future we plan to assess additional relation types . 
+	</s>
+	
+
+	<s id="212">
+		 It is unclear at this time if this approach will work on other types of text ; the technical nature of bioscience text may lend itself well to this type of analysis . 
+	</s>
+	
+
+	<s id="213">
+		 Acknowledgements We thank Kaichi Sung for her work on the relation labeling and Chris Manning for helpful suggestions . 
+	</s>
+	
+
+	<s id="214">
+		 This research was supported by a grant from the ARDA AQUAINT program , NSF DBI-0317510 , and a gift from Genentech . 
+	</s>
+	
+
+	<s id="215">
+		 References E. Agichtein and L. Gravano . 
+	</s>
+	
+
+	<s id="216">
+		 2000. Snowball : Extracting relations from large plain-text collections . 
+	</s>
+	
+
+	<s id="217">
+		 Proceedings ofDL ’00 . 
+	</s>
+	
+
+	<s id="218">
+		 D. Bikel , R. Schwartz , and R. Weischedel . 
+	</s>
+	
+
+	<s id="219">
+		 1999. An algorithm that learns what’s in a name . 
+	</s>
+	
+
+	<s id="220">
+		 Machine Learning , 34(1-3):211–23 1 . 
+	</s>
+	
+
+	<s id="221">
+		 E. Brill . 
+	</s>
+	
+
+	<s id="222">
+		 1995. Transformation-based error-driven learning and natural language processing : A case study in part-of-speech tagging . 
+	</s>
+	
+
+	<s id="223">
+		 Computational Lin- guistics , 21(4):543–565 . 
+	</s>
+	
+
+	<s id="224">
+		 M. Collins . 
+	</s>
+	
+
+	<s id="225">
+		 1996. A new statistical parser based on bigram lexical dependencies . 
+	</s>
+	
+
+	<s id="226">
+		 Proc . 
+	</s>
+	
+
+	<s id="227">
+		 ofACL ’96 . 
+	</s>
+	
+
+	<s id="228">
+		 M. Craven . 
+	</s>
+	
+
+	<s id="229">
+		 1999. Learning to extract relations from Medline . 
+	</s>
+	
+
+	<s id="230">
+		 AAAI-99 Workshop on Machine Learning for Information Extraction . 
+	</s>
+	
+
+	<s id="231">
+		 R. Feldman , Y. Regev , M. Finkelstein-Landau , E. Hurvitz , and B. Kogan . 
+	</s>
+	
+
+	<s id="232">
+		 2002. Mining biomed- ical literature using information extraction . 
+	</s>
+	
+
+	<s id="233">
+		 Current Drug Discovery , Oct. . 
+	</s>
+	
+
+	<s id="234">
+		 D. Freitag and A. McCallum . 
+	</s>
+	
+
+	<s id="235">
+		 2000. Information extraction with HMM structures learned by stochastic optimization . 
+	</s>
+	
+
+	<s id="236">
+		 AAAI/IAAI , pages 584–589 . 
+	</s>
+	
+
+	<s id="237">
+		 C. Friedman , P. Kra , H. Yu , M. Krauthammer , and A. Rzhetzky . 
+	</s>
+	
+
+	<s id="238">
+		 2001. Genies : a natural-language processing system for the extraction of molecular pathways from journal articles . 
+	</s>
+	
+
+	<s id="239">
+		 Bioinformatics , 17(1) . 
+	</s>
+	
+
+	<s id="240">
+		 A. Ng and M. Jordan . 
+	</s>
+	
+
+	<s id="241">
+		 2002. On discriminative vs. generative classifiers : A comparison of logistic regression and Naive Bayes . 
+	</s>
+	
+
+	<s id="242">
+		 NIPS 14 . 
+	</s>
+	
+
+	<s id="243">
+		 J. Pustejovsky , J. Castano , and J. Zhang . 
+	</s>
+	
+
+	<s id="244">
+		 2002 . 
+	</s>
+	
+
+	<s id="245">
+		 Robust relational parsing over biomedical literature : Extracting inhibit relations . 
+	</s>
+	
+
+	<s id="246">
+		 PSB 2002 . 
+	</s>
+	
+
+	<s id="247">
+		 S. Ray and M. Craven . 
+	</s>
+	
+
+	<s id="248">
+		 2001. Representing sentence structure in Hidden Markov Models for information extraction . 
+	</s>
+	
+
+	<s id="249">
+		 Proceedings ofIJCAI-2001 . 
+	</s>
+	
+
+	<s id="250">
+		 T. Rindflesch , L. Hunter , and L. Aronson . 
+	</s>
+	
+
+	<s id="251">
+		 1999. Mining molecular binding terminology from biomedical text . 
+	</s>
+	
+
+	<s id="252">
+		 Proceedings of the AMIA Symposium . 
+	</s>
+	
+
+	<s id="253">
+		 B. Rosario , M. Hearst , and C. Fillmore . 
+	</s>
+	
+
+	<s id="254">
+		 2002. The descent of hierarchy , and selection in relational semantics . 
+	</s>
+	
+
+	<s id="255">
+		 Proceedings ofACL-02 . 
+	</s>
+	
+
+	<s id="256">
+		 P. Srinivasan and T. Rindflesch . 
+	</s>
+	
+
+	<s id="257">
+		 2002. Exploring text mining from Medline . 
+	</s>
+	
+
+	<s id="258">
+		 Proceedings of the AMIA Symposium . 
+	</s>
+	
+
+	<s id="259">
+		 C. Thompson , R. Levy , and C. Manning . 
+	</s>
+	
+
+	<s id="260">
+		 2003. A generative model for semantic role labeling . 
+	</s>
+	
+
+	<s id="261">
+		 Proceedings ofEMCL ’03 . 
+	</s>
+	
+
+	<s id="262">
+		 D. Zelenko , C. Aone , and A. Richardella. 2002 . 
+	</s>
+	
+
+	<s id="263">
+		 Kernel methods for relation extraction . 
+	</s>
+	
+
+	<s id="264">
+		 Proceedings of EMNLP 2002 . 
+	</s>
+	
+
+	<s id="265">
+		 C. Zhai and J. Lafferty . 
+	</s>
+	
+
+	<s id="266">
+		 2001. A study of smoothing methods for language models applied to ad hoc information retrieval . 
+	</s>
+	
+
+	<s id="267">
+		 In Proceedings of SIGIR ’01 . 
+	</s>
+	
+
+
+</acldoc>

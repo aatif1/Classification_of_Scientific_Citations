@@ -1,0 +1,916 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-2002">
+	
+
+	<s id="1">
+		 Minimizing the Length of Non-Mixed Initiative Dialogs R. Bryce Inouye Department of Computer Science Duke University Durham , NC 27708 rbi@cs.duke.edu Abstract Dialog participants in a non-mixed initiative dialogs , in which one participant asks questions exclusively and the other participant responds to those questions exclusively , can select actions that minimize the expected length of the dialog . 
+	</s>
+	
+
+	<s id="2">
+		 The choice of question that minimizes the expected number of questions to be asked can be computed in polynomial time in some cases . 
+	</s>
+	
+
+	<s id="3">
+		 The polynomial-time solutions to special cases of the problem suggest a number of strategies for selecting dialog actions in the intractable general case . 
+	</s>
+	
+
+	<s id="4">
+		 In a simulation involving 1000 dialog scenarios , an approximate solution using the most probable rule set/least probable question resulted in expected dialog length of 3.60 questions per dialog , as compared to 2.80 for the optimal case , and 5.05 for a randomly chosen strategy . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction Making optimal choices in unconstrained natural language dialogs may be impossible . 
+	</s>
+	
+
+	<s id="6">
+		 The difficulty of defining consistent , meaningful criteria for which behavior can be optimized and the infinite number of possible actions that may be taken at any point in an unconstrained dialog present generally insurmountable obstacles to optimization . 
+	</s>
+	
+
+	<s id="7">
+		 Computing the optimal dialog action may be intractable even in a simple , highly constrained model of dialog with narrowly defined measures of success . 
+	</s>
+	
+
+	<s id="8">
+		 This paper presents an analysis of the optimal behavior of a participant in non-mixed initiative dialogs , a restricted but important class of dialogs . 
+	</s>
+	
+
+	<s id="9">
+		 2 Non-mixed initiative dialogs In recent years , dialog researchers have focused much attention on the study of mixed-initiative behaviors in natural language dialogs . 
+	</s>
+	
+
+	<s id="10">
+		 In general , mixed initiative refers to the idea that control over the content and direction of a dialog may pass from one participant to another . 
+	</s>
+	
+
+	<s id="11">
+		 1 
+		<ref citStr="Cohen et al . ( 1998 )" id="1" label="CEPF" position="2078">
+			Cohen et al . ( 1998 )
+		</ref>
+		 provides a good overview of the various definitions of dialog initiative that have been proposed . 
+	</s>
+	
+
+	<s id="12">
+		 Our work adopts a definition similar to 
+		<ref citStr="Guinn ( 1999 )" id="2" label="CERF" position="2241">
+			Guinn ( 1999 )
+		</ref>
+		 , who posits that initiative attaches to specific dialog goals . 
+	</s>
+	
+
+	<s id="13">
+		 This paper considers non-mixed-initiative dialogs , which we shall take to mean dialogs with the following characteristics : 1 . 
+	</s>
+	
+
+	<s id="14">
+		 The dialog has two participants , the leader and the follower , who are working cooperatively to achieve some mutually desired dialog goal . 
+	</s>
+	
+
+	<s id="15">
+		 2. The leader may request information from the follower , or may inform the follower that the dialog has succeeded or failed to achieve the dialog goal . 
+	</s>
+	
+
+	<s id="16">
+		 ' There is no generally accepted consensus as to how ini- tiative should be defined . 
+	</s>
+	
+
+	<s id="17">
+		 3. The follower may only inform the leader of a fact in direct response to a request for information from the leader , or inform the leader that it cannot fulfill a particular request . 
+	</s>
+	
+
+	<s id="18">
+		 The model assumes the leader knows sets of questions .. . 
+	</s>
+	
+
+	<s id="19">
+		 such that if all questions in any one set are answered successfully by the follower , the dia- log goal will be satisfied . 
+	</s>
+	
+
+	<s id="20">
+		 The sets will be re- ferred to hereafter as rule sets . 
+	</s>
+	
+
+	<s id="21">
+		 The leader’s task is to find a rule set whose constituent questions can all be successfully answered . 
+	</s>
+	
+
+	<s id="22">
+		 The method is to choose a sequence of questions which will lead to its dis- covery . 
+	</s>
+	
+
+	<s id="23">
+		 For example , in a dialog in a customer service setting in which the leader attempts to locate the follower’s account in a database , the leader might request the follower’s name and account number , or might request the name and telephone number . 
+	</s>
+	
+
+	<s id="24">
+		 The corresponding rule sets for such a dialog would be and . 
+	</s>
+	
+
+	<s id="25">
+		 One complicating factor in the leader’s task is that a question in one rule set may occur in several other rule sets so that choosing to ask can have ramifications for several sets . 
+	</s>
+	
+
+	<s id="26">
+		 We assume that for every question the leader knows an associated probability that the fol- lower has the knowledge necessary to answer.2 These probabilities enable us to compute an expected length for a dialog , measured by the number of questions asked by the leader . 
+	</s>
+	
+
+	<s id="27">
+		 Our goal in selecting a sequence of questions will be to minimize the expected length of the dialog . 
+	</s>
+	
+
+	<s id="28">
+		 The probabilities may be estimated by aggregating the results from all interactions , or a more sophisticated individualized model might be maintained for each participant . 
+	</s>
+	
+
+	<s id="29">
+		 Some examples of how these probabilities might be estimated can be 2In addition to modeling the follower’s knowledge , these probabilities can also model aspects of the dialog system’s performance , such as the recognition rate of an automatic speech recognizer . 
+	</s>
+	
+
+	<s id="30">
+		 found in 
+		<ref citStr="Conati et al. , 2002" id="3" label="CEPF" position="4909">
+			( Conati et al. , 2002 
+		</ref>
+		<ref citStr="Zukerman and Albrecht , 2001" id="4" label="CEPF" position="4932">
+			; Zukerman and Albrecht , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="31">
+		 Our model of dialog derives from rule-based theories of dialog structure , such as 
+		<ref citStr="Perrault and Allen , 1980" id="5" label="CEPF" position="5059">
+			( Perrault and Allen , 1980 
+		</ref>
+		<ref citStr="Grosz and Kraus , 1996" id="6" label="CEPF" position="5087">
+			; Grosz and Kraus , 1996 
+		</ref>
+		<ref citStr="Lochbaum , 1998" id="7" label="CEPF" position="5112">
+			; Lochbaum , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="32">
+		 In particular , this form of the problem models exactly the “missing axiom theory” of Smith and Hipp ( 1994 ; 1995 ) which proposes that dialog is aimed at proving the top-level goal in a theorem-proving tree and “missing axioms” in the proof provide motivation for interactions with the dialog partner . 
+	</s>
+	
+
+	<s id="33">
+		 The rule sets are sets of missing axioms that are sufficient to complete the proof of the top-level goal . 
+	</s>
+	
+
+	<s id="34">
+		 Our format is quite general and can model other dialog systems as well . 
+	</s>
+	
+
+	<s id="35">
+		 For example , a dialog system that is organized as a decision tree with a question at the root , with additional questions at successor branches , can be modeled by our format . 
+	</s>
+	
+
+	<s id="36">
+		 As an example , suppose we have top- level goal and these rules to prove it : ( AND ) implies ( OR ) implies . 
+	</s>
+	
+
+	<s id="37">
+		 The corresponding rule sets are . 
+	</s>
+	
+
+	<s id="38">
+		 If all of the questions in either or are satisfied , will be proven . 
+	</s>
+	
+
+	<s id="39">
+		 If we have values for the probabilities , and , we can design an optimum ordering of the questions to minimize the expected length of dialogs . 
+	</s>
+	
+
+	<s id="40">
+		 Thus if is much smaller than , we would ask before asking . 
+	</s>
+	
+
+	<s id="41">
+		 The reader might try to decide when should be asked before any other questions in order to minimize the expected length of dialogs . 
+	</s>
+	
+
+	<s id="42">
+		 The rest of the paper examines how the leader can select the questions which minimize the overall expected length of the dialog , as measured by the number of questions asked . 
+	</s>
+	
+
+	<s id="43">
+		 Each question- response pair is considered to contribute equally to the length . 
+	</s>
+	
+
+	<s id="44">
+		 Sections 3 , 4 , and 5 describe polynomial-time algorithms for finding the optimum order of questions in three special instances of the question ordering optimization problem . 
+	</s>
+	
+
+	<s id="45">
+		 Section 6 gives a polynomial-time method to approximate optimum behavior in the general case of rule sets which may have many common questions . 
+	</s>
+	
+
+	<s id="46">
+		 = = 3 Case : One rule set Many dialog tasks can be modeled with a single rule set . 
+	</s>
+	
+
+	<s id="47">
+		 For example , a leader might ask the follower to supply values for each field in a form . 
+	</s>
+	
+
+	<s id="48">
+		 Here the optimum strategy is to ask the questions first that have the least probability of being successfully answered . 
+	</s>
+	
+
+	<s id="49">
+		 Theorem 1 . 
+	</s>
+	
+
+	<s id="50">
+		 Given a rule set , asking the questions in the order of their probability of success ( least first ) results in the minimum expected dialog length ; that is , for where is the probability that the follower will answer question success- fully . 
+	</s>
+	
+
+	<s id="51">
+		 A formal proof is available in a longer version of this paper . 
+	</s>
+	
+
+	<s id="52">
+		 Informally , we have two cases ; the first assumes that all questions are answered successfully , leading to a dialog length of , since questions will be asked and then answered . 
+	</s>
+	
+
+	<s id="53">
+		 The second case assumes that some will not be answered successfully . 
+	</s>
+	
+
+	<s id="54">
+		 The expected length increases as the probabilities of success of the questions asked increases . 
+	</s>
+	
+
+	<s id="55">
+		 However , the expected length does not depend on the probability of success for the last question asked , since no questions follow it regardless of the outcome . 
+	</s>
+	
+
+	<s id="56">
+		 Therefore , the question with the greatest probability of success appears at the end of the optimal ordering . 
+	</s>
+	
+
+	<s id="57">
+		 Similarly , we can show that given the last question in the ordering , the expected length does not depend upon the probability of the second to last question in the ordering , and so on until all questions have been placed in the proper position . 
+	</s>
+	
+
+	<s id="58">
+		 The optimal ordering is in order of increasing probability of success . 
+	</s>
+	
+
+	<s id="59">
+		 4 Case : Two independent rule sets We now consider a dialog scenario in which the leader has two rule sets for completing the dialog task . 
+	</s>
+	
+
+	<s id="60">
+		 Definition 4.1 . 
+	</s>
+	
+
+	<s id="61">
+		 Two rule sets and are independent if. . 
+	</s>
+	
+
+	<s id="62">
+		 If is non-empty , then the members of are said to be common to and . 
+	</s>
+	
+
+	<s id="63">
+		 A question is unique to rule set if andfor all In a dialog scenario in which the leader has multiple , mutually independent rule sets for accomplishing the dialog goal , the result of asking a question contained in one rule set has no effect on the success or failure of the other rule sets known by the leader . 
+	</s>
+	
+
+	<s id="64">
+		 Also , it can be shown that if the leader makes optimal decisions at each turn in the dialog , once the leader begins asking questions belonging to one rule set , it should continue to ask questions from the same rule set until the rule set either succeeds or fails . 
+	</s>
+	
+
+	<s id="65">
+		 The problem of selecting the question that minimizes the expected dialog length becomes the problem of selecting which rule set should be used first by the leader . 
+	</s>
+	
+
+	<s id="66">
+		 Once the rule set has been selected , Theorem 1 shows how to select a question from the selected rule set that minimizes . 
+	</s>
+	
+
+	<s id="67">
+		 By expected dialog length , we mean the usual definition of expectation Thus , to calculate the expected length of a dialog , we must be able to enumerate all of the possible outcomes of that dialog , along with the probability of that outcome occurring , and the length associated with that outcome . 
+	</s>
+	
+
+	<s id="68">
+		 Before we show how the leader should decide which rule set it should use first , we introduce some notation . 
+	</s>
+	
+
+	<s id="69">
+		 The expected length in case of failure for an ordering of the questions of a rule set is the expected length of the dialog that would result if were the only rule set available to the leader , the leader asked questions in the order given by , and one of the questions in failed . 
+	</s>
+	
+
+	<s id="70">
+		 The expected length in case of failure is The factor is a scaling factor that ac- counts for the fact that we are counting only cases in which the dialog fails . 
+	</s>
+	
+
+	<s id="71">
+		 We will let represent the minimum expected length in case of failure for rule set , obtained by ordering the questions of by increasing probability of success , as per Theorem 1 . 
+	</s>
+	
+
+	<s id="72">
+		 The probability of success of a rule set is . 
+	</s>
+	
+
+	<s id="73">
+		 The definition , of probability of success of a rule set assumes that the probabilities of success for individual questions are mutually independent . 
+	</s>
+	
+
+	<s id="74">
+		 Theorem 2 . 
+	</s>
+	
+
+	<s id="75">
+		 Let be the set of mutu- ally independent rule sets available to the leader for accomplishing the dialog goal . 
+	</s>
+	
+
+	<s id="76">
+		 For a rule set in , let be the probability of success of , be the number of questions in , and be the minimum expected length in case offailure . 
+	</s>
+	
+
+	<s id="77">
+		 To minimize the expected length of the dialog , the leader should select the question with the least probability of success from the rule set with the least value of . 
+	</s>
+	
+
+	<s id="78">
+		 Proof : If the leader uses questions from first , the expected dialog length is The first term , , is the probability of success for times the length of . 
+	</s>
+	
+
+	<s id="79">
+		 The second term , , is the probability that will and will succeed times the length of that dialog . 
+	</s>
+	
+
+	<s id="80">
+		 The third term , , is the probability that both and fail times the associated length . 
+	</s>
+	
+
+	<s id="81">
+		 We can multiply out and rearrange terms to get If the leader uses questions from first , is Comparing and , and eliminating any common terms , we find that is the correct ordering if Thus , if the above inequality holds , then , and the leader should ask questions from first . 
+	</s>
+	
+
+	<s id="82">
+		 Otherwise , , and the leader should ask questions from first . 
+	</s>
+	
+
+	<s id="83">
+		 We conjecture that in the general case of mutually independent rule sets , the proper ordering of rule sets is obtained by calculating for each rule set , and sorting the rule sets by those values . 
+	</s>
+	
+
+	<s id="84">
+		 Preliminary experimental evidence supports this conjecture , but no formal proof has been derived yet . 
+	</s>
+	
+
+	<s id="85">
+		 Note that calculating and for each rule set takes polynomial time , as does sorting the rule sets into their proper order and sorting the questions within each rule set . 
+	</s>
+	
+
+	<s id="86">
+		 Thus the solution can be obtained in polynomial time . 
+	</s>
+	
+
+	<s id="87">
+		 As an example , consider the rule sets and . 
+	</s>
+	
+
+	<s id="88">
+		 Suppose that we assign and . 
+	</s>
+	
+
+	<s id="89">
+		 In this case , and are the same for both rule sets . 
+	</s>
+	
+
+	<s id="90">
+		 However , and , so evaluating for both rule sets , we discover that asking questions from first results in the minimum expected dialog length . 
+	</s>
+	
+
+	<s id="91">
+		 . 
+	</s>
+	
+
+	<s id="92">
+		 In this section , we will use to denote the minimum expected length of the dialog ( computed using Theorem 1 ) resulting from the leader using only to accomplish the dialog task . 
+	</s>
+	
+
+	<s id="93">
+		 The notation will denote the minimum expected length of the dialog resulting from the leader using only the rule set to accomplish the dialog task . 
+	</s>
+	
+
+	<s id="94">
+		 For example , a rule set with and , has and . 
+	</s>
+	
+
+	<s id="95">
+		 Theorem 3 . 
+	</s>
+	
+
+	<s id="96">
+		 Given rule sets and , such that , if the leader asks questions from until either succeeds or fails before asking any questions unique to , then the ordering of questions of that results in the minimum expected dialog length is given by ordering the questions by increasing , where The proof is in two parts . 
+	</s>
+	
+
+	<s id="97">
+		 First we show that the questions unique to should be ordered by 5 Case : Two rule sets , one common question We now examine the simplest case in which the rule sets are not mutually independent : the leader has two rule sets and , and dering if immediately follows in the or- dering . 
+	</s>
+	
+
+	<s id="98">
+		 is the expected length for the or- dering with at position . 
+	</s>
+	
+
+	<s id="99">
+		 We can show that if then Figure 1 : A general expression for the expected dialog length for the dialog scenario described in section 5 . 
+	</s>
+	
+
+	<s id="100">
+		 The questions of are asked in the arbitrary order , where is the question common to and . 
+	</s>
+	
+
+	<s id="101">
+		 and are defined in Section 5. increasing probability of success given that the po- sition of is fixed . 
+	</s>
+	
+
+	<s id="102">
+		 Then we show that given the correct ordering of unique questions of , should appear in that ordering at the position where falls in the correspond- ing sequence of questions probabilities of success . 
+	</s>
+	
+
+	<s id="103">
+		 Space considerations preclude a complete listing of the proof , but an outline follows . 
+	</s>
+	
+
+	<s id="104">
+		 Figure 1 shows an expression for the expected dialog length for a dialog in which the leader asks questions from until either succeeds or fails before asking any questions unique to . 
+	</s>
+	
+
+	<s id="105">
+		 The expression assumes an arbitrary ordering . 
+	</s>
+	
+
+	<s id="106">
+		 Note that if a question occurring before fails , the rest of the dialog has a minimum expected length . 
+	</s>
+	
+
+	<s id="107">
+		 If fails , the dialog terminates . 
+	</s>
+	
+
+	<s id="108">
+		 If a question occurring after fails , the rest of the dialog has minimum expected length by a process similar to that used in the proof of Theorem 2 . 
+	</s>
+	
+
+	<s id="109">
+		 Since the unique questions in are ordered by increasing probability of success , finding the optimal position of the common question in the ordering of the questions of corresponds to the problem of finding where the value of falls in the sorted list of proba- bilities of success of the unique questions of . 
+	</s>
+	
+
+	<s id="110">
+		 If the value immediately precedes the value of in the list , then the common question should immediately precede in the optimal ordering of questions of . 
+	</s>
+	
+
+	<s id="111">
+		 Theorem 3 provides a method for obtaining the optimal ordering of questions in , given that is selected first by the leader . 
+	</s>
+	
+
+	<s id="112">
+		 The leader can use the same method to determine the optimal ordering of the questions of if is selected first . 
+	</s>
+	
+
+	<s id="113">
+		 The two optimal orderings give rise to two different expected dialog lengths ; the leader should select the rule set and ordering that leads to the minimal expected dialog length . 
+	</s>
+	
+
+	<s id="114">
+		 The calculation can be done in polynomial time . 
+	</s>
+	
+
+	<s id="115">
+		 6 Approximate solutions in the general case Specific instances of the optimization problem can be solved in polynomial time , but the general case has worst-case complexity that is exponential in the number of questions . 
+	</s>
+	
+
+	<s id="116">
+		 To approximate the optimal solution , we can use some of the insights gained from the analysis of the special cases to generate methods for selecting a rule set , and selecting a question from the chosen rule set . 
+	</s>
+	
+
+	<s id="117">
+		 Theorem 1 says that if there is only one rule set available , then the least probable question should be asked first . 
+	</s>
+	
+
+	<s id="118">
+		 We can also observe that if the dialog succeeds , then in general , we would like to minimize the number of rule sets that must be tried before succeeding . 
+	</s>
+	
+
+	<s id="119">
+		 Combining these two observations produces a policy of selecting the question with the minimal probability of success from the rule set with the maximal probability of success . 
+	</s>
+	
+
+	<s id="120">
+		 . 
+	</s>
+	
+
+	<s id="121">
+		 If we fix the position of , we can show that the questions unique to must be ordered by increasing probability of success in the optimal ordering . 
+	</s>
+	
+
+	<s id="122">
+		 The proof proceeds by showing that switching the positions of any two unique questions and in an arbitrary ordering of the questions of , where occurs before in the original ordering , the expected length for the new ordering is less than the expected length for the original ordering if and only if. . 
+	</s>
+	
+
+	<s id="123">
+		 After showing that the unique questions of must be ordered by increasing probability of suc- cess in the optimal ordering , we must then show how to find the position of in the optimal or- dering . 
+	</s>
+	
+
+	<s id="124">
+		 We say that occurs at position in or- Method Avg . 
+	</s>
+	
+
+	<s id="125">
+		 length Optimal 2.80 Most prob . 
+	</s>
+	
+
+	<s id="126">
+		 rule set/least prob . 
+	</s>
+	
+
+	<s id="127">
+		 question 3.60 Most prob . 
+	</s>
+	
+
+	<s id="128">
+		 rule set/random question 4.26 Random rule set/most prob . 
+	</s>
+	
+
+	<s id="129">
+		 question 4.26 Random rule set/random question 5.05 Table 1 : Average expected dialog length ( measured in number of leader questions ) for the optimal case and several simple approximation methods over 1000 dialog scenarios . 
+	</s>
+	
+
+	<s id="130">
+		 Each scenario consisted of 6 rule sets of 2 to 5 questions each , created from a pool of 9 different questions . 
+	</s>
+	
+
+	<s id="131">
+		 We tested this policy by generating 1000 dialog scenarios . 
+	</s>
+	
+
+	<s id="132">
+		 First , a pool of nine questions with randomly assigned probabilities of success was generated . 
+	</s>
+	
+
+	<s id="133">
+		 Six rule sets were created using these nine questions , each containing between two and five questions . 
+	</s>
+	
+
+	<s id="134">
+		 The number of questions in each rule set was selected randomly , with each value being equally probable . 
+	</s>
+	
+
+	<s id="135">
+		 We then calculated the expected length of the dialog that would result if the leader were to select questions according to the following five schemes : 1 . 
+	</s>
+	
+
+	<s id="136">
+		 Optimal 2 . 
+	</s>
+	
+
+	<s id="137">
+		 Most probable rule set , least probable question 3 . 
+	</s>
+	
+
+	<s id="138">
+		 Random rule set , least probable question 4 . 
+	</s>
+	
+
+	<s id="139">
+		 Most probable rule set , random question 5 . 
+	</s>
+	
+
+	<s id="140">
+		 Random rule set , random question . 
+	</s>
+	
+
+	<s id="141">
+		 The results are summarized in Table 1 . 
+	</s>
+	
+
+	<s id="142">
+		 7 Further Research We intend to discover other special cases for which polynomial time solutions exist , and investigate other methods for approximating the optimal solution . 
+	</s>
+	
+
+	<s id="143">
+		 With a larger library of studied special cases , even if polynomial time solutions do not exist for such cases , heuristics designed for use in special cases may provide better performance . 
+	</s>
+	
+
+	<s id="144">
+		 Another extension to this research is to extend the information model maintained by the leader to allow the probabilities returned by the model to be non-independent . 
+	</s>
+	
+
+	<s id="145">
+		 8 Conclusions Optimizing the behavior of dialog participants can be a complex task even in restricted and specialized environments . 
+	</s>
+	
+
+	<s id="146">
+		 For the case of non-mixed ini- tiative dialogs , selecting dialog actions that minimize the overall expected dialog length is a nontrivial problem , but one which has some solutions in certain instances . 
+	</s>
+	
+
+	<s id="147">
+		 A study of the characteristics of the problem can yield insights that lead to the development of methods that allow a dialog participant to perform in a principled way in the face of intractable complexity . 
+	</s>
+	
+
+	<s id="148">
+		 Acknowledgments This work was supported by a grant from SAIC , and from the US Defense Advanced Research Projects Agency . 
+	</s>
+	
+
+	<s id="149">
+		 References Robin Cohen , Coralee Allaby , Christian Cumbaa , Mark Fitzgerald , Kinson Ho , Bowen Hui , Celine Latulipe , Fletcher Lu , Nancy Moussa , David Poo- ley , Alex Qian , and Saheem Siddiqi . 
+	</s>
+	
+
+	<s id="150">
+		 1998. What is initiative ? 
+	</s>
+	
+
+	<s id="151">
+		 User Modeling and User-Adapted Interaction , 8(3-4):171–214 . 
+	</s>
+	
+
+	<s id="152">
+		 C. Conati , A. Gerntner , and K. Vanlehn . 
+	</s>
+	
+
+	<s id="153">
+		 2002. Using bayesian networks to manage uncertainty in user modeling . 
+	</s>
+	
+
+	<s id="154">
+		 User Modeling and User-Adapted Interaction , 12(4):371–417 . 
+	</s>
+	
+
+	<s id="155">
+		 Barbara Grosz and Sarit Kraus . 
+	</s>
+	
+
+	<s id="156">
+		 1996. Collaborative plans for complex group action . 
+	</s>
+	
+
+	<s id="157">
+		 Artificial Intelligence , 86(2):269–357 . 
+	</s>
+	
+
+	<s id="158">
+		 Curry I. Guinn. 1999 . 
+	</s>
+	
+
+	<s id="159">
+		 An analysis of initiative selection in collaborative task-oriented discourse . 
+	</s>
+	
+
+	<s id="160">
+		 User Modeling and User-adapted Interaction , 8(3- 4):255–314 . 
+	</s>
+	
+
+	<s id="161">
+		 K. Lochbaum . 
+	</s>
+	
+
+	<s id="162">
+		 1998. A collaborative planning model of intentional structure . 
+	</s>
+	
+
+	<s id="163">
+		 Computational Linguistics , 24(4):525–572 . 
+	</s>
+	
+
+	<s id="164">
+		 C. R. Perrault and J. F. Allen . 
+	</s>
+	
+
+	<s id="165">
+		 1980. A plan-based analysis of indirect speech acts . 
+	</s>
+	
+
+	<s id="166">
+		 Computational Linguistics , 6(3-4):167–182 . 
+	</s>
+	
+
+	<s id="167">
+		 Ronnie . 
+	</s>
+	
+
+	<s id="168">
+		 W. Smith and D. Richard Hipp . 
+	</s>
+	
+
+	<s id="169">
+		 1994. Spoken Natural Language Dialog Systems : A Practical Approach . 
+	</s>
+	
+
+	<s id="170">
+		 Oxford UP , New York . 
+	</s>
+	
+
+	<s id="171">
+		 Ronnie W. Smith and D. Richard Hipp . 
+	</s>
+	
+
+	<s id="172">
+		 1995. An architecture for voice dialog systems based on prolog- style theorem proving . 
+	</s>
+	
+
+	<s id="173">
+		 Computational Linguistics , 21(3):281–320 . 
+	</s>
+	
+
+	<s id="174">
+		 I. Zukerman and D. Albrecht . 
+	</s>
+	
+
+	<s id="175">
+		 2001 . 
+	</s>
+	
+
+	<s id="176">
+		 Predictive statistical models for user modeling . 
+	</s>
+	
+
+	<s id="177">
+		 User Modeling and User-Adapted Interaction , 11(1-2):5–18 . 
+	</s>
+	
+
+
+</acldoc>

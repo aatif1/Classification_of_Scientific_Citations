@@ -1,0 +1,1038 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1023">
+	
+
+	<s id="1">
+		 Statistical Machine Translation with Word- and Sentence-Aligned Parallel Corpora Chris Callison-Burch David Talbot Miles Osborne School on Informatics University of Edinburgh 2 Buccleuch Place Edinburgh , EH8 9LW callison-burch@ed.ac.uk Abstract The parameters of statistical translation models are typically estimated from sentence-aligned parallel corpora . 
+	</s>
+	
+
+	<s id="2">
+		 We show that significant improvements in the alignment and translation quality of such models can be achieved by additionally including word- aligned data during training . 
+	</s>
+	
+
+	<s id="3">
+		 Incorporating word- level alignments into the parameter estimation of the IBM models reduces alignment error rate and increases the Bleu score when compared to training the same models only on sentence-aligned data . 
+	</s>
+	
+
+	<s id="4">
+		 On the Verbmobil data set , we attain a 38 % reduction in the alignment error rate and a higher Bleu score with half as many training examples . 
+	</s>
+	
+
+	<s id="5">
+		 We discuss how varying the ratio of word-aligned to sentence- aligned data affects the expected performance gain . 
+	</s>
+	
+
+	<s id="6">
+		 1 Introduction Machine translation systems based on probabilistic translation models 
+		<ref citStr="Brown et al. , 1993" id="1" label="CEPF" position="1168">
+			( Brown et al. , 1993 )
+		</ref>
+		 are generally trained using sentence-aligned parallel corpora . 
+	</s>
+	
+
+	<s id="7">
+		 For many language pairs these exist in abundant quantities . 
+	</s>
+	
+
+	<s id="8">
+		 However for new domains or uncommon language pairs extensive parallel corpora are often hard to come by . 
+	</s>
+	
+
+	<s id="9">
+		 Two factors could increase the performance of statistical machine translation for new language pairs and domains : a reduction in the cost of creating new training data , and the development of more efficient methods for exploiting existing training data . 
+	</s>
+	
+
+	<s id="10">
+		 Approaches such as harvesting parallel corpora from the web 
+		<ref citStr="Resnik and Smith , 2003" id="2" label="CJPF" position="1780">
+			( Resnik and Smith , 2003 )
+		</ref>
+		 address the creation of data . 
+	</s>
+	
+
+	<s id="11">
+		 We take the second , complementary approach . 
+	</s>
+	
+
+	<s id="12">
+		 We address the problem of efficiently exploiting existing parallel corpora by adding explicit word-level alignments between a number of the sentence pairs in the training corpus . 
+	</s>
+	
+
+	<s id="13">
+		 We modify the standard parameter estimation procedure for IBM Models and HMM variants so that they can exploit these additional word- level alignments . 
+	</s>
+	
+
+	<s id="14">
+		 Our approach uses both word- and sentence-level alignments for training material . 
+	</s>
+	
+
+	<s id="15">
+		 In this paper we : 1 . 
+	</s>
+	
+
+	<s id="16">
+		 Describe how the parameter estimation framework of 
+		<ref citStr="Brown et al . ( 1993 )" id="3" label="CERF" position="2424">
+			Brown et al . ( 1993 )
+		</ref>
+		 can be adapted to incorporate word-level alignments ; 2 . 
+	</s>
+	
+
+	<s id="17">
+		 Report significant improvements in alignment error rate and translation quality when training on data with word-level alignments ; 3 . 
+	</s>
+	
+
+	<s id="18">
+		 Demonstrate that the inclusion of word-level alignments is more effective than using a bilingual dictionary ; 4 . 
+	</s>
+	
+
+	<s id="19">
+		 Show the importance of amplifying the contribution of word-aligned data during parameter estimation . 
+	</s>
+	
+
+	<s id="20">
+		 This paper shows that word-level alignments improve the parameter estimates for translation models , which in turn results in improved statistical translation for languages that do not have large sentence-aligned parallel corpora . 
+	</s>
+	
+
+	<s id="21">
+		 2 Parameter Estimation Using Sentence-Aligned Corpora The task of statistical machine translation is to choose the source sentence , e , that is the most probable translation of a given sentence , f , in a foreign language . 
+	</s>
+	
+
+	<s id="22">
+		 Rather than choosing e* that directly maximizes p(elf) , 
+		<ref citStr="Brown et al . ( 1993 )" id="4" label="CEPF" position="3424">
+			Brown et al . ( 1993 )
+		</ref>
+		 apply Bayes’ rule and select the source sentence : e* = arg max p(e)p(f Ie ) . 
+	</s>
+	
+
+	<s id="23">
+		 ( 1 ) e In this equation p(e) is a language model probability and is p(f Ie ) a translation model probability . 
+	</s>
+	
+
+	<s id="24">
+		 A series of increasingly sophisticated translation models , referred to as the IBM Models , was defined in 
+		<ref citStr="Brown et al . ( 1993 )" id="5" label="CEPF" position="3764">
+			Brown et al . ( 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="25">
+		 The translation model , p(fIe) defined as a marginal probability obtained by summing over word-level alignments , a , between the source and target sentences : p(f le ) = X p(f , ale ) . 
+	</s>
+	
+
+	<s id="26">
+		 ( 2 ) a While word-level alignments are a crucial component of the IBM models , the model parameters are generally estimated from sentence-aligned parallel corpora without explicit word-level alignment information . 
+	</s>
+	
+
+	<s id="27">
+		 The reason for this is that word-aligned parallel corpora do not generally exist . 
+	</s>
+	
+
+	<s id="28">
+		 Consequently , word level alignments are treated as hidden variables . 
+	</s>
+	
+
+	<s id="29">
+		 To estimate the values of these hidden variables , the expectation maximization ( EM ) framework for maximum likelihood estimation from incomplete data is used 
+		<ref citStr="Dempster et al. , 1977" id="6" label="CEPF" position="4555">
+			( Dempster et al. , 1977 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="30">
+		 The previous section describes how the translation probability of a given sentence pair is obtained by summing over all alignments p(f le ) = Ea p(f , ale ) . 
+	</s>
+	
+
+	<s id="31">
+		 EM seeks to maximize the marginal log likelihood , logp(fle) , indirectly by iteratively maximizing a bound on this term known as the ex- pected complete log likelihood , ( log p(f , ale))q(a),1 Since only some of the permissible alignments make sense linguistically , we would like EM to use the posterior alignment probabilities calculated in the E-step to weight plausible alignments higher than the large number of bogus alignments which are included in the expected complete log likelihood . 
+	</s>
+	
+
+	<s id="32">
+		 This in turn should encourage the parameter adjustments made in the M-step to converge to linguistically plausible values . 
+	</s>
+	
+
+	<s id="33">
+		 Since the number of permissible alignments for a sentence grows exponentially in the length of the sentences for the later IBM Models , a large number of informative example sentence pairs are required to distinguish between plausible and implausible alignments . 
+	</s>
+	
+
+	<s id="34">
+		 Given sufficient data the distinction occurs because words which are mutual translations appear together more frequently in aligned sentences in the corpus . 
+	</s>
+	
+
+	<s id="35">
+		 Given the high number of model parameters and permissible alignments , however , huge amounts of data will be required to estimate reasonable translation models from sentence-aligned data alone . 
+	</s>
+	
+
+	<s id="36">
+		 logp(fle) = logX p(f , ale ) ( 3 ) a X=log q(a)p(f,ale) ( 4 ) a q(a) &gt; X q(a) log p(f , ale ) ( 5 ) a q(a) = ( logp(f , ale))q(a) + H(q(a)) where the bound in ( 5 ) is given by Jensen’s inequality . 
+	</s>
+	
+
+	<s id="37">
+		 By choosing q(a) = p(alf , e ) this bound becomes an equality . 
+	</s>
+	
+
+	<s id="38">
+		 This maximization consists of two steps : • E-step : calculate the posterior probability under the current model of every permissi- ble alignment for each sentence pair in the sentence-aligned training corpus ; • M-step : maximize the expected log likelihood under this posterior distribution , ( logp(f , ale))q(a) , with respect to the model’s parameters . 
+	</s>
+	
+
+	<s id="39">
+		 While in standard maximum likelihood estimation events are counted directly to estimate parameter settings , in EM we effectively collect fractional counts of events ( here permissible alignments weighted by their posterior probability ) , and use these to iteratively update the parameters . 
+	</s>
+	
+
+	<s id="40">
+		 1Here ( •)9(.) denotes an expectation with respect to q(•) . 
+	</s>
+	
+
+	<s id="41">
+		 3 Parameter Estimation Using Word- and Sentence-Aligned Corpora As an alternative to collecting a huge amount of sentence-aligned training data , by annotating some of our sentence pairs with word-level alignments we can explicitly provide information to highlight plausible alignments and thereby help parameters converge upon reasonable settings with less training data . 
+	</s>
+	
+
+	<s id="42">
+		 Since word-alignments are inherent in the IBM translation models it is straightforward to incorporate this information into the parameter estimation procedure . 
+	</s>
+	
+
+	<s id="43">
+		 For sentence pairs with explicit word- level alignments marked , fractional counts over all permissible alignments need not be collected . 
+	</s>
+	
+
+	<s id="44">
+		 Instead , whole counts are collected for the single hand annotated alignment for each sentence pair which has been word-aligned . 
+	</s>
+	
+
+	<s id="45">
+		 By doing this the expected complete log likelihood collapses to a single term , the complete log likelihood ( p(f , ale ) ) , and the E- step is circumvented . 
+	</s>
+	
+
+	<s id="46">
+		 The parameter estimation procedure now involves maximizing the likelihood of data aligned only at the sentence level and also of data aligned at the word level . 
+	</s>
+	
+
+	<s id="47">
+		 The mixed likelihood function , M , combines the expected information contained in the sentence-aligned data with the complete information contained in the word-aligned data . 
+	</s>
+	
+
+	<s id="48">
+		 N3 M = E ( 1 — A)(logp(fs,asles))q(a3) s=1 N. + E A logp(fw , awl ew ) ( 6 ) w=1 Here s and w index the Ns sentence-aligned sentences and Nw word-aligned sentences in our corpora respectively . 
+	</s>
+	
+
+	<s id="49">
+		 Thus M combines the expected complete log likelihood and the complete log likelihood . 
+	</s>
+	
+
+	<s id="50">
+		 In order to control the relative contributions of the sentence-aligned and word-aligned data in the parameter estimation procedure , we introduce a mixing weight A that can take values between 0 and 1 . 
+	</s>
+	
+
+	<s id="51">
+		 3.1 The impact of word-level alignments The impact of word-level alignments on parameter estimation is closely tied to the structure of the IBM Models . 
+	</s>
+	
+
+	<s id="52">
+		 Since translation and word alignment parameters are shared between all sentences , the posterior alignment probability of a source-target word pair in the sentence-aligned section of the corpus that were aligned in the word-aligned section will tend to be relatively high . 
+	</s>
+	
+
+	<s id="53">
+		 In this way , the alignments from the word-aligned data effectively percolate through to the sentence- aligned data indirectly constraining the E-step of EM . 
+	</s>
+	
+
+	<s id="54">
+		 3.2 Weighting the contribution of word-aligned data By incorporating A , Equation 6 becomes an interpolation of the expected complete log likelihood provided by the sentence-aligned data and the complete log likelihood provided by word-aligned data . 
+	</s>
+	
+
+	<s id="55">
+		 The use of a weight to balance the contributions of unlabeled and labeled data in maximum likelihood estimation was proposed by 
+		<ref citStr="Nigam et al . ( 2000 )" id="7" label="CEPF" position="9949">
+			Nigam et al . ( 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="56">
+		 A quantifies our relative confidence in the expected statistics and observed statistics estimated from the sentence- and word-aligned data respectively . 
+	</s>
+	
+
+	<s id="57">
+		 Standard maximum likelihood estimation ( MLE ) which weighs all training samples equally , corresponds to an implicit value of lambda equal to the proportion of word-aligned data in the whole of the training set : A =N +N3 . 
+	</s>
+	
+
+	<s id="58">
+		 However , having the total amount of sentence-aligned data be much larger than the amount of word-aligned data implies a value of A close to zero . 
+	</s>
+	
+
+	<s id="59">
+		 This means that M can be maximized while essentially ignoring the likelihood of the word-aligned data . 
+	</s>
+	
+
+	<s id="60">
+		 Since we believe that the explicit word-alignment information will be highly effective in distinguishing plausible alignments in the corpus as a whole , we expect to see benefits by setting A to amplify the contribution of the word- aligned data set particularly when this is a relatively small portion of the corpus . 
+	</s>
+	
+
+	<s id="61">
+		 4 Experimental Design To perform our experiments with word-level alignements we modified GIZA++ , an existing and freely available implementation of the IBM models and HMM variants 
+		<ref citStr="Och and Ney , 2003" id="8" label="OEPF" position="11159">
+			( Och and Ney , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="62">
+		 Our modifications involved circumventing the E-step for sentences which had word-level alignments and incorporating these observed alignment statistics in the M-step . 
+	</s>
+	
+
+	<s id="63">
+		 The observed and expected statistics were weighted accordingly by A and ( 1— A ) respectively as were their contributions to the mixed log likelihood . 
+	</s>
+	
+
+	<s id="64">
+		 In order to measure the accuracy of the predictions that the statistical translation models make under our various experimental settings , we choose the alignment error rate ( AER ) metric , which is defined in 
+		<ref citStr="Och and Ney ( 2003 )" id="9" label="CEPF" position="11741">
+			Och and Ney ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="65">
+		 We also investigated whether improved AER leads to improved translation quality . 
+	</s>
+	
+
+	<s id="66">
+		 We used the alignments created during our AER experiments as the input to a phrase-based decoder . 
+	</s>
+	
+
+	<s id="67">
+		 We translated a test set of 350 sentences , and used the Bleu metric 
+		<ref citStr="Papineni et al. , 2001" id="10" label="OEPF" position="12047">
+			( Papineni et al. , 2001 )
+		</ref>
+		 to automatically evaluate machine translation quality . 
+	</s>
+	
+
+	<s id="68">
+		 We used the Verbmobil German-English parallel corpus as a source of training data because it has been used extensively in evaluating statistical translation and alignment accuracy . 
+	</s>
+	
+
+	<s id="69">
+		 This data set comes with a manually word-aligned set of 350 sentences which we used as our test set . 
+	</s>
+	
+
+	<s id="70">
+		 Our experiments additionally required a very large set of word-aligned sentence pairs to be incorporated in the training set . 
+	</s>
+	
+
+	<s id="71">
+		 Since previous work has shown that when training on the complete set of 34,000 sentence pairs an alignment error rate as low as 6 % can be achieved for the Verbmobil data , we automatically generated a set of alignments for the entire training data set using the unmodified version of GIZA++ . 
+	</s>
+	
+
+	<s id="72">
+		 We wanted to use automatic alignments in lieu of actual hand alignments so that we would be able to perform experiments using large data sets . 
+	</s>
+	
+
+	<s id="73">
+		 We ran a pilot experiment to test whether our automatic would produce similar results to manual alignments . 
+	</s>
+	
+
+	<s id="74">
+		 We divided our manual word alignments into training and test sets and compared the performance of models trained on human aligned data against models trained on automatically aligned data . 
+	</s>
+	
+
+	<s id="75">
+		 A Size of training corpus Model .5k 2k 8k 16k Model1 29.64 24.66 22.64 21.68 HMM 18.74 15.63 12.39 12.04 Model 3 26.07 18.64 14.39 13.87 Model4 20.59 16.05 12.63 12.17 Size of training corpus Model .5k 2k 8k 16k Model1 21.43 18.04 16.49 16.20 HMM 14.42 10.47 9.09 8.80 Model3 20.56 13.25 10.82 10.51 Model4 14.19 10.13 7.87 7.52 Table 1 : Alignment error rates for the various IBM Models trained with sentence-aligned data 100-fold cross validation showed that manual and automatic alignments produced AER results that were similar to each other to within 0.1%.2 Having satisfied ourselves that automatic alignment were a sufficient stand-in for manual alignments , we performed our main experiments which fell into the following categories : 1 . 
+	</s>
+	
+
+	<s id="76">
+		 Verifying that the use of word-aligned data has an impact on the quality of alignments predicted by the IBM Models , and comparing the quality increase to that gained by using a bilingual dictionary in the estimation stage . 
+	</s>
+	
+
+	<s id="77">
+		 2. Evaluating whether improved parameter estimates of alignment quality lead to improved translation quality . 
+	</s>
+	
+
+	<s id="78">
+		 3. Experimenting with how increasing the ratio of word-aligned to sentence-aligned data affected the performance . 
+	</s>
+	
+
+	<s id="79">
+		 4. Experimenting with our A parameter which allows us to weight the relative contributions of the word-aligned and sentence-aligned data , and relating it to the ratio experiments . 
+	</s>
+	
+
+	<s id="80">
+		 5. Showing that improvements to AER and translation quality held for another corpus . 
+	</s>
+	
+
+	<s id="81">
+		 5 Results 5.1 Improved alignment quality As a staring point for comparison we trained GIZA++ using four different sized portions of the Verbmobil corpus . 
+	</s>
+	
+
+	<s id="82">
+		 For each of those portions we output the most probable alignments of the testing data for Model 1 , the HMM , Model 3 , and Model 2Note that we stripped out probable alignments from our manually produced alignments . 
+	</s>
+	
+
+	<s id="83">
+		 Probable alignments are large blocks of words which the annotator was uncertain of how to align . 
+	</s>
+	
+
+	<s id="84">
+		 The many possible word-to-word translations implied by the manual alignments led to lower results than with the automatic alignments , which contained fewer word-to-word translation possibilities . 
+	</s>
+	
+
+	<s id="85">
+		 Table 2 : Alignment error rates for the various IBM Models trained with word-aligned data 4,3 and evaluated their AERs . 
+	</s>
+	
+
+	<s id="86">
+		 Table 1 gives alignment error rates when training on 500 , 2000 , 8000 , and 16000 sentence pairs from Verbmobil corpus without using any word-aligned training data . 
+	</s>
+	
+
+	<s id="87">
+		 We obtained much better results when incorporating word-alignments with our mixed likelihood function . 
+	</s>
+	
+
+	<s id="88">
+		 Table 2 shows the results for the different corpus sizes , when all of the sentence pairs have been word-aligned . 
+	</s>
+	
+
+	<s id="89">
+		 The best performing model in the unmodified GIZA++ code was the HMM trained on 16,000 sentence pairs , which had an alignment error rate of 12.04 % . 
+	</s>
+	
+
+	<s id="90">
+		 In our modified code the best performing model was Model 4 trained on 16,000 sentence pairs ( where all the sentence pairs are word-aligned ) with an alignment error rate of 7.52 % . 
+	</s>
+	
+
+	<s id="91">
+		 The difference in the best performing models represents a 38 % relative reduction in AER . 
+	</s>
+	
+
+	<s id="92">
+		 Interestingly , we achieve a lower AER than the best performing unmodified models using a corpus that is one-eight the size of the sentence-aligned data . 
+	</s>
+	
+
+	<s id="93">
+		 Figure 1 show an example of the improved alignments that are achieved when using the word aligned data . 
+	</s>
+	
+
+	<s id="94">
+		 The example alignments were held out sentence pairs that were aligned after training on 500 sentence pairs . 
+	</s>
+	
+
+	<s id="95">
+		 The alignments produced when the training on word-aligned data are dramatically better than when training on sentence-aligned data . 
+	</s>
+	
+
+	<s id="96">
+		 We contrasted these improvements with the improvements that are to be had from incorporating a bilingual dictionary into the estimation process . 
+	</s>
+	
+
+	<s id="97">
+		 For this experiment we allowed a bilingual dictionary to constrain which words can act as translations of each other during the initial estimates of translation probabilities ( as described in 
+		<ref citStr="Och and Ney ( 2003 )" id="11" label="CERF" position="17448">
+			Och and Ney ( 2003 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="98">
+		 As can be seen in Table 3 , using a dictionary reduces the AER when compared to using GIZA++ without a dictionary , but not as dramatically as integrating the word-alignments . 
+	</s>
+	
+
+	<s id="99">
+		 We further tried combining a dictionary with our word-alignments but found that the dictionary results in only very minimal improvements over using word-alignments alone . 
+	</s>
+	
+
+	<s id="100">
+		 3 We used the default training schemes for GIZA++ , and left model smoothing parameters at their default settings . 
+	</s>
+	
+
+	<s id="101">
+		 Dann reserviere ich zwei Einzelzimmer , nehme ich mal an . 
+	</s>
+	
+
+	<s id="102">
+		 ( a ) Sentence-aligned Dann reserviere ich zwei Einzelzimmer , nehme ich mal an . 
+	</s>
+	
+
+	<s id="103">
+		 ( b ) Word-aligned Dann reserviere ich zwei Einzelzimmer , nehme ich mal an . 
+	</s>
+	
+
+	<s id="104">
+		 ( c ) Reference Figure 1 : Example alignments using sentence-aligned training data ( a ) , using word-aligned data ( b ) , and a reference manual alignment ( c ) Size of training corpus Model .5k 2k 8k 16k Model1 23.56 20.75 18.69 18.37 HMM 15.71 12.15 9.91 10.13 Model 3 22.11 16.93 13.78 12.33 Model 4 17.07 13.60 11.49 10.77 Table 3 : The improved alignment error rates when using a dictionary instead of word-aligned data to constrain word translations Sentence-aligned Word-aligned Size AER Bleu AER Bleu 500 20.59 0.211 14.19 0.233 2000 16.05 0.247 10.13 0.260 8000 12.63 0.265 7.87 0.278 16000 12.17 0.270 7.52 0.282 Table 4 : Improved AER leads to improved translation quality 5.2 Improved translation quality The fact that using word-aligned data in estimating the parameters for machine translation leads to better alignments is predictable . 
+	</s>
+	
+
+	<s id="105">
+		 A more significant result is whether it leads to improved translation quality . 
+	</s>
+	
+
+	<s id="106">
+		 In order to test that our improved parameter estimates lead to better translation quality , we used a state-of-the-art phrase-based decoder to translate a held out set of German sentences into English . 
+	</s>
+	
+
+	<s id="107">
+		 The phrase-based decoder extracts phrases from the word alignments produced by GIZA++ , and computes translation probabilities based on the frequency of one phrase being aligned with another 
+		<ref citStr="Koehn et al. , 2003" id="12" label="CEPF" position="19577">
+			( Koehn et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="108">
+		 We trained a language model Ratio AER when when A = .9 A = Standard MLE 0.1 11.73 9.40 0.2 10.89 8.66 0.3 10.23 8.13 0.5 8.65 8.19 0.7 8.29 8.03 0.9 7.78 7.78 Table 5 : The effect of weighting word-aligned data more heavily that its proportion in the training data ( corpus size 16000 sentence pairs ) using the 34,000 English sentences from the training set . 
+	</s>
+	
+
+	<s id="109">
+		 Table 4 shows that using word-aligned data leads to better translation quality than using sentence- aligned data . 
+	</s>
+	
+
+	<s id="110">
+		 Particularly , significantly less data is needed to achieve a high Bleu score when using word alignments . 
+	</s>
+	
+
+	<s id="111">
+		 Training on a corpus of 8,000 sentence pairs with word alignments results in a higher Bleu score than when training on a corpus of 16,000 sentence pairs without word alignments . 
+	</s>
+	
+
+	<s id="112">
+		 5.3 Weighting the word-aligned data We have seen that using training data consisting of entirely word-aligned sentence pairs leads to better alignment accuracy and translation quality . 
+	</s>
+	
+
+	<s id="113">
+		 However , because manually word-aligning sentence pairs costs more than just using sentence-aligned data , it is unlikely that we will ever want to label an entire corpus . 
+	</s>
+	
+
+	<s id="114">
+		 Instead we will likely have a relatively small portion of the corpus word aligned . 
+	</s>
+	
+
+	<s id="115">
+		 We want to be sure that this small amount of data labeled with word alignments does not get overwhelmed by a larger amount of unlabeled data . 
+	</s>
+	
+
+	<s id="116">
+		 Figure 2 : The effect on AER of varying A for a training corpus of 16K sentence pairs with various proportions of word-alignments Thus we introduced the A weight into our mixed likelihood function . 
+	</s>
+	
+
+	<s id="117">
+		 Table 5 compares the natural setting of A ( where it is proportional to the amount of labeled data in the corpus ) to a value that amplifies the contribution of the word-aligned data . 
+	</s>
+	
+
+	<s id="118">
+		 Figure 2 shows a variety of values for A . 
+	</s>
+	
+
+	<s id="119">
+		 It shows as A increases AER decreases . 
+	</s>
+	
+
+	<s id="120">
+		 Placing nearly all the weight onto the word-aligned data seems to be most effective .4 Note this did not vary the training data size – only the relative contributions between sentence- and word-aligned training material . 
+	</s>
+	
+
+	<s id="121">
+		 5.4 Ratio of word- to sentence-aligned data We also varied the ratio of word-aligned to sentence-aligned data , and evaluated the AER and Bleu scores , and assigned high value to A ( = 0.9 ) . 
+	</s>
+	
+
+	<s id="122">
+		 Figure 3 shows how AER improves as more word-aligned data is added . 
+	</s>
+	
+
+	<s id="123">
+		 Each curve on the graph represents a corpus size and shows its reduction in error rate as more word-aligned data is added . 
+	</s>
+	
+
+	<s id="124">
+		 For example , the bottom curve shows the performance of a corpus of 16,000 sentence pairs which starts with an AER ofjust over 12 % with no word-aligned training data and decreases to an AER of 7.5 % when all 16,000 sentence pairs are word-aligned . 
+	</s>
+	
+
+	<s id="125">
+		 This curve essentially levels off after 30 % of the data is word-aligned . 
+	</s>
+	
+
+	<s id="126">
+		 This shows that a small amount of word-aligned data is very useful , and if we wanted to achieve a low AER , we would only have to label 4,800 examples with their word alignments rather than the entire corpus . 
+	</s>
+	
+
+	<s id="127">
+		 Figure 4 shows how the Bleu score improves as more word-aligned data is added . 
+	</s>
+	
+
+	<s id="128">
+		 This graph also 4At A = 1 ( not shown in Figure 2 ) the data that is only sentence-aligned is ignored , and the AER is therefore higher . 
+	</s>
+	
+
+	<s id="129">
+		 Figure 3 : The effect on AER of varying the ratio of word-aligned to sentence-aligned data Figure 4 : The effect on Bleu of varying the ratio of word-aligned to sentence-aligned data reinforces the fact that a small amount of word- aligned data is useful . 
+	</s>
+	
+
+	<s id="130">
+		 A corpus of 8,000 sentence pairs with only 800 of them labeled with word alignments achieves a higher Bleu score than a corpus of 16,000 sentence pairs with no word alignments . 
+	</s>
+	
+
+	<s id="131">
+		 5.5 Evaluation using a larger training corpus We additionally tested whether incorporating word- level alignments into the estimation improved results for a larger corpus . 
+	</s>
+	
+
+	<s id="132">
+		 We repeated our experiments using the Canadian Hansards French-English parallel corpus . 
+	</s>
+	
+
+	<s id="133">
+		 Figure 6 gives a summary of the improvements in AER and Bleu score for that corpus , when testing on a held out set of 484 hand aligned sentences . 
+	</s>
+	
+
+	<s id="134">
+		 On the whole , alignment error rates are higher and Bleu scores are considerably lower for the Hansards corpus . 
+	</s>
+	
+
+	<s id="135">
+		 This is probably due to the differences in the corpora . 
+	</s>
+	
+
+	<s id="136">
+		 Whereas the Verbmobil corpus has a small vocabulary ( &lt;10,000 per lan- Sentence-aligned Word-aligned Size AER Bleu AER Bleu 500 33.65 0.054 25.73 0.064 2000 25.97 0.087 18.57 0.100 8000 19.00 0.115 14.57 0.120 16000 16.59 0.126 13.55 0.128 Table 6 : Summary results for AER and translation quality experiments on Hansards data guage ) , the Hansards has ten times that many vocabulary items and has a much longer average sentence length . 
+	</s>
+	
+
+	<s id="137">
+		 This made it more difficult for us to create a simulated set of hand alignments ; we measured the AER of our simulated alignments at 11.3 % ( which compares to 6.5 % for our simulated alignments for the Verbmobil corpus ) . 
+	</s>
+	
+
+	<s id="138">
+		 Nevertheless , the trend of decreased AER and increased Bleu score still holds . 
+	</s>
+	
+
+	<s id="139">
+		 For each size of training corpus we tested we found better results using the word-aligned data . 
+	</s>
+	
+
+	<s id="140">
+		 6 Related Work 
+		<ref citStr="Och and Ney ( 2003 )" id="13" label="CJPN" position="24949">
+			Och and Ney ( 2003 )
+		</ref>
+		 is the most extensive analysis to date of how many different factors contribute towards improved alignments error rates , but the inclusion of word-alignments is not considered . 
+	</s>
+	
+
+	<s id="141">
+		 Och and Ney do not give any direct analysis of how improved word alignments accuracy contributes toward better translation quality as we do here . 
+	</s>
+	
+
+	<s id="142">
+		 
+		<ref citStr="Mihalcea and Pedersen ( 2003 )" id="14" label="CJPN" position="25324">
+			Mihalcea and Pedersen ( 2003 )
+		</ref>
+		 described a shared task where the goal was to achieve the best AER . 
+	</s>
+	
+
+	<s id="143">
+		 A number of different methods were tried , but none of them used word-level alignments . 
+	</s>
+	
+
+	<s id="144">
+		 Since the best performing system used an unmodified version of Giza++ , we would expected that our modifed version would show enhanced performance . 
+	</s>
+	
+
+	<s id="145">
+		 Naturally this would need to be tested in future work . 
+	</s>
+	
+
+	<s id="146">
+		 
+		<ref citStr="Melamed ( 1998 )" id="15" label="CEPF" position="25740">
+			Melamed ( 1998 )
+		</ref>
+		 describes the process of manually creating a large set of word-level alignments of sentences in a parallel text . 
+	</s>
+	
+
+	<s id="147">
+		 
+		<ref citStr="Nigam et al . ( 2000 )" id="16" label="CEPF" position="25886">
+			Nigam et al . ( 2000 )
+		</ref>
+		 described the use of weight to balance the respective contributions of labeled and unlabeled data to a mixed likelihood function . 
+	</s>
+	
+
+	<s id="148">
+		 
+		<ref citStr="Corduneanu ( 2002 )" id="17" label="CEPF" position="26046">
+			Corduneanu ( 2002 )
+		</ref>
+		 provides a detailed discussion of the instability of maximum likelhood solutions estimated from a mixture of labeled and unlabeled data . 
+	</s>
+	
+
+	<s id="149">
+		 7 Discussion and Future Work In this paper we show with the appropriate modification of EM significant improvement gains can be had through labeling word alignments in a bilingual corpus . 
+	</s>
+	
+
+	<s id="150">
+		 Because of this significantly less data is required to achieve a low alignment error rate or high Bleu score . 
+	</s>
+	
+
+	<s id="151">
+		 This holds even when using noisy word alignments such as our automatically created set . 
+	</s>
+	
+
+	<s id="152">
+		 One should take our research into account when trying to efficiently create a statistical machine translation system for a language pair for which a parallel corpus is not available . 
+	</s>
+	
+
+	<s id="153">
+		 
+		<ref citStr="Germann ( 2001 )" id="18" label="CEPF" position="26819">
+			Germann ( 2001 )
+		</ref>
+		 describes the cost of building a Tamil-English parallel corpus from scratch , and finds that using professional translations is prohibitively high . 
+	</s>
+	
+
+	<s id="154">
+		 In our experience it is quicker to manually word-align translated sentence pairs than to translate a sentence , and word-level alignment can be done by someone who might not be fluent enough to produce translations . 
+	</s>
+	
+
+	<s id="155">
+		 It might therefore be possible to achieve a higher performance at a fraction of the cost by hiring a nonprofessional produce word-alignments after a limited set of sentences have been translated . 
+	</s>
+	
+
+	<s id="156">
+		 We plan to investigate whether it is feasible to use active learning to select which examples will be most useful when aligned at the word-level . 
+	</s>
+	
+
+	<s id="157">
+		 Section 5.4 shows that word-aligning a fraction of sentence pairs in a training corpus , rather than the entire training corpus can still yield most of the benefits described in this paper . 
+	</s>
+	
+
+	<s id="158">
+		 One would hope that by selectively sampling which sentences are to be manually word-aligned we would achieve nearly the same performance as word-aligning the entire corpus . 
+	</s>
+	
+
+	<s id="159">
+		 Acknowledgements The authors would like to thank Franz Och , Hermann Ney , and Richard Zens for providing the Verbmobil data , and Linear B for providing its phrase-based decoder . 
+	</s>
+	
+
+	<s id="160">
+		 References Peter Brown , Stephen Della Pietra , Vincent Della Pietra , and Robert Mercer . 
+	</s>
+	
+
+	<s id="161">
+		 1993. The mathematics of machine translation : Parameter estimation . 
+	</s>
+	
+
+	<s id="162">
+		 Computational Linguistics , 19(2):263–311 , June . 
+	</s>
+	
+
+	<s id="163">
+		 Adrian Corduneanu . 
+	</s>
+	
+
+	<s id="164">
+		 2002. Stable mixing of complete and incomplete information . 
+	</s>
+	
+
+	<s id="165">
+		 Master’s thesis , Massachusetts Institute of Technology , February . 
+	</s>
+	
+
+	<s id="166">
+		 A. P. Dempster , N. M. Laird , and D. B. Rubin . 
+	</s>
+	
+
+	<s id="167">
+		 1977. Maximum likelihood from incomplete data via the EM algorithm . 
+	</s>
+	
+
+	<s id="168">
+		 Journal of the Royal Statistical Society , 39(1):1–38 , Nov. . 
+	</s>
+	
+
+	<s id="169">
+		 Ulrich Germann. 2001 . 
+	</s>
+	
+
+	<s id="170">
+		 Building a statistical machine translation system from scratch : How much bang for the buck can we expect ? 
+	</s>
+	
+
+	<s id="171">
+		 In ACL 2001 Workshop on Data-Driven Machine Translation , Toulouse , France , July 7 . 
+	</s>
+	
+
+	<s id="172">
+		 Philipp Koehn , Franz Josef Och , and Daniel Marcu . 
+	</s>
+	
+
+	<s id="173">
+		 2003. Statistical phrase-based translation . 
+	</s>
+	
+
+	<s id="174">
+		 In Proceedings of the HLT/NAACL . 
+	</s>
+	
+
+	<s id="175">
+		 I. Dan Melamed . 
+	</s>
+	
+
+	<s id="176">
+		 1998. Manual annotation of translational equivalence : The blinker project . 
+	</s>
+	
+
+	<s id="177">
+		 Cognitive Science Technical Report 98/07 , University of Pennsylvania . 
+	</s>
+	
+
+	<s id="178">
+		 Rada Mihalcea and Ted Pedersen . 
+	</s>
+	
+
+	<s id="179">
+		 2003. An evaluation exercise for word alignment . 
+	</s>
+	
+
+	<s id="180">
+		 In Rada Mihalcea and Ted Pedersen , editors , HLT-NAACL 2003 Workshop : Building and Using Parallel Texts . 
+	</s>
+	
+
+	<s id="181">
+		 Kamal Nigam , Andrew K. McCallum , Sebastian Thrun , and Tom M. Mitchell . 
+	</s>
+	
+
+	<s id="182">
+		 2000. Text classification from labeled and unlabeled documents using EM . 
+	</s>
+	
+
+	<s id="183">
+		 Machine Learning , 39(2/3):103–134 . 
+	</s>
+	
+
+	<s id="184">
+		 Franz Josef Och and Hermann Ney . 
+	</s>
+	
+
+	<s id="185">
+		 2003. A systematic comparison of various statistical alignment models . 
+	</s>
+	
+
+	<s id="186">
+		 Computational Linguistics , 29(1):19–51 , March . 
+	</s>
+	
+
+	<s id="187">
+		 Kishore Papineni , Salim Roukos , Todd Ward , and WeiJing Zhu . 
+	</s>
+	
+
+	<s id="188">
+		 2001. Bleu : a method for automatic evaluation of machine translation . 
+	</s>
+	
+
+	<s id="189">
+		 IBM Research Report RC22176(W0109-022) , IBM . 
+	</s>
+	
+
+	<s id="190">
+		 Philip Resnik and Noah Smith . 
+	</s>
+	
+
+	<s id="191">
+		 2003. The web as a parallel corpus . 
+	</s>
+	
+
+	<s id="192">
+		 Computational Linguistics , 29(3):349– 380 , September . 
+	</s>
+	
+
+
+</acldoc>

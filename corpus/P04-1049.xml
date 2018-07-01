@@ -1,0 +1,1541 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1049">
+	
+
+	<s id="1">
+		 Paragraph- , word- , and coherence-based approaches to sentence ranking : A comparison of algorithm and human performance Florian WOLF Massachusetts Institute of Technology MIT NE20-448 , 3 Cambridge Center Cambridge , MA 02139 , USA fwolf@mit.edu Abstract Sentence ranking is a crucial part of generating text summaries . 
+	</s>
+	
+
+	<s id="2">
+		 We compared human sentence rankings obtained in a psycholinguistic experiment to three different approaches to sentence ranking : A simple paragraph-based approach intended as a baseline , two word-based approaches , and two coherence-based approaches . 
+	</s>
+	
+
+	<s id="3">
+		 In the paragraph-based approach , sentences in the beginning of paragraphs received higher importance ratings than other sentences . 
+	</s>
+	
+
+	<s id="4">
+		 The word-based approaches determined sentence rankings based on relative word frequencies ( 
+		<ref citStr="Luhn ( 1958 )" id="1" label="CEPF" position="847">
+			Luhn ( 1958 )
+		</ref>
+		 ; Salton &amp; 
+		<ref citStr="Buckley ( 1988 )" id="2" label="CEPF" position="879">
+			Buckley ( 1988 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="5">
+		 Coherence-based approaches determined sentence rankings based on some property of the coherence structure of a text ( 
+		<ref citStr="Marcu ( 2000 )" id="3" label="CEPF" position="1025">
+			Marcu ( 2000 )
+		</ref>
+		 ; 
+		<ref citStr="Page et al . ( 1998 )" id="4" label="CEPF" position="1049">
+			Page et al . ( 1998 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="6">
+		 Our results suggest poor performance for the simple paragraph-based approach , whereas word- based approaches perform remarkably well . 
+	</s>
+	
+
+	<s id="7">
+		 The best performance was achieved by a coherence-based approach where coherence structures are represented in a non-tree structure . 
+	</s>
+	
+
+	<s id="8">
+		 Most approaches also outperformed the commercially available MSWord summarizer . 
+	</s>
+	
+
+	<s id="9">
+		 1 Introduction Automatic generation of text summaries is a natural language engineering application that has received considerable interest , particularly due to the ever-increasing volume of text information available through the internet . 
+	</s>
+	
+
+	<s id="10">
+		 The task of a human generating a summary generally involves three subtasks ( 
+		<ref citStr="Brandow et al . ( 1995 )" id="5" label="CEPF" position="1792">
+			Brandow et al . ( 1995 )
+		</ref>
+		 ; 
+		<ref citStr="Mitra et al . ( 1997 )" id="6" label="CEPF" position="1817">
+			Mitra et al . ( 1997 )
+		</ref>
+		 ) : ( 1 ) understanding a text ; ( 2 ) ranking text pieces ( sentences , paragraphs , phrases , etc. ) for importance ; ( 3 ) generating a new text ( the summary ) . 
+	</s>
+	
+
+	<s id="11">
+		 Like most approaches to summarization , we are concerned with the second subtask ( e.g. 
+		<ref citStr="Carlson et al . ( 2001 )" id="7" label="CEPF" position="2105">
+			Carlson et al . ( 2001 )
+		</ref>
+		 ; 
+		<ref citStr="Goldstein et al . ( 1999 )" id="8" label="CEPF" position="2134">
+			Goldstein et al . ( 1999 )
+		</ref>
+		 ; Gong &amp; 
+		<ref citStr="Liu ( 2001 )" id="9" label="CEPF" position="2160">
+			Liu ( 2001 )
+		</ref>
+		 ; 
+		<ref citStr="Jing et al . ( 1998 )" id="10" label="CEPF" position="2184">
+			Jing et al . ( 1998 )
+		</ref>
+		 ; Edward GIBSON Massachusetts Institute of Technology MIT NE20-459 , 3 Cambridge Center Cambridge , MA 02139 , USA egibson@mit.edu 
+		<ref citStr="Luhn ( 1958 )" id="11" label="CEPF" position="2329">
+			Luhn ( 1958 )
+		</ref>
+		 ; 
+		<ref citStr="Mitra et al . ( 1997 )" id="12" label="CEPF" position="2354">
+			Mitra et al . ( 1997 )
+		</ref>
+		 ; Sparck-Jones &amp; 
+		<ref citStr="Sakai ( 2001 )" id="13" label="CEPF" position="2390">
+			Sakai ( 2001 )
+		</ref>
+		 ; 
+		<ref citStr="Zechner ( 1996 )" id="14" label="CEPF" position="2409">
+			Zechner ( 1996 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="12">
+		 Furthermore , we are concerned with obtaining generic rather than query-relevant importance rankings ( cf. 
+		<ref citStr="Goldstein et al . ( 1999 )" id="15" label="CJPF" position="2556">
+			Goldstein et al . ( 1999 )
+		</ref>
+		 , 
+		<ref citStr="Radev et al . ( 2002 )" id="16" label="CJPF" position="2581">
+			Radev et al . ( 2002 )
+		</ref>
+		 for that distinction ) . 
+	</s>
+	
+
+	<s id="13">
+		 We evaluated different approaches to sentence ranking against human sentence rankings . 
+	</s>
+	
+
+	<s id="14">
+		 To obtain human sentence rankings , we asked people to read 15 texts from the Wall Street Journal on a wide variety of topics ( e.g. economics , foreign and domestic affairs , political commentaries ) . 
+	</s>
+	
+
+	<s id="15">
+		 For each of the sentences in the text , they provided a ranking of how important that sentence is with respect to the content of the text , on an integer scale from 1 ( not important ) to 7 ( very important ) . 
+	</s>
+	
+
+	<s id="16">
+		 The approaches we evaluated are a simple paragraph-based approach that serves as a baseline , two word-based algorithms , and two coherence- based approaches1 . 
+	</s>
+	
+
+	<s id="17">
+		 We furthermore evaluated the MSWord summarizer . 
+	</s>
+	
+
+	<s id="18">
+		 2 Approaches to sentence ranking 2.1 Paragraph-based approach Sentences at the beginning of a paragraph are usually more important than sentences that are further down in a paragraph , due in part to the way people are instructed to write . 
+	</s>
+	
+
+	<s id="19">
+		 Therefore , probably the simplest approach conceivable to sentence ranking is to choose the first sentences of each 1 We did not use any machine learning techniques to boost performance of the algorithms we tested . 
+	</s>
+	
+
+	<s id="20">
+		 Therefore performance of the algorithms tested here will almost certainly be below the level of performance that could be reached if we had augmented the algorithms with such techniques ( e.g. 
+		<ref citStr="Carlson et al . ( 2001 )" id="17" label="CJPF" position="4065">
+			Carlson et al . ( 2001 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="21">
+		 However , we think that a comparison between ‘bare-bones’ algorithms is viable because it allows to see how performance differs due to different basic approaches to sentence ranking , and not due to potentially different effects of different machine learning algorithms on different basic approaches to sentence ranking . 
+	</s>
+	
+
+	<s id="22">
+		 In future research we plan to address the impact of machine learning on the algorithms tested here . 
+	</s>
+	
+
+	<s id="23">
+		 paragraph as important , and the other sentences as not important . 
+	</s>
+	
+
+	<s id="24">
+		 We included this approach merely as a simple baseline . 
+	</s>
+	
+
+	<s id="25">
+		 2.2 Word-based approaches Word-based approaches to summarization are based on the idea that discourse segments are important if they contain “important” words . 
+	</s>
+	
+
+	<s id="26">
+		 Different approaches have different definitions of what an important word is . 
+	</s>
+	
+
+	<s id="27">
+		 For example , 
+		<ref citStr="Luhn ( 1958 )" id="18" label="CEPF" position="4951">
+			Luhn ( 1958 )
+		</ref>
+		 , in a classic approach to summarization , argues that sentences are more important if they contain many significant words . 
+	</s>
+	
+
+	<s id="28">
+		 Significant words are words that are not in some predefined stoplist of words with high overall corpus frequency2 . 
+	</s>
+	
+
+	<s id="29">
+		 Once significant words are marked in a text , clusters of significant words are formed . 
+	</s>
+	
+
+	<s id="30">
+		 A cluster has to start and end with a significant word , and fewer than n insignificant words must separate any two significant words ( we chose n = 3 , cf. 
+		<ref citStr="Luhn ( 1958 )" id="19" label="CEPF" position="5479">
+			Luhn ( 1958 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="31">
+		 Then , the weight of each cluster is calculated by dividing the square of the number of significant words in the cluster by the total number of words in the cluster . 
+	</s>
+	
+
+	<s id="32">
+		 Sentences can contain multiple clusters . 
+	</s>
+	
+
+	<s id="33">
+		 In order to compute the weight of a sentence , the weights of all clusters in that sentence are added . 
+	</s>
+	
+
+	<s id="34">
+		 The higher the weight of a sentence , the higher is its ranking . 
+	</s>
+	
+
+	<s id="35">
+		 A more recent and frequently used word-based method used for text piece ranking is tf.idf ( e.g. Manning &amp; 
+		<ref citStr="Schuetze ( 2000 )" id="20" label="CEPF" position="6036">
+			Schuetze ( 2000 )
+		</ref>
+		 ; Salton &amp; 
+		<ref citStr="Buckley ( 1988 )" id="21" label="CEPF" position="6068">
+			Buckley ( 1988 )
+		</ref>
+		 ; Sparck-Jones &amp; 
+		<ref citStr="Sakai ( 2001 )" id="22" label="CEPF" position="6104">
+			Sakai ( 2001 )
+		</ref>
+		 ; 
+		<ref citStr="Zechner ( 1996 )" id="23" label="CEPF" position="6123">
+			Zechner ( 1996 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="36">
+		 The tf.idf measure relates the frequency of words in a text piece , in the text , and in a collection of texts respectively . 
+	</s>
+	
+
+	<s id="37">
+		 The intuition behind tf. idf is to give more weight to sentences that contain terms with high frequency in a document but low frequency in a reference corpus . 
+	</s>
+	
+
+	<s id="38">
+		 Figure 1 shows a formula for calculating tf.idf , where dsij is the tf.idf weight of sentence i in document j , nsi is the number of words in sentence i , k is the kth word in sentence i , tfjk is the frequency of word k in document j , nd is the number of documents in the reference corpus , and dfk is the number of documents in the reference corpus in which word k appears . 
+	</s>
+	
+
+	<s id="39">
+		 n , . 
+	</s>
+	
+
+	<s id="40">
+		 nd k=1 = ~ t ^ log df ~jk k ~ ~ Figure 1 . 
+	</s>
+	
+
+	<s id="41">
+		 Formula for calculating tf.idf ( Salton &amp; 
+		<ref citStr="Buckley ( 1988 )" id="24" label="CEPF" position="6957">
+			Buckley ( 1988 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="42">
+		 2 Instead of stoplists , tf.idf values have also been used to determine significant words ( e.g. 
+		<ref citStr="Buyukkokten et al . ( 2001 )" id="25" label="CEPF" position="7096">
+			Buyukkokten et al . ( 2001 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="43">
+		 We compared both Luhn (1958)’s measure and tf.idf scores to human rankings of sentence importance . 
+	</s>
+	
+
+	<s id="44">
+		 We will show that both methods performed remarkably well , although one coherence-based method performed better . 
+	</s>
+	
+
+	<s id="45">
+		 2.3 Coherence-based approaches The sentence ranking methods introduced in the two previous sections are solely based on layout or on properties of word distributions in sentences , texts , and document collections . 
+	</s>
+	
+
+	<s id="46">
+		 Other approaches to sentence ranking are based on the informational structure of texts . 
+	</s>
+	
+
+	<s id="47">
+		 With informational structure , we mean the set of informational relations that hold between sentences in a text . 
+	</s>
+	
+
+	<s id="48">
+		 This set can be represented in a graph , where the nodes represent sentences , and labeled directed arcs represent informational relations that hold between the sentences ( cf. 
+		<ref citStr="Hobbs ( 1985 )" id="26" label="CEPF" position="7980">
+			Hobbs ( 1985 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="49">
+		 Often , informational structures of texts have been represented as trees ( e.g. 
+		<ref citStr="Carlson et al . ( 2001 )" id="27" label="CEPF" position="8098">
+			Carlson et al . ( 2001 )
+		</ref>
+		 , 
+		<ref citStr="Corston-Oliver ( 1998 )" id="28" label="CEPF" position="8124">
+			Corston-Oliver ( 1998 )
+		</ref>
+		 , Mann &amp; 
+		<ref citStr="Thompson ( 1988 )" id="29" label="CEPF" position="8155">
+			Thompson ( 1988 )
+		</ref>
+		 , 
+		<ref citStr="Ono et al . ( 1994 )" id="30" label="CEPF" position="8178">
+			Ono et al . ( 1994 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="50">
+		 We will present one coherence-based approach that assumes trees as a data structure for representing discourse structure , and one approach that assumes less constrained graphs . 
+	</s>
+	
+
+	<s id="51">
+		 As we will show , the approach based on less constrained graphs performs better than the tree-based approach when compared to human sentence rankings . 
+	</s>
+	
+
+	<s id="52">
+		 3 Coherence-based summarization revisited This section will discuss in more detail the data structures we used to represent discourse structure , as well as the algorithms used to calculate sentence importance , based on discourse structures . 
+	</s>
+	
+
+	<s id="53">
+		 3.1 Representing coherence structures 3.1.1 Discourse segments Discourse segments can be defined as non- overlapping spans of prosodic units ( Hirschberg &amp; 
+		<ref citStr="Nakatani ( 1996 )" id="31" label="CEPF" position="8971">
+			Nakatani ( 1996 )
+		</ref>
+		 ) , intentional units ( Grosz &amp; 
+		<ref citStr="Sidner ( 1986 )" id="32" label="CEPF" position="9023">
+			Sidner ( 1986 )
+		</ref>
+		 ) , phrasal units ( Lascarides &amp; 
+		<ref citStr="Asher ( 1993 )" id="33" label="CEPF" position="9075">
+			Asher ( 1993 )
+		</ref>
+		 ) , or sentences ( 
+		<ref citStr="Hobbs ( 1985 )" id="34" label="CEPF" position="9109">
+			Hobbs ( 1985 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="54">
+		 We adopted a sentence unit-based definition of discourse segments for the coherence-based approach that assumes non-tree graphs . 
+	</s>
+	
+
+	<s id="55">
+		 For the coherence-based approach that assumes trees , we used Marcu (2000)’s more fine-grained definition of discourse segments because we used the discourse trees from Carlson et al . 
+	</s>
+	
+
+	<s id="56">
+		 (2002)’s database of coherence- annotated texts . 
+	</s>
+	
+
+	<s id="57">
+		 3.1.2 Kinds of coherence relations We assume a set of coherence relations that is similar to that of 
+		<ref citStr="Hobbs ( 1985 )" id="35" label="CERF" position="9632">
+			Hobbs ( 1985 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="58">
+		 Below are examples of each coherence relation . 
+	</s>
+	
+
+	<s id="59">
+		 ij ds ( 1 ) Cause-Effect [ There was bad weather at the airport]a [ and so our flight got delayed.]b ( 2 ) Violated Expectation [ The weather was nice]a [ but our flight got delayed.]b ( 3 ) Condition [ If the new software works,]a [ everyone will be happy.]b ( 4 ) Similarity [ There is a train on Platform A.]a [ There is another train on Platform B.]b ( 5 ) Contrast [ John supported Bush]a [ but Susan opposed him.]b ( 6 ) Elaboration [ A probe to Mars was launched this week.]a [ The European-built ‘Mars Express’ is scheduled to reach Mars by late December.]b ( 7 ) Attribution [ John said that]a [ the weather would be nice tomorrow.]b ( 8 ) Temporal Sequence [ Before he went to bed,]a [ John took a shower.]b Cause-effect , violated expectation , condition , elaboration , temporal sequence , and attribution are asymmetrical or directed relations , whereas similarity , contrast , and temporal sequence are symmetrical or undirected relations ( Mann &amp; Thompson , 1988 ; Marcu , 2000 ) . 
+	</s>
+	
+
+	<s id="60">
+		 In the non-treebased approach , the directions of asymmetrical or directed relations are as follows : cause 4 effect for cause-effect ; cause 4 absent effect for violated expectation ; condition 4 consequence for condition ; elaborating 4 elaborated for elaboration , and source 4 attributed for attribution . 
+	</s>
+	
+
+	<s id="61">
+		 In the tree-based approach , the asymmetrical or directed relations are between a more important discourse segment , or a Nucleus , and a less important discourse segment , or a Satellite ( 
+		<ref citStr="Marcu ( 2000 )" id="36" label="CEPF" position="11236">
+			Marcu ( 2000 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="62">
+		 The Nucleus is the equivalent of the arc destination , and the Satellite is the equivalent of the arc origin in the non-treebased approach . 
+	</s>
+	
+
+	<s id="63">
+		 The symmetrical or undirected relations are between two discourse elements of equal importance , or two Nuclei . 
+	</s>
+	
+
+	<s id="64">
+		 Below we will explain how the difference between Satellites and Nuclei is considered in tree-based sentence rankings . 
+	</s>
+	
+
+	<s id="65">
+		 3.1.3 Data structures for representing discourse coherence As mentioned above , we used two alternative representations for discourse structure , tree- and non-tree based . 
+	</s>
+	
+
+	<s id="66">
+		 In order to illustrate both data structures , consider ( 9 ) as an example : ( 9 ) Example text 0 . 
+	</s>
+	
+
+	<s id="67">
+		 Susan wanted to buy some tomatoes . 
+	</s>
+	
+
+	<s id="68">
+		 1. She also tried to find some basil . 
+	</s>
+	
+
+	<s id="69">
+		 2. The basil would probably be quite expensive at this time of the year . 
+	</s>
+	
+
+	<s id="70">
+		 Figure 2 shows one possible tree representation of the coherence structure of (9)3 . 
+	</s>
+	
+
+	<s id="71">
+		 Sim represents a similarity relation , and elab an elaboration relation . 
+	</s>
+	
+
+	<s id="72">
+		 Furthermore , nodes with a “Nuc” subscript are Nuclei , and nodes with a “Sat” subscript are Satellites . 
+	</s>
+	
+
+	<s id="73">
+		 Figure 2. Coherence tree for ( 9 ) . 
+	</s>
+	
+
+	<s id="74">
+		 Figure 3 shows a non-tree representation of the coherence structure of ( 9 ) . 
+	</s>
+	
+
+	<s id="75">
+		 Here , the heads of the arrows represent the directionality of a relation . 
+	</s>
+	
+
+	<s id="76">
+		 Figure 3. Non-tree coherence graph for ( 9 ) . 
+	</s>
+	
+
+	<s id="77">
+		 3.2 Coherence-based sentence ranking This section explains the algorithms for the tree- and the non-tree-based sentence ranking approach . 
+	</s>
+	
+
+	<s id="78">
+		 3.2.1 Tree-based approach We used Marcu (2000)’s algorithm to determine sentence rankings based on tree discourse structures . 
+	</s>
+	
+
+	<s id="79">
+		 In this algorithm , sentence salience is determined based on the tree level of a discourse segment in the coherence tree . 
+	</s>
+	
+
+	<s id="80">
+		 Figure 4 shows Marcu (2000)’s algorithm , where r(s,D,d) is the rank of a sentence s in a discourse tree D with depth d . 
+	</s>
+	
+
+	<s id="81">
+		 Every node in a discourse tree D has a promotion set promotion(D) , which is the union of all Nucleus children of that node . 
+	</s>
+	
+
+	<s id="82">
+		 Associated with every node in a discourse tree D is also a set of parenthetical nodes parentheticals(D) ( for example , in “Mars – half the size of Earth – is red” , “half the size of earth” would be a parenthetical node in a discourse tree ) . 
+	</s>
+	
+
+	<s id="83">
+		 Both promotion(D) and parentheticals(D) can be empty sets . 
+	</s>
+	
+
+	<s id="84">
+		 Furthermore , each node has a left subtree , 3 Another possible tree structure might be ( elab ( par ( 0 1 ) 2 ) ) . 
+	</s>
+	
+
+	<s id="85">
+		 sim 0Nuc 1 Nuc 2Sat elabNuc elab sim 0 1 2 lc(D) , and a right subtree , rc(D) . 
+	</s>
+	
+
+	<s id="86">
+		 Both lc(D) and rc(D) can also be empty . 
+	</s>
+	
+
+	<s id="87">
+		 calculated PageRanks for a set to values between 0.05 and 0.95 , in increments of 0.05 ; changing a did not affect performance . 
+	</s>
+	
+
+	<s id="88">
+		 0 if D is NIL PR 1 PR n ^ n =1^^+^ d if s ^ promotion(D) , 1 d ^1 if s ^ parentheticals(D) , max(r(s , lc(D) , d 1 on Figure 5 . 
+	</s>
+	
+
+	<s id="89">
+		 Formula for calculating PageRank ( 
+		<ref citStr="Page et al . ( 1998 )" id="37" label="CEPF" position="14299">
+			Page et al . ( 1998 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="90">
+		 r(s,D,d) ~ f , ~ ~ ~ r d ^1 ) ) otherwise ( s , rc(D) , Figure 4 . 
+	</s>
+	
+
+	<s id="91">
+		 Formula for calculating coherence-treebased sentence rank ( 
+		<ref citStr="Marcu ( 2000 )" id="38" label="CEPF" position="14463">
+			Marcu ( 2000 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="92">
+		 The discourse segments in Carlson et al . 
+	</s>
+	
+
+	<s id="93">
+		 (2002)’s database are often sub-sentential . 
+	</s>
+	
+
+	<s id="94">
+		 Therefore , we had to calculate sentence rankings from the rankings of the discourse segments that form the sentence under consideration . 
+	</s>
+	
+
+	<s id="95">
+		 We did this by calculating the average ranking , the minimal ranking , and the maximal ranking of all discourse segments in a sentence . 
+	</s>
+	
+
+	<s id="96">
+		 Our results showed that choosing the minimal ranking performed best , followed by the average ranking , followed by the maximal ranking ( cf. . 
+	</s>
+	
+
+	<s id="97">
+		 Section 4.4 ) . 
+	</s>
+	
+
+	<s id="98">
+		 3.2.2 Non-tree-based approach We used two different methods to determine sentence rankings for the non-tree coherence graphs4 . 
+	</s>
+	
+
+	<s id="99">
+		 Both methods implement the intuition that sentences are more important if other sentences relate to them ( 
+		<ref citStr="Sparck-Jones ( 1993 )" id="39" label="CEPF" position="15320">
+			Sparck-Jones ( 1993 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="100">
+		 The first method consists of simply determining the in-degree of each node in the graph . 
+	</s>
+	
+
+	<s id="101">
+		 A node represents a sentence , and the in-degree of a node represents the number of sentences that relate to that sentence . 
+	</s>
+	
+
+	<s id="102">
+		 The second method uses Page et al . 
+	</s>
+	
+
+	<s id="103">
+		 (1998)’s PageRank algorithm , which is used , for example , in the GoogleTM search engine . 
+	</s>
+	
+
+	<s id="104">
+		 Unlike just determining the in-degree of a node , PageRank takes into account the importance of sentences that relate to a sentence . 
+	</s>
+	
+
+	<s id="105">
+		 PageRank thus is a recursive algorithm that implements the idea that the more important sentences relate to a sentence , the more important that sentence becomes . 
+	</s>
+	
+
+	<s id="106">
+		 Figure 5 shows how PageRank is calculated . 
+	</s>
+	
+
+	<s id="107">
+		 PRn is the PageRank of the current sentence , PRn_1 is the PageRank of the sentence that relates to sentence n , on_1 is the out-degree of sentence n_1 , and a is a damping parameter that is set to a value between 0 and 1 . 
+	</s>
+	
+
+	<s id="108">
+		 We report results for a set to 0.85 because this is a value often used in applications of PageRank ( e.g. 
+		<ref citStr="Ding et al . ( 2002 )" id="40" label="CEPF" position="16443">
+			Ding et al . ( 2002 )
+		</ref>
+		 ; 
+		<ref citStr="Page et al . ( 1998 )" id="41" label="CEPF" position="16467">
+			Page et al . ( 1998 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="109">
+		 We also 4 Neither of these methods could be implemented for coherence trees since Marcu (2000)’s tree-based algorithm assumes binary branching trees . 
+	</s>
+	
+
+	<s id="110">
+		 Thus , the in- degree for all non-terminal nodes is always 2 . 
+	</s>
+	
+
+	<s id="111">
+		 4 Experiments In order to test algorithm performance , we compared algorithm sentence rankings to human sentence rankings . 
+	</s>
+	
+
+	<s id="112">
+		 This section describes the experiments we conducted . 
+	</s>
+	
+
+	<s id="113">
+		 In Experiment 1 , the texts were presented with paragraph breaks ; in Experiment 2 , the texts were presented without paragraph breaks . 
+	</s>
+	
+
+	<s id="114">
+		 This was done to control for the effect of paragraph information on human sentence rankings . 
+	</s>
+	
+
+	<s id="115">
+		 4.1 Materials for the coherence-based approaches In order to test the tree-based approach , we took coherence trees for 15 texts from a database of 385 texts from the Wall Street Journal that were annotated for coherence ( 
+		<ref citStr="Carlson et al . ( 2002 )" id="42" label="CEPF" position="17406">
+			Carlson et al . ( 2002 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="116">
+		 The database was independently annotated by six annotators . 
+	</s>
+	
+
+	<s id="117">
+		 Inter-annotator agreement was determined for six pairs of two annotators each , resulting in kappa values ( 
+		<ref citStr="Carletta ( 1996 )" id="43" label="CEPF" position="17615">
+			Carletta ( 1996 )
+		</ref>
+		 ) ranging from 0.62 to 0.82 for the whole database ( 
+		<ref citStr="Carlson et al . ( 2003 )" id="44" label="CEPF" position="17693">
+			Carlson et al . ( 2003 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="118">
+		 No kappa values for just the 15 texts we used were available . 
+	</s>
+	
+
+	<s id="119">
+		 For the non-tree based approach , we used coherence graphs from a database of 135 texts from the Wall Street Journal and the AP Newswire , annotated for coherence . 
+	</s>
+	
+
+	<s id="120">
+		 Each text was independently annotated by two annotators . 
+	</s>
+	
+
+	<s id="121">
+		 For the 15 texts we used , kappa was 0.78 , for the whole database , kappa was 0.84 . 
+	</s>
+	
+
+	<s id="122">
+		 4.2 Experiment 1 : With paragraph information 15 participants from the MIT community were paid for their participation . 
+	</s>
+	
+
+	<s id="123">
+		 All were native speakers of English and were naïve as to the purpose of the study ( i.e. none of the subjects was familiar with theories of coherence in natural language , for example ) . 
+	</s>
+	
+
+	<s id="124">
+		 Participants were asked to read 15 texts from the Wall Street Journal , and , for each sentence in each text , to provide a ranking of how important that sentence is with respect to the content of the text , on an integer scale from 1 to 7 ( 1 = not important ; 7 = very important ) . 
+	</s>
+	
+
+	<s id="125">
+		 The texts were selected so Figure 6 . 
+	</s>
+	
+
+	<s id="126">
+		 Human ranking results for one text ( wsj_1306 ) . 
+	</s>
+	
+
+	<s id="127">
+		 8 7 6 5 4 3 2 1 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 KbParagraph With Paragraph sentence number that there was a coherence tree annotation available in Carlson et al . 
+	</s>
+	
+
+	<s id="128">
+		 (2002)’s database . 
+	</s>
+	
+
+	<s id="129">
+		 Text lengths for the 15 texts we selected ranged from 130 to 901 words ( 5 to 47 sentences ) ; average text length was 442 words ( 20 sentences ) , median was 368 words ( 16 sentences ) . 
+	</s>
+	
+
+	<s id="130">
+		 Additionally , texts were selected so that they were about as diverse topics as possible . 
+	</s>
+	
+
+	<s id="131">
+		 The experiment was conducted in front of personal computers . 
+	</s>
+	
+
+	<s id="132">
+		 Texts were presented in a web browser as one webpage per text ; for some texts , participants had to scroll to see the whole text . 
+	</s>
+	
+
+	<s id="133">
+		 Each sentence was presented on a new line . 
+	</s>
+	
+
+	<s id="134">
+		 Paragraph breaks were indicated by empty lines ; this was pointed out to the participants during the instructions for the experiment . 
+	</s>
+	
+
+	<s id="135">
+		 4.3 Experiment 2 : Without paragraph information The method was the same as in Experiment 1 , except that texts in Experiment 2 did not include paragraph information . 
+	</s>
+	
+
+	<s id="136">
+		 Each sentence was presented on a new line . 
+	</s>
+	
+
+	<s id="137">
+		 None of the 15 participants who participated in Experiment 2 had participated in Experiment 1 . 
+	</s>
+	
+
+	<s id="138">
+		 4.4 Results of the experiments Human sentence rankings did not differ significantly between Experiment 1 and Experiment 2 for any of the 15 texts ( all Fs &lt; 1 ) . 
+	</s>
+	
+
+	<s id="139">
+		 This suggests that paragraph information does not have a big effect on human sentence rankings , at least not for the 15 texts that we examined . 
+	</s>
+	
+
+	<s id="140">
+		 Figure 6 shows the results from both experiments for one text . 
+	</s>
+	
+
+	<s id="141">
+		 We compared human sentence rankings to different algorithmic approaches . 
+	</s>
+	
+
+	<s id="142">
+		 The paragraph- based rankings do not provide scaled importance rankings but only “important” vs. “not important” . 
+	</s>
+	
+
+	<s id="143">
+		 Therefore , in order to compare human rankings to the paragraph-based baseline approach , we calculated point biserial correlations ( cf. 
+		<ref citStr="Bortz ( 1999 )" id="45" label="CEPF" position="20868">
+			Bortz ( 1999 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="144">
+		 We obtained significant correlations between paragraph-based rankings and human rankings only for one of the 15 texts . 
+	</s>
+	
+
+	<s id="145">
+		 All other algorithms provided scaled importance rankings . 
+	</s>
+	
+
+	<s id="146">
+		 Many evaluations of scalable sentence ranking algorithms are based on precision/recall/Fscores ( e.g. 
+		<ref citStr="Carlson et al . ( 2001 )" id="46" label="CEPF" position="21205">
+			Carlson et al . ( 2001 )
+		</ref>
+		 ; 
+		<ref citStr="Ono et al . ( 1994 )" id="47" label="CEPF" position="21228">
+			Ono et al . ( 1994 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="147">
+		 However , 
+		<ref citStr="Jing et al . ( 1998 )" id="48" label="CEPF" position="21273">
+			Jing et al . ( 1998 )
+		</ref>
+		 argue that such measures are inadequate because they only distinguish between hits and misses or false alarms , but do not account for a degree of agreement . 
+	</s>
+	
+
+	<s id="148">
+		 For example , imagine a situation where the human ranking for a given sentence is “7” ( “very important” ) on an integer scale ranging from 1 to 7 , and Algorithm A gives the same sentence a ranking of “7” on the same scale , Algorithm B gives a ranking of “6” , and Algorithm C gives a ranking of “2” . 
+	</s>
+	
+
+	<s id="149">
+		 Intuitively , Algorithm B , although it does not reach perfect performance , still performs better than Algorithm C. Precision/recall/F-scores do not account for that difference and would rate Algorithm A as “hit” but Algorithm B as well as Algorithm C as “miss” . 
+	</s>
+	
+
+	<s id="150">
+		 In order to collect performance measures that are more adequate to the evaluation of scaled importance rankings , we computed Spearman’s rank correlation coefficients . 
+	</s>
+	
+
+	<s id="151">
+		 The rank correlation coefficients were corrected for tied ranks because in our rankings it was possible for more than one sentence to have the same importance rank , i.e. to have tied ranks ( 
+		<ref citStr="Horn ( 1942 )" id="49" label="CEPF" position="22427">
+			Horn ( 1942 )
+		</ref>
+		 ; 
+		<ref citStr="Bortz ( 1999 )" id="50" label="CEPF" position="22444">
+			Bortz ( 1999 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="152">
+		 In addition to evaluating word-based and coherence-based algorithms , we evaluated one commercially available summarizer , the MSWord summarizer , against human sentence rankings . 
+	</s>
+	
+
+	<s id="153">
+		 Our reason for including an evaluation of the MSWord summarizer was to have a more useful baseline for scalable sentence rankings than the paragraph-based approach provides . 
+	</s>
+	
+
+	<s id="154">
+		 Figure 7 . 
+	</s>
+	
+
+	<s id="155">
+		 Average rank correlations of algorithm and human sentence rankings . 
+	</s>
+	
+
+	<s id="156">
+		 NoParagraph WithParagraph 0.6 0.5 0.4 0.3 0.2 0.1 0 MSWord Luhn tf.idf MarcuAvg MarcuMin MarcuMax in-degree PageRank Figure 7 shows average rank correlations ( ^avg ) of each algorithm and human sentence ranking for the 15 texts . 
+	</s>
+	
+
+	<s id="157">
+		 MarcuAvg refers to the version of Marcu (2000)’s algorithm where we calculated sentence rankings as the average of the rankings of all discourse segments that constitute that sentence ; for MarcuMin , sentence rankings were the minimum of the rankings of all discourse segments in that sentence ; for MarcuMax we selected the maximum of the rankings of all discourse segments in that sentence . 
+	</s>
+	
+
+	<s id="158">
+		 Figure 7 shows that the MSWord summarizer performed numerically worse than most other algorithms , except MarcuMin . 
+	</s>
+	
+
+	<s id="159">
+		 Figure 7 also shows that PageRank performed numerically better than all other algorithms . 
+	</s>
+	
+
+	<s id="160">
+		 Performance was significantly better than most other algorithms ( MSWord , NoParagraph : F(1,28) = 21.405 , p = 0.0001 ; MSWord , WithParagraph : F(1,28) = 26.071 , p = 0.0001 ; Luhn , WithParagraph : F(1,28) = 5.495 , p = 0.026 ; MarcuAvg , NoParagraph : F(1,28) = 9.186 , p = 0.005 ; MarcuAvg , WithParagraph : F(1,28) = 9.097 , p = 0.005 ; MarcuMin , NoParagraph : F(1,28) = 4.753 , p = 0.038 ; MarcuMax , NoParagraph F(1,28) = 24.633 , p = 0.0001 ; MarcuMax , WithParagraph : F(1,28) = 31.430 , p =0.0001 ) . 
+	</s>
+	
+
+	<s id="161">
+		 Exceptions are Luhn , NoParagraph ( F(1,28) = 1.859 , p = 0.184 ) ; tf.idf , NoParagraph ( F(1,28) = 2.307 , p = 0.14 ) ; MarcuMin , WithParagraph ( F(1,28) = 2.555 , p = 0.121 ) . 
+	</s>
+	
+
+	<s id="162">
+		 The difference between PageRank and tf.idf , WithParagraph was marginally significant ( F(1,28) = 3.113 , p = 0.089 ) . 
+	</s>
+	
+
+	<s id="163">
+		 As mentioned above , human sentence rankings did not differ significantly between Experiment 1 and Experiment 2 for any of the 15 texts ( all Fs &lt; 1 ) . 
+	</s>
+	
+
+	<s id="164">
+		 Therefore , in order to lend more power to our statistical tests , we collapsed the data for each text for the WithParagraph and the NoParagraph condition , and treated them as one experiment . 
+	</s>
+	
+
+	<s id="165">
+		 Figure 8 shows that when the data from Experiments 1 and 2 are collapsed , PageRank performed significantly better than all other algorithms except in-degree ( two-tailed t-test results : MSWord : F(1 , 58 ) = 48.717 , p = 0.0001 ; Luhn : F(1,58) = 6.368 , p = 0.014 ; tf.idf : F(1,58) = 5.522 , p = 0.022 ; MarcuAvg : F(1,58) = 18.922 , p = 0.0001 ; MarcuMin : F(1,58) = 7.362 , p = 0.009 ; MarcuMax : F(1,58) = 56.989 , p = 0.0001 ; in- degree : F(1,58) &lt; 1 ) . 
+	</s>
+	
+
+	<s id="166">
+		 Figure 8 . 
+	</s>
+	
+
+	<s id="167">
+		 Average rank correlations of algorithm and human sentence rankings with collapsed data . 
+	</s>
+	
+
+	<s id="168">
+		 5 Conclusion The goal of this paper was to evaluate the results of three different kinds of sentence ranking algorithms and one commercially available summarizer . 
+	</s>
+	
+
+	<s id="169">
+		 In order to evaluate the algorithms , we compared their sentence rankings to human sentence rankings of fifteen texts of varying length from the Wall Street Journal . 
+	</s>
+	
+
+	<s id="170">
+		 Our results indicated that a simple paragraph- based algorithm that was intended as a baseline performed very poorly , and that word-based and some coherence-based algorithms showed the best performance . 
+	</s>
+	
+
+	<s id="171">
+		 The only commercially available summarizer that we tested , the MSWord summarizer , showed worse performance than most other algorithms . 
+	</s>
+	
+
+	<s id="172">
+		 Furthermore , we found that a coherence-based algorithm that uses PageRank and takes non-tree coherence graphs as input performed better than most versions of a 0.5 0.4 0.3 0.2 0.1 0 MSWord Luhn tf.idf MarcuAvg MarcuMin MarcuMax in-degree PageRank coherence-based algorithm that operates on coherence trees . 
+	</s>
+	
+
+	<s id="173">
+		 When data from Experiments 1 and 2 were collapsed , the PageRank algorithm performed significantly better than all other algorithms , except the coherence-based algorithm that uses in-degrees of nodes in non-tree coherence graphs . 
+	</s>
+	
+
+	<s id="174">
+		 References Jürgen Bortz . 
+	</s>
+	
+
+	<s id="175">
+		 1999. Statistik für Sozialwissen- schaftler . 
+	</s>
+	
+
+	<s id="176">
+		 Berlin : Springer Verlag . 
+	</s>
+	
+
+	<s id="177">
+		 Ronald Brandow , Karl Mitze , &amp; Lisa F Rau . 
+	</s>
+	
+
+	<s id="178">
+		 1995. Automatic condensation of electronic publications by sentence selection . 
+	</s>
+	
+
+	<s id="179">
+		 Information Processing and Management , 31(5) , 675-685 . 
+	</s>
+	
+
+	<s id="180">
+		 Orkut Buyukkokten , Hector Garcia-Molina , &amp; Andreas Paepcke . 
+	</s>
+	
+
+	<s id="181">
+		 2001. Seeing the whole in parts : Text summarization for web browsing on handheld devices . 
+	</s>
+	
+
+	<s id="182">
+		 Paper presented at the 10th International WWW Conference , Hong Kong , China . 
+	</s>
+	
+
+	<s id="183">
+		 Jean Carletta . 
+	</s>
+	
+
+	<s id="184">
+		 1996. Assessing agreement on classification tasks : The kappa statistic . 
+	</s>
+	
+
+	<s id="185">
+		 Computational Linguistics , 22(2) , 249- 254 . 
+	</s>
+	
+
+	<s id="186">
+		 Lynn Carlson , John M Conroy , Daniel Marcu , Dianne P O'Leary , Mary E Okurowski , Anthony Taylor , et al . 2001. An empirical study on the relation between abstracts , extracts , and the discourse structure of texts . 
+	</s>
+	
+
+	<s id="187">
+		 Paper presented at the DUC-2001 , New Orleans , LA , USA . 
+	</s>
+	
+
+	<s id="188">
+		 Lynn Carlson , Daniel Marcu , &amp; Mary E Okurowski . 
+	</s>
+	
+
+	<s id="189">
+		 2002. RST Discourse Treebank . 
+	</s>
+	
+
+	<s id="190">
+		 Philadelphia , PA : Linguistic Data Consortium . 
+	</s>
+	
+
+	<s id="191">
+		 Lynn Carlson , Daniel Marcu , &amp; Mary E Okurowski . 
+	</s>
+	
+
+	<s id="192">
+		 2003. Building a discourse- tagged corpus in the framework of rhetorical structure theory . 
+	</s>
+	
+
+	<s id="193">
+		 In J. van Kuppevelt &amp; R. Smith ( Eds . 
+	</s>
+	
+
+	<s id="194">
+		 ) , Current directions in discourse and dialogue . 
+	</s>
+	
+
+	<s id="195">
+		 New York : Kluwer Academic Publishers . 
+	</s>
+	
+
+	<s id="196">
+		 Simon Corston-Oliver . 
+	</s>
+	
+
+	<s id="197">
+		 1998. Computing representations of the structure of written discourse . 
+	</s>
+	
+
+	<s id="198">
+		 Redmont , WA . 
+	</s>
+	
+
+	<s id="199">
+		 Chris Ding , Xiaofeng He , Perry Husbands , Hongyuan Zha , &amp; Horst Simon . 
+	</s>
+	
+
+	<s id="200">
+		 2002. PageRank , HITS , and a unified framework for link analysis . 
+	</s>
+	
+
+	<s id="201">
+		 ( No. 49372 ) . 
+	</s>
+	
+
+	<s id="202">
+		 Berkeley , CA , USA . 
+	</s>
+	
+
+	<s id="203">
+		 Jade Goldstein , Mark Kantrowitz , Vibhu O Mittal , &amp; Jamie O Carbonell . 
+	</s>
+	
+
+	<s id="204">
+		 1999 . 
+	</s>
+	
+
+	<s id="205">
+		 Summarizing text documents : Sentence selection and evaluation metrics . 
+	</s>
+	
+
+	<s id="206">
+		 Paper presented at the SIGIR-99 , Melbourne , Australia . 
+	</s>
+	
+
+	<s id="207">
+		 Yihong Gong , &amp; Xin Liu . 
+	</s>
+	
+
+	<s id="208">
+		 2001. Generic text summarization using relevance measure and latent semantic analysis . 
+	</s>
+	
+
+	<s id="209">
+		 Paper presented at the Annual ACM Conference on Research and Development in Information Retrieval , New Orleans , LA , USA . 
+	</s>
+	
+
+	<s id="210">
+		 Barbara J Grosz , &amp; Candace L Sidner . 
+	</s>
+	
+
+	<s id="211">
+		 1986. Attention , intentions , and the structure of discourse . 
+	</s>
+	
+
+	<s id="212">
+		 Computational Linguistics , 12(3) , 175-204 . 
+	</s>
+	
+
+	<s id="213">
+		 Julia Hirschberg , &amp; Christine H Nakatani . 
+	</s>
+	
+
+	<s id="214">
+		 1996. A prosodic analysis of discourse segments in direction-giving monologues . 
+	</s>
+	
+
+	<s id="215">
+		 Paper presented at the 34th Annual Meeting of the Association for Computational Linguistics , Santa Cruz , CA . 
+	</s>
+	
+
+	<s id="216">
+		 Jerry R Hobbs . 
+	</s>
+	
+
+	<s id="217">
+		 1985. On the coherence and structure of discourse . 
+	</s>
+	
+
+	<s id="218">
+		 Stanford , CA . 
+	</s>
+	
+
+	<s id="219">
+		 D Horn . 
+	</s>
+	
+
+	<s id="220">
+		 1942. A correction for the effect of tied ranks on the value of the rank difference correlation coefficient . 
+	</s>
+	
+
+	<s id="221">
+		 Journal of Educational Psychology , 33 , 686-690 . 
+	</s>
+	
+
+	<s id="222">
+		 Hongyan Jing , Kathleen R McKeown , Regina Barzilay , &amp; Michael Elhadad . 
+	</s>
+	
+
+	<s id="223">
+		 1998. Summarization evaluation methods : Experiments and analysis . 
+	</s>
+	
+
+	<s id="224">
+		 Paper presented at the AAAI-98 Spring Symposium on Intelligent Text Summarization , Stanford , CA , USA . 
+	</s>
+	
+
+	<s id="225">
+		 Alex Lascarides , &amp; Nicholas Asher . 
+	</s>
+	
+
+	<s id="226">
+		 1993 . 
+	</s>
+	
+
+	<s id="227">
+		 Temporal interpretation , discourse relations and common sense entailment . 
+	</s>
+	
+
+	<s id="228">
+		 Linguistics and Philosophy , 16(5) , 437- 493 . 
+	</s>
+	
+
+	<s id="229">
+		 Hans Peter Luhn . 
+	</s>
+	
+
+	<s id="230">
+		 1958. The automatic creation of literature abstracts . 
+	</s>
+	
+
+	<s id="231">
+		 IBM Journal of Research and Development , 2(2) , 159-165 . 
+	</s>
+	
+
+	<s id="232">
+		 William C Mann , &amp; Sandra A Thompson . 
+	</s>
+	
+
+	<s id="233">
+		 1988 . 
+	</s>
+	
+
+	<s id="234">
+		 Rhetorical structure theory : Toward a functional theory of text organization . 
+	</s>
+	
+
+	<s id="235">
+		 Text , 8(3) , 243-281 . 
+	</s>
+	
+
+	<s id="236">
+		 Christopher D Manning , &amp; Hinrich Schuetze . 
+	</s>
+	
+
+	<s id="237">
+		 2000. Foundations of statistical natural language processing . 
+	</s>
+	
+
+	<s id="238">
+		 Cambridge , MA , USA : MIT Press . 
+	</s>
+	
+
+	<s id="239">
+		 Daniel Marcu . 
+	</s>
+	
+
+	<s id="240">
+		 2000. The theory and practice of discourse parsing and summarization . 
+	</s>
+	
+
+	<s id="241">
+		 Cambridge , MA : MIT Press . 
+	</s>
+	
+
+	<s id="242">
+		 Mandar Mitra , Amit Singhal , &amp; Chris Buckley . 
+	</s>
+	
+
+	<s id="243">
+		 1997. Automatic text summarization by paragraph extraction . 
+	</s>
+	
+
+	<s id="244">
+		 Paper presented at the ACL/EACL-97 Workshop on Intelligent Scalable Text Summarization , Madrid , Spain . 
+	</s>
+	
+
+	<s id="245">
+		 Kenji Ono , Kazuo Sumita , &amp; Seiji Miike . 
+	</s>
+	
+
+	<s id="246">
+		 1994. Abstract generation based on rhetorical structure extraction . 
+	</s>
+	
+
+	<s id="247">
+		 Paper presented at the COLING-94 , Kyoto , Japan . 
+	</s>
+	
+
+	<s id="248">
+		 Lawrence Page , Sergey Brin , Rajeev Motwani , &amp; Terry Winograd . 
+	</s>
+	
+
+	<s id="249">
+		 1998. The PageRank citation ranking : Bringing order to the web. Stanford , CA . 
+	</s>
+	
+
+	<s id="250">
+		 Dragomir R Radev , Eduard Hovy , &amp; Kathleen R McKeown . 
+	</s>
+	
+
+	<s id="251">
+		 2002. Introduction to the special issue on summarization . 
+	</s>
+	
+
+	<s id="252">
+		 Computational Linguistics , 28(4) , 399- 408 . 
+	</s>
+	
+
+	<s id="253">
+		 Gerard Salton , &amp; Christopher Buckley . 
+	</s>
+	
+
+	<s id="254">
+		 1988. Term-weighting approaches in automatic text retrieval . 
+	</s>
+	
+
+	<s id="255">
+		 Information Processing and Management , 24(5) , 513-523 . 
+	</s>
+	
+
+	<s id="256">
+		 Karen Sparck-Jones . 
+	</s>
+	
+
+	<s id="257">
+		 1993. What might be in a summary ? 
+	</s>
+	
+
+	<s id="258">
+		 In G. Knorz , J. Krause &amp; C. Womser-Hacker ( Eds . 
+	</s>
+	
+
+	<s id="259">
+		 ) , Information retrieval 93 : Von der Modellierung zur Anwendung ( pp. 9-26 ) . 
+	</s>
+	
+
+	<s id="260">
+		 Konstanz : Universitaetsverlag . 
+	</s>
+	
+
+	<s id="261">
+		 Karen Sparck-Jones , &amp; Tetsuya Sakai . 
+	</s>
+	
+
+	<s id="262">
+		 2001 , September 2001 . 
+	</s>
+	
+
+	<s id="263">
+		 Generic summaries for indexing in IR . 
+	</s>
+	
+
+	<s id="264">
+		 Paper presented at the ACM SIGIR-2001 , New Orleans , LA , USA . 
+	</s>
+	
+
+	<s id="265">
+		 Klaus Zechner . 
+	</s>
+	
+
+	<s id="266">
+		 1996. Fast generation of abstracts from general domain text corpora by extracting relevant sentences . 
+	</s>
+	
+
+	<s id="267">
+		 Paper presented at the COLING-96 , Copenhagen , Denmark . 
+	</s>
+	
+
+
+</acldoc>

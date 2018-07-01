@@ -1,0 +1,1615 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1051">
+	
+
+	<s id="1">
+		 Computing Locally Coherent Discourses Alexander Koller Dept. of Computational Linguistics Saarland University Saarbr¨ucken , Germany koller@coli.uni-sb.de Ernst Althaus LORIA Universit´e Henri Poincar´e Vandœuvre-l`es-Nancy , France althaus@loria.fr Nikiforos Karamanis School of Informatics University of Edinburgh Edinburgh , UK N.Karamanis@sms.ed.ac.uk Abstract We present the first algorithm that computes optimal orderings of sentences into a locally coherent discourse . 
+	</s>
+	
+
+	<s id="2">
+		 The algorithm runs very efficiently on a variety of coherence measures from the literature . 
+	</s>
+	
+
+	<s id="3">
+		 We also show that the discourse ordering problem is NP-complete and cannot be approximated . 
+	</s>
+	
+
+	<s id="4">
+		 1 Introduction One central problem in discourse generation and summarisation is to structure the discourse in a way that maximises coherence . 
+	</s>
+	
+
+	<s id="5">
+		 Coherence is the property of a good human-authored text that makes it easier to read and understand than a randomly- ordered collection of sentences . 
+	</s>
+	
+
+	<s id="6">
+		 Several papers in the recent literature 
+		<ref citStr="Mellish et al. , 1998" id="1" label="CEPF" position="1051">
+			( Mellish et al. , 1998 
+		</ref>
+		<ref citStr="Barzilay et al. , 2002" id="2" label="CEPF" position="1075">
+			; Barzilay et al. , 2002 
+		</ref>
+		<ref citStr="Karamanis and Manurung , 2002" id="3" label="CEPF" position="1100">
+			; Karamanis and Manurung , 2002 
+		</ref>
+		<ref citStr="Lapata , 2003" id="4" label="CEPF" position="1132">
+			; Lapata , 2003 
+		</ref>
+		<ref citStr="Karamanis et al. , 2004" id="5" label="CEPF" position="1148">
+			; Karamanis et al. , 2004 )
+		</ref>
+		 have focused on defining local coherence , which evaluates the quality of sentence-to-sentence transitions . 
+	</s>
+	
+
+	<s id="7">
+		 This is in contrast to theories of global coherence , which can consider relations between larger chunks of the discourse and e.g. structures them into a tree 
+		<ref citStr="Mann and Thompson , 1988" id="6" label="CEPF" position="1453">
+			( Mann and Thompson , 1988 
+		</ref>
+		<ref citStr="Marcu , 1997" id="7" label="CEPF" position="1480">
+			; Marcu , 1997 
+		</ref>
+		<ref citStr="Webber et al. , 1999" id="8" label="CEPF" position="1495">
+			; Webber et al. , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="8">
+		 Measures of local coherence specify which ordering of the sentences makes for the most coherent discourse , and can be based e.g. on Centering Theory 
+		<ref citStr="Walker et al. , 1998" id="9" label="CEPF" position="1681">
+			( Walker et al. , 1998 
+		</ref>
+		<ref citStr="Brennan et al. , 1987" id="10" label="CEPF" position="1704">
+			; Brennan et al. , 1987 
+		</ref>
+		<ref citStr="Kibble and Power , 2000" id="11" label="CEPF" position="1728">
+			; Kibble and Power , 2000 
+		</ref>
+		<ref citStr="Karamanis and Manurung , 2002" id="12" label="CEPF" position="1754">
+			; Karamanis and Manurung , 2002 )
+		</ref>
+		 or on statistical models 
+		<ref citStr="Lapata , 2003" id="13" label="CEPF" position="1830">
+			( Lapata , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="9">
+		 But while formal models of local coherence have made substantial progress over the past few years , the question of how to efficiently compute an ordering of the sentences in a discourse that maximises local coherence is still largely unsolved . 
+	</s>
+	
+
+	<s id="10">
+		 The fundamental problem is that any of the factorial number of permutations of the sentences could be the optimal discourse , which makes for a formidable search space for nontrivial discourses . 
+	</s>
+	
+
+	<s id="11">
+		 
+		<ref citStr="Mellish et al . ( 1998 )" id="14" label="CJPN" position="2326">
+			Mellish et al . ( 1998 )
+		</ref>
+		 and 
+		<ref citStr="Karamanis and Manurung ( 2002 )" id="15" label="CJPN" position="2362">
+			Karamanis and Manurung ( 2002 )
+		</ref>
+		 present algorithms based on genetic programming , and 
+		<ref citStr="Lapata ( 2003 )" id="16" label="CJPN" position="2432">
+			Lapata ( 2003 )
+		</ref>
+		 uses a graph-based heuristic algorithm , but none of them can give any guarantees about the quality of the computed ordering . 
+	</s>
+	
+
+	<s id="12">
+		 This paper presents the first algorithm that computes optimal locally coherent discourses , and establishes the complexity of the discourse ordering problem . 
+	</s>
+	
+
+	<s id="13">
+		 We first prove that the discourse ordering problem for local coherence measures is equivalent to the Travelling Salesman Problem ( TSP ) . 
+	</s>
+	
+
+	<s id="14">
+		 This means that discourse ordering is NP-complete , i.e. there are probably no polynomial algorithms for it . 
+	</s>
+	
+
+	<s id="15">
+		 Worse , our result implies that the problem is not even approximable ; any polynomial algorithm will compute arbitrarily bad solutions on unfortunate inputs . 
+	</s>
+	
+
+	<s id="16">
+		 Note that all approximation algorithms for the TSP assume that the underlying cost function is a metric , which is not the case for the coherence measures we consider . 
+	</s>
+	
+
+	<s id="17">
+		 Despite this negative result , we show that by applying modern algorithms for TSP , the discourse ordering problem can be solved efficiently enough for practical applications . 
+	</s>
+	
+
+	<s id="18">
+		 We define a branch-and-cut algorithm based on linear programming , and evaluate it on discourse ordering problems based on the GNOME corpus 
+		<ref citStr="Karamanis , 2003" id="17" label="OEPF" position="3696">
+			( Karamanis , 2003 )
+		</ref>
+		 and the BLLIP corpus 
+		<ref citStr="Lapata , 2003" id="18" label="OEPF" position="3735">
+			( Lapata , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="19">
+		 If the local coherence measure depends only on the adjacent pairs of sentences in the discourse , we can order discourses of up to 50 sentences in under a second . 
+	</s>
+	
+
+	<s id="20">
+		 If it is allowed to depend on the left-hand context of the sentence pair , computation is often still efficient , but can become expensive . 
+	</s>
+	
+
+	<s id="21">
+		 The structure of the paper is as follows . 
+	</s>
+	
+
+	<s id="22">
+		 We will first formally define the discourse ordering problem and relate our definition to the literature on local coherence measures in Section 2 . 
+	</s>
+	
+
+	<s id="23">
+		 Then we will prove the equivalence of discourse ordering and TSP ( Section 3 ) , and present algorithms for solving it in Section 4 . 
+	</s>
+	
+
+	<s id="24">
+		 Section 5 evaluates our algorithms on examples from the literature . 
+	</s>
+	
+
+	<s id="25">
+		 We compare our approach to various others in Section 6 , and then conclude in Section 7 . 
+	</s>
+	
+
+	<s id="26">
+		 2 The Discourse Ordering Problem We will first give a formal definition of the problem of computing locally coherent discourses , and demonstrate how some local coherence measures from the literature fit into this framework . 
+	</s>
+	
+
+	<s id="27">
+		 2.1 Definitions We assume that a discourse is made up of discourse units ( depending on the underlying theory , these could be utterances , sentences , clauses , etc. ) , which must be ordered to achieve maximum local coherence . 
+	</s>
+	
+
+	<s id="28">
+		 We call the problem of computing the optimal ordering the discourse ordering problem . 
+	</s>
+	
+
+	<s id="29">
+		 We formalise the problem by assigning a cost to each unit-to-unit transition , and a cost for the discourse to start with a certain unit . 
+	</s>
+	
+
+	<s id="30">
+		 Transition costs may depend on the local context , i.e. a fixed number of discourse units to the left may influence the cost of a transition . 
+	</s>
+	
+
+	<s id="31">
+		 The optimal ordering is the one which minimises the sum of the costs . 
+	</s>
+	
+
+	<s id="32">
+		 Definition 1 . 
+	</s>
+	
+
+	<s id="33">
+		 A d -place transition cost function for a set U of discourse units is a function cT : Ud ^ R. Intuitively , cT(un l u1 , ... , ud_1 ) is the cost of the transition ( ud_1 , ud ) given that the immediately preceding units were u1 , ... , ud_2 . 
+	</s>
+	
+
+	<s id="34">
+		 A d -place initial costfunction for U is a function cI : Ud ^ IR , . 
+	</s>
+	
+
+	<s id="35">
+		 Intuitively , cI(u1 , ... , ud ) is the cost for the fact that the discourse starts with the sequence u1 , ... , ud . 
+	</s>
+	
+
+	<s id="36">
+		 The d -place discourse ordering problem is defined as follows : Given a set U = { u1 , ... , un } , a d-place transition cost function cT and a ( d — 1)- place initial cost function cI , compute a permutation ^ of { 1 , ... , n } such that cI(uw(1) , ... , uw(d_1)) cT ( uw(i+d_1) l uw(i) , ... , uw(i+d_2)) is minimal . 
+	</s>
+	
+
+	<s id="37">
+		 The notation for the cost functions is suggestive : The transition cost function has the character of a conditional probability , which specifies that the cost of continuing the discourse with the unit ud depends on the local context u1 , ... , ud_1 . 
+	</s>
+	
+
+	<s id="38">
+		 This local context is not available for the first d — 1 units of the discourse , which is why their costs are summarily covered by the initial function . 
+	</s>
+	
+
+	<s id="39">
+		 2.2 Centering-Based Cost Functions One popular class of coherence measures is based on Centering Theory ( CT , 
+		<ref citStr="Walker et al. , 1998" id="19" label="CERF" position="6922">
+			( Walker et al. , 1998 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="40">
+		 We will briefly sketch its basic notions and then show how some CT-based coherence measures can be cast into our framework . 
+	</s>
+	
+
+	<s id="41">
+		 The standard formulation of CT e.g. in 
+		<ref citStr="Walker et al. , 1998" id="20" label="CEPF" position="7133">
+			( Walker et al. , 1998 )
+		</ref>
+		 , calls the discourse units utterances , and assigns to each utterance ui in the discourse a list Cf ( ui ) of forward-looking centres . 
+	</s>
+	
+
+	<s id="42">
+		 The members of Cf(ui) correspond to the referents of the NPs in ui and are ranked in order of prominence , the first element being the preferred centre Cp(ui) . 
+	</s>
+	
+
+	<s id="43">
+		 The backward-looking centre Cb(ui) of ui is defined as the highest ranked element of Cf ( ui ) which also appears in Cf ( ui_1 ) , and serves as the link between the two subsequent utterances ui_1 and ui . 
+	</s>
+	
+
+	<s id="44">
+		 Each utterance has at most one Cb . 
+	</s>
+	
+
+	<s id="45">
+		 If ui and ui_1 have no forward-looking centres in common , or if ui is the first utterance in the discourse , then ui does not have a Cb at all . 
+	</s>
+	
+
+	<s id="46">
+		 Based on these concepts , CT classifies the transitions between subsequent utterances into different types . 
+	</s>
+	
+
+	<s id="47">
+		 Table 1 shows the most common classification into the four types CONTINUE , RETAIN , SMOOTH-SHIFT , and ROUGH-SHIFT , which are predicted to be less and less coherent in this order 
+		<ref citStr="Brennan et al. , 1987" id="21" label="CEPF" position="8189">
+			( Brennan et al. , 1987 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="48">
+		 
+		<ref citStr="Kibble and Power ( 2000 )" id="22" label="CEPF" position="8226">
+			Kibble and Power ( 2000 )
+		</ref>
+		 define three further classes of transitions : COHERENCE and SALIENCE , which are both defined in Table 1 as well , and NOCB , the class of transitions for which Cb(ui) is undefined . 
+	</s>
+	
+
+	<s id="49">
+		 Finally , a transition is considered to satisfy the CHEAPNESS constraint 
+		<ref citStr="Strube and Hahn , 1999" id="23" label="CEPF" position="8518">
+			( Strube and Hahn , 1999 )
+		</ref>
+		 if Cb(ui) = Cp(ui_1) . 
+	</s>
+	
+
+	<s id="50">
+		 Table 2 summarises some cost functions from the literature , in the reconstruction of 
+		<ref citStr="Karamanis et al . ( 2004 )" id="24" label="CEPF" position="8663">
+			Karamanis et al . ( 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="51">
+		 Each line shows the name of the coherence measure , the arity d from Definition 1 , and the initial and transition cost functions . 
+	</s>
+	
+
+	<s id="52">
+		 To fit the definitions in one line , we use terms of the form fk , which abbreviate applications of f to the last k arguments of the cost functions , i.e. f ( ud_k+ 1 , . 
+	</s>
+	
+
+	<s id="53">
+		 .. , ud ) . 
+	</s>
+	
+
+	<s id="54">
+		 The most basic coherence measure , M.NOCB 
+		<ref citStr="Karamanis and Manurung , 2002" id="25" label="CEPF" position="9092">
+			( Karamanis and Manurung , 2002 )
+		</ref>
+		 , simply assigns to each NO CB transition the cost 1 and to every other transition the cost 0 . 
+	</s>
+	
+
+	<s id="55">
+		 The definition of cT(u2lu1) , which decodes to nocb(u1 , u2 ) , only looks at the two units in the transition , and no further context . 
+	</s>
+	
+
+	<s id="56">
+		 The initial costs for this coherence measure are always zero . 
+	</s>
+	
+
+	<s id="57">
+		 The measure M.KP 
+		<ref citStr="Kibble and Power , 2000" id="26" label="CEPF" position="9460">
+			( Kibble and Power , 2000 )
+		</ref>
+		 sums the value of nocb and the values of three functions which evaluate to 0 if the transition is cheap , salient , or coherent , and 1 otherwise . 
+	</s>
+	
+
+	<s id="58">
+		 This is an instance of the 3-place discourse ordering problem because COHERENCE depends on Cb(ui_1) , which itself depends on Cf(ui_2) ; hence nocoh must take n_d+1 X i=1 + COHERENCE : COHERENCE* : Cb(ui) = Cb(ui-1) Cb(ui) =~ Cb(ui-1) SALIENCE : Cb(ui) = Cp(ui) CONTINUE SMOOTH-SHIFT SALIENCE* : Cb(ui) =~ Cp(ui) RETAIN ROUGH-SHIFT Table 1 : COHERENCE , SALIENCE and the table of standard transitions d M.NOCB 2 M.KP 3 M.BFP 3 M.LAPATA 2 initial cost cI(u1 , . 
+	</s>
+	
+
+	<s id="59">
+		 .. , ud-1 ) 0 nocb2 + nocheap2 + nosal2 ( 1— nosal2 , nosal2 , 0 , 0 ) — log P(u1) transition cost cT(udl u1 , . 
+	</s>
+	
+
+	<s id="60">
+		 .. , ud-1 ) nocb2 nocb2 + nocheap2 + nosal2 + nocoh3 ( cont3 , ret3 , ss3 , rs3 ) — log P(u2 lu1 ) Table 2 : Some cost functions from the literature . 
+	</s>
+	
+
+	<s id="61">
+		 three arguments . 
+	</s>
+	
+
+	<s id="62">
+		 Finally , the measure M.BFP 
+		<ref citStr="Brennan et al. , 1987" id="27" label="CEPF" position="10453">
+			( Brennan et al. , 1987 )
+		</ref>
+		 uses a lexicographic ordering on 4-tuples which indicate whether the transition is a CON- TINUE , RETAIN , SMOOTH-SHIFT , or ROUGH- SHIFT . 
+	</s>
+	
+
+	<s id="63">
+		 cT and all four functions it is computed from take three arguments because the classification depends on COHERENCE . 
+	</s>
+	
+
+	<s id="64">
+		 As the first transition in the discourse is coherent by default ( it has no Cb ) , we can compute cI by distinguishing RETAIN and CONTINUE via SALIENCE . 
+	</s>
+	
+
+	<s id="65">
+		 The tuple-valued cost functions can be converted to real-valued functions by choosing a sufficiently large number M and using the value M3 • cont + M2 • ret + M • ss + rs. 2.3 Probability-Based Cost Functions A fundamentally different approach to measure discourse coherence was proposed by 
+		<ref citStr="Lapata ( 2003 )" id="28" label="CEPF" position="11201">
+			Lapata ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="66">
+		 It uses a statistical bigram model that assigns each pair ui , uk of utterances a probability P(uk lui ) of appearing in subsequent positions , and each utterance a probability P(ui) of appearing in the initial position of the discourse . 
+	</s>
+	
+
+	<s id="67">
+		 The probabilities are estimated on the grounds of syntactic features of the discourse units . 
+	</s>
+	
+
+	<s id="68">
+		 The probability of the entire discourse u1 ... un is the product P(u1) • P(u2lu1) • ... • P(unlun-1) . 
+	</s>
+	
+
+	<s id="69">
+		 We can transform Lapata’s model straightforwardly into our cost function framework , as shown under M.LAPATA in Table 2 . 
+	</s>
+	
+
+	<s id="70">
+		 The discourse that minimizes the sum of the negative logarithms will also maximise the product of the probabilities . 
+	</s>
+	
+
+	<s id="71">
+		 We have d = 2 because it is a bigram model in which the transition probability does not depend on the previous discourse units . 
+	</s>
+	
+
+	<s id="72">
+		 3 Equivalence of Discourse Ordering and TSP Now we show that discourse ordering and the travelling salesman problem are equivalent . 
+	</s>
+	
+
+	<s id="73">
+		 In order to do this , we first redefine discourse ordering as a graph problem . 
+	</s>
+	
+
+	<s id="74">
+		 d-place discourse ordering problem ( dPDOP ) : Given a directed graph G = ( V , E ) , a node s E V and a function c : V d —* IR , , compute a simple directed path P = ( s = v0 , v1 , ... , vn ) from s through all vertices in V which minimisesn-d+1 c v v , v We ~ ( z , z+1 , . 
+	</s>
+	
+
+	<s id="75">
+		 i-0 • • , z+d-1)• write instances of dPDOP as ( V , E , s , c ) . 
+	</s>
+	
+
+	<s id="76">
+		 The nodes v1 , ... , vn correspond to the discourse units . 
+	</s>
+	
+
+	<s id="77">
+		 The cost function c encodes both the initial and the transition cost functions from Section 2 by returning the initial cost if its first argument is the ( new ) start node s . 
+	</s>
+	
+
+	<s id="78">
+		 Now let’s define the version of the travelling salesman problem we will use below . 
+	</s>
+	
+
+	<s id="79">
+		 Generalised asymmetric TSP ( GATSP ) : Given a directed graph G = ( V , E ) , edge weights c : E —* IR , , and a partition ( V1 , ... , Vk ) of the nodes V , compute the shortest directed cycle that visits exactly one node of each Vi . 
+	</s>
+	
+
+	<s id="80">
+		 We call such a cycle a tour and write instances of GATSP as ( ( V1 , ... , Vk ) , E , c ) . 
+	</s>
+	
+
+	<s id="81">
+		 The usual definition of the TSP , in which every node must be visited exactly once , is the special case of GATSP where each Vi contains exactly one node . 
+	</s>
+	
+
+	<s id="82">
+		 We call this case asymmetric travelling salesman problem , ATSP . 
+	</s>
+	
+
+	<s id="83">
+		 ATSP 2PDOP Figure 1 : Reduction of ATSP to 2PDOP We will show that ATSP can be reduced to 2PDOP , and that any dPDOP can be reduced to GATSP . 
+	</s>
+	
+
+	<s id="84">
+		 3.1 Reduction of ATSP to 2PDOP First , we introduce the reduction of ATSP to 2PDOP , which establishes NP-completeness of dPDOP for all d &gt; 1 . 
+	</s>
+	
+
+	<s id="85">
+		 The reduction is approximation preserving , i.e. if we can find a solution of 2PDOP that is worse than the optimum only by a factor of E ( an E-approximation ) , it translates to a solution of ATSP that is also an E-approximation . 
+	</s>
+	
+
+	<s id="86">
+		 Since it is known that there can be no polynomial algorithms that compute E-approximations for general ATSP , for any E 
+		<ref citStr="Cormen et al. , 1990" id="29" label="CEPF" position="14300">
+			( Cormen et al. , 1990 )
+		</ref>
+		 , this means that dPDOP cannot be approximated either ( unless P=NP ) : Any polynomial algorithm for dPDOP will compute arbitrarily bad solutions on certain inputs . 
+	</s>
+	
+
+	<s id="87">
+		 The reduction works as follows . 
+	</s>
+	
+
+	<s id="88">
+		 Let G = ( ( V1 , ... , Vk ) , E , c ) be an instance of ATSP , and V = V1 U ... 
+	</s>
+	
+
+	<s id="89">
+		 U Vk . 
+	</s>
+	
+
+	<s id="90">
+		 We choose an arbitrary node v E V and split it into two nodes vs and vt . 
+	</s>
+	
+
+	<s id="91">
+		 We assign all edges with source node v to vs and all edges with target node v to vt ( compare Figure 1 ) . 
+	</s>
+	
+
+	<s id="92">
+		 Finally we make vs the source node of our 2PDOP instance G ' . 
+	</s>
+	
+
+	<s id="93">
+		 For every tour in G , we have a path in G ' starting at vs visiting all other nodes ( and ending in vt ) with the same cost by replacing the edge ( v , u ) out of v by ( vs , u ) and the edge ( w , v ) into v by ( w , vt ) . 
+	</s>
+	
+
+	<s id="94">
+		 Conversely , for every path starting at vs visiting all nodes , we have an ATSP tour of the same cost , since all such paths will end in vt ( as vt has no outgoing edges ) . 
+	</s>
+	
+
+	<s id="95">
+		 An example is shown in Fig . 
+	</s>
+	
+
+	<s id="96">
+		 1. The ATSP instance on the left has the tour ( 1 , 3 , 2 , 1 ) , indicated by the solid edges . 
+	</s>
+	
+
+	<s id="97">
+		 The node 1 is split into the two nodes 1s and 1t , and the tour translates to the path ( 1s , 3 , 2 , 1t ) in the 2PDOP instance . 
+	</s>
+	
+
+	<s id="98">
+		 3.2 Reduction of dPDOP to GATSP Conversely , we can encode an instance G = ( V , E , s , c ) of dPDOP as an instance G ' = 3PDOP GATSP Figure 2 : Reduction of dPDOP to GATSP . 
+	</s>
+	
+
+	<s id="99">
+		 Edges to the source node [ s , s ] are not drawn . 
+	</s>
+	
+
+	<s id="100">
+		 ((V'u)uEV , E ' , c ' ) of GATSP , in such a way that the optimal solutions correspond . 
+	</s>
+	
+
+	<s id="101">
+		 The cost of traversing an edge in dPDOP depends on the previous d — 1 nodes ; we compress these costs into ordinary costs of single edges in the reduction to GATSP . 
+	</s>
+	
+
+	<s id="102">
+		 The GATSP instance has a node [ u1 , ... , ud_1 ] for every d — 1-tuple of nodes of V . 
+	</s>
+	
+
+	<s id="103">
+		 It has an edge from [ u1 , ... , ud_1 ] to [ u2 , ... , ud_1 , ud ] iff there is an edge from ud_1 to ud in G , and it has an edge from each node into [ s , ... , s ] . 
+	</s>
+	
+
+	<s id="104">
+		 The idea is to encode a path P = ( s = u0 , u1 , ... , un ) in Gas a tour TP in G ' that successively visits the nodes [ uz_d+1 , ... uz ] , i = 0 , ... n , where we assume that uj = s for all j G 0 ( compare Figure 2 ) . 
+	</s>
+	
+
+	<s id="105">
+		 The cost of TP can be made equal to the cost of P by making the cost of the edge from [ u1 , ... , ud_1 ] to [ u2 , ... , ud ] equal to c(u1 , ... ud ) . 
+	</s>
+	
+
+	<s id="106">
+		 ( We set c'(e) to 0 for all edges e between nodes with first component s and for the edges e with target node [ sd_1 ] . 
+	</s>
+	
+
+	<s id="107">
+		 ) Finally , we define Vu ' to be the set of all nodes in G ' with last component u . 
+	</s>
+	
+
+	<s id="108">
+		 It is not hard to see that for any simple path of length n in G , we find a tour TP in G ' with the same cost . 
+	</s>
+	
+
+	<s id="109">
+		 Conversely , we can find for every tour in G ' a simple path of length n in G with the same cost . 
+	</s>
+	
+
+	<s id="110">
+		 Note that the encoding G ' will contain many unnecessary nodes and edges . 
+	</s>
+	
+
+	<s id="111">
+		 For instance , all nodes that have no incoming edges can never be used in a tour , and can be deleted . 
+	</s>
+	
+
+	<s id="112">
+		 We can safely delete such unnecessary nodes in a post-processing step . 
+	</s>
+	
+
+	<s id="113">
+		 An example is shown in Fig . 
+	</s>
+	
+
+	<s id="114">
+		 2. The 3PDOP instance on the left has a path ( s , 3 , 1 , 2 ) , which translates to the path ( [ s , s ] , [ s , 3 ] , [ 3 , 1 ] , [ 1 , 2 ] ) in the GATSP instance shown on the right . 
+	</s>
+	
+
+	<s id="115">
+		 This path can be completed by a tour by adding the edge ( [ 1 , 2 ] , [ s , s ] ) , of cost 0 . 
+	</s>
+	
+
+	<s id="116">
+		 The tour indeed visits each Vu0 ( i.e. , each column ) exactly once . 
+	</s>
+	
+
+	<s id="117">
+		 Nodes with last component s which are not [ s , s ] are unreachable and are not shown . 
+	</s>
+	
+
+	<s id="118">
+		 For the special case of d = 2 , the GATSP is simply an ordinary ATSP . 
+	</s>
+	
+
+	<s id="119">
+		 The graphs of both problems look identical in this case , except that the GATSP instance has edges of cost 0 from any node to the source [ s ] . 
+	</s>
+	
+
+	<s id="120">
+		 4 Computing Optimal Orderings The equivalence of dPDOP and GATSP implies that we can now bring algorithms from the vast literature on TSP to bear on the discourse ordering problem . 
+	</s>
+	
+
+	<s id="121">
+		 One straightforward method is to reduce the GATSP further to ATSP 
+		<ref citStr="Noon and Bean , 1993" id="30" label="CEPF" position="18545">
+			( Noon and Bean , 1993 )
+		</ref>
+		 ; for the case d = 2 , nothing has to be done . 
+	</s>
+	
+
+	<s id="122">
+		 Then one can solve the reduced ATSP instance ; see 
+		<ref citStr="Fischetti et al. , 2001" id="31" label="CEPF" position="18654">
+			( Fischetti et al. , 2001 
+		</ref>
+		<ref citStr="Fischetti et al. , 2002" id="32" label="CEPF" position="18680">
+			; Fischetti et al. , 2002 )
+		</ref>
+		 for a recent survey of exact methods . 
+	</s>
+	
+
+	<s id="123">
+		 We choose the alternative of developing a new algorithm for solving GATSP directly , which uses standard techniques from combinatorial optimisation , gives us a better handle on optimising the algorithm for our problem instances , and runs more efficiently in practice . 
+	</s>
+	
+
+	<s id="124">
+		 Our algorithm translates the GATSP instance into an integer linear program ( ILP ) and uses the branch-and-cut method 
+		<ref citStr="Nemhauser and Wolsey , 1988" id="33" label="CERF" position="19185">
+			( Nemhauser and Wolsey , 1988 )
+		</ref>
+		 to solve it . 
+	</s>
+	
+
+	<s id="125">
+		 Integer linear programs consist of a set of linear equations and inequalities , and are solved by integer variable assignments which maximise or minimise a goal function while satisfying the other conditions . 
+	</s>
+	
+
+	<s id="126">
+		 Let G = ( V , E ) be a directed graph and 5 ^ V . 
+	</s>
+	
+
+	<s id="127">
+		 We define S+(5) = { ( u , v ) E E I u E 5 and v E~ 5 } and S— ( 5 ) = { ( u , v ) E E I u E/ 5 and v E 5 } , i.e. S+(5) and S—(5) are the sets of all incoming and outgoing edges of 5 , respectively . 
+	</s>
+	
+
+	<s id="128">
+		 We assume that the graph G has no edges within one partition Vu , since such edges cannot be used by any solution . 
+	</s>
+	
+
+	<s id="129">
+		 With this assumption , GATSP can be phrased as an ILP as follows ( this formulation is similar to the one proposed by 
+		<ref citStr="Laporte et al . ( 1987 )" id="34" label="CEPF" position="19965">
+			Laporte et al . ( 1987 )
+		</ref>
+		 ) : We have a binary variable xe for each edge e of the graph . 
+	</s>
+	
+
+	<s id="130">
+		 The intention is that xe has value 1 if e is used in the tour , and 0 otherwise . 
+	</s>
+	
+
+	<s id="131">
+		 Thus the cost of the tour can be written as PeEE cexe . 
+	</s>
+	
+
+	<s id="132">
+		 The three conditions enforce the variable assignment to encode a valid GATSP tour . 
+	</s>
+	
+
+	<s id="133">
+		 ( 1 ) ensures that all integer solutions encode a set of cycles . 
+	</s>
+	
+
+	<s id="134">
+		 ( 2 ) guarantees that every partition Vi is visited by exactly one cycle . 
+	</s>
+	
+
+	<s id="135">
+		 The inequalities ( 3 ) say that every subset of the partitions has an outgoing edge ; this makes sure a solution encodes one cycle , rather than a set of multiple cycles . 
+	</s>
+	
+
+	<s id="136">
+		 To solve such an ILP using the branch-and-cut method , we drop the integrality constraints ( i.e. we replace xe E { 0 , 1 } by 0 &lt; xe &lt; 1 ) and solve the corresponding linear programming ( LP ) relaxation . 
+	</s>
+	
+
+	<s id="137">
+		 If the solution of the LP is integral , we found the optimal solution . 
+	</s>
+	
+
+	<s id="138">
+		 Otherwise we pick a variable with a fractional value and split the problem into two subproblems by setting the variable to 0 and 1 , respectively . 
+	</s>
+	
+
+	<s id="139">
+		 We solve the subproblems recursively and disregard a subproblem if its LP bound is worse than the best known solution . 
+	</s>
+	
+
+	<s id="140">
+		 Since our ILP contains an exponential number of inequalities of type ( 3 ) , solving the complete LPs directly would be too expensive . 
+	</s>
+	
+
+	<s id="141">
+		 Instead , we start with a small subset of these inequalities , and test ( efficiently ) whether a solution of the smaller LP violates an inequality which is not in the current LP . 
+	</s>
+	
+
+	<s id="142">
+		 If so , we add the inequality to the LP , resolve it , and iterate . 
+	</s>
+	
+
+	<s id="143">
+		 Otherwise we found the solution of the LP with the exponential number of inequalities . 
+	</s>
+	
+
+	<s id="144">
+		 The inequalities we add by need are called cutting planes ; algorithms that find violated cutting planes are called separation algorithms . 
+	</s>
+	
+
+	<s id="145">
+		 To keep the size of the branch-and-cut tree small , our algorithm employs some heuristics to find further upper bounds . 
+	</s>
+	
+
+	<s id="146">
+		 In addition , we improve lower bound from the LP relaxations by adding further inequalities to the LP that are valid for all integral solutions , but can be violated for optimal solutions of the LP . 
+	</s>
+	
+
+	<s id="147">
+		 One major challenge here was to find separation algorithms for these inequalities . 
+	</s>
+	
+
+	<s id="148">
+		 We cannot go into these details for lack of space , but will discuss them in a separate paper . 
+	</s>
+	
+
+	<s id="149">
+		 5 Evaluation We implemented the algorithm and ran it on some examples to evaluate its practical efficiency . 
+	</s>
+	
+
+	<s id="150">
+		 The runtimes are shown in Tables 3 and 4 for an implementation using a branch-and-cut ILP solver which is free for all academic purposes ( ILP-FS ) and a commercial branch-and-cut ILP solver ( ILP-CS ) . 
+	</s>
+	
+
+	<s id="151">
+		 Our implementations are based on LEDA 4.4.1 min X cexe eEE Xs.t . 
+	</s>
+	
+
+	<s id="152">
+		 eEd+(v) X eEd—(Vi) X eEd+(UiEIVi) xe E { 0 , 1 } Xxe = xe ^vEV ( 1 ) eEd—(v) xe = 1 1 &lt; i &lt; n ( 2 ) xe ^ 1 I C { 1 , ... , n } ( 3 ) Instance Size ILP-FS ILP-CS lapata-10 13 0.05 0.05 coffers1 M.NOCB 10 0.04 0.02 cabinet1 M.NOCB 15 0.07 0.01 random ( avg ) 20 0.09 0.07 random ( avg ) 40 0.28 0.17 random ( avg ) 60 1.39 0.40 random ( avg ) 100 6.17 1.97 Table 3 : Some runtimes for d = 2 ( in seconds ) . 
+	</s>
+	
+
+	<s id="153">
+		 ( www. algorithmic- solutions.com ) for the data structures and the graph algorithms and on SCIL 0.8 ( www.mpi-sb.mpg.de/SCIL ) for implementing the ILP-based branch-and-cut algorithm . 
+	</s>
+	
+
+	<s id="154">
+		 SCIL can be used with different branch-and-cut core codes . 
+	</s>
+	
+
+	<s id="155">
+		 We used CPLEX 9.0 ( www. i log . 
+	</s>
+	
+
+	<s id="156">
+		 com ) as commercial core and SCIP 0.68 ( www.zib.de/Optimization/ Software/SCIP/ ) based on SOPLEX 1.2.2a ( www.zib.de/Optimization/Software/ S o p l e x / ) as the free implementation . 
+	</s>
+	
+
+	<s id="157">
+		 Note that all our implementations are still preliminary . 
+	</s>
+	
+
+	<s id="158">
+		 The software is publicly available ( www. mpi- sb. mpg.de/˜althaus/PDOP.html ) . 
+	</s>
+	
+
+	<s id="159">
+		 We evaluate the implementations on three classes of inputs . 
+	</s>
+	
+
+	<s id="160">
+		 First , we use two discourses from the GNOME corpus , taken from 
+		<ref citStr="Karamanis , 2003" id="35" label="OEPF" position="24057">
+			( Karamanis , 2003 )
+		</ref>
+		 , together with the centering-based cost functions from Section 2 : coffers1 , containing 10 discourse units , and cabinet1 , containing 15 discourse units . 
+	</s>
+	
+
+	<s id="161">
+		 Second , we use twelve discourses from the BLLIP corpus taken from 
+		<ref citStr="Lapata , 2003" id="36" label="OEPF" position="24309">
+			( Lapata , 2003 )
+		</ref>
+		 , together with M.LAPATA . 
+	</s>
+	
+
+	<s id="162">
+		 These discourses are 4 to 13 discourse units long ; the table only shows the instance with the highest running time . 
+	</s>
+	
+
+	<s id="163">
+		 Finally , we generate random instances of 2PDOP of size 20–100 , and of 3PDOP of size 10 , 15 , and 20 . 
+	</s>
+	
+
+	<s id="164">
+		 A random instance is the complete graph , where c(ui , ... , ud ) is chosen uniformly at random from { 0 , ... , 999 } . 
+	</s>
+	
+
+	<s id="165">
+		 The results for the 2-place instances are shown in Table 3 , and the results for the 3-place instances are shown in Table 4 . 
+	</s>
+	
+
+	<s id="166">
+		 The numbers are runtimes in seconds on a Pentium 4 ( Xeon ) processor with 3.06 GHz . 
+	</s>
+	
+
+	<s id="167">
+		 Note that a hypothetical baseline implementation which naively generates and evaluates all permutations would run over 77 years for a discourse of length 20 , even on a highly optimistic platform that evaluates one billion permutations per second . 
+	</s>
+	
+
+	<s id="168">
+		 For d = 2 , all real-life instances and all random instances of size up to 50 can be solved in less than one second , with either implementation . 
+	</s>
+	
+
+	<s id="169">
+		 The problem becomes more challenging for d = 3 . 
+	</s>
+	
+
+	<s id="170">
+		 Here the algorithm quickly establishes good LP bounds for Instance Size ILP-FS ILP-CS coffers 1 M.KP 10 0.05 0.05 coffers1 M.BFP 10 0.08 0.06 cabinet1 M.KP 15 0.40 1.12 cabinet1 M.BFP 15 0.39 0.28 random ( avg ) 10 1.00 0.42 random ( avg ) 15 35.1 5.79 random ( avg ) 20 - 115.8 Table 4 : Some runtimes for d = 3 ( in seconds ) . 
+	</s>
+	
+
+	<s id="171">
+		 the real-life instances , and thus the branch-and-cut trees remain small . 
+	</s>
+	
+
+	<s id="172">
+		 The LP bounds for the random instances are worse , in particular when the number of units gets larger . 
+	</s>
+	
+
+	<s id="173">
+		 In this case , the further optimisations in the commercial software make a big difference in the size of the branch-and-cut tree and thus in the solution time . 
+	</s>
+	
+
+	<s id="174">
+		 An example output for cabinet1 with M.NOCB is shown in Fig . 
+	</s>
+	
+
+	<s id="175">
+		 3 ; we have modified referring expressions to make the text more readable , and have marked discourse unit boundaries with “/” and expressions that establish local coherence with square brackets . 
+	</s>
+	
+
+	<s id="176">
+		 This is one of many possible optimal solutions , which have cost 2 because of the two NOCB transitions at the very start of the discourse . 
+	</s>
+	
+
+	<s id="177">
+		 Details on the comparison of different centering-based coherence measures are discussed by 
+		<ref citStr="Karamanis et al . ( 2004 )" id="37" label="CEPF" position="26670">
+			Karamanis et al . ( 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="178">
+		 6 Comparison to Other Approaches There are two approaches in the literature that are similar enough to ours that a closer comparison is in order . 
+	</s>
+	
+
+	<s id="179">
+		 The first is a family of algorithms for discourse ordering based on genetic programming 
+		<ref citStr="Mellish et al. , 1998" id="38" label="CEPF" position="26926">
+			( Mellish et al. , 1998 
+		</ref>
+		<ref citStr="Karamanis and Manurung , 2002" id="39" label="CEPF" position="26950">
+			; Karamanis and Manurung , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="180">
+		 This is a very flexible and powerful approach , which can be applied to measures of local coherence that do not seem to fit in our framework trivially . 
+	</s>
+	
+
+	<s id="181">
+		 For example , the measure from 
+		<ref citStr="Mellish et al. , 1998" id="40" label="CEPF" position="27213">
+			( Mellish et al. , 1998 )
+		</ref>
+		 looks at the entire discourse up to the current transition for some of their cost factors . 
+	</s>
+	
+
+	<s id="182">
+		 However , our algorithm is several orders of magnitude faster where a direct comparison is possible ( Manurung , p.c. ) , and it is guaranteed to find an optimal ordering . 
+	</s>
+	
+
+	<s id="183">
+		 The nonapproximability result for TSP means that a genetic ( or any other ) algorithm which is restricted to polynomial runtime could theoretically deliver arbitrarily bad solutions . 
+	</s>
+	
+
+	<s id="184">
+		 Second , the discourse ordering problem we have discussed in this paper looks very similar to the Majority Ordering problem that arises in the context of multi-document summarisation ( Barzilay et al. , Both cabinets probably entered England in the early nineteenth century / after the French Revolution caused the dispersal of so many French collections . 
+	</s>
+	
+
+	<s id="185">
+		 / The pair to [ this monumental cabinet ] still exists in Scotland . 
+	</s>
+	
+
+	<s id="186">
+		 / The fleurs-de-lis on the top two drawers indicate that [ the cabinet ] was made for the French King Louis XIV . 
+	</s>
+	
+
+	<s id="187">
+		 / [ It ] may have served as a royal gift , / as [ it ] does not appear in inventories of [ his ] possessions . 
+	</s>
+	
+
+	<s id="188">
+		 / Another medallion inside shows [ him ] a few years later . 
+	</s>
+	
+
+	<s id="189">
+		 / The bronze medallion above [ the central door ] was cast from a medal struck in 1661 which shows [ the king ] at the age of twenty-one . 
+	</s>
+	
+
+	<s id="190">
+		 / A panel of marquetry showing the cockerel of [ France ] standing triumphant over both the eagle of the Holy Roman Empire and the lion of Spain and the Spanish Netherlands decorates [ the central door ] . 
+	</s>
+	
+
+	<s id="191">
+		 / In [ the Dutch Wars ] of 1672 - 1678 , [ France ] fought simultaneously against the Dutch , Spanish , and Imperial armies , defeating them all . 
+	</s>
+	
+
+	<s id="192">
+		 / [ The cabinet ] celebrates the Treaty of Nijmegen , which concluded [ the war ] . 
+	</s>
+	
+
+	<s id="193">
+		 / The Sun King’s portrait appears twice on [ this work ] . 
+	</s>
+	
+
+	<s id="194">
+		 / Two large figures from Greek mythology , Hercules and Hippolyta , Queen of the Amazons , representatives of strength and bravery in war appear to support [ the cabinet ] . 
+	</s>
+	
+
+	<s id="195">
+		 / The decoration on [ the cabinet ] refers to [ Louis XIV’s ] military victories . 
+	</s>
+	
+
+	<s id="196">
+		 / On the drawer above the door , gilt-bronze military trophies flank a medallion portrait of [ the king ] . 
+	</s>
+	
+
+	<s id="197">
+		 Figure 3 : An example output based on M.NOCB . 
+	</s>
+	
+
+	<s id="198">
+		 2002 ) . 
+	</s>
+	
+
+	<s id="199">
+		 The difference between the two problems is that Barzilay et al . 
+	</s>
+	
+
+	<s id="200">
+		 minimise the sum of all costs Cij for any pair i , j of discourse units with i &lt; j , whereas we only sum over the Cij for i = j — 1 . 
+	</s>
+	
+
+	<s id="201">
+		 This makes their problem amenable to the approximation algorithm by 
+		<ref citStr="Cohen et al . ( 1999 )" id="41" label="CEPF" position="29906">
+			Cohen et al . ( 1999 )
+		</ref>
+		 , which allows them to compute a solution that is at least half as good as the optimum , in polynomial time ; i.e. this problem is strictly easier than TSP or discourse ordering . 
+	</s>
+	
+
+	<s id="202">
+		 However , a Majority Ordering algorithm is not guaranteed to compute good solutions to the discourse ordering problem , as 
+		<ref citStr="Lapata ( 2003 )" id="42" label="CEPF" position="30234">
+			Lapata ( 2003 )
+		</ref>
+		 assumes . 
+	</s>
+	
+
+	<s id="203">
+		 7 Conclusion We have shown that the problem of ordering clauses into a discourse that maximises local coherence is equivalent to the travelling salesman problem : Even the two-place discourse ordering problem can encode ATSP . 
+	</s>
+	
+
+	<s id="204">
+		 This means that the problem is NP- complete and doesn’t even admit polynomial approximation algorithms ( unless P=NP ) . 
+	</s>
+	
+
+	<s id="205">
+		 On the other hand , we have shown how to encode the discourse ordering problems of arbitrary arity d into GATSP . 
+	</s>
+	
+
+	<s id="206">
+		 We have demonstrated that modern branch-and-cut algorithms for GATSP can easily solve practical discourse ordering problems if d = 2 , and are still usable for many instances with d = 3 . 
+	</s>
+	
+
+	<s id="207">
+		 As far as we are aware , this is the first algorithm for discourse ordering that can make any guarantees about the solution it computes . 
+	</s>
+	
+
+	<s id="208">
+		 Our efficient implementation can benefit generation and summarisation research in at least two respects . 
+	</s>
+	
+
+	<s id="209">
+		 First , we show that computing locally coherent orderings of clauses is feasible in practice , as such coherence measures will probably be applied on sentences within the same paragraph , i.e. on problem instances of limited size . 
+	</s>
+	
+
+	<s id="210">
+		 Second , our system should be a useful experimentation tool in developing new measures of local coherence . 
+	</s>
+	
+
+	<s id="211">
+		 We have focused on local coherence in this paper , but it seems clear that notions of global coherence , which go beyond the level of sentence-to-sentence transitions , capture important aspects of coherence that a purely local model cannot . 
+	</s>
+	
+
+	<s id="212">
+		 However , our algorithm can still be useful as a subroutine in a more complex system that deals with global coherence 
+		<ref citStr="Marcu , 1997" id="43" label="CEPF" position="31931">
+			( Marcu , 1997 
+		</ref>
+		<ref citStr="Mellish et al. , 1998" id="44" label="CEPF" position="31946">
+			; Mellish et al. , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="213">
+		 Whether our methods can be directly applied to the tree structures that come up in theories of global coherence is an interesting question for future research . 
+	</s>
+	
+
+	<s id="214">
+		 Acknowledgments . 
+	</s>
+	
+
+	<s id="215">
+		 We would like to thank Mirella Lapata for providing the experimental data and Andrea Lodi for providing an efficiency baseline by running his ATSP solver on our inputs . 
+	</s>
+	
+
+	<s id="216">
+		 We are grateful to Malte Gabsdil , Ruli Manurung , Chris Mellish , Kristina Striegnitz , and our reviewers for helpful comments and discussions . 
+	</s>
+	
+
+	<s id="217">
+		 References R. Barzilay , N. Elhadad , and K. R. McKeown . 
+	</s>
+	
+
+	<s id="218">
+		 2002. Inferring strategies for sentence ordering in multidocument news summarization . 
+	</s>
+	
+
+	<s id="219">
+		 Journal ofArtificial Intelligence Research , 17:35–55 . 
+	</s>
+	
+
+	<s id="220">
+		 S. Brennan , M. Walker Friedman , and C. Pollard . 
+	</s>
+	
+
+	<s id="221">
+		 1987. A centering approach to pronouns . 
+	</s>
+	
+
+	<s id="222">
+		 In Proc . 
+	</s>
+	
+
+	<s id="223">
+		 25th ACL , pages 155–162 , Stanford . 
+	</s>
+	
+
+	<s id="224">
+		 W. Cohen , R. Schapire , and Y . 
+	</s>
+	
+
+	<s id="225">
+		 Singer . 
+	</s>
+	
+
+	<s id="226">
+		 1999. Learn- ing to order things . 
+	</s>
+	
+
+	<s id="227">
+		 Journal of Artificial Intelli- gence Research , 10:243–270 . 
+	</s>
+	
+
+	<s id="228">
+		 T. H. Cormen , C. E. Leiserson , and R. L. Rivest . 
+	</s>
+	
+
+	<s id="229">
+		 1990. Introduction to Algorithms . 
+	</s>
+	
+
+	<s id="230">
+		 MIT Press , Cambridge . 
+	</s>
+	
+
+	<s id="231">
+		 M. Fischetti , A. Lodi , and P. Toth . 
+	</s>
+	
+
+	<s id="232">
+		 2001. Solv- ing real-world ATSP instances by branch-andcut . 
+	</s>
+	
+
+	<s id="233">
+		 Combinatorial Optimization . 
+	</s>
+	
+
+	<s id="234">
+		 M. Fischetti , A. Lodi , and P. Toth . 
+	</s>
+	
+
+	<s id="235">
+		 2002 . 
+	</s>
+	
+
+	<s id="236">
+		 Exact methods for the asymmmetric traveling salesman problem . 
+	</s>
+	
+
+	<s id="237">
+		 In G. Gutin and A. Punnen , editors , The Traveling Salesman Problem and its Variations . 
+	</s>
+	
+
+	<s id="238">
+		 Kluwer . 
+	</s>
+	
+
+	<s id="239">
+		 N. Karamanis and H. M. Manurung . 
+	</s>
+	
+
+	<s id="240">
+		 2002. Stochastic text structuring using the principle of continuity . 
+	</s>
+	
+
+	<s id="241">
+		 In Proceedings of INLG-02 , pages 81–88 , New York . 
+	</s>
+	
+
+	<s id="242">
+		 N. Karamanis , M. Poesio , C. Mellish , and J. Oberlander . 
+	</s>
+	
+
+	<s id="243">
+		 2004. Evaluating centering-based metrics of coherence for text structuring using a reliably annotated corpus . 
+	</s>
+	
+
+	<s id="244">
+		 In Proceedings of the 42nd ACL , Barcelona . 
+	</s>
+	
+
+	<s id="245">
+		 N. Karamanis . 
+	</s>
+	
+
+	<s id="246">
+		 2003. Entity Coherence for Descriptive Text Structuring . 
+	</s>
+	
+
+	<s id="247">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="248">
+		 thesis , Division of Informatics , University of Edinburgh . 
+	</s>
+	
+
+	<s id="249">
+		 R. Kibble and R. Power . 
+	</s>
+	
+
+	<s id="250">
+		 2000. An integrated framework for text planning and pronominalisation . 
+	</s>
+	
+
+	<s id="251">
+		 In Proc . 
+	</s>
+	
+
+	<s id="252">
+		 INLG 2000 , pages 77–84 , Mitzpe Ramon . 
+	</s>
+	
+
+	<s id="253">
+		 M. Lapata . 
+	</s>
+	
+
+	<s id="254">
+		 2003. Probabilistic text structuring : Experiments with sentence ordering . 
+	</s>
+	
+
+	<s id="255">
+		 In Proc . 
+	</s>
+	
+
+	<s id="256">
+		 41st ACL , pages 545–552 , Sapporo , Japan . 
+	</s>
+	
+
+	<s id="257">
+		 G. Laporte , H. Mercure , and Y. Nobert . 
+	</s>
+	
+
+	<s id="258">
+		 1987. Generalized travelling salesman problem through n sets of nodes : the asymmetrical case . 
+	</s>
+	
+
+	<s id="259">
+		 Discrete Applied Mathematics , 18:185–197 . 
+	</s>
+	
+
+	<s id="260">
+		 W. Mann and S. Thompson . 
+	</s>
+	
+
+	<s id="261">
+		 1988 . 
+	</s>
+	
+
+	<s id="262">
+		 Rhetorical structure theory : A theory of text organization . 
+	</s>
+	
+
+	<s id="263">
+		 Text , 8(3):243–281 . 
+	</s>
+	
+
+	<s id="264">
+		 D. Marcu . 
+	</s>
+	
+
+	<s id="265">
+		 1997. From local to global coherence : A bottom-up approach to text planning . 
+	</s>
+	
+
+	<s id="266">
+		 In Proceedings of the 14th AAAI , pages 629–635 . 
+	</s>
+	
+
+	<s id="267">
+		 C. Mellish , A. Knott , J. Oberlander , and M. O’Donnell . 
+	</s>
+	
+
+	<s id="268">
+		 1998. Experiments using stochastic search for text planning . 
+	</s>
+	
+
+	<s id="269">
+		 In Proc . 
+	</s>
+	
+
+	<s id="270">
+		 9th INLG , pages 98–107 , Niagara-on-the-Lake . 
+	</s>
+	
+
+	<s id="271">
+		 G.L. Nemhauser and L.A. Wolsey . 
+	</s>
+	
+
+	<s id="272">
+		 1988. Integer and Combinatorial Optimization . 
+	</s>
+	
+
+	<s id="273">
+		 John Wiley &amp; Sons . 
+	</s>
+	
+
+	<s id="274">
+		 C.E. . 
+	</s>
+	
+
+	<s id="275">
+		 Noon and J.C. Bean . 
+	</s>
+	
+
+	<s id="276">
+		 1993. An efficient transformation of the generalized traveling salesman problem . 
+	</s>
+	
+
+	<s id="277">
+		 Information Systems and Operational Research , 31(1) . 
+	</s>
+	
+
+	<s id="278">
+		 M. Strube and U. Hahn . 
+	</s>
+	
+
+	<s id="279">
+		 1999. Functional centering : Grounding referential coherence in information structure . 
+	</s>
+	
+
+	<s id="280">
+		 Computational Linguistics , 25(3) . 
+	</s>
+	
+
+	<s id="281">
+		 M. Walker , A. Joshi , and E. Prince . 
+	</s>
+	
+
+	<s id="282">
+		 1998 . 
+	</s>
+	
+
+	<s id="283">
+		 Centering in naturally occuring discourse : An overview . 
+	</s>
+	
+
+	<s id="284">
+		 In M. Walker , A. Joshi , and E. Prince , edi- tors , Centering Theory in Discourse , pages 1–30 . 
+	</s>
+	
+
+	<s id="285">
+		 Clarendon Press , Oxford . 
+	</s>
+	
+
+	<s id="286">
+		 B. Webber , A. Knott , M. Stone , and A. Joshi . 
+	</s>
+	
+
+	<s id="287">
+		 1999. What are little trees made of : A structural and presuppositional account using Lexicalized TAG . 
+	</s>
+	
+
+	<s id="288">
+		 In Proc . 
+	</s>
+	
+
+	<s id="289">
+		 36th ACL , pages 151–156 , College Park . 
+	</s>
+	
+
+
+</acldoc>

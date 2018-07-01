@@ -1,0 +1,1602 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1045">
+	
+
+	<s id="1">
+		 Predicting Student Emotions in Computer-Human Tutoring Dialogues Diane J. Litman Kate Forbes-Riley University of Pittsburgh University of Pittsburgh Department of Computer Science Learning Research and Development Center Learning Research and Development Center Pittsburgh PA , 15260 , USA Pittsburgh PA , 15260 , USA forbesk@pitt.edu litman@cs.pitt.edu Abstract We examine the utility of speech and lexical features for predicting student emotions in computer- human spoken tutoring dialogues . 
+	</s>
+	
+
+	<s id="2">
+		 We first annotate student turns for negative , neutral , positive and mixed emotions . 
+	</s>
+	
+
+	<s id="3">
+		 We then extract acoustic-prosodic features from the speech signal , and lexical items from the transcribed or recognized speech . 
+	</s>
+	
+
+	<s id="4">
+		 We compare the results of machine learning experiments using these features alone or in combination to predict various categorizations of the annotated student emotions . 
+	</s>
+	
+
+	<s id="5">
+		 Our best results yield a 19-36 % relative improvement in error reduction over a baseline . 
+	</s>
+	
+
+	<s id="6">
+		 Finally , we compare our results with emotion prediction in human-human tutoring dialogues . 
+	</s>
+	
+
+	<s id="7">
+		 1 Introduction This paper explores the feasibility of automatically predicting student emotional states in a corpus of computer-human spoken tutoring dialogues . 
+	</s>
+	
+
+	<s id="8">
+		 Intelligent tutoring dialogue systems have become more prevalent in recent years 
+		<ref citStr="Aleven and Rose , 2003" id="1" label="CEPF" position="1405">
+			( Aleven and Rose , 2003 )
+		</ref>
+		 , as one method of improving the performance gap between computer and human tutors ; recent experiments with such systems ( e.g. , 
+		<ref citStr="Graesser et al. , 2002" id="2" label="CEPF" position="1563">
+			( Graesser et al. , 2002 )
+		</ref>
+		 ) are starting to yield promising empirical results . 
+	</s>
+	
+
+	<s id="9">
+		 Another method for closing this performance gap has been to incorporate affective reasoning into computer tutoring systems , independently of whether or not the tutor is dialogue-based 
+		<ref citStr="Conati et al. , 2003" id="3" label="CEPF" position="1812">
+			( Conati et al. , 2003 
+		</ref>
+		<ref citStr="Kort et al. , 2001" id="4" label="CEPF" position="1835">
+			; Kort et al. , 2001 
+		</ref>
+		<ref citStr="Bhatt et al. , 2004" id="5" label="CEPF" position="1856">
+			; Bhatt et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="10">
+		 For example , 
+		<ref citStr="Aist et al. , 2002" id="6" label="CEPF" position="1927">
+			( Aist et al. , 2002 )
+		</ref>
+		 have shown that adding human-provided emotional scaffolding to an automated reading tutor increases student persistence . 
+	</s>
+	
+
+	<s id="11">
+		 Our long-term goal is to merge these lines of dialogue and affective tutoring research , by enhancing our intelligent tutoring spoken dialogue system to automatically predict and adapt to student emotions , and to investigate whether this improves learning and other measures of performance . 
+	</s>
+	
+
+	<s id="12">
+		 Previous spoken dialogue research has shown that predictive models of emotion distinctions ( e.g. , emotional vs. non-emotional , negative vs. non- negative ) can be developed using features typically available to a spoken dialogue system in real-time ( e.g , acoustic-prosodic , lexical , dialogue , and/or contextual ) 
+		<ref citStr="Batliner et al. , 2000" id="7" label="CEPF" position="2682">
+			( Batliner et al. , 2000 
+		</ref>
+		<ref citStr="Lee et al. , 2001" id="8" label="CEPF" position="2707">
+			; Lee et al. , 2001 
+		</ref>
+		<ref citStr="Lee et al. , 2002" id="9" label="CEPF" position="2727">
+			; Lee et al. , 2002 
+		</ref>
+		<ref citStr="Ang et al. , 2002" id="10" label="CEPF" position="2747">
+			; Ang et al. , 2002 
+		</ref>
+		<ref citStr="Batliner et al. , 2003" id="11" label="CEPF" position="2767">
+			; Batliner et al. , 2003 
+		</ref>
+		<ref citStr="Shafran et al. , 2003" id="12" label="CEPF" position="2792">
+			; Shafran et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="13">
+		 In prior work we built on and generalized such research , by defining a three-way distinction between negative , neutral , and positive student emotional states that could be reliably annotated and accurately predicted in human-human spoken tutoring dialogues 
+		<ref citStr="Forbes- Riley and Litman , 2004" id="13" label="CEPF" position="3089">
+			( Forbes- Riley and Litman , 2004 
+		</ref>
+		<ref citStr="Litman and Forbes-Riley , 2004" id="14" label="CEPF" position="3123">
+			; Litman and Forbes-Riley , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="14">
+		 Like the non-tutoring studies , our results showed that combining feature types yielded the highest predictive accuracy . 
+	</s>
+	
+
+	<s id="15">
+		 In this paper we investigate the application of our approach to a comparable corpus of computer- human tutoring dialogues , which displays many different characteristics , such as shorter utterances , little student initiative , and non-overlapping speech . 
+	</s>
+	
+
+	<s id="16">
+		 We investigate whether we can annotate and predict student emotions as accurately and whether the relative utility of speech and lexical features as predictors is the same , especially when the output of the speech recognizer is used ( rather than a human transcription of the student speech ) . 
+	</s>
+	
+
+	<s id="17">
+		 Our best models for predicting three different types of emotion classifications achieve accuracies of 66-73 % , representing relative improvements of 19-36 % over majority class baseline errors . 
+	</s>
+	
+
+	<s id="18">
+		 Our computer-human results also show interesting differences compared with comparable analyses of human-human data . 
+	</s>
+	
+
+	<s id="19">
+		 Our results provide an empirical basis for enhancing our spoken dialogue tutoring system to automatically predict and adapt to a student model that includes emotional states . 
+	</s>
+	
+
+	<s id="20">
+		 2 Computer-Human Dialogue Data Our data consists of student dialogues with IT- SPOKE ( Intelligent Tutoring SPOKEn dialogue system ) 
+		<ref citStr="Litman and Silliman , 2004" id="15" label="OEPF" position="4551">
+			( Litman and Silliman , 2004 )
+		</ref>
+		 , a spoken dialogue tutor built on top of the Why2-Atlas concep- tual physics text-based tutoring system 
+		<ref citStr="VanLehn et al. , 2002" id="16" label="OEPF" position="4682">
+			( VanLehn et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="21">
+		 In ITSPOKE , a student first types an essay answering a qualitative physics problem . 
+	</s>
+	
+
+	<s id="22">
+		 IT- SPOKE then analyzes the essay and engages the student in spoken dialogue to correct misconceptions and to elicit complete explanations . 
+	</s>
+	
+
+	<s id="23">
+		 First , the Why2-Atlas back-end parses the student essay into propositional representations , in order to find useful dialogue topics . 
+	</s>
+	
+
+	<s id="24">
+		 It uses 3 different approaches ( symbolic , statistical and hybrid ) competitively to create a representation for each sentence , then resolves temporal and nominal anaphora and constructs proofs using abductive reasoning 
+		<ref citStr="Jordan et al. , 2004" id="17" label="CEPF" position="5330">
+			( Jordan et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="25">
+		 During the dialogue , student speech is digitized from microphone input and sent to the Sphinx2 recognizer , whose stochastic language models have a vocabulary of 1240 words and are trained with 7720 student utterances from evaluations of Why2-Atlas and from pilot studies of IT- SPOKE . 
+	</s>
+	
+
+	<s id="26">
+		 Sphinx2’s best “transcription” ( recognition output ) is then sent to the Why2-Atlas back-end for syntactic , semantic and dialogue analysis . 
+	</s>
+	
+
+	<s id="27">
+		 Finally , the text response produced by Why2-Atlas is sent to the Cepstral text-to-speech system and played to the student . 
+	</s>
+	
+
+	<s id="28">
+		 After the dialogue , the student revises the essay , thereby ending the tutoring or causing another round of tutoring/essay revision . 
+	</s>
+	
+
+	<s id="29">
+		 Our corpus of dialogues with ITSPOKE was collected from November 2003 - April 2004 , as part of an evaluation comparing ITSPOKE , Why2-Atlas , and human tutoring 
+		<ref citStr="Litman et al. , 2004" id="18" label="OEPF" position="6258">
+			( Litman et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="30">
+		 Subjects are University of Pittsburgh students who have never taken college physics , and who are native English speakers . 
+	</s>
+	
+
+	<s id="31">
+		 Subjects first read a small document of background physics material , then work through 5 problems ( dialogues ) with ITSPOKE . 
+	</s>
+	
+
+	<s id="32">
+		 The corpus contains 100 dialogues ( physics problems ) from 20 subjects , with a total of 2445 student turns and 398 unique words . 
+	</s>
+	
+
+	<s id="33">
+		 15 dialogues have been annotated for emotion as described in Section 3 . 
+	</s>
+	
+
+	<s id="34">
+		 On average , our dialogues last 19.4 minutes and contain 25 student turns . 
+	</s>
+	
+
+	<s id="35">
+		 While ITSPOKE’s word error rate on this corpus is 31.2 % , semantic accuracy is more useful for dialogue evaluation as it does not penalize for unimportant word errors . 
+	</s>
+	
+
+	<s id="36">
+		 Semantic analysis based on speech recognition is the same as based on perfect transcription 92.4 % of the time . 
+	</s>
+	
+
+	<s id="37">
+		 An emotion- annotated corpus example is shown in Figure 1. 3 Annotating Student Turns In our data , student “emotions”1 can only be identified indirectly : via what is said and/or how it is ... dialogue excerpt at 18.3 min . 
+	</s>
+	
+
+	<s id="38">
+		 into session ... 
+	</s>
+	
+
+	<s id="39">
+		 ITSPOKE : What is the magnitude of the acceleration of the packet in the horizontal direction ? 
+	</s>
+	
+
+	<s id="40">
+		 STUDENT : i don’t know ( NEGATIVE ) ITSPOKE : Ok , let’s consider how forces in the vertical direction affect the motion of a body in a horizontal direction in a different scenario . 
+	</s>
+	
+
+	<s id="41">
+		 Say an apple falls from a tree . 
+	</s>
+	
+
+	<s id="42">
+		 What force(s) are acting on the apple as it falls ? 
+	</s>
+	
+
+	<s id="43">
+		 STUDENT : gravity ( NEGATIVE ) ITSPOKE : Yeah . 
+	</s>
+	
+
+	<s id="44">
+		 Are there any other forces acting on the apple as it falls ? 
+	</s>
+	
+
+	<s id="45">
+		 STUDENT : no ( NEGATIVE ) ITSPOKE : Fine . 
+	</s>
+	
+
+	<s id="46">
+		 The only force acting on the apple as it falls to the earth is the earth’s gravitational force . 
+	</s>
+	
+
+	<s id="47">
+		 In which direction does gravitational force act ? 
+	</s>
+	
+
+	<s id="48">
+		 STUDENT : down ( POSITIVE ) ITSPOKE : Yep . 
+	</s>
+	
+
+	<s id="49">
+		 Therefore , what is the magnitude of this gravitational force in the horizontal direction ? 
+	</s>
+	
+
+	<s id="50">
+		 STUDENT : in the direction of the airplane ( NEUTRAL ) Figure 1 : Annotated Spoken Dialogue Excerpt said . 
+	</s>
+	
+
+	<s id="51">
+		 In 
+		<ref citStr="Litman and Forbes-Riley , 2004" id="19" label="CEPF" position="8466">
+			( Litman and Forbes-Riley , 2004 )
+		</ref>
+		 , we discuss a scheme for manually annotating student turns in a human-human tutoring dialogue corpus for intuitively perceived emotions.2 These emotions are viewed along a linear scale , shown and defined as follows : negative neutral positive . 
+	</s>
+	
+
+	<s id="52">
+		 Negative : a student turn that expresses emotions such as confused , bored , irritated . 
+	</s>
+	
+
+	<s id="53">
+		 Evidence of a negative emotion can come from many knowledge sources such as lexical items ( e.g. , “I don’t know” in student in Figure 1 ) , and/or acoustic-prosodic features ( e.g. , prior-turn pausing in student ) . 
+	</s>
+	
+
+	<s id="54">
+		 Positive : a student turn expressing emotions such as confident , enthusiastic . 
+	</s>
+	
+
+	<s id="55">
+		 An example is student , which displays louder speech and faster tempo . 
+	</s>
+	
+
+	<s id="56">
+		 Neutral : a student turn not expressing a negative or positive emotion . 
+	</s>
+	
+
+	<s id="57">
+		 An example is student , where evidence comes from moderate loudness , pitch and tempo . 
+	</s>
+	
+
+	<s id="58">
+		 We also distinguish Mixed : a student turn expressing both positive and negative emotions . 
+	</s>
+	
+
+	<s id="59">
+		 To avoid influencing the annotator’s intuitive understanding of emotion expression , and because particular emotional cues are not used consistently 1We use the term “emotion” loosely to cover both affects and attitudes that can impact student learning . 
+	</s>
+	
+
+	<s id="60">
+		 2Weak and strong expressions of emotions are annotated . 
+	</s>
+	
+
+	<s id="61">
+		 or unambiguously across speakers , our annotation manual does not associate particular cues with particular emotion labels . 
+	</s>
+	
+
+	<s id="62">
+		 Instead , it contains examples of labeled dialogue excerpts ( as in Figure 1 , except on human-human data ) with links to corresponding audio files . 
+	</s>
+	
+
+	<s id="63">
+		 The cues mentioned in the discussion of Figure 1 above were elicited during post-annotation discussion of the emotions , and are presented here for expository use only . 
+	</s>
+	
+
+	<s id="64">
+		 
+		<ref citStr="Litman and Forbes-Riley , 2004" id="20" label="CEPF" position="10341">
+			( Litman and Forbes-Riley , 2004 )
+		</ref>
+		 further details our annotation scheme and discusses how it builds on related work . 
+	</s>
+	
+
+	<s id="65">
+		 To analyze the reliability of the scheme on our new computer-human data , we selected 15 transcribed dialogues from the corpus described in Section 2 , yielding a dataset of 333 student turns , where approximately 30 turns came from each of 10 subjects . 
+	</s>
+	
+
+	<s id="66">
+		 The 333 turns were separately annotated by two annotators following the emotion annotation scheme described above . 
+	</s>
+	
+
+	<s id="67">
+		 We focus here on three analyses of this data , itemized below . 
+	</s>
+	
+
+	<s id="68">
+		 While the first analysis provides the most fine-grained distinctions for triggering system adaptation , the second and third ( simplified ) analyses correspond to those used in 
+		<ref citStr="Lee et al. , 2001" id="21" label="CERF" position="11095">
+			( Lee et al. , 2001 )
+		</ref>
+		 and 
+		<ref citStr="Batliner et al. , 2000" id="22" label="CERF" position="11126">
+			( Batliner et al. , 2000 )
+		</ref>
+		 , respectively . 
+	</s>
+	
+
+	<s id="69">
+		 These represent alternative potentially useful triggering mechanisms , and are worth exploring as they might be easier to annotate and/or predict . 
+	</s>
+	
+
+	<s id="70">
+		 Negative , Neutral , Positive ( NPN ) : mixeds are conflated with neutrals . 
+	</s>
+	
+
+	<s id="71">
+		 Negative , Non-Negative ( NnN ) : positives , mixeds , neutrals are conflated as non- negatives . 
+	</s>
+	
+
+	<s id="72">
+		 Emotional , Non-Emotional ( EnE ) : negatives , positives , mixeds are conflated as Emotional ; neutrals are Non-Emotional . 
+	</s>
+	
+
+	<s id="73">
+		 Tables 1-3 provide a confusion matrix for each analysis summarizing inter-annotator agreement . 
+	</s>
+	
+
+	<s id="74">
+		 The rows correspond to the labels assigned by annotator 1 , and the columns correspond to the labels assigned by annotator 2 . 
+	</s>
+	
+
+	<s id="75">
+		 For example , the annotators agreed on 89 negatives in Table 1 . 
+	</s>
+	
+
+	<s id="76">
+		 In the NnN analysis , the two annotators agreed on the annotations of 259/333 turns achieving 77.8 % agreement , with Kappa = 0.5 . 
+	</s>
+	
+
+	<s id="77">
+		 In the EnE analysis , the two annotators agreed on the annotations of 220/333 turns achieving 66.1 % agreement , with Kappa = 0.3 . 
+	</s>
+	
+
+	<s id="78">
+		 In the NPN analysis , the two annotators agreed on the annotations of 202/333 turns achieving 60.7 % agreement , with Kappa = 0.4 . 
+	</s>
+	
+
+	<s id="79">
+		 This inter-annotator agreement is on par with that of prior studies of emotion annotation in naturally occurring computer-human dialogues ( e.g. , agreement of 71 % and Kappa of 0.47 in 
+		<ref citStr="Ang et al. , 2002" id="23" label="CEPF" position="12582">
+			( Ang et al. , 2002 )
+		</ref>
+		 , Kappa of 0.45 and 0.48 in 
+		<ref citStr="Narayanan , 2002" id="24" label="CEPF" position="12631">
+			( Narayanan , 2002 )
+		</ref>
+		 , and Kappa ranging between 0.32 and 0.42 in 
+		<ref citStr="Shafran et al. , 2003" id="25" label="CEPF" position="12702">
+			( Shafran et al. , 2003 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="80">
+		 A number of researchers have accommodated for this low agreement by exploring ways of achieving consensus between disagreed annotations , to yield 100 % agreement ( e.g 
+		<ref citStr="Ang et al. , 2002" id="26" label="CEPF" position="12885">
+			( Ang et al. , 2002 
+		</ref>
+		<ref citStr="Devillers et al. , 2003" id="27" label="CEPF" position="12905">
+			; Devillers et al. , 2003 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="81">
+		 As in 
+		<ref citStr="Ang et al. , 2002" id="28" label="CEPF" position="12973">
+			( Ang et al. , 2002 )
+		</ref>
+		 , we will experiment below with predicting emotions using both our agreed data and consensus- labeled data . 
+	</s>
+	
+
+	<s id="82">
+		 negative non-negative negative 89 36 non-negative 38 170 Table 1 : NnN Analysis Confusion Matrix emotional non-emotional emotional 129 43 non-emotional 70 91 Table 2 : EnE Analysis Confusion Matrix negative neutral positive negative 89 30 6 neutral 32 94 38 positive 6 19 19 Table 3 : NPN Analysis Confusion Matrix 4 Extracting Features from Turns For each of the 333 student turns described above , we next extracted the set of features itemized in Figure 2 , for use in the machine learning experiments described in Section 5 . 
+	</s>
+	
+
+	<s id="83">
+		 Motivated by previous studies of emotion prediction in spontaneous dialogues 
+		<ref citStr="Ang et al. , 2002" id="29" label="CEPF" position="13708">
+			( Ang et al. , 2002 
+		</ref>
+		<ref citStr="Lee et al. , 2001" id="30" label="CEPF" position="13728">
+			; Lee et al. , 2001 
+		</ref>
+		<ref citStr="Batliner et al. , 2003" id="31" label="CEPF" position="13748">
+			; Batliner et al. , 2003 )
+		</ref>
+		 , our acoustic- prosodic features represent knowledge of pitch , energy , duration , tempo and pausing . 
+	</s>
+	
+
+	<s id="84">
+		 We further restrict our features to those that can be computed automatically and in real-time , since our goal is to use such features to trigger online adaptation in IT- SPOKE based on predicted student emotions . 
+	</s>
+	
+
+	<s id="85">
+		 F0 and RMS values , representing measures of pitch and loudness , respectively , are computed using Entropic Research Laboratory’s pitch tracker , get f0 , with no post-correction . 
+	</s>
+	
+
+	<s id="86">
+		 Amount of Silence is approximated as the proportion of zero f0 frames for the turn . 
+	</s>
+	
+
+	<s id="87">
+		 Turn Duration and Prior Pause Duration are computed Acoustic-Prosodic Features 4 fundamental frequency ( f0 ) : max , min , mean , standard deviation 4 energy ( RMS ) : max , min , mean , standard deviation 4 temporal : amount of silence in turn , turn duration , duration of pause prior to turn , speaking rate Lexical Features human-transcribed lexical items in the turn ITSPOKE-recognized lexical items in the turn Identifier Features : subject , gender , problem Figure 2 : Features Per Student Turn automatically via the start and end turn boundaries in ITSPOKE logs . 
+	</s>
+	
+
+	<s id="88">
+		 Speaking Rate is automatically calculated as #syllables per second in the turn . 
+	</s>
+	
+
+	<s id="89">
+		 While acoustic-prosodic features address how something is said , lexical features representing what is said have also been shown to be useful for predicting emotion in spontaneous dialogues 
+		<ref citStr="Lee et al. , 2002" id="32" label="CEPF" position="15262">
+			( Lee et al. , 2002 
+		</ref>
+		<ref citStr="Ang et al. , 2002" id="33" label="CEPF" position="15282">
+			; Ang et al. , 2002 
+		</ref>
+		<ref citStr="Batliner et al. , 2003" id="34" label="CEPF" position="15302">
+			; Batliner et al. , 2003 
+		</ref>
+		<ref citStr="Devillers et al. , 2003" id="35" label="CEPF" position="15327">
+			; Devillers et al. , 2003 
+		</ref>
+		<ref citStr="Shafran et al. , 2003" id="36" label="CEPF" position="15353">
+			; Shafran et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="90">
+		 Our first set of lexical features represents the human transcription of each student turn as a word occurrence vector ( indicating the lexical items that are present in the turn ) . 
+	</s>
+	
+
+	<s id="91">
+		 This feature represents the “ideal” performance of ITSPOKE with respect to speech recognition . 
+	</s>
+	
+
+	<s id="92">
+		 The second set represents ITSPOKE’s actual best speech recognition hypothesis of what is said in each student turn , again as a word occurrence vector . 
+	</s>
+	
+
+	<s id="93">
+		 Finally , we recorded for each turn the 3 “identifier” features shown last in Figure 2 . 
+	</s>
+	
+
+	<s id="94">
+		 Prior studies 
+		<ref citStr="Oudeyer , 2002" id="37" label="CEPF" position="15965">
+			( Oudeyer , 2002 
+		</ref>
+		<ref citStr="Lee et al. , 2002" id="38" label="CEPF" position="15982">
+			; Lee et al. , 2002 )
+		</ref>
+		 have shown that “subject” and “gender” can play an important role in emotion recognition . 
+	</s>
+	
+
+	<s id="95">
+		 “Subject” and “problem” are particularly important in our tutoring domain because students will use our system repeatedly , and problems are repeated across students . 
+	</s>
+	
+
+	<s id="96">
+		 5 Predicting Student Emotions 5.1 Feature Sets and Method We next created the 10 feature sets in Figure 3 , to study the effects that various feature combinations had on predicting emotion . 
+	</s>
+	
+
+	<s id="97">
+		 We compare an acoustic-prosodic feature set ( “sp” ) , a human- transcribed lexical items feature set ( “lex” ) and an ITSPOKE-recognized lexical items feature set ( “asr” ) . 
+	</s>
+	
+
+	<s id="98">
+		 We further compare feature sets combining acoustic-prosodic and either transcribed or recognized lexical items ( “sp+lex” , “sp+asr” ) . 
+	</s>
+	
+
+	<s id="99">
+		 Finally , we compare each of these 5 feature sets with an identical set supplemented with our 3 identifier features ( “+id” ) . 
+	</s>
+	
+
+	<s id="100">
+		 sp : 12 acoustic-prosodic features lex : human-transcribed lexical items asr : ITSPOKE recognized lexical items sp+lex : combined sp and lex features sp+asr : combined sp and asr features +id : each above set + 3 identifier features Figure 3 : Feature Sets for Machine Learning We use the Weka machine learning software 
+		<ref citStr="Witten and Frank , 1999" id="39" label="OEPF" position="17316">
+			( Witten and Frank , 1999 )
+		</ref>
+		 to automatically learn our emotion prediction models . 
+	</s>
+	
+
+	<s id="101">
+		 In our human- human dialogue studies 
+		<ref citStr="Litman and Forbes , 2003" id="40" label="CEPF" position="17446">
+			( Litman and Forbes , 2003 )
+		</ref>
+		 , the use of boosted decision trees yielded the most robust performance across feature sets so we will continue their use here . 
+	</s>
+	
+
+	<s id="102">
+		 5.2 Predicting Agreed Turns As in 
+		<ref citStr="Shafran et al. , 2003" id="41" label="CEPF" position="17619">
+			( Shafran et al. , 2003 
+		</ref>
+		<ref citStr="Lee et al. , 2001" id="42" label="CEPF" position="17643">
+			; Lee et al. , 2001 )
+		</ref>
+		 , our first study looks at the clearer cases of emotional turns , i.e. only those student turns where the two annotators agreed on an emotion label . 
+	</s>
+	
+
+	<s id="103">
+		 Tables 4-6 show , for each emotion classification , the mean accuracy ( %correct ) and standard error ( SE ) for our 10 feature sets ( Figure 3 ) , computed across 10 runs of 10-fold cross-validation . 
+	</s>
+	
+
+	<s id="104">
+		 ' For comparison , the accuracy of a standard baseline algorithm ( MAJ ) , which always predicts the majority class , is shown in each caption . 
+	</s>
+	
+
+	<s id="105">
+		 For example , Table 4’s caption shows that for NnN , always predicting the majority class of non-negative yields an accuracy of 65.65 % . 
+	</s>
+	
+
+	<s id="106">
+		 In each table , the accuracies are labeled for how they compare statistically to the relevant baseline accuracy ( = worse , = same , = better ) , as automatically computed in Weka using a two-tailed t-test ( p .05 ) . 
+	</s>
+	
+
+	<s id="107">
+		 First note that almost every feature set significantly outperforms the majority class baseline , across all emotion classifications ; the only exceptions are the speech-only feature sets without identifier features ( “sp-id” ) in the NnN and EnE tables , which perform the same as the baseline . 
+	</s>
+	
+
+	<s id="108">
+		 These results suggest that without any subject or task specific information , acoustic-prosodic features alone 3For each cross-validation , the training and test data are drawn from utterances produced by the same set of speakers . 
+	</s>
+	
+
+	<s id="109">
+		 A separate experiment showed that testing on one speaker and training on the others , averaged across all speakers , does not significantly change the results . 
+	</s>
+	
+
+	<s id="110">
+		 are not useful predictors for our two binary classification tasks , at least in our computer-human dialogue corpus . 
+	</s>
+	
+
+	<s id="111">
+		 As will be discussed in Section 6 , however , “sp-id” feature sets are useful predictors in human-human tutoring dialogues . 
+	</s>
+	
+
+	<s id="112">
+		 Feat . 
+	</s>
+	
+
+	<s id="113">
+		 Set -id SE +id SE sp 64.10 0.80 70.66 0.76 lex 68.20 0.41 72.74 0.58 asr 72.30 0.58 70.51 0.59 sp+lex 71.78 0.77 72.43 0.87 sp+asr 69.90 0.57 71.44b 0.68 Table 4 : %Correct , NnN Agreed , MAJ ( non- negative ) = 65.65 % Feat . 
+	</s>
+	
+
+	<s id="114">
+		 Set -id SE +id SE sp 59.18 0.75 70.68 0.89 lex 63.18 0.82 75.64 0.37 asr 66.36 0.54 72.91 0.35 sp+lex 63.86 0.97 69.59 0.48 sp+asr 65.14 0.82 69.64 0.57 Table 5 : %Correct , EnE Agreed , MAJ ( emotional ) = 58.64 % Feat . 
+	</s>
+	
+
+	<s id="115">
+		 Set -id SE +id SE sp 55.49 1.01 62.03 0.91 lex 52.66 0.62 67.84 0.66 asr 57.95 0.67 65.70 0.50 sp+lex 62.08 0.56 63.52 0.48 sp+asr 61.22 1.20 62.23 0.86 Table 6 : %Correct , NPN Agreed , MAJ ( neutral ) = 46.52 % Further note that adding identifier features to the “-id” feature sets almost always improves performance , although this difference is not always significant4 ; across tables the “+id” feature sets outperform their “-id” counterparts across all feature sets and emotion classifications except one ( NnN “asr” ) . 
+	</s>
+	
+
+	<s id="116">
+		 Surprisingly , while 
+		<ref citStr="Lee et al. , 2002" id="43" label="CJPF" position="20613">
+			( Lee et al. , 2002 )
+		</ref>
+		 found it useful to develop separate gender-based emotion prediction models , in our experiment , gender is the only identifier that does not appear in any learned model . 
+	</s>
+	
+
+	<s id="117">
+		 Also note that with the addition of identifier features , the speech-only feature sets ( sp+id ) now do outperform the majority class baselines for all three emotion classifications . 
+	</s>
+	
+
+	<s id="118">
+		 4For any feature set , the mean +/- 2*SE = the 95 % confidence interval . 
+	</s>
+	
+
+	<s id="119">
+		 If the confidence intervals for two feature sets are non-overlapping , then their mean accuracies are significantly different with 95 % confidence . 
+	</s>
+	
+
+	<s id="120">
+		 With respect to the relative utility of lexical versus acoustic-prosodic features , without identifier features , using only lexical features ( “lex” or “asr” ) almost always produces statistically better performance than using only speech features ( “sp” ) ; the only exception is NPN “lex” , which performs statistically the same as NPN “sp” . 
+	</s>
+	
+
+	<s id="121">
+		 This is consistent with others’ findings , e.g. , 
+		<ref citStr="Lee et al. , 2002" id="44" label="CEPF" position="21644">
+			( Lee et al. , 2002 
+		</ref>
+		<ref citStr="Shafran et al. , 2003" id="45" label="CEPF" position="21664">
+			; Shafran et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="122">
+		 When identifier features are added to both , the lexical sets don’t always significantly outperform the speech set ; only in NPN and EnE “lex+id” is this the case . 
+	</s>
+	
+
+	<s id="123">
+		 For NnN , just as using “sp+id” rather than “sp-id” improved performance when compared to the majority baseline , the addition of the identifier features also improves the utility of the speech features when compared to the lexical features . 
+	</s>
+	
+
+	<s id="124">
+		 Interestingly , although we hypothesized that the “lex” feature sets would present an upper bound on the performance of the “asr” sets , because the human transcription is more accurate than the speech recognizer , we see that this is not consistently the case . 
+	</s>
+	
+
+	<s id="125">
+		 In fact , in the “-id” sets , “asr” always significantly outperforms “lex” . 
+	</s>
+	
+
+	<s id="126">
+		 A comparison of the decision trees produced in either case , however , does not reveal why this is the case ; words chosen as predictors are not very intuitive in either case ( e.g. , for NnN , an example path through the learned “lex” decision tree says predict negative if the utterance contains the word will but does not contain the word decrease ) . 
+	</s>
+	
+
+	<s id="127">
+		 Understanding this result is an area for future research . 
+	</s>
+	
+
+	<s id="128">
+		 Within the “+id” sets , we see that “lex” and “asr” perform the same in the NnN and NPN classifications ; in EnE “lex+id” significantly outperforms “asr+id” . 
+	</s>
+	
+
+	<s id="129">
+		 The utility of the “lex” features compared to “asr” also increases when combined with the “sp” features ( with and without identifiers ) , for both NnN and NPN . 
+	</s>
+	
+
+	<s id="130">
+		 Moreover , based on results in 
+		<ref citStr="Lee et al. , 2002" id="46" label="CEPF" position="23322">
+			( Lee et al. , 2002 
+		</ref>
+		<ref citStr="Ang et al. , 2002" id="47" label="CEPF" position="23342">
+			; Ang et al. , 2002 
+		</ref>
+		<ref citStr="Forbes-Riley and Litman , 2004" id="48" label="CEPF" position="23362">
+			; Forbes-Riley and Litman , 2004 )
+		</ref>
+		 , we hypothesized that combining speech and lexical features would result in better performance than either feature set alone . 
+	</s>
+	
+
+	<s id="131">
+		 We instead found that the relative performance of these sets depends both on the emotion classification being predicted and the presence or absence of “id” features . 
+	</s>
+	
+
+	<s id="132">
+		 Although consistently with prior research we find that the combined feature sets usually outperform the speech-only feature sets , the combined feature sets frequently perform worse than the lexical-only feature sets . 
+	</s>
+	
+
+	<s id="133">
+		 However , we will see in Section 6 that combining knowledge sources does improve prediction performance in human-human dialogues . 
+	</s>
+	
+
+	<s id="134">
+		 Finally , the bolded accuracies in each table sum- marize the best-performing feature sets with and without identifiers , with respect to both the %Corr figures shown in the tables , as well as to relative improvement in error reduction over the baseline ( MAJ ) error5 , after excluding all the feature sets containing “lex” features . 
+	</s>
+	
+
+	<s id="135">
+		 In this way we give a better estimate of the best performance our system could accomplish , given the features it can currently access from among those discussed . 
+	</s>
+	
+
+	<s id="136">
+		 These best- performing feature sets yield relative improvements over their majority baseline errors ranging from 19- 36 % . 
+	</s>
+	
+
+	<s id="137">
+		 Moreover , although the NPN classification yields the lowest raw accuracies , it yields the highest relative improvement over its baseline . 
+	</s>
+	
+
+	<s id="138">
+		 5.3 Predicting Consensus Turns Following 
+		<ref citStr="Ang et al. , 2002" id="49" label="CEPF" position="24925">
+			( Ang et al. , 2002 
+		</ref>
+		<ref citStr="Devillers et al. , 2003" id="50" label="CEPF" position="24945">
+			; Devillers et al. , 2003 )
+		</ref>
+		 , we also explored consensus labeling , both with the goal of increasing our usable data set for prediction , and to include the more difficult annotation cases . 
+	</s>
+	
+
+	<s id="139">
+		 For our consensus labeling , the original annotators revisited each originally disagreed case , and through discussion , sought a consensus label . 
+	</s>
+	
+
+	<s id="140">
+		 Due to consensus labeling , agreement rose across all three emotion classifications to 100 % . 
+	</s>
+	
+
+	<s id="141">
+		 Tables 7- 9 show , for each emotion classification , the mean accuracy ( %correct ) and standard error ( SE ) for our 10 feature sets . 
+	</s>
+	
+
+	<s id="142">
+		 Feat . 
+	</s>
+	
+
+	<s id="143">
+		 Set -id SE +id SE sp 59.10 0.57 64.20 0.52 lex 63.70 0.47 68.64 0.41 asr 66.26 0.71 68.13 0.56 sp+lex 64.69 0.61 65.40 0.63 sp+asr 65.99 0.51 67.55 0.48 Table 7 : %Corr. , NnN Consensus , MAJ=62.47 % Feat . 
+	</s>
+	
+
+	<s id="144">
+		 Set -id SE +id SE sp 56.13 0.94 59.30 0.48 lex 52.07 0.34 65.37 0.47 asr 53.78 0.66 64.13 0.51 sp+lex 60.96 0.76 63.01 0.62 sp+asr 57.84 0.73 60.89 0.38 Table 8 : %Corr. , EnE Consensus , MAJ=55.86 % A comparison with Tables 4-6 shows that overall , using consensus-labeled data decreased the performance across all feature sets and emotion classifications . 
+	</s>
+	
+
+	<s id="145">
+		 This was also found in 
+		<ref citStr="Ang et al. , 2002" id="51" label="CEPF" position="26195">
+			( Ang et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="146">
+		 Moreover , it is no longer the case that every feature 5Relative improvement over the baseline ( MAJ ) error for feature set x = , where error(x) is 100 minus the %Corr(x) value shown in Tables 4-6 . 
+	</s>
+	
+
+	<s id="147">
+		 Feat . 
+	</s>
+	
+
+	<s id="148">
+		 Set -id SE +id SE sp 48.97 0.66 51.90 0.40 lex 47.86 0.54 57.28 0.44 asr 51.09 0.66 53.41 0.66 sp+lex 53.41 0.62 54.20 0.86 sp+asr 52.50 0.42 53.84 0.42 Table 9 : %Corr. , NPN Consensus , MAJ=48.35 % set performs as well as or better than their baselines6 ; within the “-id” sets , NnN “sp” and EnE “lex” perform significantly worse than their baselines . 
+	</s>
+	
+
+	<s id="149">
+		 However , again we see that the “+id” sets do consistently better than the “-id” sets and moreover always outperform the baselines . 
+	</s>
+	
+
+	<s id="150">
+		 We also see again that using only lexical features almost always yields better performance than using only speech features . 
+	</s>
+	
+
+	<s id="151">
+		 In addition , we again see that the “lex” feature sets perform comparably to the “asr” feature sets , rather than outperforming them as we first hypothesized . 
+	</s>
+	
+
+	<s id="152">
+		 And finally , we see again that while in most cases combining speech and lexical features yields better performance than using only speech features , the combined feature sets in most cases perform the same or worse than the lexical feature sets . 
+	</s>
+	
+
+	<s id="153">
+		 As above , the bolded accuracies summarize the best-performing feature sets from each emotion classification , after excluding all the feature sets containing “lex” to give a better estimate of actual system performance . 
+	</s>
+	
+
+	<s id="154">
+		 The best-performing feature sets in the consensus data yield an 11%-19 % relative improvement in error reduction compared to the majority class prediction , which is a lower error reduction than seen for agreed data . 
+	</s>
+	
+
+	<s id="155">
+		 Moreover , the NPN classification yields the lowest accuracies and the lowest improvements over its baseline . 
+	</s>
+	
+
+	<s id="156">
+		 6 Comparison with Human Tutoring While building ITSPOKE , we collected a corresponding corpus of spoken human tutoring dialogues , using the same experimental methodology as for our computer tutoring corpus ( e.g. same subject pool , physics problems , web and audio interface , etc ) ; the only difference between the two corpora is whether the tutor is human or computer . 
+	</s>
+	
+
+	<s id="157">
+		 As discussed in 
+		<ref citStr="Forbes-Riley and Litman , 2004" id="52" label="CEPF" position="28527">
+			( Forbes-Riley and Litman , 2004 )
+		</ref>
+		 , two annotators had previously labeled 453 turns in this corpus with the emotion annotation scheme discussed in Section 3 , and performed a preliminary set of machine learning experiments ( different from those reported above ) . 
+	</s>
+	
+
+	<s id="158">
+		 Here , we perform the exper- 6The majority class for EnE Consensus is non-emotional ; all others are unchanged . 
+	</s>
+	
+
+	<s id="159">
+		 NnN EnE NPN FS -id SE +id SE -id SE +id SE -id SE +id SE sp 77.46 0.42 77.56 0.30 84.71 0.39 84.66 0.40 73.09 0.68 74.18 0.40 lex 80.74 0.42 80.60 0.34 88.86 0.26 86.23 0.34 78.56 0.45 77.18 0.43 sp+lex 81.37 0.33 80.79 0.41 87.74 0.36 88.31 0.29 79.06 0.38 78.03 0.33 Table 10 : Human-Human %Correct , NnN MAJ=72.21 % ; EnE MAJ=50.86 % ; NPN MAJ=53.24 % iments from Section 5.2 on this annotated human tutoring data , as a step towards understand the differences between annotating and predicting emotion in human versus computer tutoring dialogues . 
+	</s>
+	
+
+	<s id="160">
+		 With respect to inter-annotator agreement , in the NnN analysis , the two annotators had 88.96 % agreement ( Kappa = 0.74 ) . 
+	</s>
+	
+
+	<s id="161">
+		 In the EnE analysis , the annotators had 77.26 % agreement ( Kappa = 0.55 ) . 
+	</s>
+	
+
+	<s id="162">
+		 In the NPN analysis , the annotators had 75.06 % agreement ( Kappa = 0.60 ) . 
+	</s>
+	
+
+	<s id="163">
+		 A comparison with the results in Section 3 shows that all of these figures are higher than their computer tutoring counterparts . 
+	</s>
+	
+
+	<s id="164">
+		 With respect to predictive accuracy , Table 10 shows our results for the agreed data . 
+	</s>
+	
+
+	<s id="165">
+		 A comparison with Tables 4-6 shows that overall , the human- human data yields increased performance across all feature sets and emotion classifications , although it should be noted that the human-human corpus is over 100 turns larger than the computer-human corpus . 
+	</s>
+	
+
+	<s id="166">
+		 Every feature set performs significantly better than their baselines . 
+	</s>
+	
+
+	<s id="167">
+		 However , unlike the computer- human data , we don’t see the “+id” sets performing better than the “-id” sets ; rather , both sets perform about the same . 
+	</s>
+	
+
+	<s id="168">
+		 We do see again the “lex” sets yielding better performance than the “sp” sets . 
+	</s>
+	
+
+	<s id="169">
+		 However , we now see that in 5 out of 6 cases , combining speech and lexical features yields better performance than using either “sp” or “lex” alone . 
+	</s>
+	
+
+	<s id="170">
+		 Finally , these feature sets yield a relative error reduction of 42.45%-77.33 % compared to the majority class predictions , which is far better than in our computer tutoring experiments . 
+	</s>
+	
+
+	<s id="171">
+		 Moreover , the EnE classification yields the highest raw accuracies and relative improvements over baseline error . 
+	</s>
+	
+
+	<s id="172">
+		 We hypothesize that such differences arise in part due to differences between the two corpora : 1 ) student turns with the computer tutor are much shorter than with the human tutor ( and thus contain less emotional content - making both annotation and prediction more difficult ) , 2 ) students respond to the computer tutor differently and perhaps more idiosyncratically than to the human tutor , 3 ) the computer tutor is less “flexible” than the human tutor ( allowing little student initiative , questions , groundings , contextual references , etc. ) , which also effects student emotional response and its expression . 
+	</s>
+	
+
+	<s id="173">
+		 7 Conclusions and Current Directions Our results show that acoustic-prosodic and lexical features can be used to automatically predict student emotion in computer-human tutoring dialogues . 
+	</s>
+	
+
+	<s id="174">
+		 We examined emotion prediction using a classification scheme developed for our prior human- human tutoring studies ( negative/positive/neutral ) , as well as using two simpler schemes proposed by other dialogue researchers ( negative/non-negative , emotional/non-emotional ) . 
+	</s>
+	
+
+	<s id="175">
+		 We used machine learning to examine the impact of different feature sets on prediction accuracy . 
+	</s>
+	
+
+	<s id="176">
+		 Across schemes , our feature sets outperform a majority baseline , and lexical features outperform acoustic-prosodic features . 
+	</s>
+	
+
+	<s id="177">
+		 While adding identifier features typically also improves performance , combining lexical and speech features does not . 
+	</s>
+	
+
+	<s id="178">
+		 Our analyses also suggest that prediction in consensus-labeled turns is harder than in agreed turns , and that prediction in our computer- human corpus is harder and based on somewhat different features than in our human-human corpus . 
+	</s>
+	
+
+	<s id="179">
+		 Our continuing work extends this methodology with the goal of enhancing ITSPOKE to predict and adapt to student emotions . 
+	</s>
+	
+
+	<s id="180">
+		 We continue to manually annotate ITSPOKE data , and are exploring partial automation via semi-supervised machine learning 
+		<ref citStr="Maeireizo-Tokeshi et al. , 2004" id="53" label="CEPF" position="33132">
+			( Maeireizo-Tokeshi et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="181">
+		 Further manual annotation might also improve reliability , as understanding systematic disagreements can lead to coding manual revisions . 
+	</s>
+	
+
+	<s id="182">
+		 We are also expanding our feature set to include features suggested in prior dialogue research , tutoring-dependent features ( e.g. , pedagogical goal ) , and other features available in our logs ( e.g. , semantic analysis ) . 
+	</s>
+	
+
+	<s id="183">
+		 Finally , we will explore how the recognized emotions can be used to improve system performance . 
+	</s>
+	
+
+	<s id="184">
+		 First , we will label human tutor adaptations to emotional student turns in our human tutoring corpus ; this labeling will be used to formulate adaptive strategies for ITSPOKE , and to determine which of our three prediction tasks best triggers adaptation . 
+	</s>
+	
+
+	<s id="185">
+		 Acknowledgments This research is supported by NSF Grants 9720359 &amp; 0328431 . 
+	</s>
+	
+
+	<s id="186">
+		 Thanks to the Why2-Atlas team and S. Silliman for system design and data collection . 
+	</s>
+	
+
+	<s id="187">
+		 References G. Aist , B. Kort , R. Reilly , J. Mostow , and R. Picard . 
+	</s>
+	
+
+	<s id="188">
+		 2002. Experimentally augmenting an intelligent tutoring system with human-supplied capabilities : Adding Human-Provided Emotional Scaffolding to an Automated Reading Tutor that Listens . 
+	</s>
+	
+
+	<s id="189">
+		 In Proc . 
+	</s>
+	
+
+	<s id="190">
+		 Intelligent Tutoring Systems . 
+	</s>
+	
+
+	<s id="191">
+		 V. Aleven and C. P. Rose , editors . 
+	</s>
+	
+
+	<s id="192">
+		 2003. Proc . 
+	</s>
+	
+
+	<s id="193">
+		 AI in Education Workshop on Tutorial Dialogue Systems : With a View toward the Classroom . 
+	</s>
+	
+
+	<s id="194">
+		 J. Ang , R. Dhillon , A. Krupski , E.Shriberg , and A. Stolcke . 
+	</s>
+	
+
+	<s id="195">
+		 2002. Prosody-based automatic detection of annoyance and frustration in human- computer dialog . 
+	</s>
+	
+
+	<s id="196">
+		 In Proc . 
+	</s>
+	
+
+	<s id="197">
+		 International Conf . 
+	</s>
+	
+
+	<s id="198">
+		 on Spoken Language Processing ( ICSLP ) . 
+	</s>
+	
+
+	<s id="199">
+		 A. Batliner , K. Fischer , R. Huber , J. Spilker , and E. N¨oth . 
+	</s>
+	
+
+	<s id="200">
+		 2000. Desperately seeking emotions : Actors , wizards , and human beings . 
+	</s>
+	
+
+	<s id="201">
+		 In Proc . 
+	</s>
+	
+
+	<s id="202">
+		 ISCA Workshop on Speech and Emotion . 
+	</s>
+	
+
+	<s id="203">
+		 A. Batliner , K. Fischer , R. Huber , J. Spilker , and E. Noth . 
+	</s>
+	
+
+	<s id="204">
+		 2003. How to find trouble in communication . 
+	</s>
+	
+
+	<s id="205">
+		 Speech Communication , 40:117–143 . 
+	</s>
+	
+
+	<s id="206">
+		 K. Bhatt , M. Evens , and S. Argamon . 
+	</s>
+	
+
+	<s id="207">
+		 2004. Hedged responses and expressions of affect in human/human and human/computer tutorial interactions . 
+	</s>
+	
+
+	<s id="208">
+		 In Proc . 
+	</s>
+	
+
+	<s id="209">
+		 Cognitive Science . 
+	</s>
+	
+
+	<s id="210">
+		 C. Conati , R. Chabbal , and H. Maclaren . 
+	</s>
+	
+
+	<s id="211">
+		 2003. A study on using biometric sensors for monitoring user emotions in educational games . 
+	</s>
+	
+
+	<s id="212">
+		 In Proc . 
+	</s>
+	
+
+	<s id="213">
+		 User Modeling Workshop on Assessing and Adapting to User Attitudes and Effect : Why , When , and How ? 
+	</s>
+	
+
+	<s id="214">
+		 L. Devillers , L. Lamel , and I. Vasilescu . 
+	</s>
+	
+
+	<s id="215">
+		 2003. Emotion detection in task-oriented spoken dialogs . 
+	</s>
+	
+
+	<s id="216">
+		 In Proc . 
+	</s>
+	
+
+	<s id="217">
+		 IEEE International Conference on Multimedia &amp; Expo ( ICME ) . 
+	</s>
+	
+
+	<s id="218">
+		 K. Forbes-Riley and D. Litman . 
+	</s>
+	
+
+	<s id="219">
+		 2004. Predicting emotion in spoken dialogue from multiple knowledge sources . 
+	</s>
+	
+
+	<s id="220">
+		 In Proc . 
+	</s>
+	
+
+	<s id="221">
+		 Human Language Technology Conf . 
+	</s>
+	
+
+	<s id="222">
+		 of the North American Chap . 
+	</s>
+	
+
+	<s id="223">
+		 of the Assoc. for Computational Linguistics ( HLT/NAACL ) . 
+	</s>
+	
+
+	<s id="224">
+		 A. Graesser , K. VanLehn , C. Rose , P. Jordan , and D. Harter . 
+	</s>
+	
+
+	<s id="225">
+		 2002. Intelligent tutoring systems with conversational dialogue . 
+	</s>
+	
+
+	<s id="226">
+		 AI Magazine . 
+	</s>
+	
+
+	<s id="227">
+		 P. W. Jordan , M. Makatchev , and K. VanLehn . 
+	</s>
+	
+
+	<s id="228">
+		 2004. Combining competing language understanding approaches in an intelligent tutoring system . 
+	</s>
+	
+
+	<s id="229">
+		 In Proc . 
+	</s>
+	
+
+	<s id="230">
+		 Intelligent Tutoring Systems . 
+	</s>
+	
+
+	<s id="231">
+		 B. Kort , R. Reilly , and R. W. Picard . 
+	</s>
+	
+
+	<s id="232">
+		 2001. An affective model of interplay between emotions and learning : Reengineering educational pedagogy - building a learning companion . 
+	</s>
+	
+
+	<s id="233">
+		 In International Conf . 
+	</s>
+	
+
+	<s id="234">
+		 on Advanced Learning Technologies . 
+	</s>
+	
+
+	<s id="235">
+		 C.M. Lee , S. Narayanan , and R. Pieraccini . 
+	</s>
+	
+
+	<s id="236">
+		 2001. Recognition of negative emotions from the speech signal . 
+	</s>
+	
+
+	<s id="237">
+		 In Proc . 
+	</s>
+	
+
+	<s id="238">
+		 IEEE Automatic Speech Recognition and Understanding Workshop . 
+	</s>
+	
+
+	<s id="239">
+		 C.M. Lee , S. Narayanan , and R. Pieraccini . 
+	</s>
+	
+
+	<s id="240">
+		 2002. Combining acoustic and language information for emotion recognition . 
+	</s>
+	
+
+	<s id="241">
+		 In International Conf . 
+	</s>
+	
+
+	<s id="242">
+		 on Spoken Language Processing ( ICSLP ) . 
+	</s>
+	
+
+	<s id="243">
+		 D. Litman and K. Forbes-Riley . 
+	</s>
+	
+
+	<s id="244">
+		 2004. Annotating student emotional states in spoken tutoring dialogues . 
+	</s>
+	
+
+	<s id="245">
+		 In Proc . 
+	</s>
+	
+
+	<s id="246">
+		 5th SIGdial Workshop on Discourse and Dialogue . 
+	</s>
+	
+
+	<s id="247">
+		 D. Litman and K. Forbes . 
+	</s>
+	
+
+	<s id="248">
+		 2003. Recognizing emotion from student speech in tutoring dialogues . 
+	</s>
+	
+
+	<s id="249">
+		 In Proc . 
+	</s>
+	
+
+	<s id="250">
+		 IEEE Automatic Speech Recognition and Understanding Workshop ( ASRU ) . 
+	</s>
+	
+
+	<s id="251">
+		 D. Litman and S. Silliman . 
+	</s>
+	
+
+	<s id="252">
+		 2004. ITSPOKE : An intelligent tutoring spoken dialogue system . 
+	</s>
+	
+
+	<s id="253">
+		 In Companion Proc . 
+	</s>
+	
+
+	<s id="254">
+		 of the Human Language Technology Conf . 
+	</s>
+	
+
+	<s id="255">
+		 of the North American Chap . 
+	</s>
+	
+
+	<s id="256">
+		 of the Assoc. for Computational Linguistics ( HLT/NAACL ) . 
+	</s>
+	
+
+	<s id="257">
+		 D. J. Litman , C. P. Rose , K. Forbes-Riley , K. VanLehn , D. Bhembe , and S. Silliman . 
+	</s>
+	
+
+	<s id="258">
+		 2004. Spoken versus typed human and computer dialogue tutoring . 
+	</s>
+	
+
+	<s id="259">
+		 In Proc . 
+	</s>
+	
+
+	<s id="260">
+		 Intelligent Tutoring Systems . 
+	</s>
+	
+
+	<s id="261">
+		 B. Maeireizo-Tokeshi , D. Litman , and R. Hwa . 
+	</s>
+	
+
+	<s id="262">
+		 2004. Co-training for predicting emotions with spoken dialogue data . 
+	</s>
+	
+
+	<s id="263">
+		 In Companion Proc . 
+	</s>
+	
+
+	<s id="264">
+		 Assoc. for Computational Linguistics ( ACL ) . 
+	</s>
+	
+
+	<s id="265">
+		 S. Narayanan . 
+	</s>
+	
+
+	<s id="266">
+		 2002. Towards modeling user behavior in human-machine interaction : Effect of errors and emotions . 
+	</s>
+	
+
+	<s id="267">
+		 In Proc . 
+	</s>
+	
+
+	<s id="268">
+		 ISLE Workshop on Dialogue Tagging for Multi-modal Human Computer Interaction . 
+	</s>
+	
+
+	<s id="269">
+		 P-Y. Oudeyer . 
+	</s>
+	
+
+	<s id="270">
+		 2002. The production and recognition of emotions in speech : Features and Algorithms . 
+	</s>
+	
+
+	<s id="271">
+		 International Journal of Human Computer Studies , 59(1-2):157–183 . 
+	</s>
+	
+
+	<s id="272">
+		 I. Shafran , M. Riley , and M. Mohri . 
+	</s>
+	
+
+	<s id="273">
+		 2003. Voice signatures . 
+	</s>
+	
+
+	<s id="274">
+		 In Proc . 
+	</s>
+	
+
+	<s id="275">
+		 IEEE Automatic Speech Recognition and Understanding Workshop . 
+	</s>
+	
+
+	<s id="276">
+		 K. VanLehn , P. W. Jordan , C. P. Ros´e , D. Bhembe , M. B¨ottner , A. Gaydos , M. Makatchev , U. Pappuswamy , M. Ringenberg , A. Roque , S. Siler , R. Srivastava , and R. Wilson . 
+	</s>
+	
+
+	<s id="277">
+		 2002. The architecture of Why2-Atlas : A coach for qualitative physics essay writing . 
+	</s>
+	
+
+	<s id="278">
+		 In Proc . 
+	</s>
+	
+
+	<s id="279">
+		 Intelligent Tutoring Systems . 
+	</s>
+	
+
+	<s id="280">
+		 I. H. Witten and E. Frank . 
+	</s>
+	
+
+	<s id="281">
+		 1999. Data Mining : Practical Machine Learning Tools and Techniques with Java implementations . 
+	</s>
+	
+
+
+</acldoc>

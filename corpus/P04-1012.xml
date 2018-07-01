@@ -1,0 +1,1392 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1012">
+	
+
+	<s id="1">
+		 User Expertise Modelling and Adaptivity in a Speech-based E-mail System Kristiina JOKINEN University of Helsinki and University of Art and Design Helsinki Hämeentie 135C 00560 Helsinki kjokinen@uiah.fi Abstract This paper describes the user expertise model in AthosMail , a mobile , speech-based e-mail system . 
+	</s>
+	
+
+	<s id="2">
+		 The model encodes the system’s assumptions about the user expertise , and gives recommendations on how the system should respond depending on the assumed competence levels of the user . 
+	</s>
+	
+
+	<s id="3">
+		 The recommendations are realized as three types of explicitness in the system responses . 
+	</s>
+	
+
+	<s id="4">
+		 The system monitors the user’s competence with the help of parameters that describe e.g. the success of the user’s interaction with the system . 
+	</s>
+	
+
+	<s id="5">
+		 The model consists of an online and an offline version , the former taking care of the expertise level changes during the same session , the latter modelling the overall user expertise as a function of time and repeated interactions . 
+	</s>
+	
+
+	<s id="6">
+		 1 Introduction Adaptive functionality in spoken dialogue systems is usually geared towards dealing with communication disfluencies and facilitating more natural interaction ( e.g. Danieli and Gerbino , 1995 ; Litman and Pan , 1999 ; Krahmer et al , 1999 ; Walker et al , 2000 ) . 
+	</s>
+	
+
+	<s id="7">
+		 In the AthosMail system 
+		<ref citStr="Turunen et al. , 2004" id="1" label="OEPF" position="1360">
+			( Turunen et al. , 2004 )
+		</ref>
+		 , the focus has been on adaptivity that addresses the user’s expertise levels with respect to a dialogue system’s functionality , and allows adaptation to take place both online and between the sessions . 
+	</s>
+	
+
+	<s id="8">
+		 The main idea is that while novice users need guidance , it would be inefficient and annoying for experienced users to be forced to listen to the same instructions every time they use the system . 
+	</s>
+	
+
+	<s id="9">
+		 For instance , already 
+		<ref citStr="Smith , 1993" id="2" label="CEPF" position="1822">
+			( Smith , 1993 )
+		</ref>
+		 observed that it is safer for beginners to be closely guided by the Kari KANTO University of Art and Design Helsinki Hämeentie 135C 00560 Helsinki kanto@uiah.fi system , while experienced users like to take the initiative which results in more efficient dialogues in terms of decreased average completion time and a decreased average number of utterances . 
+	</s>
+	
+
+	<s id="10">
+		 However , being able to decide when to switch from guiding a novice to facilitating an expert requires the system to be able to keep track of the user 's expertise level . 
+	</s>
+	
+
+	<s id="11">
+		 Depending on the system , the migration from one end of the expertise scale to the other may take anything from one session to an extended period of time . 
+	</s>
+	
+
+	<s id="12">
+		 In some systems ( e.g. Chu-Carroll , 2000 ) , user inexperience is countered with initiative shifts towards the system , so that in the extreme case , the system leads the user from one task state to the next . 
+	</s>
+	
+
+	<s id="13">
+		 This is a natural direction if the application includes tasks that can be pictured as a sequence of choices , like choosing turns from a road map when navigating towards a particular place . 
+	</s>
+	
+
+	<s id="14">
+		 Examples of such a task structure include travel reservation systems , where the requested information can be given when all the relevant parameters have been collected . 
+	</s>
+	
+
+	<s id="15">
+		 If , on the other hand , the task structure is flat , system initiative may not be very useful , since nothing is gained by leading the user along paths that are only one or two steps long . 
+	</s>
+	
+
+	<s id="16">
+		 
+		<ref citStr="Yankelovich ( 1996 )" id="3" label="CEPF" position="3356">
+			Yankelovich ( 1996 )
+		</ref>
+		 points out that speech applications are like command line interfaces : the available commands and the limitations of the system are not readily visible , which presents an additional burden to the user trying to familiarize herself with the system . 
+	</s>
+	
+
+	<s id="17">
+		 There are essentially four ways the user can learn to use a system : 1 ) by unaided trial and error , 2 ) by having a pre-use tutorial , 3 ) by trying to use the system and then asking for help when in trouble , or 4 ) by relying on advice the system gives when concluding the user is in trouble . 
+	</s>
+	
+
+	<s id="18">
+		 Kamm , Litman &amp; 
+		<ref citStr="Walker ( 1998 )" id="4" label="CEPN" position="3958">
+			Walker ( 1998 )
+		</ref>
+		 experimented with a pre-session tutorial for a spoken dialogue e-mail system and found it efficient in teaching the users what they can do ; apparently this approach could be enhanced by adding items 3 and 4 . 
+	</s>
+	
+
+	<s id="19">
+		 However , users often lack enthusiasm towards tutorials and want to proceed straight to using the system . 
+	</s>
+	
+
+	<s id="20">
+		 
+		<ref citStr="Yankelovich ( 1996 )" id="5" label="CERF" position="4314">
+			Yankelovich ( 1996 )
+		</ref>
+		 regards the system prompt design at the heart of the effective interface design which helps users to produce well-formed spoken input and simultaneously to become familiar with the functionality that is available . 
+	</s>
+	
+
+	<s id="21">
+		 She introduced various prompt design techniques , e.g. tapering which means that the system shortens the prompts for users as they gain experience with the system , and incremental prompts , which means that when a prompt is met with silence ( or a timeout occurs in a graphical interface ) , the repeated prompt will be incorporated with helpful hints or instructions . 
+	</s>
+	
+
+	<s id="22">
+		 The system utterances are thus adapted online to mirror the perceived user expertise . 
+	</s>
+	
+
+	<s id="23">
+		 The user model that keeps track of the perceived user expertise may be session-specific , but it could also store the information between sessions , depending on the application . 
+	</s>
+	
+
+	<s id="24">
+		 A call service providing bus timetables may harmlessly assume that the user is always new to the system , but an email system is personal and the user could presumably benefit from personalized adaptations . 
+	</s>
+	
+
+	<s id="25">
+		 If the system stores user modelling information between sessions , there are two paths for adaptation : the adaptations take place between sessions on the basis of observations made during earlier sessions , or the system adapts online and the resulting parameters are then passed from one session to another by means of the user model information storage . 
+	</s>
+	
+
+	<s id="26">
+		 A combination of the two is also possible , and this is the chosen path for AthosMail as disclosed in section 3 . 
+	</s>
+	
+
+	<s id="27">
+		 User expertise has long been the subject of user modelling in the related fields of text generation , question answering and tutorial systems . 
+	</s>
+	
+
+	<s id="28">
+		 For example , 
+		<ref citStr="Paris ( 1988 )" id="6" label="CEPF" position="6092">
+			Paris ( 1988 )
+		</ref>
+		 describes methods for taking the user 's expertise level into account when designing how to tailor descriptions to the novice and expert users . 
+	</s>
+	
+
+	<s id="29">
+		 Although the applications are somewhat different , we expect a fair amount of further inspiration to be forthcoming from this direction also . 
+	</s>
+	
+
+	<s id="30">
+		 In this paper , we describe the AthosMail user expertise model , the Cooperativity Model , and discuss its effect on the system behaviour . 
+	</s>
+	
+
+	<s id="31">
+		 The paper is organised as follows . 
+	</s>
+	
+
+	<s id="32">
+		 In Section 2 we will first briefly introduce the AthosMail functionality which the user needs to familiarise herself with . 
+	</s>
+	
+
+	<s id="33">
+		 Section 3 describes the user expertise model in more detail . 
+	</s>
+	
+
+	<s id="34">
+		 We define the three expertise levels and the concept of DASEX ( dialogue act specific explicitness ) , and present the parameters that are used to calculate the online , session-specific DASEX values as well as offline , between-thesessions DASEX values . 
+	</s>
+	
+
+	<s id="35">
+		 We also list some of the system responses that correspond to the system 's assumptions about the user expertise . 
+	</s>
+	
+
+	<s id="36">
+		 In Section 4 , we report on the evaluation of the system’s adaptive responses and user errors . 
+	</s>
+	
+
+	<s id="37">
+		 In Section 5 , we provide conclusions and future work . 
+	</s>
+	
+
+	<s id="38">
+		 2 System functionality AthosMail is an interactive speech-based e-mail system being developed for mobile telephone use in the project DUMAS ( Jokinen and Gambäck , 2004 ) . 
+	</s>
+	
+
+	<s id="39">
+		 The research goal is to investigate adaptivity in spoken dialogue systems in order to enable users to interact with the speech-based systems in a more flexible and natural way . 
+	</s>
+	
+
+	<s id="40">
+		 The practical goal of AthosMail is to give an option for visually impaired users to check their email by voice commands , and for sighted users to access their email using a mobile phone . 
+	</s>
+	
+
+	<s id="41">
+		 The functionality of the test prototype is rather simple , comprising of three main functions : navigation in the mailbox , reading of messages , and deletion of messages . 
+	</s>
+	
+
+	<s id="42">
+		 For ease of navigation , AthosMail makes use of automatic classification of messages by sender , subject , topic , or other relevant criteria , which is initially chosen by the system . 
+	</s>
+	
+
+	<s id="43">
+		 The classification provides different &quot; views &quot; to the mailbox contents , and the user can move from one view to the next , e.g. from Paul 's messages to Maria 's messages , with commands like &quot; next &quot; , &quot; previous &quot; or &quot; first view &quot; , and so on . 
+	</s>
+	
+
+	<s id="44">
+		 Within a particular view , the user may navigate from one message to another in a similar fashion , saying &quot; next &quot; , &quot; fourth message &quot; or &quot; last message &quot; , and so on . 
+	</s>
+	
+
+	<s id="45">
+		 Reading messages is straightforward , the user may say &quot; read ( the message ) &quot; , when the message in question has been selected , or refer to another message by saying , for example , &quot; read the third message &quot; . 
+	</s>
+	
+
+	<s id="46">
+		 Deletion is handled in the same way , with some room for referring expressions . 
+	</s>
+	
+
+	<s id="47">
+		 The user has the option of asking the system to repeat its previous utterance . 
+	</s>
+	
+
+	<s id="48">
+		 The system asks for a confirmation when the user 's command entails something that has more potential consequences than just wasting time ( by e.g. reading the wrong message ) , namely , quitting and the deletion of messages . 
+	</s>
+	
+
+	<s id="49">
+		 AthosMail may also ask for clarifications , if the speech recognition is deemed unreliable , but otherwise the user has the initiative . 
+	</s>
+	
+
+	<s id="50">
+		 The purpose of the AthosMail user model is to provide flexibility and variation in the system utterances . 
+	</s>
+	
+
+	<s id="51">
+		 The system monitors the user’s actions in general , and especially on each possible system act . 
+	</s>
+	
+
+	<s id="52">
+		 Since the user may master some part of the system functionality , while not be familiar with all commands , the system can thus provide responses tailored with respect to the user’s familiarity with individual acts . 
+	</s>
+	
+
+	<s id="53">
+		 The user model produces recommendations for the dialogue manager on how the system should respond depending on the assumed competence levels of the user . 
+	</s>
+	
+
+	<s id="54">
+		 The user model consists of different subcomponents , such as Message Prioritizing , Message Categorization and User Preference components 
+		<ref citStr="Jokinen et al , 2004" id="7" label="CEPF" position="10299">
+			( Jokinen et al , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="55">
+		 The Cooperativity Model utilizes two parameters , explicitness and dialogue control ( i.e. initiative ) , and the combination of their values then guides utterance generation . 
+	</s>
+	
+
+	<s id="56">
+		 The former is an estimate of the user’s competence level , and is described in the following sections . 
+	</s>
+	
+
+	<s id="57">
+		 3 User expertise modelling in AthosMail AthosMail uses a three-level user expertise scale to encode varied skill levels of the users . 
+	</s>
+	
+
+	<s id="58">
+		 The common assumption of only two classes , experts and novices , seems too simple a model which does not take into account the fact that the user 's expertise level increases gradually , and many users consider themselves neither novices nor experts but something in between . 
+	</s>
+	
+
+	<s id="59">
+		 Moreover , the users may be experienced with the system selectively : they may use some commands more often than others , and thus their skill levels are not uniform across the system functionality . 
+	</s>
+	
+
+	<s id="60">
+		 A more fine-grained description of competence and expertise can also be presented . 
+	</s>
+	
+
+	<s id="61">
+		 For instance , 
+		<ref citStr="Dreyfus and Dreyfus ( 1986 )" id="8" label="CEPF" position="11387">
+			Dreyfus and Dreyfus ( 1986 )
+		</ref>
+		 in their studies about whether it is possible to build systems that could behave in the way of a human expert , distinguish five levels in skill acquisition : Novice , Advanced beginner , Competent , Proficient , and Expert . 
+	</s>
+	
+
+	<s id="62">
+		 In practical dialogue systems , however , it is difficult to maintain subtle user models , and it is also difficult to define such observable facts that would allow fine-grained competence levels to be distinguished in rather simple application tasks . 
+	</s>
+	
+
+	<s id="63">
+		 We have thus ended up with a compromise , and designed three levels of user expertise in our model : novice , competent , and expert . 
+	</s>
+	
+
+	<s id="64">
+		 These levels are reflected in the system responses , which can vary from explicit to concise utterances depending on how much extra information the system is to give to the user in one go . 
+	</s>
+	
+
+	<s id="65">
+		 As mentioned above , one of the goals of the Cooperativity model is to facilitate more natural interaction by allowing the system to adapt its utterances according to the perceived expertise level . 
+	</s>
+	
+
+	<s id="66">
+		 On the other hand , we also want to validate and assess the usability of the three-level model of user expertise . 
+	</s>
+	
+
+	<s id="67">
+		 While not entering into discussions about the limits of rule-based thinking ( e.g. in order to model intuitive decision making of the experts according to the Dreyfus model ) , we want to study if the designed system responses , adapted according to the assumed user skill levels , can provide useful assistance to the user in interactive situations where she is still uncertain about how to use the system . 
+	</s>
+	
+
+	<s id="68">
+		 Since the user can always ask for help explicitly , our main goal is not to study the decrease in the user 's help requests when she becomes more used to the system , but rather , to design the system responses so that they would reflect the different skill levels that the system assumes the user is on , and to get a better understanding whether the expertise levels and their reflection in the system responses is valid or not , so as to provide the best assistance for the user . 
+	</s>
+	
+
+	<s id="69">
+		 3.1 Dialogue act specific explicitness The user expertise model utilized in AthosMail is a collection of parameters aimed at observing telltale signals of the user 's skill level and a set of second-order parameters ( dialogue act specific explicitness DASEX , and dialogue control CTL ) that reflect what has been concluded from the first- order parameters . 
+	</s>
+	
+
+	<s id="70">
+		 Most first-order parameters are tuned to spot incoherence between new information and the current user model ( see below ) . 
+	</s>
+	
+
+	<s id="71">
+		 If there 's evidence that the user is actually more experienced than previously thought , the user expertise model is updated to reflect this . 
+	</s>
+	
+
+	<s id="72">
+		 The process can naturally proceed in the other direction as well , if the user model has been too fast in concluding that the user has advanced to a higher level of expertise . 
+	</s>
+	
+
+	<s id="73">
+		 The second-order parameters affect the system behaviour directly . 
+	</s>
+	
+
+	<s id="74">
+		 There is a separate experience value for each system function , which enables the system to behave appropriately even if the user is very experienced in using one function but has never used another . 
+	</s>
+	
+
+	<s id="75">
+		 The higher the value , the less experienced the user ; the less experienced the user , the more explicit the manner of expression and the more additional advice is incorporated in the system utterances . 
+	</s>
+	
+
+	<s id="76">
+		 The values are called DASEX , short for Dialogue Act Specific Explicitness , and their value range corresponds to the user expertise as follows : 1 = expert , 2 = competent , 3 = novice . 
+	</s>
+	
+
+	<s id="77">
+		 The model comprises an online component and an offline component . 
+	</s>
+	
+
+	<s id="78">
+		 The former is responsible for observing runtime events and calculating DASEX recommendations on the fly , whereas the latter makes long-time observations and , based on these , calculates default DASEX values to be used at the beginning of the next session . 
+	</s>
+	
+
+	<s id="79">
+		 The offline component is , so to speak , rather conservative ; it operates on statistical event distributions instead of individual parameter values and tends to round off the extremes , trying to catch the overall learning curve behind the local variations . 
+	</s>
+	
+
+	<s id="80">
+		 The components work separately . 
+	</s>
+	
+
+	<s id="81">
+		 In the beginning of a new session , the current offline model of the user’s skill level is copied onto the online component and used as the basis for producing the DASEX recommendations , while at the end of each session , the offline component calculates the new default level on the basis of the occurred events . 
+	</s>
+	
+
+	<s id="82">
+		 Figure 1 provides an illustration of the relationships between the parameters . 
+	</s>
+	
+
+	<s id="83">
+		 In the next section we describe them in detail . 
+	</s>
+	
+
+	<s id="84">
+		 3.1.1 Online parameter descriptions The online component can be seen as an extension of the ideas proposed by 
+		<ref citStr="Yankelovich ( 1996 )" id="9" label="CERF" position="16267">
+			Yankelovich ( 1996 )
+		</ref>
+		 and 
+		<ref citStr="Chu-Carroll ( 2000 )" id="10" label="CERF" position="16292">
+			Chu-Carroll ( 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="85">
+		 The relative weights of the parameters are those used in our user tests , partly based on those of 
+		<ref citStr="Krahmer et al , 1999" id="11" label="CERF" position="16427">
+			( Krahmer et al , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="86">
+		 They will be fine-tuned according to our results . 
+	</s>
+	
+
+	<s id="87">
+		 Figure 1 The functional relationships between the offline and online parameters used to calculate the DASEX values . 
+	</s>
+	
+
+	<s id="88">
+		 DASEX ( dialogue act specific explicitness ) : The value is modified during sessions . 
+	</s>
+	
+
+	<s id="89">
+		 Value : DDASEX ( see offline parameters ) modified by SDAI , HLP , TIM , and INT as specified in the respective parameter definitions . 
+	</s>
+	
+
+	<s id="90">
+		 SDAI ( system dialogue act invoked ) : A set of parameters ( one for each system dialogue act ) that tracks whether a particular dialogue act has been invoked during the previous round . 
+	</s>
+	
+
+	<s id="91">
+		 If SDAI = ' yes ' , then DASEX -1 . 
+	</s>
+	
+
+	<s id="92">
+		 This means that when a particular system dialogue move has been instantiated , its explicitness value is decreased and will therefore be presented in a less explicit form the next time it is instantiated during the same session . 
+	</s>
+	
+
+	<s id="93">
+		 HLP ( the occurrence of a help request by the user ) : The system incorporates a separate help function ; this parameter is only used to notify the offline side about the frequency of help requests . 
+	</s>
+	
+
+	<s id="94">
+		 TIM ( the occurrence of a timeout on the user 's turn ) : If TIM = ' yes ' , then DASEX +1 . 
+	</s>
+	
+
+	<s id="95">
+		 This refers to speech recognizer timeouts . 
+	</s>
+	
+
+	<s id="96">
+		 INT ( occurrence of a user interruption during system turn ) : Can be either a barge-in or an interruption by telephone keys . 
+	</s>
+	
+
+	<s id="97">
+		 If INT = ' yes ' , then DASEX = 1 . 
+	</s>
+	
+
+	<s id="98">
+		 3.1.2 Offline parameter descriptions DDASEX ( default dialogue act specific explicitness ) : Every system dialogue act has its own default explicitness value invoked at the beginning of a session . 
+	</s>
+	
+
+	<s id="99">
+		 Value : DASE + GEX / 2 . 
+	</s>
+	
+
+	<s id="100">
+		 GEX ( general expertise ) : General expertise . 
+	</s>
+	
+
+	<s id="101">
+		 A general indicator of user expertise . 
+	</s>
+	
+
+	<s id="102">
+		 Value : NSES + OHLP + OTIM / 3 . 
+	</s>
+	
+
+	<s id="103">
+		 DASE ( dialogue act specific experience ) : This value is based on the number of sessions during which the system dialogue act has been invoked . 
+	</s>
+	
+
+	<s id="104">
+		 There is a separate DASE value for every system dialogue act . 
+	</s>
+	
+
+	<s id="105">
+		 number of sessions DASE 0-2 3 3-6 2 more than 7 1 NSES ( number of sessions ) : Based on the total number of sessions the user has used the system . 
+	</s>
+	
+
+	<s id="106">
+		 number of sessions NSES 0-2 3 3-6 2 more than 7 1 OHLP ( occurrence of help requests ) : This parameter tracks whether the user has requested system help during the last 1 or 3 sessions . 
+	</s>
+	
+
+	<s id="107">
+		 The HLP parameter is logged by the online component . 
+	</s>
+	
+
+	<s id="108">
+		 HLP occurred during OHLP the last session 3 the last 3 sessions 2 if not 1 OTIM ( occurrence of timeouts ) : This parameter tracks whether a timeout has occurred during the last 1 or 3 sessions . 
+	</s>
+	
+
+	<s id="109">
+		 The TIM parameter is logged by the online component . 
+	</s>
+	
+
+	<s id="110">
+		 TIM occurred during OTIM the last session 3 the last 3 sessions 2 if not 1 3.2 DASEX-dependent surface forms Each system utterance type has three different surface realizations corresponding to the three DASEX values . 
+	</s>
+	
+
+	<s id="111">
+		 The explicitness of a system utterance can thus range between [ 1 = taciturn , 2 = normal , 3 = explicit ] ; the higher the value , the more additional information the surface realization will include ( cf. Jokinen and Wilcock , 2001 ) . 
+	</s>
+	
+
+	<s id="112">
+		 The value is used for choosing between the surface realizations which are generated by the presentation components as natural language utterances . 
+	</s>
+	
+
+	<s id="113">
+		 The following two examples have been translated from their original Finnish forms . 
+	</s>
+	
+
+	<s id="114">
+		 Example 1 : A speech recognition error ( the ASR score has been too low ) . 
+	</s>
+	
+
+	<s id="115">
+		 DASEX = 1 : I 'm sorry , I did n't understand . 
+	</s>
+	
+
+	<s id="116">
+		 DASEX = 2 : I 'm sorry , I did n't understand . 
+	</s>
+	
+
+	<s id="117">
+		 Please speak clearly , but do not over-articulate , and speak only after the beep . 
+	</s>
+	
+
+	<s id="118">
+		 DASEX = 3 : I 'm sorry , I did n't understand . 
+	</s>
+	
+
+	<s id="119">
+		 Please speak clearly , but do not over-articulate , and speak only after the beep . 
+	</s>
+	
+
+	<s id="120">
+		 To hear examples of what you can say to the system , say ' what now ' . 
+	</s>
+	
+
+	<s id="121">
+		 Example 2 : Basic information about a message that the user has chosen from a listing of messages from a particular sender . 
+	</s>
+	
+
+	<s id="122">
+		 DASEX = 1 : First message , about &quot; reply : sample file &quot; . 
+	</s>
+	
+
+	<s id="123">
+		 DASEX = 2 : First message , about &quot; reply : sample file &quot; . 
+	</s>
+	
+
+	<s id="124">
+		 Say ' tell me more ' , if you want more details . 
+	</s>
+	
+
+	<s id="125">
+		 DASEX = 3 : First message , about &quot; reply : sample file &quot; . 
+	</s>
+	
+
+	<s id="126">
+		 Say ' read ' , if you want to hear the messages , or ' tell me more ' , if you want to hear a summary and the send date and length of the message . 
+	</s>
+	
+
+	<s id="127">
+		 These examples show the basic idea behind the DASEX effect on surface generation . 
+	</s>
+	
+
+	<s id="128">
+		 In the first example , the novice user is given additional information about how to try and avoid ASR problems , while the expert user is only given the error message . 
+	</s>
+	
+
+	<s id="129">
+		 In the second example , the expert user gets the basic information about the message only , whereas the novice user is also provided with some possible commands how to continue . 
+	</s>
+	
+
+	<s id="130">
+		 A full interaction with AthosMail is given in Appendix 1 . 
+	</s>
+	
+
+	<s id="131">
+		 4 Evaluation of AthosMail Within the DUMAS project , we are in the process of conducting exhaustive user studies with the prototype AthosMail system that incorporates the user expertise model described above . 
+	</s>
+	
+
+	<s id="132">
+		 We have already conducted a preliminary qualitative expert evaluation , the goal of which was to provide insights into the design of system utterances so as to appropriately reflect the three user expertise levels , and the first set of user evaluations where a set of four tasks was carried out during two consecutive days . 
+	</s>
+	
+
+	<s id="133">
+		 4.1 Adaptation and system utterances For the expert evaluation , we interviewed 5 interactive systems experts ( two women and three men ) . 
+	</s>
+	
+
+	<s id="134">
+		 They all had earlier experience in interactive systems and interface design , but were unfamiliar with the current system and with interactive email systems in general . 
+	</s>
+	
+
+	<s id="135">
+		 Each interview included three walkthroughs of the system , one for a novice , one for a competent , and one for an expert user . 
+	</s>
+	
+
+	<s id="136">
+		 The experts were asked to comment on the naturalness and appropriateness of each system utterance , as well as provide any other comments that they may have on adaptation and adaptive systems . 
+	</s>
+	
+
+	<s id="137">
+		 All interviewees agreed on one major theme , namely that the system should be as friendly and reassuring as possible towards novices . 
+	</s>
+	
+
+	<s id="138">
+		 Dialogue systems can be intimidating to new users , and many people are so afraid of making mistakes that they give up after the first communication failure , regardless of what caused it . 
+	</s>
+	
+
+	<s id="139">
+		 Graphical user interfaces differ from speech interfaces in this respect , because there is always something salient to observe as long as the system is running at all . 
+	</s>
+	
+
+	<s id="140">
+		 Four of the five experts agreed that in an error situation the system should always signal the user that the machine is to blame , but there are things that the user can do in case she wants to help the system in the task . 
+	</s>
+	
+
+	<s id="141">
+		 The system should acknowledge its shortcomings &quot; humbly &quot; and make sure that the user does n't get feelings of guilt – all problems are due to imperfect design . 
+	</s>
+	
+
+	<s id="142">
+		 E.g. , the responses in Example 1 were viewed as accusing the user of not being able to act in the correct way . 
+	</s>
+	
+
+	<s id="143">
+		 We have since moved towards forms like &quot; I may have misheard &quot; , where the system appears responsible for the miscommunication . 
+	</s>
+	
+
+	<s id="144">
+		 This can pave the way when the user is taking the first wary steps in getting acquainted with the system . 
+	</s>
+	
+
+	<s id="145">
+		 Novice users also need error messages that do not bother the user with technical matters that concern only the designers . 
+	</s>
+	
+
+	<s id="146">
+		 For instance , a novice user does n't need information about error codes or characteristics of the speech recognizer ; when ASR errors occur , the system can simply talk about not hearing correctly ; a reference to a piece of equipment that does the job – namely , the speech recognizer – is unnecessary and the user should not be burdened with it . 
+	</s>
+	
+
+	<s id="147">
+		 Experienced users , on the other hand , wish to hear only the essentials . 
+	</s>
+	
+
+	<s id="148">
+		 All our interviewees agreed that at the highest skill level , the system prompts should be as terse as possible , to the point of being blunt . 
+	</s>
+	
+
+	<s id="149">
+		 Politeness words like &quot; I 'm sorry &quot; are not necessary at this level , because the expert 's attitude towards the system is pragmatic : they see it as a tool , know its limitations , and &quot; rudeness &quot; on the part of the system does n't scare or annoy them anymore . 
+	</s>
+	
+
+	<s id="150">
+		 However , it is not clear how the change in politeness when migrating from novice to expert levels actually affects the user’s perception of the system ; the transition should at least be gradual and not too fast . 
+	</s>
+	
+
+	<s id="151">
+		 There may also be cultural differences regarding certain politeness rules . 
+	</s>
+	
+
+	<s id="152">
+		 The virtues of adaptivity are still a matter of debate . 
+	</s>
+	
+
+	<s id="153">
+		 One of the experts expressed serious doubt over the usability of any kind of automatic adaptivity and maintained that the user should decide whether she wants the system to adapt at a given moment or not . 
+	</s>
+	
+
+	<s id="154">
+		 In the related field of tutoring systems , 
+		<ref citStr="Kay ( 2001 )" id="12" label="CEPF" position="25699">
+			Kay ( 2001 )
+		</ref>
+		 has argued for giving the user the control over adaptation . 
+	</s>
+	
+
+	<s id="155">
+		 Whatever the case , it is clear that badly designed adaptivity is confusing to the user , and especially a novice user may feel disoriented if faced with prompts where nothing seems to stay the same . 
+	</s>
+	
+
+	<s id="156">
+		 It is essential that the system is consistent in its use of concepts , and manner of speech . 
+	</s>
+	
+
+	<s id="157">
+		 In AthosMail , the expert level ( DASEX=1 for all dialogue acts ) acts as the core around which the other two expertise levels are built . 
+	</s>
+	
+
+	<s id="158">
+		 While the core remains essentially unchanged , further information elements are added after it . 
+	</s>
+	
+
+	<s id="159">
+		 In practise , when the perceived user expertise rises , the system simply removes information elements that have become unnecessary from the end of the utterance , without touching the core . 
+	</s>
+	
+
+	<s id="160">
+		 This should contribute to a feeling of consistency and dependability . 
+	</s>
+	
+
+	<s id="161">
+		 On the other hand , 
+		<ref citStr="Paris ( 1988 )" id="13" label="CEPF" position="26652">
+			Paris ( 1988 )
+		</ref>
+		 argued that the user’s expertise level does not affect only the amount but the kind of information given to the user . 
+	</s>
+	
+
+	<s id="162">
+		 It will prove interesting to reconcile these views in a more general kind of user expertise modeling . 
+	</s>
+	
+
+	<s id="163">
+		 4.2 Adaptation and user errors The user evaluation of AthosMail consisted of four tasks that were performed on two consecutive days . 
+	</s>
+	
+
+	<s id="164">
+		 The 26 test users , aged 20-62 , thus produced four separate dialogues each and a total of 104 dialogues . 
+	</s>
+	
+
+	<s id="165">
+		 They had no previous experience with speech-based dialogue systems , and to familiarize themselves to synthesized speech and speech recognizers , they had a short training session with another speech application in the beginning of the first test session . 
+	</s>
+	
+
+	<s id="166">
+		 An outline of AthosMail functionality was presented to the users , and they were allowed to keep it when interacting with the system . 
+	</s>
+	
+
+	<s id="167">
+		 At the end of each of the four tests , the users were asked to assess how familiar they were with the system functionality and how confident they felt about using it . 
+	</s>
+	
+
+	<s id="168">
+		 Also , they were asked to assess whether the system gave too little information about its functionality , too much , or the right amount . 
+	</s>
+	
+
+	<s id="169">
+		 The results are reported in 
+		<ref citStr="Jokinen et al , 2004" id="14" label="CEPF" position="27940">
+			( Jokinen et al , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="170">
+		 We also identified four error types , as a point of comparison for the user expertise model . 
+	</s>
+	
+
+	<s id="171">
+		 5 Conclusions Previous studies concerning user modelling in various interactive applications have shown the importance of the user model in making the interaction with the system more enjoyable . 
+	</s>
+	
+
+	<s id="172">
+		 We have introduced the three-level user expertise model , implemented in our speech-based e-mail system , AthosMail , and argued for its effect on the behaviour of the overall system . 
+	</s>
+	
+
+	<s id="173">
+		 Future work will focus on analyzing the data collected through the evaluations of the complete AthosMail system with real users . 
+	</s>
+	
+
+	<s id="174">
+		 Preliminary expert evaluation revealed that it is important to make sure the novice user is not intimidated and feels comfortable with the system , but also that the experienced users should not be forced to listen to the same advice every time they use the system . 
+	</s>
+	
+
+	<s id="175">
+		 The hand-tagged error classification shows a slight downward tendency in user errors , suggesting accumulation of user experience . 
+	</s>
+	
+
+	<s id="176">
+		 This will act as a point of comparison for the user expertise model assembled automatically by the system . 
+	</s>
+	
+
+	<s id="177">
+		 Another future research topic is to apply machine-learning and statistical techniques in the implementation of the user expertise model . 
+	</s>
+	
+
+	<s id="178">
+		 Through the user studies we will also collect data which we plan to use in re-implementing the DASEX decision mechanism as a Bayesian network . 
+	</s>
+	
+
+	<s id="179">
+		 6 Acknowledgements This research was carried out within the EU’s Information Society Technologies project DUMAS ( Dynamic Universal Mobility for Adaptive Speech Interfaces ) , IST-2000-29452 . 
+	</s>
+	
+
+	<s id="180">
+		 We thank all project participants from KTH and SICS , Sweden ; UMIST , UK ; ETeX Sprachsynthese AG , Germany ; U. of Tampere , U. of Art and Design , Connexor Oy , and Timehouse Oy , Finland . 
+	</s>
+	
+
+	<s id="181">
+		 References Jennifer Chu-Carroll . 
+	</s>
+	
+
+	<s id="182">
+		 2000. MIMIC : An Adaptive Mixed Initiative Spoken Dialogue System for Information Queries . 
+	</s>
+	
+
+	<s id="183">
+		 In Procs of ANLP 6 , 2000 , pp. 97-104 . 
+	</s>
+	
+
+	<s id="184">
+		 Morena Danieli and Elisabetta Gerbino . 
+	</s>
+	
+
+	<s id="185">
+		 1995. Metrics for Evaluating Dialogue Strategies in a Spoken Language System . 
+	</s>
+	
+
+	<s id="186">
+		 Working Notes , AAAI Spring Symposium Series , Stanford University . 
+	</s>
+	
+
+	<s id="187">
+		 Hubert L. Dreyfus and Stuart E. Dreyfus . 
+	</s>
+	
+
+	<s id="188">
+		 1986. Mind over Machine : The Power of Human Intuition and Expertise in the Era of the Computer . 
+	</s>
+	
+
+	<s id="189">
+		 New York : The Free Press . 
+	</s>
+	
+
+	<s id="190">
+		 Kristiina Jokinen and Björn Gambäck . 
+	</s>
+	
+
+	<s id="191">
+		 2004. DUMAS - Adaptation and Robust Information Processing for Mobile Speech Interfaces . 
+	</s>
+	
+
+	<s id="192">
+		 Procs of The 1st Baltic Conference “Human Language Technologies – The Baltic Perspective” , Riga , Latvia , 115-120 . 
+	</s>
+	
+
+	<s id="193">
+		 Kristiina Jokinen , Kari Kanto , Antti Kerminen and Jyrki Rissanen . 
+	</s>
+	
+
+	<s id="194">
+		 2004. Evaluation of Adaptivity and User Expertise in a Speech-based E-mail System . 
+	</s>
+	
+
+	<s id="195">
+		 Procs of the COLING Satellite Workshop Robust and Adaptive Information Processing for Mobile Speech Interfaces , Geneva , Switzerland . 
+	</s>
+	
+
+	<s id="196">
+		 Kristiina Jokinen and Graham Wilcock . 
+	</s>
+	
+
+	<s id="197">
+		 2001. Adaptivity and Response Generation in a Spoken Dialogue System . 
+	</s>
+	
+
+	<s id="198">
+		 In van Kuppevelt , J. and R. W. Smith ( eds . 
+	</s>
+	
+
+	<s id="199">
+		 ) Current and New Directions in Discourse and Dialogue . 
+	</s>
+	
+
+	<s id="200">
+		 Kluwer Academic Publishers . 
+	</s>
+	
+
+	<s id="201">
+		 pp. 213-234 . 
+	</s>
+	
+
+	<s id="202">
+		 Candace Kamm , Diane Litman , and Marilyn Walker . 
+	</s>
+	
+
+	<s id="203">
+		 1998. From novice to expert : the effect of tutorials on user expertise with spoken dialogue systems . 
+	</s>
+	
+
+	<s id="204">
+		 Procs of the International Conference on Spoken Language Processing ( ICSLP98 ) . 
+	</s>
+	
+
+	<s id="205">
+		 Judy Kay . 
+	</s>
+	
+
+	<s id="206">
+		 2001. Learner control . 
+	</s>
+	
+
+	<s id="207">
+		 User Modeling and User-Adapted Interaction 11 : 111-127 . 
+	</s>
+	
+
+	<s id="208">
+		 Emiel Krahmer , Marc Swerts , Mariet Theune and Mieke Weegels . 
+	</s>
+	
+
+	<s id="209">
+		 1999. Problem Spotting in Human- Machine Interaction . 
+	</s>
+	
+
+	<s id="210">
+		 In Procs of Eurospeech '99 . 
+	</s>
+	
+
+	<s id="211">
+		 Vol. 3 , 1423-1426 . 
+	</s>
+	
+
+	<s id="212">
+		 Budapest , Hungary . 
+	</s>
+	
+
+	<s id="213">
+		 Diane J. Litman and Shimei Pan . 
+	</s>
+	
+
+	<s id="214">
+		 2002. Designing and Evaluating an Adaptive Spoken Dialogue System . 
+	</s>
+	
+
+	<s id="215">
+		 User Modeling and User-Adapted Interaction . 
+	</s>
+	
+
+	<s id="216">
+		 Vol 12(2/3):111-137 . 
+	</s>
+	
+
+	<s id="217">
+		 Cécile Paris . 
+	</s>
+	
+
+	<s id="218">
+		 1988. Tailoring Descriptions to a User 's Level of Expertise . 
+	</s>
+	
+
+	<s id="219">
+		 Journal of Computational Linguistics , 14 ( 3 ) : 64-78 . 
+	</s>
+	
+
+	<s id="220">
+		 Ronnie W. Smith . 
+	</s>
+	
+
+	<s id="221">
+		 1993. Effective Spoken Natural Language Dialog Requires Variable Initiative Behavior : An Empirical Study . 
+	</s>
+	
+
+	<s id="222">
+		 Procs of the AAAI Fall Symposium on Human-Computer Collaboration : Reconciling Theory , Synthesizing Practice . 
+	</s>
+	
+
+	<s id="223">
+		 M. Turunen , E-P. Salonen , M. Hartikainen , J. Hakulinen , W.J. Black , A : Ramsay , A. Funk , A. Conroy , P. Thompson , M. Stairmand , K. Jokinen , J. Rissanen , K. Kanto , A. Kerminen , B. Gambäck , M. Cheadle , F. Olsson , M. Sahlgren . 
+	</s>
+	
+
+	<s id="224">
+		 2004. AthosMail – a multilingual Adaptive Spoken Dialogue System for E-mail Domain . 
+	</s>
+	
+
+	<s id="225">
+		 Procs of the COLING Workshop Robust and Adaptive Information Processing for Mobile Speech Interfaces , Geneva , Switzerland . 
+	</s>
+	
+
+	<s id="226">
+		 Marilyn A. Walker , Irene Langkilde , Jerry Wright , Allen Gorin , Diane J. Litman . 
+	</s>
+	
+
+	<s id="227">
+		 2000. Learning to Predict Problematic Situations in a Spoken Dialogue System : Experiments with How May I Help You ? 
+	</s>
+	
+
+	<s id="228">
+		 Procs of NAACL’00 , Seattle , US , 210-217 . 
+	</s>
+	
+
+	<s id="229">
+		 Nicole Yankelovich . 
+	</s>
+	
+
+	<s id="230">
+		 1996. How do users know what to say ? 
+	</s>
+	
+
+	<s id="231">
+		 Interactions 3(6) : 32-43 . 
+	</s>
+	
+
+	<s id="232">
+		 7 Appendix 1 . 
+	</s>
+	
+
+	<s id="233">
+		 Sample dialogue with a novice user System : Welcome to AthosMail . 
+	</s>
+	
+
+	<s id="234">
+		 Please dial your user code . 
+	</s>
+	
+
+	<s id="235">
+		 User : [ dials the four-digit code ] S : Please dial your secret passcode . 
+	</s>
+	
+
+	<s id="236">
+		 U : [ dials the passcode ] System : Please wait , I 'll contact your mail server . 
+	</s>
+	
+
+	<s id="237">
+		 ( ... ) Hello Jukka , you have twelve unread messages . 
+	</s>
+	
+
+	<s id="238">
+		 They have been divided into three groups . 
+	</s>
+	
+
+	<s id="239">
+		 In the first group , there are the messages about Re : Comments about the draft . 
+	</s>
+	
+
+	<s id="240">
+		 In the second group , the messages from Timothy . 
+	</s>
+	
+
+	<s id="241">
+		 In the third group , the rest of the messages . 
+	</s>
+	
+
+	<s id="242">
+		 You can select a group by saying for example &quot; first group &quot; or &quot; second group &quot; . 
+	</s>
+	
+
+	<s id="243">
+		 Say help if you want further instructions . 
+	</s>
+	
+
+	<s id="244">
+		 User : First group . 
+	</s>
+	
+
+	<s id="245">
+		 S : You are in the first group , with three messages about Re : Comments about the draft . 
+	</s>
+	
+
+	<s id="246">
+		 The first message is from Matti Hahtomaa , the second from Jaana Jaakkola , the third from Sakari Rantala. . 
+	</s>
+	
+
+	<s id="247">
+		 If you want to select a message , say for example &quot; second message &quot; or &quot; Eddie Everyman 's message &quot; . 
+	</s>
+	
+
+	<s id="248">
+		 U : First message . 
+	</s>
+	
+
+	<s id="249">
+		 S : First message , from Matti Hahtomaa , about Re : Comments about the draft . 
+	</s>
+	
+
+	<s id="250">
+		 If you want to hear the message , say &quot; read &quot; . 
+	</s>
+	
+
+	<s id="251">
+		 You can have additional information about the message by saying &quot; tell me more &quot; . 
+	</s>
+	
+
+	<s id="252">
+		 U : Second message . 
+	</s>
+	
+
+	<s id="253">
+		 S : Second message , from Jaana Jaakkola , about Re : Comments about the draft . 
+	</s>
+	
+
+	<s id="254">
+		 You can have additional information about the message by saying &quot; tell me more &quot; . 
+	</s>
+	
+
+	<s id="255">
+		 U : Tell me more . 
+	</s>
+	
+
+	<s id="256">
+		 S : Message sent on February 3rd , 2004 . 
+	</s>
+	
+
+	<s id="257">
+		 Message length 24 lines . 
+	</s>
+	
+
+	<s id="258">
+		 U : Read Sakari Rantala 's message . 
+	</s>
+	
+
+	<s id="259">
+		 S : Third message , from Sakari Rantala , about Re : Comments about the draft . 
+	</s>
+	
+
+	<s id="260">
+		 [ reads the message ] Message read . 
+	</s>
+	
+
+	<s id="261">
+		 You are in the first message group . 
+	</s>
+	
+
+	<s id="262">
+		 U : Quit . 
+	</s>
+	
+
+	<s id="263">
+		 S : Are you sure you want to quit ? 
+	</s>
+	
+
+	<s id="264">
+		 Say yes or no . 
+	</s>
+	
+
+	<s id="265">
+		 U : Yes . 
+	</s>
+	
+
+	<s id="266">
+		 S : Bye bye . 
+	</s>
+	
+
+
+</acldoc>

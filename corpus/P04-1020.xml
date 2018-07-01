@@ -1,0 +1,1521 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1020">
+	
+
+	<s id="1">
+		 Learning Noun Phrase Anaphoricity to Improve Coreference Resolution : Issues in Representation and Optimization Vincent Ng Department of Computer Science Cornell University Ithaca , NY 14853-7501 yung@cs.cornell.edu Abstract Knowledge of the anaphoricity of a noun phrase might be profitably exploited by a coreference system to bypass the resolution of non-anaphoric noun phrases . 
+	</s>
+	
+
+	<s id="2">
+		 Perhaps surprisingly , recent attempts to incorporate automatically acquired anaphoricity information into coreference systems , however , have led to the degradation in resolution performance . 
+	</s>
+	
+
+	<s id="3">
+		 This paper examines several key issues in computing and using anaphoricity information to improve learning-based coreference systems . 
+	</s>
+	
+
+	<s id="4">
+		 In particular , we present a new corpus-based approach to anaphoricity determination . 
+	</s>
+	
+
+	<s id="5">
+		 Experiments on three standard coreference data sets demonstrate the effectiveness of our approach . 
+	</s>
+	
+
+	<s id="6">
+		 1 Introduction Noun phrase coreference resolution , the task of determining which noun phrases ( NPs ) in a text refer to the same real-world entity , has long been considered an important and difficult problem in natural language processing . 
+	</s>
+	
+
+	<s id="7">
+		 Identifying the linguistic constraints on when two NPs can co-refer remains an active area of research in the community . 
+	</s>
+	
+
+	<s id="8">
+		 One significant constraint on coreference , the non-anaphoricity constraint , specifies that a non- anaphoric NP cannot be coreferent with any of its preceding NPs in a given text . 
+	</s>
+	
+
+	<s id="9">
+		 Given the potential usefulness of knowledge of (non-)anaphoricity for coreference resolution , anaphoricity determination has been studied fairly extensively . 
+	</s>
+	
+
+	<s id="10">
+		 One common approach involves the design of heuristic rules to identify specific types of (non-)anaphoric NPs such as pleonastic pronouns ( e.g. , 
+		<ref citStr="Paice and Husk ( 1987 )" id="1" label="CEPF" position="1863">
+			Paice and Husk ( 1987 )
+		</ref>
+		 , Lappin and Le- ass ( 1994 ) , 
+		<ref citStr="Kennedy and Boguraev ( 1996 )" id="2" label="CEPF" position="1925">
+			Kennedy and Boguraev ( 1996 )
+		</ref>
+		 , 
+		<ref citStr="Denber ( 1998 )" id="3" label="CEPF" position="1943">
+			Denber ( 1998 )
+		</ref>
+		 ) and definite descriptions ( e.g. , 
+		<ref citStr="Vieira and Poesio ( 2000 )" id="4" label="CEPF" position="2007">
+			Vieira and Poesio ( 2000 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="11">
+		 More recently , the problem has been tackled using unsupervised ( e.g. , 
+		<ref citStr="Bean and Riloff ( 1999 )" id="5" label="CEPF" position="2118">
+			Bean and Riloff ( 1999 )
+		</ref>
+		 ) and supervised ( e.g. , 
+		<ref citStr="Evans ( 2001 )" id="6" label="CEPF" position="2159">
+			Evans ( 2001 )
+		</ref>
+		 , 
+		<ref citStr="Ng and Cardie ( 2002a )" id="7" label="CEPF" position="2185">
+			Ng and Cardie ( 2002a )
+		</ref>
+		 ) approaches . 
+	</s>
+	
+
+	<s id="12">
+		 Interestingly , existing machine learning ap proaches to coreference resolution have performed reasonably well without anaphoricity determination ( e.g. , 
+		<ref citStr="Soon et al . ( 2001 )" id="8" label="CEPF" position="2386">
+			Soon et al . ( 2001 )
+		</ref>
+		 , 
+		<ref citStr="Ng and Cardie ( 2002b )" id="9" label="CEPF" position="2412">
+			Ng and Cardie ( 2002b )
+		</ref>
+		 , Strube and M¨uller ( 2003 ) , 
+		<ref citStr="Yang et al . ( 2003 )" id="10" label="CEPF" position="2467">
+			Yang et al . ( 2003 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="13">
+		 Nevertheless , there is empirical evidence that resolution systems might further be improved with anaphoricity information . 
+	</s>
+	
+
+	<s id="14">
+		 For instance , our coreference system mistakenly identifies an antecedent for many non-anaphoric common nouns in the absence of anaphoricity information 
+		<ref citStr="Ng and Cardie , 2002a" id="11" label="CEPN" position="2793">
+			( Ng and Cardie , 2002a )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="15">
+		 Our goal in this paper is to improve learning- based coreference systems using automatically computed anaphoricity information . 
+	</s>
+	
+
+	<s id="16">
+		 In particular , we examine two important , yet largely unexplored , issues in anaphoricity determination for coreference resolution : representation and optimization . 
+	</s>
+	
+
+	<s id="17">
+		 Constraint-based vs. feature-based representation . 
+	</s>
+	
+
+	<s id="18">
+		 How should the computed anaphoricity information be used by a coreference system ? 
+	</s>
+	
+
+	<s id="19">
+		 From a linguistic perspective , knowledge of nonanaphoricity is most naturally represented as “bypassing” constraints , with which the coreference system bypasses the resolution of NPs that are determined to be non-anaphoric . 
+	</s>
+	
+
+	<s id="20">
+		 But for learning-based coreference systems , anaphoricity information can be simply and naturally accommodated into the machine learning framework by including it as a feature in the instance representation . 
+	</s>
+	
+
+	<s id="21">
+		 Local vs. global optimization . 
+	</s>
+	
+
+	<s id="22">
+		 Should the anaphoricity determination procedure be developed independently of the coreference system that uses the computed anaphoricity information ( local optimization ) , or should it be optimized with respect to coreference performance ( global optimization ) ? 
+	</s>
+	
+
+	<s id="23">
+		 The principle of software modularity calls for local optimization . 
+	</s>
+	
+
+	<s id="24">
+		 However , if the primary goal is to improve coreference performance , global optimization appears to be the preferred choice . 
+	</s>
+	
+
+	<s id="25">
+		 Existing work on anaphoricity determination for anaphora/coreference resolution can be characterized along these two dimensions . 
+	</s>
+	
+
+	<s id="26">
+		 Interestingly , most existing work employs constraint- based , locally-optimized methods ( e.g. , 
+		<ref citStr="Mitkov et al . ( 2002 )" id="12" label="CEPF" position="4518">
+			Mitkov et al . ( 2002 )
+		</ref>
+		 and 
+		<ref citStr="Ng and Cardie ( 2002a )" id="13" label="CEPF" position="4546">
+			Ng and Cardie ( 2002a )
+		</ref>
+		 ) , leaving the remaining three possibilities largely unexplored . 
+	</s>
+	
+
+	<s id="27">
+		 In particular , to our knowledge , there have been no attempts to ( 1 ) globally optimize an anaphoricity determination procedure for coreference performance and ( 2 ) incorporate anaphoricity into coreference systems as a feature . 
+	</s>
+	
+
+	<s id="28">
+		 Consequently , as part of our investigation , we propose a new corpus-based method for achieving global optimization and experiment with representing anaphoricity as a feature in the coreference system . 
+	</s>
+	
+
+	<s id="29">
+		 In particular , we systematically evaluate all four combinations of local vs. global optimization and constraint-based vs. feature-based representation of anaphoricity information in terms of their effectiveness in improving a learning-based coreference system . 
+	</s>
+	
+
+	<s id="30">
+		 Results on three standard coreference data sets are somewhat surprising : our proposed globally-optimized method , when used in conjunction with the constraint-based representation , outperforms not only the commonly-adopted locally- optimized approach but also its seemingly more natural feature-based counterparts . 
+	</s>
+	
+
+	<s id="31">
+		 The rest of the paper is structured as follows . 
+	</s>
+	
+
+	<s id="32">
+		 Section 2 focuses on optimization issues , discussing locally- and globally-optimized approaches to anaphoricity determination . 
+	</s>
+	
+
+	<s id="33">
+		 In Section 3 , we give an overview of the standard machine learning framework for coreference resolution . 
+	</s>
+	
+
+	<s id="34">
+		 Sections 4 and 5 present the experimental setup and evaluation results , respectively . 
+	</s>
+	
+
+	<s id="35">
+		 We examine the features that are important to anaphoricity determination in Section 6 and conclude in Section 7 . 
+	</s>
+	
+
+	<s id="36">
+		 2 The Anaphoricity Determination System : Local vs. . 
+	</s>
+	
+
+	<s id="37">
+		 Global Optimization In this section , we will show how to build a model of anaphoricity determination . 
+	</s>
+	
+
+	<s id="38">
+		 We will first present the standard , locally-optimized approach and then introduce our globally-optimized approach . 
+	</s>
+	
+
+	<s id="39">
+		 2.1 The Locally-Optimized Approach In this approach , the anaphoricity model is simply a classifier that is trained and optimized independently of the coreference system ( e.g. , 
+		<ref citStr="Evans ( 2001 )" id="14" label="CEPF" position="6704">
+			Evans ( 2001 )
+		</ref>
+		 , 
+		<ref citStr="Ng and Cardie ( 2002a )" id="15" label="CEPF" position="6730">
+			Ng and Cardie ( 2002a )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="40">
+		 Building a classifier for anaphoricity determination . 
+	</s>
+	
+
+	<s id="41">
+		 A learning algorithm is used to train a classifier that , given a description of an NP in a document , decides whether or not the NP is anaphoric . 
+	</s>
+	
+
+	<s id="42">
+		 Each training instance represents a single NP and consists of a set of features that are potentially useful for distinguishing anaphoric and non-anaphoric NPs . 
+	</s>
+	
+
+	<s id="43">
+		 The classification associated with a training instance — one of ANAPHORIC or NOT ANAPHORIC — is derived from coreference chains in the training documents . 
+	</s>
+	
+
+	<s id="44">
+		 Specifically , a positive instance is created for each NP that is involved in a coreference chain but is not the head of the chain . 
+	</s>
+	
+
+	<s id="45">
+		 A negative instance is created for each of the remaining NPs . 
+	</s>
+	
+
+	<s id="46">
+		 Applying the classifier . 
+	</s>
+	
+
+	<s id="47">
+		 To determine the anaphoricity of an NP in a test document , an instance is created for it as during training and presented to the anaphoricity classifier , which returns a value of ANAPHORIC or NOT ANAPHORIC . 
+	</s>
+	
+
+	<s id="48">
+		 2.2 The Globally-Optimized Approach To achieve global optimization , we construct a parametric anaphoricity model with which we optimize the parameter1 for coreference accuracy on held- out development data . 
+	</s>
+	
+
+	<s id="49">
+		 In other words , we tighten the connection between anaphoricity determination and coreference resolution by using the parameter to generate a set of anaphoricity models from which we select the one that yields the best coreference performance on held-out data . 
+	</s>
+	
+
+	<s id="50">
+		 Global optimization for a constraint-based representation . 
+	</s>
+	
+
+	<s id="51">
+		 We view anaphoricity determination as a problem of determining how conservative an anaphoricity model should be in classifying an NP as (non-)anaphoric . 
+	</s>
+	
+
+	<s id="52">
+		 Given a constraint-based representation of anaphoricity information for the coreference system , if the model is too liberal in classifying an NP as non-anaphoric , then many anaphoric NPs will be misclassified , ultimately leading to a deterioration of recall and of the overall performance of the coreference system . 
+	</s>
+	
+
+	<s id="53">
+		 On the other hand , if the model is too conservative , then only a small fraction of the truly non-anaphoric NPs will be identified , and so the resulting anaphoricity information may not be effective in improving the coreference system . 
+	</s>
+	
+
+	<s id="54">
+		 The challenge then is to determine a “good” degree of conservativeness . 
+	</s>
+	
+
+	<s id="55">
+		 As a result , we can design a parametric anaphoricity model whose conservativeness can be adjusted via a conservativeness parameter . 
+	</s>
+	
+
+	<s id="56">
+		 To achieve global optimization , we can simply tune this parameter to optimize for coreference performance on held-out development data . 
+	</s>
+	
+
+	<s id="57">
+		 Now , to implement this conservativeness-based anaphoricity determination model , we propose two methods , each of which is built upon a different definition of conservativeness . 
+	</s>
+	
+
+	<s id="58">
+		 Method 1 : Varying the Cost Ratio Our first method exploits a parameter present in many off-the-shelf machine learning algorithms for 1We can introduce multiple parameters for this purpose , but to simply the optimization process , we will only consider single-parameter models in this paper . 
+	</s>
+	
+
+	<s id="59">
+		 training a classifier — the cost ratio ( cr ) , which is defined as follows . 
+	</s>
+	
+
+	<s id="60">
+		 cost of misclassifying a positive instance cost of misclassifying a negative instance Inspection of this definition shows that cr provides a means of adjusting the relative misclassification penalties placed on training instances of different classes . 
+	</s>
+	
+
+	<s id="61">
+		 In particular , the larger cr is , the more conservative the classifier is in classifying an instance as negative ( i.e. , non-anaphoric ) . 
+	</s>
+	
+
+	<s id="62">
+		 Given this observation , we can naturally define the conservativeness of an anaphoricity classifier as follows . 
+	</s>
+	
+
+	<s id="63">
+		 We say that classifier A is more conservative than classifier B in determining an NP as non-anaphoric if A is trained with a higher cost ratio than B . 
+	</s>
+	
+
+	<s id="64">
+		 Based on this definition of conservativeness , we can construct an anaphoricity model parameterized by cr . 
+	</s>
+	
+
+	<s id="65">
+		 Specifically , the parametric model maps a given value of cr to the anaphoricity classifier trained with this cost ratio . 
+	</s>
+	
+
+	<s id="66">
+		 ( For the purpose of training anaphoricity classifiers with different values of cr , we use RIPPER 
+		<ref citStr="Cohen , 1995" id="16" label="CEPF" position="11081">
+			( Cohen , 1995 )
+		</ref>
+		 , a propositional rule learning algorithm . 
+	</s>
+	
+
+	<s id="67">
+		 ) It should be easy to see that increasing cr makes the model more conservative in classifying an NP as non-anaphoric . 
+	</s>
+	
+
+	<s id="68">
+		 With this parametric model , we can tune cr to optimize for coreference performance on held-out data . 
+	</s>
+	
+
+	<s id="69">
+		 Method 2 : Varying the Classification Threshold We can also define conservativeness in terms of the number of NPs classified as non-anaphoric for a given set of NPs . 
+	</s>
+	
+
+	<s id="70">
+		 Specifically , given two anaphoricity models A and B and a set of instances I to be classified , we say that A is more conservative than B in determining an NP as non-anaphoric if A classifies fewer instances in I as non-anaphoric than B . 
+	</s>
+	
+
+	<s id="71">
+		 Again , this definition is consistent with our intuition regarding conservativeness . 
+	</s>
+	
+
+	<s id="72">
+		 We can now design a parametric anaphoricity model based on this definition . 
+	</s>
+	
+
+	<s id="73">
+		 First , we train in a supervised fashion a probablistic model of anaphoricity PA ( c I i ) , where i is an instance representing an NP and c is one of the two possible anaphoricity values . 
+	</s>
+	
+
+	<s id="74">
+		 ( In our experiments , we use maximum entropy classification ( MaxEnt ) 
+		<ref citStr="Berger et al. , 1996" id="17" label="CEPF" position="12277">
+			( Berger et al. , 1996 )
+		</ref>
+		 to train this probability model . 
+	</s>
+	
+
+	<s id="75">
+		 ) Then , we can construct a parametric model making binary anaphoricity decisions from PA by introducing a threshold parameter t as follows . 
+	</s>
+	
+
+	<s id="76">
+		 Given a specific t ( 0 &lt; t &lt; 1 ) and a new instance i , we define an anaphoricity model MtA in which MtA(i) = NOT ANAPHORIC if and only if PA(c = NOT ANAPHORIC I i ) &gt; t . 
+	</s>
+	
+
+	<s id="77">
+		 It should be easy to see that increasing t yields progressively more conservative anaphoricity models . 
+	</s>
+	
+
+	<s id="78">
+		 Again , t can be tuned using held-out development data . 
+	</s>
+	
+
+	<s id="79">
+		 Global optimization for a feature-based representation . 
+	</s>
+	
+
+	<s id="80">
+		 We can similarly optimize our proposed conservativeness-based anaphoricity model for coreference performance when anaphoricity information is represented as a feature for the coreference system . 
+	</s>
+	
+
+	<s id="81">
+		 Unlike in a constraint-based representation , however , we cannot expect that the recall of the coreference system would increase with the conservativeness parameter . 
+	</s>
+	
+
+	<s id="82">
+		 The reason is that we have no control over whether or how the anaphoricity feature is used by the coreference learner . 
+	</s>
+	
+
+	<s id="83">
+		 In other words , the behavior of the coreference system is less predictable in comparison to a constraint-based representation . 
+	</s>
+	
+
+	<s id="84">
+		 Other than that , the conservativeness- based anaphoricity model is as good to use for global optimization with a feature-based representation as with a constraint-based representation . 
+	</s>
+	
+
+	<s id="85">
+		 We conclude this section by pointing out that the locally-optimized approach to anaphoricity determination is indeed a special case of the global one . 
+	</s>
+	
+
+	<s id="86">
+		 Unlike the global approach in which the conservativeness parameter values are tuned based on labeled data , the local approach uses “default” parameter values . 
+	</s>
+	
+
+	<s id="87">
+		 For instance , when RIPPER is used to train an anaphoricity classifier in the local approach , cr is set to the default value of one . 
+	</s>
+	
+
+	<s id="88">
+		 Similarly , when probabilistic anaphoricity decisions generated via a MaxEnt model are converted to binary anaphoricity decisions for subsequent use by a coreference system , t is set to the default value of 0.5 . 
+	</s>
+	
+
+	<s id="89">
+		 3 The Machine Learning Framework for Coreference Resolution The coreference system to which our automatically computed anaphoricity information will be applied implements the standard machine learning approach to coreference resolution combining classification and clustering . 
+	</s>
+	
+
+	<s id="90">
+		 Below we will give a brief overview of this standard approach . 
+	</s>
+	
+
+	<s id="91">
+		 Details can be found in 
+		<ref citStr="Soon et al . ( 2001 )" id="18" label="CERF" position="14857">
+			Soon et al . ( 2001 )
+		</ref>
+		 or 
+		<ref citStr="Ng and Cardie ( 2002b )" id="19" label="CERF" position="14884">
+			Ng and Cardie ( 2002b )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="92">
+		 Training an NP coreference classifier . 
+	</s>
+	
+
+	<s id="93">
+		 After a pre-processing step in which the NPs in a document are automatically identified , a learning algorithm is used to train a classifier that , given a description of two NPs in the document , decides whether they are COREFERENT or NOT COREFERENT . 
+	</s>
+	
+
+	<s id="94">
+		 Applying the classifier to create coreference chains . 
+	</s>
+	
+
+	<s id="95">
+		 Test texts are processed from left to right . 
+	</s>
+	
+
+	<s id="96">
+		 Each NP encountered , NPj , is compared in turn to each preceding NP , NPi . 
+	</s>
+	
+
+	<s id="97">
+		 For each pair , a test instance is created as during training and is presented cr := to the learned coreference classifier , which returns a number between 0 and 1 that indicates the likelihood that the two NPs are coreferent . 
+	</s>
+	
+
+	<s id="98">
+		 The NP with the highest coreference likelihood value among the preceding NPs with coreference class values above 0.5 is selected as the antecedent of NPj ; otherwise , no antecedent is selected for NPj . 
+	</s>
+	
+
+	<s id="99">
+		 4 Experimental Setup In Section 2 , we examined how to construct locally- and globally-optimized anaphoricity models . 
+	</s>
+	
+
+	<s id="100">
+		 Recall that , for each of these two types of models , the resulting (non-)anaphoricity information can be used by a learning-based coreference system either as hard bypassing constraints or as a feature . 
+	</s>
+	
+
+	<s id="101">
+		 Hence , given a coreference system that implements the two- step learning approach shown above , we will be able to evaluate the four different combinations of computing and using anaphoricity information for improving the coreference system described in the introduction . 
+	</s>
+	
+
+	<s id="102">
+		 Before presenting evaluation details , we will describe the experimental setup . 
+	</s>
+	
+
+	<s id="103">
+		 Coreference system . 
+	</s>
+	
+
+	<s id="104">
+		 In all of our experiments , we use our learning-based coreference system 
+		<ref citStr="Ng and Cardie , 2002b" id="20" label="CEPF" position="16705">
+			( Ng and Cardie , 2002b )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="105">
+		 Features for anaphoricity determination . 
+	</s>
+	
+
+	<s id="106">
+		 In both the locally-optimized and the globally- optimized approaches to anaphoricity determination described in Section 2 , an instance is represented by 37 features that are specifically designed for distinguishing anaphoric and non-anaphoric NPs . 
+	</s>
+	
+
+	<s id="107">
+		 Space limitations preclude a description of these features ; see 
+		<ref citStr="Ng and Cardie ( 2002a )" id="21" label="CEPF" position="17115">
+			Ng and Cardie ( 2002a )
+		</ref>
+		 for details . 
+	</s>
+	
+
+	<s id="108">
+		 Learning algorithms . 
+	</s>
+	
+
+	<s id="109">
+		 For training coreference classifiers and locally-optimized anaphoricity models , we use both RIPPER and MaxEnt as the underlying learning algorithms . 
+	</s>
+	
+
+	<s id="110">
+		 However , for training globally-optimized anaphoricity models , RIPPER is always used in conjunction with Method 1 and Max- Ent with Method 2 , as described in Section 2.2 . 
+	</s>
+	
+
+	<s id="111">
+		 In terms of setting learner-specific parameters , we use default values for all RIPPER parameters unless otherwise stated . 
+	</s>
+	
+
+	<s id="112">
+		 For MaxEnt , we always train the feature-weight parameters with 100 iterations of the improved iterative scaling algorithm 
+		<ref citStr="Della Pietra et al. , 1997" id="22" label="CEPF" position="17799">
+			( Della Pietra et al. , 1997 )
+		</ref>
+		 , using a Gaussian prior to prevent overfitting 
+		<ref citStr="Chen and Rosenfeld , 2000" id="23" label="CEPF" position="17877">
+			( Chen and Rosenfeld , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="113">
+		 Data sets . 
+	</s>
+	
+
+	<s id="114">
+		 We use the Automatic Content Extraction ( ACE ) Phase II data sets.2 We choose ACE rather than the more widely-used MUC corpus ( MUC-6 , 1995 ; MUC-7 , 1998 ) simply because 2See http://www.itl.nist.gov/iad/894.01/ tests /ace for details on the ACE research program . 
+	</s>
+	
+
+	<s id="115">
+		 BNEWS NPAPER NWIRE Number of training texts 216 76 130 Number of test texts 51 17 29 Number of training insts ( for anaphoricity ) 20567 21970 27338 Number of training insts ( for coreference ) 97036 148850 122168 Table 1 : Statistics of the three ACE data sets ACE provides much more labeled data for both training and testing . 
+	</s>
+	
+
+	<s id="116">
+		 However , our system was set up to perform coreference resolution according to the MUC rules , which are fairly different from the ACE guidelines in terms of the identification of markables as well as evaluation schemes . 
+	</s>
+	
+
+	<s id="117">
+		 Since our goal is to evaluate the effect of anaphoricity information on coreference resolution , we make no attempt to modify our system to adhere to the rules specifically designed for ACE . 
+	</s>
+	
+
+	<s id="118">
+		 The coreference corpus is composed of three data sets made up of three different news sources : Broadcast News ( BNEWS ) , Newspaper ( NPAPER ) , and Newswire ( NWIRE ) . 
+	</s>
+	
+
+	<s id="119">
+		 Statistics collected from these data sets are shown in Table 1 . 
+	</s>
+	
+
+	<s id="120">
+		 For each data set , we train an anaphoricity classifier and a coreference classifier on the ( same ) set of training texts and evaluate the coreference system on the test texts . 
+	</s>
+	
+
+	<s id="121">
+		 5 Evaluation In this section , we will compare the effectiveness of four approaches to anaphoricity determination ( see the introduction ) in improving our baseline coreference system . 
+	</s>
+	
+
+	<s id="122">
+		 5.1 Coreference Without Anaphoricity As mentioned above , we use our coreference system as the baseline system where no explicit anaphoricity determination system is employed . 
+	</s>
+	
+
+	<s id="123">
+		 Results using RIPPER and MaxEnt as the underlying learners are shown in rows 1 and 2 of Table 2 where performance is reported in terms of recall , precision , and F-measure using the model-theoretic MUC scoring program 
+		<ref citStr="Vilain et al. , 1995" id="24" label="CEPF" position="20024">
+			( Vilain et al. , 1995 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="124">
+		 With RIPPER , the system achieves an F-measure of 56.3 for BNEWS , 61.8 for NPAPER , and 51.7 for NWIRE . 
+	</s>
+	
+
+	<s id="125">
+		 The performance of MaxEnt is comparable to that of RIPPER for the BNEWS and NPAPER data sets but slightly worse for the NWIRE data set . 
+	</s>
+	
+
+	<s id="126">
+		 5.2 Coreference With Anaphoricity The Constraint-Based , Locally-Optimized ( CBLO ) Approach . 
+	</s>
+	
+
+	<s id="127">
+		 As mentioned before , in constraint-based approaches , the automatically computed non-anaphoricity information is used as System Variation Experiments L R BNEWS P F C R NPAPER P F C R NWIRE P F C No RIP 57.4 55.3 56.3 - 60.0 63.6 61.8 - 53.2 50.3 51.7 - Anaphoricity ME 60.9 52.1 56.2 - 65.4 58.6 61.8 - 54.9 46.7 50.4 - Constraint- RIP 42.5 77.2 54.8 cr=1 46.7 79.3 58.81 cr=1 42.1 64.2 50.9 cr=1 Based , RIP 45.4 72.8 55.9 t=0.5 52.2 75.9 61.9 t=0.5 36.9 61.5 46.11 t=0.5 Locally- ME 44.4 76.9 56.3 cr=1 50.1 75.7 60.3 cr=1 43.9 63.0 51.7 cr=1 Optimized ME 47.3 70.8 56.7 t=0.5 57.1 70.6 63.1* t=0.5 38.1 60.0 46.61 t=0.5 Feature- RIP 53.5 61.3 57.2 cr=1 58.7 69.7 63.7* cr=1 54.2 46.8 50.21 cr=1 Based , RIP 58.3 58.3 58.3* t=0.5 63.5 57.0 60.11 t=0.5 63.4 35.3 45.31 t=0.5 Locally- ME 59.6 51.6 55.31 cr=1 65.6 57.9 61.5 cr=1 55.1 46.2 50.3 cr=1 Optimized ME 59.6 51.6 55.31 t=0.5 66.0 57.7 61.6 t=0.5 54.9 46.7 50.4 t=0.5 Constraint- RIP 54.5 68.6 60.8* cr=5 58.4 68.8 63.2* cr=4 50.5 56.7 53.4* cr=3 Based , RIP 54.1 67.1 59.9* t=0.7 56.5 68.1 61.7 t=0.65 50.3 53.8 52.0 t=0.7 Globally- ME 54.8 62.9 58.5* cr=5 62.4 65.6 64.0* cr=3 52.2 57.0 54.5* cr=3 Optimized ME 54.1 60.6 57.2 t=0.7 61.7 64.0 62.8* t=0.7 52.0 52.8 52.4* t=0.7 Feature- RIP 60.8 56.1 58.4* cr=8 62.2 61.3 61.7 cr=6 54.6 49.4 51.9 cr=8 Based , RIP 59.7 57.0 58.3* t=0.6 63.6 59.1 61.3 t=0.8 56.7 48.4 52.3 t=0.7 Globally- ME 59.9 51.0 55.11 cr=9 66.5 57.1 61.4 cr=1 56.3 46.9 51.2* cr=10 Optimized ME 59.6 51.6 55.31 t=0.95 65.9 57.5 61.4 t=0.95 56.5 46.7 51.1* t=0.5 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 Table 2 : Results of the coreference systems using different approaches to anaphoricity determination on the three ACE test data sets . 
+	</s>
+	
+
+	<s id="128">
+		 Information on which Learner ( RIPPER or MaxEnt ) is used to train the coreference classifier , as well as performance results in terms of Recall , Precision , F-measure and the corresponding Conservativeness parameter are provided whenever appropriate . 
+	</s>
+	
+
+	<s id="129">
+		 The strongest result obtained for each data set is boldfaced . 
+	</s>
+	
+
+	<s id="130">
+		 In addition , results that represent statistically significant gains and drops with respect to the baseline are marked with an asterisk ( * ) and a dagger ( t ) , respectively . 
+	</s>
+	
+
+	<s id="131">
+		 hard bypassing constraints , with which the coreference system attempts to resolve only NPs that the anaphoricity classifier determines to be anaphoric . 
+	</s>
+	
+
+	<s id="132">
+		 As a result , we hypothesized that precision would increase in comparison to the baseline system . 
+	</s>
+	
+
+	<s id="133">
+		 In addition , we expect that recall will drop owing to the anaphoricity classifier’s misclassifications of truly anaphoric NPs . 
+	</s>
+	
+
+	<s id="134">
+		 Consequently , overall performance is not easily predictable : F-measure will improve only if gains in precision can compensate for the loss in recall . 
+	</s>
+	
+
+	<s id="135">
+		 Results are shown in rows 3-6 of Table 2 . 
+	</s>
+	
+
+	<s id="136">
+		 Each row corresponds to a different combination of learners employed in training the coreference and anaphoricity classifiers.3 As mentioned in Section 2.2 , locally-optimized approaches are a special case of their globally-optimized counterparts , with the conservativeness parameter set to the default value of one for RIPPER and 0.5 for MaxEnt . 
+	</s>
+	
+
+	<s id="137">
+		 In comparison to the baseline , we see large gains in precision at the expense of recall . 
+	</s>
+	
+
+	<s id="138">
+		 Moreover , CBLO does not seem to be very effective in improving the baseline , in part due to the dramatic loss in recall . 
+	</s>
+	
+
+	<s id="139">
+		 In particular , although we see improvements in F-measure in five of the 12 experiments in this group , only one of them is statistically significant.4 3Bear in mind that different learners employed in training anaphoricity classifiers correspond to different parametric methods . 
+	</s>
+	
+
+	<s id="140">
+		 For ease of exposition , however , we will refer to the method simply by the learner it employs . 
+	</s>
+	
+
+	<s id="141">
+		 4The Approximate Randomization test described in Noreen Worse still , F-measure drops significantly in three cases . 
+	</s>
+	
+
+	<s id="142">
+		 The Feature-Based , Locally-Optimized ( FBLO ) Approach . 
+	</s>
+	
+
+	<s id="143">
+		 The experimental setting employed here is essentially the same as that in CBLO , except that anaphoricity information is incorporated into the coreference system as a feature rather than as constraints . 
+	</s>
+	
+
+	<s id="144">
+		 Specifically , each training/test coreference instance i(NPi,NP') ( created from NPj and a preceding NP NPi ) is augmented with a feature whose value is the anaphoricity of NPj as computed by the anaphoricity classifier . 
+	</s>
+	
+
+	<s id="145">
+		 In general , we hypothesized that FBLO would perform better than the baseline : the addition of an anaphoricity feature to the coreference instance representation might give the learner additional flexibility in creating coreference rules . 
+	</s>
+	
+
+	<s id="146">
+		 Similarly , we expect FBLO to outperform its constraint-based counterpart : since anaphoricity information is represented as a feature in FBLO , the coreference learner can incorporate the information selectively rather than as universal hard constraints . 
+	</s>
+	
+
+	<s id="147">
+		 Results using the FBLO approach are shown in rows 7-10 of Table 2 . 
+	</s>
+	
+
+	<s id="148">
+		 Somewhat unexpectedly , this approach is not effective in improving the baseline : F-measure increases significantly in only two of the 12 cases . 
+	</s>
+	
+
+	<s id="149">
+		 Perhaps more surprisingly , we see significant drops in F-measure in five cases . 
+	</s>
+	
+
+	<s id="150">
+		 To get a bet- ( 1989 ) is applied to determine if the differences in the F- measure scores between two coreference systems are statistically significant at the 0.05 level or higher . 
+	</s>
+	
+
+	<s id="151">
+		 System Variation BNEWS ( dev ) NPAPER ( dev ) NWIRE ( dev ) Experiments L R P F C R P F C R P F C Constraint- RIP 62.6 76.3 68.8 cr=5 65.5 73.0 69.1 cr=4 56.1 58.9 57.4 cr=3 Based , RIP 62.5 75.5 68.4 t=0.7 63.0 71.7 67.1 t=0.65 56.7 54.8 55.7 t=0.7 Globally- ME 63.1 71.3 66.9 cr=5 66.2 71.8 68.9 cr=3 57.9 59.7 58.8 cr=3 Optimized ME 62.9 70.8 66.6 t=0.7 61.4 74.3 67.3 t=0.65 58.4 55.3 56.8 t=0.7 1 2 3 4 Table 3 : Results of the coreference systems using a constraint-based , globally-optimized approach to anaphoricity determination on the three ACE held-out development data sets . 
+	</s>
+	
+
+	<s id="152">
+		 Information on which Learner ( RIPPER or MaxEnt ) is used to train the coreference classifier as well as performance results in terms of Recall , Precision , F-measure and the corresponding Conservativeness parameter are provided whenever appropriate . 
+	</s>
+	
+
+	<s id="153">
+		 The strongest result obtained for each data set is boldfaced . 
+	</s>
+	
+
+	<s id="154">
+		 ter idea of why F-measure decreases , we examine the relevant coreference classifiers induced by RIPPER . 
+	</s>
+	
+
+	<s id="155">
+		 We find that the anaphoricity feature is used in a somewhat counter-intuitive manner : some of the induced rules posit a coreference relationship between NPR and a preceding NP NPi even though NPR is classified as non-anaphoric . 
+	</s>
+	
+
+	<s id="156">
+		 These results seem to suggest that the anaphoricity feature is an irrelevant feature from a machine learning point of view . 
+	</s>
+	
+
+	<s id="157">
+		 In comparison to CBLO , the results are mixed : there does not appear to be a clear winner in any of the three data sets . 
+	</s>
+	
+
+	<s id="158">
+		 Nevertheless , it is worth noticing that the CBLO systems can be characterized as having high precision/low recall , whereas the reverse is true for FBLO systems in general . 
+	</s>
+	
+
+	<s id="159">
+		 As a result , even though CBLO and FBLO systems achieve similar performance , the former is the preferred choice in applications where precision is critical . 
+	</s>
+	
+
+	<s id="160">
+		 Finally , we note that there are other ways to encode anaphoricity information in a coreference system . 
+	</s>
+	
+
+	<s id="161">
+		 For instance , it is possible to represent anaphoricity as a real-valued feature indicating the probability of an NP being anaphoric rather than as a binary-valued feature . 
+	</s>
+	
+
+	<s id="162">
+		 Future work will examine alternative encodings of anaphoricity . 
+	</s>
+	
+
+	<s id="163">
+		 The Constraint-Based , Globally-Optimized ( CBGO ) Approach . 
+	</s>
+	
+
+	<s id="164">
+		 As discussed above , we optimize the anaphoricity model for coreference performance via the conservativeness parameter . 
+	</s>
+	
+
+	<s id="165">
+		 In particular , we will use this parameter to maximize the F-measure score for a particular data set and learner combination using held-out development data . 
+	</s>
+	
+
+	<s id="166">
+		 To ensure a fair comparison between global and local approaches , we do not rely on additional development data in the former ; instead we use 23 of the original training texts for acquiring the anaphoricity and coreference classifiers and the remaining 3s for development for each of the data sets . 
+	</s>
+	
+
+	<s id="167">
+		 As far as parameter tuning is concerned , we tested values of 1 , 2 , ... , 10 as well as their reciprocals for cr and 0.05 , 0 . 
+	</s>
+	
+
+	<s id="168">
+		 1 , ... , 1.0 for t . 
+	</s>
+	
+
+	<s id="169">
+		 In general , we hypothesized that CBGO would outperform both the baseline and the locally- optimized approaches , since coreference performance is being explicitly maximized . 
+	</s>
+	
+
+	<s id="170">
+		 Results using CBGO , which are shown in rows 11-14 of Table 2 , are largely consistent with our hypothesis . 
+	</s>
+	
+
+	<s id="171">
+		 The best results on all of the three data sets are achieved using this approach . 
+	</s>
+	
+
+	<s id="172">
+		 In comparison to the baseline , we see statistically significant gains in F-measure in nine of the 12 experiments in this group . 
+	</s>
+	
+
+	<s id="173">
+		 Improvements stem primarily from large gains in precision accompanied by smaller drops in recall . 
+	</s>
+	
+
+	<s id="174">
+		 Perhaps more importantly , CBGO never produces results that are significantly worse than those of the baseline systems on these data sets , unlike CBLO and FBLO . 
+	</s>
+	
+
+	<s id="175">
+		 Overall , these results suggest that CBGO is more robust than the locally-optimized approaches in improving the baseline system . 
+	</s>
+	
+
+	<s id="176">
+		 As can be seen , CBGO fails to produce statistically significant improvements over the baseline in three cases . 
+	</s>
+	
+
+	<s id="177">
+		 The relatively poorer performance in these cases can potentially be attributed to the underlying learner combination . 
+	</s>
+	
+
+	<s id="178">
+		 Fortunately , we can use the development data not only for parameter tuning but also in predicting the best learner combination . 
+	</s>
+	
+
+	<s id="179">
+		 Table 3 shows the performance of the coreference system using CBGO on the development data , along with the value of the conservativeness parameter used to achieve the results in each case . 
+	</s>
+	
+
+	<s id="180">
+		 Using the notation Learners/Learner2 to denote the fact that Learners and Learner2 are used to train the underlying coreference classifier and anaphoricity classifier respectively , we can see that the RIPPER/RIPPER combination achieves the best performance on the BNEWS development set , whereas MaxEnt/RIPPER works best for the other two . 
+	</s>
+	
+
+	<s id="181">
+		 Hence , if we rely on the development data to pick the best learner combination for use in testing , the resulting coreference system will outperform the baseline in all three data sets and yield the best- performing system on all but the NPAPER data sets , achieving an F-measure of 60.8 ( row 11 ) , 63.2 ( row 11 ) , and 54.5 ( row 13 ) for the BNEWS , NPAPER , cr Figure 1 : Effect of cr on the performance of the coreference system for the NPAPER development data using RIPPER/RIPPER and NWIRE data sets , respectively . 
+	</s>
+	
+
+	<s id="182">
+		 Moreover , the high correlation between the relative coreference performance achieved by different learner combinations on the development data and that on the test data also reflects the stability of CBGO . 
+	</s>
+	
+
+	<s id="183">
+		 In comparison to the locally-optimized approaches , CBGO achieves better F-measure scores in almost all cases . 
+	</s>
+	
+
+	<s id="184">
+		 Moreover , the learned conservativeness parameter in CBGO always has a larger value than the default value employed by CBLO . 
+	</s>
+	
+
+	<s id="185">
+		 This provides empirical evidence that the CBLO anaphoricity classifiers are too liberal in classifying NPs as non-anaphoric . 
+	</s>
+	
+
+	<s id="186">
+		 To examine the effect of the conservativeness parameter on the performance of the coreference system , we plot in Figure 1 the recall , precision , F- measure curves against cr for the NPAPER development data using the RIPPER/RIPPER learner combination . 
+	</s>
+	
+
+	<s id="187">
+		 As cr increases , recall rises and precision drops . 
+	</s>
+	
+
+	<s id="188">
+		 This should not be surprising , since ( 1 ) increasing cr causes fewer anaphoric NPs to be misclassified and allows the coreference system to find a correct antecedent for some of them , and ( 2 ) decreasing cr causes more truly non-anaphoric NPs to be correctly classified and prevents the coreference system from attempting to resolve them . 
+	</s>
+	
+
+	<s id="189">
+		 The best F-measure in this case is achieved when cr=4 . 
+	</s>
+	
+
+	<s id="190">
+		 The Feature-Based , Globally-Optimized ( FBGO ) Approach . 
+	</s>
+	
+
+	<s id="191">
+		 The experimental setting employed here is essentially the same as that in the CBGO setting , except that anaphoricity information is incorporated into the coreference system as a feature rather than as constraints . 
+	</s>
+	
+
+	<s id="192">
+		 Specifically , each training/test instance i(NPi,NPj) is augmented with a feature whose value is the computed anaphoricity of NPj . 
+	</s>
+	
+
+	<s id="193">
+		 The development data is used to select the anaphoricity model ( and hence the parameter value ) that yields the best-performing coreference system . 
+	</s>
+	
+
+	<s id="194">
+		 This model is then used to compute the anaphoricity value for the test instances . 
+	</s>
+	
+
+	<s id="195">
+		 As mentioned before , we use the same parametric anaphoricity model as in CBGO for achieving global optimization . 
+	</s>
+	
+
+	<s id="196">
+		 Since the parametric model is designed with a constraint-based representation in mind , we hypothesized that global optimization in this case would not be as effective as in CBGO . 
+	</s>
+	
+
+	<s id="197">
+		 Nevertheless , we expect that this approach is still more effective in improving the baseline than the locally-optimized approaches . 
+	</s>
+	
+
+	<s id="198">
+		 Results using FBGO are shown in rows 15-18 of Table 2 . 
+	</s>
+	
+
+	<s id="199">
+		 As expected , FBGO is less effective than CBGO in improving the baseline , underperforming its constraint-based counterpart in 11 of the 12 cases . 
+	</s>
+	
+
+	<s id="200">
+		 In fact , FBGO is able to significantly improve the corresponding baseline in only four cases . 
+	</s>
+	
+
+	<s id="201">
+		 Somewhat surprisingly , FBGO is by no means superior to the locally-optimized approaches with respect to improving the baseline . 
+	</s>
+	
+
+	<s id="202">
+		 These results seem to suggest that global optimization is effective only if we have a “good” parameterization that is able to take into account how anaphoricity information will be exploited by the coreference system . 
+	</s>
+	
+
+	<s id="203">
+		 Nevertheless , as discussed before , effective global optimization with a feature-based representation is not easy to accomplish . 
+	</s>
+	
+
+	<s id="204">
+		 6 Analyzing Anaphoricity Features So far we have focused on computing and using anaphoricity information to improve the performance of a coreference system . 
+	</s>
+	
+
+	<s id="205">
+		 In this section , we examine which anaphoricity features are important in order to gain linguistic insights into the problem . 
+	</s>
+	
+
+	<s id="206">
+		 Specifically , we measure the informativeness of a feature by computing its information gain ( see p.22 of 
+		<ref citStr="Quinlan ( 1993 )" id="25" label="CERF" position="35243">
+			Quinlan ( 1993 )
+		</ref>
+		 for details ) on our three data sets for training anaphoricity classifiers . 
+	</s>
+	
+
+	<s id="207">
+		 Overall , the most informative features are HEAD MATCH ( whether the NP under consideration has the same head as one of its preceding NPs ) , STR MATCH ( whether the NP under consideration is the same string as one of its preceding NPs ) , and PRONOUN ( whether the NP under consideration is a pronoun ) . 
+	</s>
+	
+
+	<s id="208">
+		 The high discriminating power of HEAD MATCH and STR MATCH is a probable consequence of the fact that an NP is likely to be anaphoric if there is a lexically similar noun phrase preceding it in the text . 
+	</s>
+	
+
+	<s id="209">
+		 The informativeness of PRONOUN can also be 85 80 75 70 65 60 55 50 1 2 3 4 5 6 7 8 9 10 Recall Precision F^measure expected : most pronominal NPs are anaphoric . 
+	</s>
+	
+
+	<s id="210">
+		 Features that determine whether the NP under consideration is a PROPER NOUN , whether it is a BARE SINGULAR or a BARE PLURAL , and whether it begins with an “a” or a “the” ( ARTICLE ) are also highly informative . 
+	</s>
+	
+
+	<s id="211">
+		 This is consistent with our intuition that the (in)definiteness of an NP plays an important role in determining its anaphoricity . 
+	</s>
+	
+
+	<s id="212">
+		 7 Conclusions We have examined two largely unexplored issues in computing and using anaphoricity information for improving learning-based coreference systems : representation and optimization . 
+	</s>
+	
+
+	<s id="213">
+		 In particular , we have systematically evaluated all four combinations of local vs. global optimization and constraint-based vs. feature-based representation of anaphoricity information in terms of their effectiveness in improving a learning-based coreference system . 
+	</s>
+	
+
+	<s id="214">
+		 Extensive experiments on the three ACE coreference data sets using a symbolic learner ( RIPPER ) and a statistical learner ( MaxEnt ) for training coreference classifiers demonstrate the effectiveness of the constraint-based , globally-optimized approach to anaphoricity determination , which employs our conservativeness-based anaphoricity model . 
+	</s>
+	
+
+	<s id="215">
+		 Not only does this approach improve a “no anaphoricity” baseline coreference system , it is more effective than the commonly-adopted locally-optimized approach without relying on additional labeled data . 
+	</s>
+	
+
+	<s id="216">
+		 Acknowledgments We thank Regina Barzilay , Claire Cardie , Bo Pang , and the anonymous reviewers for their invaluable comments on earlier drafts of the paper . 
+	</s>
+	
+
+	<s id="217">
+		 This work was supported in part by NSF Grant IIS–0208028 . 
+	</s>
+	
+
+	<s id="218">
+		 References David Bean and Ellen Riloff . 
+	</s>
+	
+
+	<s id="219">
+		 1999. Corpus-based identification of non-anaphoric noun phrases . 
+	</s>
+	
+
+	<s id="220">
+		 In Proceedings of the ACL , pages 373–380 . 
+	</s>
+	
+
+	<s id="221">
+		 Adam L. Berger , Stephen A. Della Pietra , and Vincent J. Della Pietra . 
+	</s>
+	
+
+	<s id="222">
+		 1996. A maximum entropy approach to natural language processing . 
+	</s>
+	
+
+	<s id="223">
+		 Computational Linguistics , 22(1):39–71 . 
+	</s>
+	
+
+	<s id="224">
+		 Stanley Chen and Ronald Rosenfeld . 
+	</s>
+	
+
+	<s id="225">
+		 2000. A survey of smoothing techniques for ME models . 
+	</s>
+	
+
+	<s id="226">
+		 IEEE Transac- tions on Speech on Audio Processing , 8(1):37–50 . 
+	</s>
+	
+
+	<s id="227">
+		 William Cohen . 
+	</s>
+	
+
+	<s id="228">
+		 1995. Fast effective rule induction . 
+	</s>
+	
+
+	<s id="229">
+		 In Proceedings ofICML . 
+	</s>
+	
+
+	<s id="230">
+		 Stephen Della Pietra , Vincent Della Pietra , and John Lafferty . 
+	</s>
+	
+
+	<s id="231">
+		 1997. Inducing features of random fields . 
+	</s>
+	
+
+	<s id="232">
+		 IEEE Transactions on Pattern Analysis and Machine Intelligence , 19(4):380–393 . 
+	</s>
+	
+
+	<s id="233">
+		 Michel Denber . 
+	</s>
+	
+
+	<s id="234">
+		 1998. Automatic resolution of anaphora in English . 
+	</s>
+	
+
+	<s id="235">
+		 Technical report , Eastman Kodak Co. . 
+	</s>
+	
+
+	<s id="236">
+		 Richard Evans . 
+	</s>
+	
+
+	<s id="237">
+		 2001. Applying machine learning toward an automatic classification of it . 
+	</s>
+	
+
+	<s id="238">
+		 Literary and Linguistic Computing , 16(1):45–57 . 
+	</s>
+	
+
+	<s id="239">
+		 Christopher Kennedy and Branimir Boguraev . 
+	</s>
+	
+
+	<s id="240">
+		 1996. Anaphor for everyone : Pronominal anaphora resolution without a parser . 
+	</s>
+	
+
+	<s id="241">
+		 In Proceedings of COLING , pages 113–118 . 
+	</s>
+	
+
+	<s id="242">
+		 Shalom Lappin and Herbert Leass . 
+	</s>
+	
+
+	<s id="243">
+		 1994. An algorithm for pronominal anaphora resolution . 
+	</s>
+	
+
+	<s id="244">
+		 Computational Linguistics , 20(4):535–562 . 
+	</s>
+	
+
+	<s id="245">
+		 Ruslan Mitkov , Richard Evans , and Constantin Orasan . 
+	</s>
+	
+
+	<s id="246">
+		 2002. A new , fully automatic version of Mitkov’s knowledge-poor pronoun resolution method . 
+	</s>
+	
+
+	<s id="247">
+		 In Al . 
+	</s>
+	
+
+	<s id="248">
+		 Gelbukh , editor , Computational Linguistics and Intelligent Text Processing , pages 169–187 . 
+	</s>
+	
+
+	<s id="249">
+		 MUC-6 . 
+	</s>
+	
+
+	<s id="250">
+		 1995. Proceedings of the Sixth Message Understanding Conference ( MUC-6 ) . 
+	</s>
+	
+
+	<s id="251">
+		 MUC-7 . 
+	</s>
+	
+
+	<s id="252">
+		 1998. Proceedings of the Seventh Message Understanding Conference ( MUC-7 ) . 
+	</s>
+	
+
+	<s id="253">
+		 Vincent Ng and Claire Cardie . 
+	</s>
+	
+
+	<s id="254">
+		 2002a . 
+	</s>
+	
+
+	<s id="255">
+		 Identifying anaphoric and non-anaphoric noun phrases to improve coreference resolution . 
+	</s>
+	
+
+	<s id="256">
+		 In Proceedings of COLING , pages 730–736 . 
+	</s>
+	
+
+	<s id="257">
+		 Vincent Ng and Claire Cardie . 
+	</s>
+	
+
+	<s id="258">
+		 2002b . 
+	</s>
+	
+
+	<s id="259">
+		 Improving machine learning approaches to coreference resolution . 
+	</s>
+	
+
+	<s id="260">
+		 In Proceedings of the ACL , pages 104–111 . 
+	</s>
+	
+
+	<s id="261">
+		 Eric W. Noreen . 
+	</s>
+	
+
+	<s id="262">
+		 1989. Computer Intensive Methods for Testing Hypothesis : An Introduction . 
+	</s>
+	
+
+	<s id="263">
+		 John Wiley &amp; Sons . 
+	</s>
+	
+
+	<s id="264">
+		 Chris Paice and Gareth Husk . 
+	</s>
+	
+
+	<s id="265">
+		 1987. Towards the automatic recognition of anaphoric features in English text : the impersonal pronoun ’it’ . 
+	</s>
+	
+
+	<s id="266">
+		 Computer Speech and Language , 2 . 
+	</s>
+	
+
+	<s id="267">
+		 J. Ross Quinlan . 
+	</s>
+	
+
+	<s id="268">
+		 1993. C4.5 : Programs for Machine Learning . 
+	</s>
+	
+
+	<s id="269">
+		 San Mateo , CA : Morgan Kaufmann. Wee Meng Soon , Hwee Tou Ng , and Daniel Chung Yong Lim . 
+	</s>
+	
+
+	<s id="270">
+		 2001. A machine learning approach to coreference resolution of noun phrases . 
+	</s>
+	
+
+	<s id="271">
+		 Computational Linguistics , 27(4):521–544 . 
+	</s>
+	
+
+	<s id="272">
+		 Michael Strube and Christoph M¨uller . 
+	</s>
+	
+
+	<s id="273">
+		 2003. A machine learning approach to pronoun resolution in spoken dialogue . 
+	</s>
+	
+
+	<s id="274">
+		 In Proceedings of the ACL , pages 168–175 . 
+	</s>
+	
+
+	<s id="275">
+		 Renata Vieira and Massimo Poesio . 
+	</s>
+	
+
+	<s id="276">
+		 2000. An empirically-based system for processing definite descriptions . 
+	</s>
+	
+
+	<s id="277">
+		 Computational Linguistics , 26(4):539– 593 . 
+	</s>
+	
+
+	<s id="278">
+		 Marc Vilain , John Burger , John Aberdeen , Dennis Connolly , and Lynette Hirschman . 
+	</s>
+	
+
+	<s id="279">
+		 1995. A model- theoretic coreference scoring scheme . 
+	</s>
+	
+
+	<s id="280">
+		 In Proceedings of the Sixth Message Understanding Conference ( MUC-6 ) , pages 45–52 . 
+	</s>
+	
+
+	<s id="281">
+		 Xiaofeng Yang , Guodong Zhou , Jian Su , and Chew Lim Tan . 
+	</s>
+	
+
+	<s id="282">
+		 2003. Coreference resolution using competitive learning approach . 
+	</s>
+	
+
+	<s id="283">
+		 In Proceedings of the ACL , pages 176–183 . 
+	</s>
+	
+
+
+</acldoc>

@@ -1,0 +1,1416 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1077">
+	
+
+	<s id="1">
+		 Automatic Evaluation of Machine Translation Quality Using Longest Com- mon Subsequence and Skip-Bigram Statistics Chin-Yew Lin and Franz Josef Och Information Sciences Institute University of Southern California 4676 Admiralty Way Marina del Rey , CA 90292 , USA {cyl,och}@isi.edu Abstract In this paper we describe two new objective automatic evaluation methods for machine translation . 
+	</s>
+	
+
+	<s id="2">
+		 The first method is based on longest common subsequence between a candidate translation and a set of reference translations . 
+	</s>
+	
+
+	<s id="3">
+		 Longest common subsequence takes into account sentence level structure similarity naturally and identifies longest co-occurring in- sequence n-grams automatically . 
+	</s>
+	
+
+	<s id="4">
+		 The second method relaxes strict n-gram matching to skipbigram matching . 
+	</s>
+	
+
+	<s id="5">
+		 Skip-bigram is any pair of words in their sentence order . 
+	</s>
+	
+
+	<s id="6">
+		 Skip-bigram co- occurrence statistics measure the overlap of skip-bigrams between a candidate translation and a set of reference translations . 
+	</s>
+	
+
+	<s id="7">
+		 The empirical results show that both methods correlate with human judgments very well in both adequacy and fluency . 
+	</s>
+	
+
+	<s id="8">
+		 1 Introduction Using objective functions to automatically evaluate machine translation quality is not new . 
+	</s>
+	
+
+	<s id="9">
+		 
+		<ref citStr="Su et al . ( 1992 )" id="1" label="CEPF" position="1278">
+			Su et al . ( 1992 )
+		</ref>
+		 proposed a method based on measuring edit distance 
+		<ref citStr="Levenshtein 1966" id="2" label="CEPF" position="1350">
+			( Levenshtein 1966 )
+		</ref>
+		 between candidate and reference translations . 
+	</s>
+	
+
+	<s id="10">
+		 
+		<ref citStr="Akiba et al . ( 2001 )" id="3" label="CEPF" position="1429">
+			Akiba et al . ( 2001 )
+		</ref>
+		 extended the idea to accommodate multiple references . 
+	</s>
+	
+
+	<s id="11">
+		 Nießen et al . ( 2000 ) calculated the length- normalized edit distance , called word error rate ( WER ) , between a candidate and multiple reference translations . 
+	</s>
+	
+
+	<s id="12">
+		 
+		<ref citStr="Leusch et al . ( 2003 )" id="4" label="CEPF" position="1692">
+			Leusch et al . ( 2003 )
+		</ref>
+		 proposed a related measure called position-independent word error rate ( PER ) that did not consider word position , i.e. using bag-of-words instead . 
+	</s>
+	
+
+	<s id="13">
+		 Instead of error measures , we can also use accuracy measures that compute similarity between candidate and reference translations in proportion to the number of common words between them as suggested by 
+		<ref citStr="Melamed ( 1995 )" id="5" label="CEPF" position="2073">
+			Melamed ( 1995 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="14">
+		 An n-gram co-occurrence measure , BLEU , proposed by 
+		<ref citStr="Papineni et al . ( 2001 )" id="6" label="CEPF" position="2163">
+			Papineni et al . ( 2001 )
+		</ref>
+		 that calculates co-occurrence statistics based on n-gram overlaps have shown great potential . 
+	</s>
+	
+
+	<s id="15">
+		 A variant of BLEU developed by NIST ( 2002 ) has been used in two recent large-scale machine translation evaluations . 
+	</s>
+	
+
+	<s id="16">
+		 Recently , 
+		<ref citStr="Turian et al . ( 2003 )" id="7" label="CEPF" position="2430">
+			Turian et al . ( 2003 )
+		</ref>
+		 indicated that standard accuracy measures such as recall , precision , and the F-measure can also be used in evaluation of machine translation . 
+	</s>
+	
+
+	<s id="17">
+		 However , results based on their method , General Text Matcher ( GTM ) , showed that unigram F-measure correlated best with human judgments while assigning more weight to higher n-gram ( n &gt; 1 ) matches achieved similar performance as Bleu . 
+	</s>
+	
+
+	<s id="18">
+		 Since unigram matches do not distinguish words in consecutive positions from words in the wrong order , measures based on position-independent unigram matches are not sensitive to word order and sentence level structure . 
+	</s>
+	
+
+	<s id="19">
+		 Therefore , systems optimized for these unigram-based measures might generate adequate but not fluent target language . 
+	</s>
+	
+
+	<s id="20">
+		 Since BLEU has been used to report the performance of many machine translation systems and it has been shown to correlate well with human judgments , we will explain BLEU in more detail and point out its limitations in the next section . 
+	</s>
+	
+
+	<s id="21">
+		 We then introduce a new evaluation method called ROUGE-L that measures sentence-to-sentence similarity based on the longest common subsequence statistics between a candidate translation and a set of reference translations in Section 3 . 
+	</s>
+	
+
+	<s id="22">
+		 Section 4 describes another automatic evaluation method called ROUGE-S that computes skipbigram co-occurrence statistics . 
+	</s>
+	
+
+	<s id="23">
+		 Section 5 presents the evaluation results of ROUGE-L , and ROUGES and compare them with BLEU , GTM , NIST , PER , and WER in correlation with human judgments in terms of adequacy and fluency . 
+	</s>
+	
+
+	<s id="24">
+		 We conclude this paper and discuss extensions of the current work in Section 6 . 
+	</s>
+	
+
+	<s id="25">
+		 2 BLEU and N-gram Co-Occurrence To automatically evaluate machine translations the machine translation community recently adopted an n-gram co-occurrence scoring procedure BLEU 
+		<ref citStr="Papineni et al . 2001" id="8" label="CEPF" position="4318">
+			( Papineni et al . 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="26">
+		 In two recent large-scale machine translation evaluations sponsored by NIST , a closely related automatic evalua- tion method , simply called NIST score , was used . 
+	</s>
+	
+
+	<s id="27">
+		 The NIST ( NIST 2002 ) scoring method is based on BLEU . 
+	</s>
+	
+
+	<s id="28">
+		 The main idea of BLEU is to measure the similarity between a candidate translation and a set of reference translations with a numerical metric . 
+	</s>
+	
+
+	<s id="29">
+		 They used a weighted average of variable length n- gram matches between system translations and a set of human reference translations and showed that the weighted average metric correlating highly with human assessments . 
+	</s>
+	
+
+	<s id="30">
+		 BLEU measures how well a machine translation overlaps with multiple human translations using n- gram co-occurrence statistics . 
+	</s>
+	
+
+	<s id="31">
+		 N-gram precision in BLEU is computed as follows : ^ ^ Countclip ( n^gram ) p = C^{Candidates}n^gram^C ( 1 ) n ^ ^Count(n gram ) C^ { Candidates } n^gram^ C Where Countclip(n-gram) is the maximum number of n-grams co-occurring in a candidate translation and a reference translation , and Count(ngram) is the number of n-grams in the candidate translation . 
+	</s>
+	
+
+	<s id="32">
+		 To prevent very short translations that try to maximize their precision scores , BLEU adds a brevity penalty , BP , to the formula : 1 if c &gt; r ^ e(1^Ir|/Ic|) if c ^ r Where |c| is the length of the candidate translation and |r| is the length of the reference translation . 
+	</s>
+	
+
+	<s id="33">
+		 The BLEU formula is then written as follows : BLEU =BP•exp^^wn log pn ^ ^ n=1 ^ N The weighting factor , wn , is set at 1/N . 
+	</s>
+	
+
+	<s id="34">
+		 Although BLEU has been shown to correlate well with human assessments , it has a few things that can be improved . 
+	</s>
+	
+
+	<s id="35">
+		 First the subjective application of the brevity penalty can be replaced with a recall related parameter that is sensitive to reference length . 
+	</s>
+	
+
+	<s id="36">
+		 Although brevity penalty will penalize candidate translations with low recall by a factor of e(1- |r|/|c| ) , it would be nice if we can use the traditional recall measure that has been a well known measure in NLP as suggested by 
+		<ref citStr="Melamed ( 2003 )" id="9" label="CEPF" position="6403">
+			Melamed ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="37">
+		 Of course we have to make sure the resulting composite function of precision and recall is still correlates highly with human judgments . 
+	</s>
+	
+
+	<s id="38">
+		 Second , although BLEU uses high order n-gram ( n&gt;1 ) matches to favor candidate sentences with consecutive word matches and to estimate their fluency , it does not consider sentence level structure . 
+	</s>
+	
+
+	<s id="39">
+		 For example , given the following sentences : S1 . 
+	</s>
+	
+
+	<s id="40">
+		 police killed the gunman S2 . 
+	</s>
+	
+
+	<s id="41">
+		 police kill the gunman1 S3 . 
+	</s>
+	
+
+	<s id="42">
+		 the gunman kill police We only consider BLEU with unigram and bigram , i.e. N=2 , for the purpose of explanation and call this BLEU-2 . 
+	</s>
+	
+
+	<s id="43">
+		 Using S 1 as the reference and S2 and S3 as the candidate translations , S2 and S3 would have the same BLEU-2 score , since they both have one bigram and three unigram matches2 . 
+	</s>
+	
+
+	<s id="44">
+		 However , S2 and S3 have very different meanings . 
+	</s>
+	
+
+	<s id="45">
+		 Third , BLEU is a geometric mean of unigram to N-gram precisions . 
+	</s>
+	
+
+	<s id="46">
+		 Any candidate translation without a N-gram match has a per-sentence BLEU score of zero . 
+	</s>
+	
+
+	<s id="47">
+		 Although BLEU is usually calculated over the whole test corpus , it is still desirable to have a measure that works reliably at sentence level for diagnostic and introspection purpose . 
+	</s>
+	
+
+	<s id="48">
+		 To address these issues , we propose three new automatic evaluation measures based on longest common subsequence statistics and skip bigram co-occurrence statistics in the following sections . 
+	</s>
+	
+
+	<s id="49">
+		 3 Longest Common Subsequence 3.1 ROUGE-L A sequence Z = [ z1 , z2 , ... , zn ] is a subsequence of another sequence X = [ x1 , x2 , ... , xm ] , if there exists a strict increasing sequence [ i1 , i2 , ... , ik ] of indices of X such that for all j = 1 , 2 , ... , k , we have xij = zj 
+		<ref citStr="Cormen et al . 1989" id="10" label="CEPF" position="8185">
+			( Cormen et al . 1989 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="50">
+		 Given two sequences X and Y , the longest common subsequence ( LCS ) of X and Y is a common subsequence with maximum length . 
+	</s>
+	
+
+	<s id="51">
+		 We can find the LCS of two sequences of length m and n using standard dynamic programming technique in O(mn) time . 
+	</s>
+	
+
+	<s id="52">
+		 LCS has been used to identify cognate candidates during construction of N-best translation lexicons from parallel text . 
+	</s>
+	
+
+	<s id="53">
+		 
+		<ref citStr="Melamed ( 1995 )" id="11" label="CEPF" position="8603">
+			Melamed ( 1995 )
+		</ref>
+		 used the ratio ( LCSR ) between the length of the LCS of two words and the length of the longer word of the two words to measure the cognateness between them . 
+	</s>
+	
+
+	<s id="54">
+		 He used as an approximate string matching algorithm . 
+	</s>
+	
+
+	<s id="55">
+		 
+		<ref citStr="Saggion et al . ( 2002 )" id="12" label="CEPF" position="8860">
+			Saggion et al . ( 2002 )
+		</ref>
+		 used normalized pairwise LCS ( NP-LCS ) to compare similarity between two texts in automatic summarization evaluation . 
+	</s>
+	
+
+	<s id="56">
+		 NP-LCS can be shown as a special case of Equation ( 6 ) with , B = 1 . 
+	</s>
+	
+
+	<s id="57">
+		 However , they did not provide the correlation analysis of NP-LCS with 1 This is a real machine translation output . 
+	</s>
+	
+
+	<s id="58">
+		 2 The “kill” in S2 or S3 does not match with “killed” in S 1 in strict word-to-word comparison . 
+	</s>
+	
+
+	<s id="59">
+		 BP = ^ ^ ^ ) 2 ( ) 3 ( human judgments and its effectiveness as an automatic evaluation measure . 
+	</s>
+	
+
+	<s id="60">
+		 To apply LCS in machine translation evaluation , we view a translation as a sequence of words . 
+	</s>
+	
+
+	<s id="61">
+		 The intuition is that the longer the LCS of two translations is , the more similar the two translations are . 
+	</s>
+	
+
+	<s id="62">
+		 We propose using LCS-based F-measure to estimate the similarity between two translations X of length m and Y of length n , assuming X is a reference translation and Y is a candidate translation , as follows : LCS(X,Y) = ( 4 ) m n ( 1+^2 )R P lcs lcs = Rlcs + ^2 Plcs Where LCS(X,Y) is the length of a longest common subsequence of X and Y , and , B = Plcs/Rlcs when aFlcs/aRlcs = aFlcs/aPlcs . 
+	</s>
+	
+
+	<s id="63">
+		 We call the LCS-based F- measure , i.e. Equation 6 , ROUGE-L . 
+	</s>
+	
+
+	<s id="64">
+		 Notice that ROUGE-L is 1 when X = Y since LCS(X,Y) = m or n ; while ROUGE-L is zero when LCS(X,Y) = 0 , i.e. there is nothing in common between X and Y. F- measure or its equivalents has been shown to have met several theoretical criteria in measuring accuracy involving more than one factor 
+		<ref citStr="Van Rijsbergen 1979" id="13" label="CEPF" position="10427">
+			( Van Rijsbergen 1979 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="65">
+		 The composite factors are LCS-based recall and precision in this case . 
+	</s>
+	
+
+	<s id="66">
+		 
+		<ref citStr="Melamed et al . ( 2003 )" id="14" label="CEPF" position="10544">
+			Melamed et al . ( 2003 )
+		</ref>
+		 used unigram F-measure to estimate machine translation quality and showed that unigram F-measure was as good as BLEU . 
+	</s>
+	
+
+	<s id="67">
+		 One advantage of using LCS is that it does not require consecutive matches but in-sequence matches that reflect sentence level word order as n- grams . 
+	</s>
+	
+
+	<s id="68">
+		 The other advantage is that it automatically includes longest in-sequence common n-grams , therefore no predefined n-gram length is necessary . 
+	</s>
+	
+
+	<s id="69">
+		 ROUGE-L as defined in Equation 6 has the property that its value is less than or equal to the minimum of unigram F-measure of X and Y. Unigram recall reflects the proportion of words in X ( reference translation ) that are also present in Y ( candidate translation ) ; while unigram precision is the proportion of words in Y that are also in X. Unigram recall and precision count all co-occurring words regardless their orders ; while ROUGE-L counts only in-sequence co-occurrences . 
+	</s>
+	
+
+	<s id="70">
+		 By only awarding credit to in-sequence unigram matches , ROUGE-L also captures sentence level structure in a natural way . 
+	</s>
+	
+
+	<s id="71">
+		 Consider again the example given in Section 2 that is copied here for convenience : S1 . 
+	</s>
+	
+
+	<s id="72">
+		 police killed the gunman S2 . 
+	</s>
+	
+
+	<s id="73">
+		 police kill the gunman S3 . 
+	</s>
+	
+
+	<s id="74">
+		 the gunman kill police As we have shown earlier , BLEU-2 cannot differentiate S2 from S3 . 
+	</s>
+	
+
+	<s id="75">
+		 However , S2 has a ROUGE-L score of 3/4 = 0.75 and S3 has a ROUGE-L score of 2/4 = 0.5 , with ^ = 1 . 
+	</s>
+	
+
+	<s id="76">
+		 Therefore S2 is better than S3 according to ROUGE-L . 
+	</s>
+	
+
+	<s id="77">
+		 This example also illustrated that ROUGE-L can work reliably at sentence level . 
+	</s>
+	
+
+	<s id="78">
+		 However , LCS only counts the main in-sequence words ; therefore , other longest common subsequences and shorter sequences are not reflected in the final score . 
+	</s>
+	
+
+	<s id="79">
+		 For example , consider the following candidate sentence : S4 . 
+	</s>
+	
+
+	<s id="80">
+		 the gunman police killed Using S 1 as its reference , LCS counts either “the gunman” or “police killed” , but not both ; therefore , S4 has the same ROUGE-L score as S3 . 
+	</s>
+	
+
+	<s id="81">
+		 BLEU-2 would prefer S4 over S3 . 
+	</s>
+	
+
+	<s id="82">
+		 In Section 4 , we will introduce skip-bigram co-occurrence statistics that do not have this problem while still keeping the advantage of in-sequence ( not necessary consecutive ) matching that reflects sentence level word order . 
+	</s>
+	
+
+	<s id="83">
+		 3.2 Multiple References So far , we only demonstrated how to compute ROUGE-L using a single reference . 
+	</s>
+	
+
+	<s id="84">
+		 When multiple references are used , we take the maximum LCS matches between a candidate translation , c , of n words and a set of u reference translations of mj words . 
+	</s>
+	
+
+	<s id="85">
+		 The LCS-based F-measure can be computed as follows : ^ ^ LCS(rj , c ) Rlcs-multi =max ~ =1 mj =max , - ^LCS(rj,c)^ Plcs-multi =1 J n ^2)Rlcs^multiPcs^multi ( 9 ) Rlcs^multi + ^2 Pcs^multi where fl = Plcs-multi/Rlcs-multi when aFlcs-multi/aRlcsmulti = aFlcs-multi/ aPlcs-multi . 
+	</s>
+	
+
+	<s id="86">
+		 This procedure is also applied to computation of ROUGE-S when multiple references are used . 
+	</s>
+	
+
+	<s id="87">
+		 In the next section , we introduce the skip-bigram co- occurrence statistics . 
+	</s>
+	
+
+	<s id="88">
+		 In the next section , we describe how to extend ROUGE-L to assign more credits to longest common subsequences with consecutive words . 
+	</s>
+	
+
+	<s id="89">
+		 = LCS(X , Y ) Rlcs Plcs Flcs ( 5 ) ( 6 ) ( 7 ) ( 8 ) Flcs-multi 1+ 3.3 ROUGE-W : Weighted Longest Common Subsequence LCS has many nice properties as we have described in the previous sections . 
+	</s>
+	
+
+	<s id="90">
+		 Unfortunately , the basic LCS also has a problem that it does not differentiate LCSes of different spatial relations within their embedding sequences . 
+	</s>
+	
+
+	<s id="91">
+		 For example , given a reference sequence X and two candidate sequences Y1 and Y2 as follows : X : [ A B C D E F G ] Y1 : [ A B C D H I K ] Y2 : [ A H B K C I D ] Y1 and Y2 have the same ROUGE-L score . 
+	</s>
+	
+
+	<s id="92">
+		 However , in this case , Y1 should be the better choice than Y2 because Y1 has consecutive matches . 
+	</s>
+	
+
+	<s id="93">
+		 To improve the basic LCS method , we can simply remember the length of consecutive matches encountered so far to a regular two dimensional dynamic program table computing LCS . 
+	</s>
+	
+
+	<s id="94">
+		 We call this weighted LCS ( WLCS ) and use k to indicate the length of the current consecutive matches ending at words xi and yj . 
+	</s>
+	
+
+	<s id="95">
+		 Given two sentences X and Y , the WLCS score of X and Y can be computed using the following dynamic programming procedure : ( 1 ) For ( i = 0 ; i &lt;=m ; i++ ) c(i , j ) = 0 // initialize c-table w(i , j ) = 0 // initialize w-table ( 2 ) For ( i = 1 ; i &lt;= m ; i++ ) For ( j = 1 ; j &lt;= n ; j++ ) If xi = yj Then // the length of consecutive matches at // position i-1 and j-1 k = w(i-1 , j-1 ) c(i , j ) = c(i-1 , j-1 ) + f(k+ 1 ) – f(k) // remember the length of consecutive // matches at position i , j w(ij) = k+1 Otherwise If c(i-1 , j ) &gt; c(i , j-1 ) Then c(i , j ) = c(i-1 , j ) w(i , j ) = 0 // no match at i , j Else c(i , j ) = c(i , j-1 ) w(i , j ) = 0 // no match at i , j ( 3 ) WLCS(X,Y) = c(m,n) Where c is the dynamic programming table , c(i , j ) stores the WLCS score ending at word xi of X and yj of Y , w is the table storing the length of consecutive matches ended at c table position i and j , and f is a function of consecutive matches at the table position , c(i , j ) . 
+	</s>
+	
+
+	<s id="96">
+		 Notice that by providing different weighting function f , we can parameterize the WLCS algorithm to assign different credit to consecutive in-sequence matches . 
+	</s>
+	
+
+	<s id="97">
+		 The weighting function f must have the property that f(x+y) &gt; f(x) + f(y) for any positive integers x and y . 
+	</s>
+	
+
+	<s id="98">
+		 In other words , consecutive matches are awarded more scores than non-consecutive matches . 
+	</s>
+	
+
+	<s id="99">
+		 For example , f(k) = ^k – ^ when k &gt;= 0 , and ^ , ^ &gt; 0 . 
+	</s>
+	
+
+	<s id="100">
+		 This function charges a gap penalty of –^ for each non-consecutive n-gram sequences . 
+	</s>
+	
+
+	<s id="101">
+		 Another possible function family is the polynomial family of the form k^ where ^ &gt; 1 . 
+	</s>
+	
+
+	<s id="102">
+		 However , in order to normalize the final ROUGE-W score , we also prefer to have a function that has a close form inverse function . 
+	</s>
+	
+
+	<s id="103">
+		 For example , f(k) = k2 has a close form inverse function f -1(k) = k1/2 . 
+	</s>
+	
+
+	<s id="104">
+		 F-measure based on WLCS can be computed as follows , given two sequences X of length m and Y of length n : Rwlcs = f —1 WLCS(X,Y)^(10) ^ f(m) ^ Pwlcs = f —1 WLCS(X,Y)^(11) ^ f ( n ) ^ Where f -1 is the inverse function of f . 
+	</s>
+	
+
+	<s id="105">
+		 We call the WLCS-based F-measure , i.e. Equation 12 , ROUGE-W . 
+	</s>
+	
+
+	<s id="106">
+		 Using Equation 12 and f(k) = k2 as the weighting function , the ROUGE-W scores for sequences Y1 and Y2 are 0.571 and 0.286 respectively . 
+	</s>
+	
+
+	<s id="107">
+		 Therefore , Y1 would be ranked higher than Y2 using WLCS . 
+	</s>
+	
+
+	<s id="108">
+		 We use the polynomial function of the form k^ in the ROUGE evaluation package . 
+	</s>
+	
+
+	<s id="109">
+		 In the next section , we introduce the skip-bigram co- occurrence statistics . 
+	</s>
+	
+
+	<s id="110">
+		 4 ROUGE-S : Skip-Bigram Co-Occurrence Statistics Skip-bigram is any pair of words in their sentence order , allowing for arbitrary gaps . 
+	</s>
+	
+
+	<s id="111">
+		 Skipbigram co-occurrence statistics measure the overlap of skip-bigrams between a candidate translation and a set of reference translations . 
+	</s>
+	
+
+	<s id="112">
+		 Using the example given in Section 3.1 : S1 . 
+	</s>
+	
+
+	<s id="113">
+		 police killed the gunman S2 . 
+	</s>
+	
+
+	<s id="114">
+		 police kill the gunman S3 . 
+	</s>
+	
+
+	<s id="115">
+		 the gunman kill police S4 . 
+	</s>
+	
+
+	<s id="116">
+		 the gunman police killed Each sentence has C(4,2)3 = 6 skip-bigrams . 
+	</s>
+	
+
+	<s id="117">
+		 For example , S 1 has the following skip-bigrams : 3 Combination : C(4,2) = 4!/(2!*2!) = 6 . 
+	</s>
+	
+
+	<s id="118">
+		 Rwlcs + ^2 Pw lcs ( 1+^2 )RwlcsPwlcs = Fwlcs ( 12 ) ( “police killed” , “police the” , “police gunman” , “killed the” , “killed gunman” , “the gunman” ) S2 has three skip-bigram matches with S1 ( “police the” , “police gunman” , “the gunman” ) , S3 has one skip-bigram match with S1 ( “the gunman” ) , and S4 has two skip-bigram matches with S 1 ( “police killed” , “the gunman” ) . 
+	</s>
+	
+
+	<s id="119">
+		 Given translations X of length m and Y of length n , assuming X is a reference translation and Y is a candidate translation , we compute skip-bigram-based F-measure as follows : SKIP2(X,Y) ( 13 ) Rskip2 = C(m,2) Pskip2 SKIP2(X,Y) ( 14 ) = C(n,2) Where SKIP2(X,Y) is the number of skip-bigram matches between X and Y , , B = Pskip2/Rskip2 when ^fskip2/^Rskip2 = ^fskip2/^Pskip2 , and C is the combi- nation function . 
+	</s>
+	
+
+	<s id="120">
+		 We call the skip-bigram-based F- measure , i.e. Equation 15 , ROUGE-S . 
+	</s>
+	
+
+	<s id="121">
+		 Using Equation 15 with , B = 1 and S 1 as the reference , S2’s ROUGE-S score is 0.5 , S3 is 0.167 , and S4 is 0.333 . 
+	</s>
+	
+
+	<s id="122">
+		 Therefore , S2 is better than S3 and S4 , and S4 is better than S3 . 
+	</s>
+	
+
+	<s id="123">
+		 This result is more intuitive than using BLEU-2 and ROUGE-L . 
+	</s>
+	
+
+	<s id="124">
+		 One advantage of skip-bigram vs. BLEU is that it does not require consecutive matches but is still sensitive to word order . 
+	</s>
+	
+
+	<s id="125">
+		 Comparing skip-bigram with LCS , skip-bigram counts all in-order matching word pairs while LCS only counts one longest common subsequence . 
+	</s>
+	
+
+	<s id="126">
+		 We can limit the maximum skip distance , dskip , between two in-order words that is allowed to form a skip-bigram . 
+	</s>
+	
+
+	<s id="127">
+		 Applying such constraint , we limit skip-bigram formation to a fix window size . 
+	</s>
+	
+
+	<s id="128">
+		 Therefore , computation time can be reduced and hopefully performance can be as good as the version without such constraint . 
+	</s>
+	
+
+	<s id="129">
+		 For example , if we set dskip to 0 then ROUGE-S is equivalent to bigram overlap . 
+	</s>
+	
+
+	<s id="130">
+		 If we set dskip to 4 then only word pairs of at most 4 words apart can form skip-bigrams . 
+	</s>
+	
+
+	<s id="131">
+		 Adjusting Equations 13 , 14 , and 15 to use maximum skip distance limit is straightforward : we only count the skip-bigram matches , SKIP2(X,Y) , within the maximum skip distance and replace denominators of Equations 13 , C(m,2) , and 14 , C(n,2) , with the actual numbers of within distance skip-bigrams from the reference and the candidate respectively . 
+	</s>
+	
+
+	<s id="132">
+		 In the next section , we present the evaluations of ROUGE-L , ROUGE-S , and compare their performance with other automatic evaluation measures . 
+	</s>
+	
+
+	<s id="133">
+		 5 Evaluations One of the goals of developing automatic evaluation measures is to replace labor-intensive human evaluations . 
+	</s>
+	
+
+	<s id="134">
+		 Therefore the first criterion to assess the usefulness of an automatic evaluation measure is to show that it correlates highly with human judgments in different evaluation settings . 
+	</s>
+	
+
+	<s id="135">
+		 However , high quality large-scale human judgments are hard to come by . 
+	</s>
+	
+
+	<s id="136">
+		 Fortunately , we have access to eight MT systems’ outputs , their human assessment data , and the reference translations from 2003 NIST Chinese MT evaluation ( NIST 2002a ) . 
+	</s>
+	
+
+	<s id="137">
+		 There were 919 sentence segments in the corpus . 
+	</s>
+	
+
+	<s id="138">
+		 We first computed averages of the adequacy and fluency scores of each system assigned by human evaluators . 
+	</s>
+	
+
+	<s id="139">
+		 For the input of automatic evaluation methods , we created three evaluation sets from the MT outputs : 1 . 
+	</s>
+	
+
+	<s id="140">
+		 Case set : The original system outputs with case information . 
+	</s>
+	
+
+	<s id="141">
+		 2. NoCase set : All words were converted into lower case , i.e. no case information was used . 
+	</s>
+	
+
+	<s id="142">
+		 This set was used to examine whether human assessments were affected by case information since not all MT systems generate properly cased output . 
+	</s>
+	
+
+	<s id="143">
+		 3. Stem set : All words were converted into lower case and stemmed using the Porter stemmer 
+		<ref citStr="Porter 1980" id="15" label="OEPF" position="21898">
+			( Porter 1980 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="144">
+		 Since ROUGE computed similarity on surface word level , stemmed version allowed ROUGE to perform more lenient matches . 
+	</s>
+	
+
+	<s id="145">
+		 To accommodate multiple references , we use a Jackknifing procedure . 
+	</s>
+	
+
+	<s id="146">
+		 Given N references , we compute the best score over N sets of N-1 references . 
+	</s>
+	
+
+	<s id="147">
+		 The final score is the average of the N best scores using N different sets of N-1 references . 
+	</s>
+	
+
+	<s id="148">
+		 The Jackknifing procedure is adopted since we often need to compare system and human performance and the reference translations are usually the only human translations available . 
+	</s>
+	
+
+	<s id="149">
+		 Using this procedure , we are able to estimate average human performance by averaging N best scores of one reference vs. the rest N-1 references . 
+	</s>
+	
+
+	<s id="150">
+		 We then computed average BLEU1-124 , GTM with exponents of 1.0 , 2.0 , and 3.0 , NIST , WER , and PER scores over these three sets . 
+	</s>
+	
+
+	<s id="151">
+		 Finally we applied ROUGE-L , ROUGE-W with weighting function k1.2 , and ROUGE-S without skip distance 4 BLEUN computes BLEU over n-grams up to length N . 
+	</s>
+	
+
+	<s id="152">
+		 Only BLEU1 , BLEU4 , and BLEU12 are shown in Table 1 . 
+	</s>
+	
+
+	<s id="153">
+		 = 2 ( 15 ) 2 fskip2 ( 1+ ^ 2 ) Rskip2Pskip2 Rshp2 + ^ Pkip Adequacy With Case Information ( Case ) Lower Case ( NoCase ) Lower Case &amp; Stemmed ( Stem ) Method P 95%L 95%U S 95%L 95%U P 95%L 95%U S 95%L 95%U P 95%L 95%U S 95%L 95%U BLEU1 0.86 0.83 0.89 0.80 0.71 0.90 0.87 0.84 0.90 0.76 0.67 0.89 0.91 0.89 0.93 0.85 0.76 0.95 BLEU4 0.77 0.72 0.81 0.77 0.71 0.89 0.79 0.75 0.82 0.67 0.55 0.83 0.82 0.78 0.85 0.76 0.67 0.89 BLEU12 0.66 0.60 0.72 0.53 0.44 0.65 0.72 0.57 0.81 0.65 0.25 0.88 0.72 0.58 0.81 0.66 0.28 0.88 NIST 0.89 0.86 0.92 0.78 0.71 0.89 0.87 0.85 0.90 0.80 0.74 0.92 0.90 0.88 0.93 0.88 0.83 0.97 WER 0.47 0.41 0.53 0.56 0.45 0.74 0.43 0.37 0.49 0.66 0.60 0.82 0.48 0.42 0.54 0.66 0.60 0.81 PER 0.67 0.62 0.72 0.56 0.48 0.75 0.63 0.58 0.68 0.67 0.60 0.83 0.72 0.68 0.76 0.69 0.62 0.86 ROUGE-L 0.87 0.84 0.90 0.84 0.79 0.93 0.89 0.86 0.92 0.84 0.71 0.94 0.92 0.90 0.94 0.87 0.76 0.95 ROUGE-W 0.84 0.81 0.87 0.83 0.74 0.90 0.85 0.82 0.88 0.77 0.67 0.90 0.89 0.86 0.91 0.86 0.76 0.95 ROUGE-S* 0.85 0.81 0.88 0.83 0.76 0.90 0.90 0.88 0.93 0.82 0.70 0.92 0.95 0.93 0.97 0.85 0.76 0.94 ROUGE-S0 0.82 0.78 0.85 0.82 0.71 0.90 0.84 0.81 0.87 0.76 0.67 0.90 0.87 0.84 0.90 0.82 0.68 0.90 ROUGE-S4 0.82 0.78 0.85 0.84 0.79 0.93 0.87 0.85 0.90 0.83 0.71 0.90 0.92 0.90 0.94 0.84 0.74 0.93 ROUGE-S9 0.84 0.80 0.87 0.84 0.79 0.92 0.89 0.86 0.92 0.84 0.76 0.93 0.94 0.92 0.96 0.84 0.76 0.94 GTM10 0.82 0.79 0.85 0.79 0.74 0.83 0.91 0.89 0.94 0.84 0.79 0.93 0.94 0.92 0.96 0.84 0.79 0.92 GTM20 0.77 0.73 0.81 0.76 0.69 0.88 0.79 0.76 0.83 0.70 0.55 0.83 0.83 0.79 0.86 0.80 0.67 0.90 GTM30 0.74 0.70 0.78 0.73 0.60 0.86 0.74 0.70 0.78 0.63 0.52 0.79 0.77 0.73 0.81 0.64 0.52 0.80 Fluency With Case Information ( Case ) Lower Case ( NoCase ) Lower Case &amp; Stemmed ( Stem ) Method P 95%L 95%U S 95%L 95%U P 95%L 95%U S 95%L 95%U P 95%L 95%U S 95%L 95%U 0.76 0.62 0.90 0.73 0.67 0.79 0.70 0.62 0.81 BLEU1 0.81 0.75 0.86 0.70 0.63 0.77 0.79 0.67 0.90 BLEU4 0.86 0.81 0.90 0.74 0.62 0.86 0.83 0.78 0.88 0.68 0.60 0.81 0.83 0.78 0.88 0.70 0.62 0.81 BLEU12 0.87 0.76 0.93 0.66 0.33 0.79 0.93 0.81 0.97 0.78 0.44 0.94 0.93 0.84 0.97 0.80 0.49 0.94 NIST 0.81 0.75 0.87 0.74 0.62 0.86 0.70 0.64 0.77 0.68 0.60 0.79 0.68 0.61 0.75 0.77 0.67 0.88 WER 0.69 0.62 0.75 0.68 0.57 0.85 0.59 0.51 0.66 0.70 0.57 0.82 0.60 0.52 0.68 0.69 0.57 0.81 PER 0.79 0.74 0.85 0.67 0.57 0.82 0.68 0.60 0.73 0.69 0.60 0.81 0.70 0.63 0.76 0.65 0.57 0.79 ROUGE-L 0.83 0.77 0.88 0.80 0.67 0.90 0.76 0.69 0.82 0.79 0.64 0.90 0.73 0.66 0.80 0.78 0.67 0.90 ROUGE-W 0.85 0.80 0.90 0.79 0.63 0.90 0.78 0.73 0.84 0.72 0.62 0.83 0.77 0.71 0.83 0.78 0.67 0.90 ROUGE-S* 0.84 0.78 0.89 0.79 0.62 0.90 0.80 0.74 0.86 0.77 0.64 0.90 0.78 0.71 0.84 0.79 0.69 0.90 ROUGE-S0 0.87 0.81 0.91 0.78 0.62 0.90 0.83 0.78 0.88 0.71 0.62 0.82 0.82 0.77 0.88 0.76 0.62 0.90 ROUGE-S4 0.84 0.79 0.89 0.80 0.67 0.90 0.82 0.77 0.87 0.78 0.64 0.90 0.81 0.75 0.86 0.79 0.67 0.90 ROUGE-S9 0.84 0.79 0.89 0.80 0.67 0.90 0.81 0.76 0.87 0.79 0.69 0.90 0.79 0.73 0.85 0.79 0.69 0.90 GTM10 0.73 0.66 0.79 0.76 0.60 0.87 0.71 0.64 0.78 0.80 0.67 0.90 0.66 0.58 0.74 0.80 0.64 0.90 GTM20 0.86 0.81 0.90 0.80 0.67 0.90 0.83 0.77 0.88 0.69 0.62 0.81 0.83 0.77 0.87 0.74 0.62 0.89 GTM30 0.87 0.81 0.91 0.79 0.67 0.90 0.83 0.77 0.87 0.73 0.62 0.83 0.83 0.77 0.88 0.71 0.60 0.83 Table 1 . 
+	</s>
+	
+
+	<s id="154">
+		 Pearson’s p and Spearman’s p correlations of automatic evaluation measures vs. adequacy and fluency : BLEU1 , 4 , and 12 are BLEU with maximum of 1 , 4 , and 12 grams , NIST is the NIST score , ROUGE-L is LCS-based F-measure ( 0 = 1 ) , ROUGE-W is weighted LCS-based F-measure ( 0 = 1 ) . 
+	</s>
+	
+
+	<s id="155">
+		 ROUGE-S* is skip-bigram-based co-occurrence statistics with any skip distance limit , ROUGESN is skip-bigram-based F-measure ( 0 = 1 ) with maximum skip distance of N , PER is position independent word error rate , and WER is word error rate . 
+	</s>
+	
+
+	<s id="156">
+		 GTM 10 , 20 , and 30 are general text matcher with exponents of 1.0 , 2.0 , and 3.0 . 
+	</s>
+	
+
+	<s id="157">
+		 ( Note , only BLEU1 , 4 , and 12 are shown here to preserve space . 
+	</s>
+	
+
+	<s id="158">
+		 ) limit and with skip distant limits of 0 , 4 , and 9 . 
+	</s>
+	
+
+	<s id="159">
+		 Correlation analysis based on two different correlation statistics , Pearson’s p and Spearman’s p , with respect to adequacy and fluency are shown in Table 1 . 
+	</s>
+	
+
+	<s id="160">
+		 The Pearson’s correlation coefficient5 measures the strength and direction of a linear relationship between any two variables , i.e. automatic metric score and human assigned mean coverage score in our case . 
+	</s>
+	
+
+	<s id="161">
+		 It ranges from +1 to -1 . 
+	</s>
+	
+
+	<s id="162">
+		 A correlation of 1 means that there is a perfect positive linear relationship between the two variables , a correlation of -1 means that there is a perfect negative linear relationship between them , and a correlation of 0 means that there is no linear relationship between them . 
+	</s>
+	
+
+	<s id="163">
+		 Since we would like to use automatic evaluation metric not only in comparing systems 5 For a quick overview of the Pearson’s coefficient , see : http://davidmlane.com/hyperstat/A34739.html . 
+	</s>
+	
+
+	<s id="164">
+		 but also in in-house system development , a good linear correlation with human judgment would enable us to use automatic scores to predict corresponding human judgment scores . 
+	</s>
+	
+
+	<s id="165">
+		 Therefore , Pearson’s correlation coefficient is a good measure to look at . 
+	</s>
+	
+
+	<s id="166">
+		 Spearman’s correlation coefficient 6 is also a measure of correlation between two variables . 
+	</s>
+	
+
+	<s id="167">
+		 It is a non-parametric measure and is a special case of the Pearson’s correlation coefficient when the values of data are converted into ranks before computing the coefficient . 
+	</s>
+	
+
+	<s id="168">
+		 Spearman’s correlation coefficient does not assume the correlation between the variables is linear . 
+	</s>
+	
+
+	<s id="169">
+		 Therefore it is a useful correlation indicator even when good linear correlation , for example , according to Pearson’s correlation coefficient between two variables could 6 For a quick overview of the Spearman’s coefficient , see : http://davidmlane.com/hyperstat/A62436.html . 
+	</s>
+	
+
+	<s id="170">
+		 not be found . 
+	</s>
+	
+
+	<s id="171">
+		 It also suits the NIST MT evaluation scenario where multiple systems are ranked according to some performance metrics . 
+	</s>
+	
+
+	<s id="172">
+		 To estimate the significance of these correlation statistics , we applied bootstrap resampling , generating random samples of the 919 different sentence segments . 
+	</s>
+	
+
+	<s id="173">
+		 The lower and upper values of 95 % confidence interval are also shown in the table . 
+	</s>
+	
+
+	<s id="174">
+		 Dark ( green ) cells are the best correlation numbers in their categories and light gray cells are statistically equivalent to the best numbers in their categories . 
+	</s>
+	
+
+	<s id="175">
+		 Analyzing all runs according to the adequacy and fluency table , we make the following observations : Applying the stemmer achieves higher correlation with adequacy but keeping case information achieves higher correlation with fluency except for BLEU7-12 ( only BLEU12 is shown ) . 
+	</s>
+	
+
+	<s id="176">
+		 For example , the Pearson’s p ( P ) correlation of ROUGE-S* with adequacy increases from 0.85 ( Case ) to 0.95 ( Stem ) while its Pearson’s p correlation with fluency drops from 0.84 ( Case ) to 0.78 ( Stem ) . 
+	</s>
+	
+
+	<s id="177">
+		 We will focus our discussions on the Stem set in adequacy and Case set in fluency . 
+	</s>
+	
+
+	<s id="178">
+		 The Pearson 's p correlation values in the Stem set of the Adequacy Table , indicates that ROUGE- L and ROUGE-S with a skip distance longer than 0 correlate highly and linearly with adequacy and outperform BLEU and NIST . 
+	</s>
+	
+
+	<s id="179">
+		 ROUGE-S* achieves that best correlation with a Pearson’s p of 0.95 . 
+	</s>
+	
+
+	<s id="180">
+		 Measures favoring consecutive matches , i.e. BLEU4 and 12 , ROUGE-W , GTM20 and 30 , ROUGE-S0 ( bigram ) , and WER have lower Pearson’s p . 
+	</s>
+	
+
+	<s id="181">
+		 Among them WER ( 0.48 ) that tends to penalize small word movement is the worst performer . 
+	</s>
+	
+
+	<s id="182">
+		 One interesting observation is that longer BLEU has lower correlation with adequacy . 
+	</s>
+	
+
+	<s id="183">
+		 Spearman’s p values generally agree with Pear- son 's p but have more equivalents . 
+	</s>
+	
+
+	<s id="184">
+		 The Pearson 's p correlation values in the Stem set of the Fluency Table , indicates that BLEU12 has the highest correlation ( 0.93 ) with fluency . 
+	</s>
+	
+
+	<s id="185">
+		 However , it is statistically indistinguishable with 95 % confidence from all other metrics shown in the Case set of the Fluency Table except for WER and GTM10 . 
+	</s>
+	
+
+	<s id="186">
+		 GTM10 has good correlation with human judgments in adequacy but not fluency ; while GTM20 and GTM30 , i.e. GTM with exponent larger than 1.0 , has good correlation with human judgment in fluency but not adequacy . 
+	</s>
+	
+
+	<s id="187">
+		 ROUGE-L and ROUGE-S* , 4 , and 9 are good automatic evaluation metric candidates since they perform as well as BLEU in fluency correlation analysis and outperform BLEU4 and 12 significantly in adequacy . 
+	</s>
+	
+
+	<s id="188">
+		 Among them , ROUGE-L is the best metric in both adequacy and fluency correlation with human judgment according to Spear man’s correlation coefficient and is statistically indistinguishable from the best metrics in both adequacy and fluency correlation with human judgment according to Pearson’s correlation coefficient . 
+	</s>
+	
+
+	<s id="189">
+		 6 Conclusion In this paper we presented two new objective automatic evaluation methods for machine translation , ROUGE-L based on longest common subsequence ( LCS ) statistics between a candidate translation and a set of reference translations . 
+	</s>
+	
+
+	<s id="190">
+		 Longest common subsequence takes into account sentence level structure similarity naturally and identifies longest co-occurring in-sequence n- grams automatically while this is a free parameter in BLEU . 
+	</s>
+	
+
+	<s id="191">
+		 To give proper credit to shorter common sequences that are ignored by LCS but still retain the flexibility of non-consecutive matches , we proposed counting skip bigram co-occurrence . 
+	</s>
+	
+
+	<s id="192">
+		 The skip-bigram-based ROUGE-S* ( without skip distance restriction ) had the best Pearson 's p correlation of 0.95 in adequacy when all words were lower case and stemmed . 
+	</s>
+	
+
+	<s id="193">
+		 ROUGE-L , ROUGE-W , ROUGE-S* , ROUGE-S4 , and ROUGE-S9 were equal performers to BLEU in measuring fluency . 
+	</s>
+	
+
+	<s id="194">
+		 However , they have the advantage that we can apply them on sentence level while longer BLEU such as BLEU12 would not differentiate any sentences with length shorter than 12 words ( i.e. no 12-gram matches ) . 
+	</s>
+	
+
+	<s id="195">
+		 We plan to explore their correlation with human judgments on sentence-level in the future . 
+	</s>
+	
+
+	<s id="196">
+		 We also confirmed empirically that adequacy and fluency focused on different aspects of machine translations . 
+	</s>
+	
+
+	<s id="197">
+		 Adequacy placed more emphasis on terms co-occurred in candidate and reference translations as shown in the higher correlations in Stem set than Case set in Table 1 ; while the reverse was true in the terms of fluency . 
+	</s>
+	
+
+	<s id="198">
+		 The evaluation results of ROUGE-L , ROUGE- W , and ROUGE-S in machine translation evaluation are very encouraging . 
+	</s>
+	
+
+	<s id="199">
+		 However , these measures in their current forms are still only applying string-to-string matching . 
+	</s>
+	
+
+	<s id="200">
+		 We have shown that better correlation with adequacy can be reached by applying stemmer . 
+	</s>
+	
+
+	<s id="201">
+		 In the next step , we plan to extend them to accommodate synonyms and paraphrases . 
+	</s>
+	
+
+	<s id="202">
+		 For example , we can use an existing thesaurus such as WordNet 
+		<ref citStr="Miller 1990" id="16" label="OEPF" position="34206">
+			( Miller 1990 )
+		</ref>
+		 or creating a customized one by applying automated synonym set discovery methods 
+		<ref citStr="Pantel and Lin 2002" id="17" label="CEPN" position="34311">
+			( Pantel and Lin 2002 )
+		</ref>
+		 to identify potential synonyms . 
+	</s>
+	
+
+	<s id="203">
+		 Paraphrases can also be automatically acquired using statistical methods as shown by 
+		<ref citStr="Barzilay and Lee ( 2003 )" id="18" label="CEPF" position="34464">
+			Barzilay and Lee ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="204">
+		 Once we have acquired synonym and paraphrase data , we then need to design a soft matching function that assigns partial credits to these approximate matches . 
+	</s>
+	
+
+	<s id="205">
+		 In this scenario , statistically generated data has the advantage of being able to provide scores reflecting the strength of similarity between synonyms and paraphrased . 
+	</s>
+	
+
+	<s id="206">
+		 ROUGE-L , ROUGE-W , and ROUGE-S have also been applied in automatic evaluation of summarization and achieved very promising results 
+		<ref citStr="Lin 2004" id="19" label="CEPF" position="34969">
+			( Lin 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="207">
+		 In 
+		<ref citStr="Lin and Och ( 2004 )" id="20" label="CEPF" position="35004">
+			Lin and Och ( 2004 )
+		</ref>
+		 , we proposed a framework that automatically evaluated automatic MT evaluation metrics using only manual translations without further human involvement . 
+	</s>
+	
+
+	<s id="208">
+		 According to the results reported in that paper , ROUGE-L , ROUGE-W , and ROUGE-S also outperformed BLEU and NIST . 
+	</s>
+	
+
+	<s id="209">
+		 References Akiba , Y. , K. Imamura , and E. Sumita . 
+	</s>
+	
+
+	<s id="210">
+		 2001. Using Multiple Edit Distances to Automatically Rank Machine Translation Output . 
+	</s>
+	
+
+	<s id="211">
+		 In Proceedings of the MT Summit VIII , Santiago de Compostela , Spain . 
+	</s>
+	
+
+	<s id="212">
+		 Barzilay , R. and L. Lee . 
+	</s>
+	
+
+	<s id="213">
+		 2003. Learning to Paraphrase : An Unsupervised Approach Using Multiple-Sequence Alignmen . 
+	</s>
+	
+
+	<s id="214">
+		 In Proceeding of NAACL-HLT 2003 , Edmonton , Canada . 
+	</s>
+	
+
+	<s id="215">
+		 Leusch , G. , N. Ueffing , and H. Ney . 
+	</s>
+	
+
+	<s id="216">
+		 2003. A Novel String-to-String Distance Measure with Applications to Machine Translation Evaluation . 
+	</s>
+	
+
+	<s id="217">
+		 In Proceedings of MT Summit IY , New Orleans , U.S.A. . 
+	</s>
+	
+
+	<s id="218">
+		 Levenshtein , V. I. 1966 . 
+	</s>
+	
+
+	<s id="219">
+		 Binary codes capable of correcting deletions , insertions and reversals . 
+	</s>
+	
+
+	<s id="220">
+		 Soviet Physics Doklady . 
+	</s>
+	
+
+	<s id="221">
+		 Lin , C.Y. 2004 . 
+	</s>
+	
+
+	<s id="222">
+		 ROUGE : A Package for Automatic Evaluation of Summaries . 
+	</s>
+	
+
+	<s id="223">
+		 In Proceedings of the Workshop on Text Summarization Branches Out , post-conference workshop of ACL 2004 , Barcelona , Spain . 
+	</s>
+	
+
+	<s id="224">
+		 Lin , C.-Y. and F. J. Och . 
+	</s>
+	
+
+	<s id="225">
+		 2004. ORANGE : a Method for Evaluating Automatic Evaluation Metrics for Machine Translation . 
+	</s>
+	
+
+	<s id="226">
+		 In Proceedings of 20th International Conference on Computational Linguistic ( COLING 2004 ) , Geneva , Switzerland . 
+	</s>
+	
+
+	<s id="227">
+		 Miller , G. 1990 . 
+	</s>
+	
+
+	<s id="228">
+		 WordNet : An Online Lexical Database . 
+	</s>
+	
+
+	<s id="229">
+		 International Journal of Lexicography , 3(4) . 
+	</s>
+	
+
+	<s id="230">
+		 Melamed , I.D. 1995 . 
+	</s>
+	
+
+	<s id="231">
+		 Automatic Evaluation and Uniform Filter Cascades for Inducing N-best Translation Lexicons . 
+	</s>
+	
+
+	<s id="232">
+		 In Proceedings of the 3rd Workshop on Very Large Corpora ( WVLC3 ) . 
+	</s>
+	
+
+	<s id="233">
+		 Boston , U.S.A. Melamed , I.D. , R. Green and J. P. Turian . 
+	</s>
+	
+
+	<s id="234">
+		 2003. Precision and Recall of Machine Translation . 
+	</s>
+	
+
+	<s id="235">
+		 In Proceedings of NAACL/HLT 2003 , Edmonton , Canada . 
+	</s>
+	
+
+	<s id="236">
+		 Nießen S. , F.J. Och , G , Leusch , H. Ney . 
+	</s>
+	
+
+	<s id="237">
+		 2000. An Evaluation Tool for Machine Translation : Fast Evaluation for MT Research . 
+	</s>
+	
+
+	<s id="238">
+		 In Proceedings of the 2nd International Conference on Language Resources and Evaluation , Athens , Greece . 
+	</s>
+	
+
+	<s id="239">
+		 NIST . 
+	</s>
+	
+
+	<s id="240">
+		 2002. Automatic Evaluation of Machine Translation Quality using N-gram Co- Occurrence Statistics . 
+	</s>
+	
+
+	<s id="241">
+		 http://www.nist.gov/speech/tests/mt/doc/ngramstudy.pdf Pantel , P. and Lin , D. 2002 . 
+	</s>
+	
+
+	<s id="242">
+		 Discovering Word Senses from Text . 
+	</s>
+	
+
+	<s id="243">
+		 In Proceedings of SIGKDD02 . 
+	</s>
+	
+
+	<s id="244">
+		 Edmonton , Canada . 
+	</s>
+	
+
+	<s id="245">
+		 Papineni , K. , S. Roukos , T. Ward , and W.-J. Zhu . 
+	</s>
+	
+
+	<s id="246">
+		 2001. BLEU : a Method for Automatic Evaluation of Machine Translation . 
+	</s>
+	
+
+	<s id="247">
+		 IBM Research Report RC22176 ( W0109-022 ) . 
+	</s>
+	
+
+	<s id="248">
+		 Porter , M.F. 1980 . 
+	</s>
+	
+
+	<s id="249">
+		 An Algorithm for Suffix Stripping . 
+	</s>
+	
+
+	<s id="250">
+		 Program , 14 , pp. 130-137 . 
+	</s>
+	
+
+	<s id="251">
+		 Saggion H. , D. Radev , S. Teufel , and W. Lam . 
+	</s>
+	
+
+	<s id="252">
+		 2002. Meta-Evaluation of Summaries in a Cross-Lingual Environment Using Content- Based Metrics . 
+	</s>
+	
+
+	<s id="253">
+		 In Proceedings of COLING2002 , Taipei , Taiwan . 
+	</s>
+	
+
+	<s id="254">
+		 Su , K.-Y. , M.-W. Wu , and J.-S. Chang . 
+	</s>
+	
+
+	<s id="255">
+		 1992. A New Quantitative Quality Measure for Machine Translation System . 
+	</s>
+	
+
+	<s id="256">
+		 In Proceedings of COLING-92 , Nantes , France . 
+	</s>
+	
+
+	<s id="257">
+		 Thompson , H. S. 1991 . 
+	</s>
+	
+
+	<s id="258">
+		 Automatic Evaluation of Translation Quality : Outline of Methodology and Report on Pilot Experiment . 
+	</s>
+	
+
+	<s id="259">
+		 In Proceedings of the Evaluator’s Forum , ISSCO , Geneva , Switzerland . 
+	</s>
+	
+
+	<s id="260">
+		 Turian , J. P. , L. Shen , and I. D. Melamed . 
+	</s>
+	
+
+	<s id="261">
+		 2003. Evaluation of Machine Translation and its Evaluation . 
+	</s>
+	
+
+	<s id="262">
+		 In Proceedings of MT Summit IY , New Orleans , U.S.A. . 
+	</s>
+	
+
+	<s id="263">
+		 Van Rijsbergen , C.J. 1979 . 
+	</s>
+	
+
+	<s id="264">
+		 Information Retrieval . 
+	</s>
+	
+
+	<s id="265">
+		 Butterworths . 
+	</s>
+	
+
+	<s id="266">
+		 London . 
+	</s>
+	
+
+
+</acldoc>

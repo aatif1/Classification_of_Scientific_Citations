@@ -1,0 +1,1050 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1081">
+	
+
+	<s id="1">
+		 A Kernel PCA Method for Superior Word Sense Disambiguation Dekai WU ' Weifeng SU Marine CARPUAT dekai@cs.ust.hk weifeng@cs.ust.hk marine@cs.ust.hk Human Language Technology Center HKUST Department of Computer Science University of Science and Technology Clear Water Bay , Hong Kong Abstract We introduce a new method for disambiguating word senses that exploits a nonlinear Kernel Principal Component Analysis ( KPCA ) technique to achieve accuracy superior to the best published individual models . 
+	</s>
+	
+
+	<s id="2">
+		 We present empirical results demonstrating significantly better accuracy compared to the state-of-the-art achieved by either naive Bayes or maximum entropy models , on Senseval-2 data . 
+	</s>
+	
+
+	<s id="3">
+		 We also contrast against another type of kernel method , the support vector machine ( SVM ) model , and show that our KPCA-based model outperforms the SVM-based model . 
+	</s>
+	
+
+	<s id="4">
+		 It is hoped that these highly encouraging first results on KPCA for natural language processing tasks will inspire further development of these directions . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction Achieving higher precision in supervised word sense disambiguation ( WSD ) tasks without resorting to ad hoc voting or similar ensemble techniques has become somewhat daunting in recent years , given the challenging benchmarks set by naive Bayes models ( e.g. , 
+		<ref citStr="Mooney ( 1996 )" id="1" label="CEPF" position="1345">
+			Mooney ( 1996 )
+		</ref>
+		 , 
+		<ref citStr="Chodorow et al . ( 1999 )" id="2" label="CEPF" position="1373">
+			Chodorow et al . ( 1999 )
+		</ref>
+		 , 
+		<ref citStr="Pedersen ( 2001 )" id="3" label="CEPF" position="1393">
+			Pedersen ( 2001 )
+		</ref>
+		 , 
+		<ref citStr="Yarowsky and Florian ( 2002 )" id="4" label="CEPF" position="1425">
+			Yarowsky and Florian ( 2002 )
+		</ref>
+		 ) as well as maximum entropy models ( e.g. , 
+		<ref citStr="Dang and Palmer ( 2002 )" id="5" label="CEPF" position="1495">
+			Dang and Palmer ( 2002 )
+		</ref>
+		 , 
+		<ref citStr="Klein and Manning ( 2002 )" id="6" label="CEPF" position="1524">
+			Klein and Manning ( 2002 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="6">
+		 A good foundation for comparative studies has been established by the Senseval data and evaluations ; of particular relevance here are the lexical sample tasks from Senseval-1 
+		<ref citStr="Kilgarriff and Rosenzweig , 1999" id="7" label="CEPF" position="1750">
+			( Kilgarriff and Rosenzweig , 1999 )
+		</ref>
+		 and Senseval-2 
+		<ref citStr="Kilgarriff , 2001" id="8" label="CEPF" position="1787">
+			( Kilgarriff , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="7">
+		 We therefore chose this problem to introduce an efficient and accurate new word sense disambiguation approach that exploits a nonlinear Kernel PCA technique to make predictions implicitly based on generalizations over feature combinations . 
+	</s>
+	
+
+	<s id="8">
+		 The ' The author would like to thank the Hong Kong Re- search Grants Council ( RGC ) for supporting this research in part through grants RGC6083/99E , RGC6256/00E , and DAG03/04.EG09 . 
+	</s>
+	
+
+	<s id="9">
+		 technique is applicable whenever vector representations of a disambiguation task can be generated ; thus many properties of our technique can be expected to be highly attractive from the standpoint of natural language processing in general . 
+	</s>
+	
+
+	<s id="10">
+		 In the following sections , we first analyze the potential of nonlinear principal components with respect to the task of disambiguating word senses . 
+	</s>
+	
+
+	<s id="11">
+		 Based on this , we describe a full model for WSD built on KPCA . 
+	</s>
+	
+
+	<s id="12">
+		 We then discuss experimental results confirming that this model outperforms state- of-the-art published models for Senseval-related lexical sample tasks as represented by ( 1 ) naive Bayes models , as well as ( 2 ) maximum entropy models . 
+	</s>
+	
+
+	<s id="13">
+		 We then consider whether other kernel methods—in particular , the popular SVM model— are equally competitive , and discover experimentally that KPCA achieves higher accuracy than the SVM model . 
+	</s>
+	
+
+	<s id="14">
+		 2 Nonlinear principal components and WSD The Kernel Principal Component Analysis technique , or KPCA , is a nonlinear kernel method for extraction of nonlinear principal components from vector sets in which , conceptually , the n- dimensional input vectors are nonlinearly mapped from their original space Rn to a high-dimensional feature space F where linear PCA is performed , yielding a transform by which the input vectors can be mapped nonlinearly to a new set of vectors ( Sch¨olkopf et al. , 1998 ) . 
+	</s>
+	
+
+	<s id="15">
+		 A major advantage of KPCA is that , unlike other common analysis techniques , as with other kernel methods it inherently takes combinations of predictive features into account when optimizing dimensionality reduction . 
+	</s>
+	
+
+	<s id="16">
+		 For natural language problems in general , of course , it is widely recognized that significant accuracy gains can often be achieved by generalizing over relevant feature combinations ( e.g. , 
+		<ref citStr="Kudo and Matsumoto ( 2003 )" id="9" label="CEPF" position="4148">
+			Kudo and Matsumoto ( 2003 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="17">
+		 Another advantage of KPCA for the WSD task is that the dimensionality of the input data is generally very Table 1 : Two of the Senseval-2 sense classes for the target word “art” , from WordNet 1.7 
+		<ref citStr="Fellbaum 1998" id="10" label="OEPF" position="4378">
+			( Fellbaum 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="18">
+		 Class Sense 1 the creation of beautiful or significant things 2 a superior skill large , a condition where kernel methods excel . 
+	</s>
+	
+
+	<s id="19">
+		 Nonlinear principal components 
+		<ref citStr="Diamantaras and Kung , 1996" id="11" label="CEPF" position="4591">
+			( Diamantaras and Kung , 1996 )
+		</ref>
+		 may be defined as follows . 
+	</s>
+	
+
+	<s id="20">
+		 Suppose we are given a training set of M pairs ( xt , ct ) where the observed vectors xt E Rn in an n- dimensional input space X represent the context of the target word being disambiguated , and the correct class ct represents the sense of the word , for t = 1 , .. , M . 
+	</s>
+	
+
+	<s id="21">
+		 Suppose ` b is a nonlinear mapping from the input space Rn to the feature space F . 
+	</s>
+	
+
+	<s id="22">
+		 Without loss of generality we assume the M vectors are centered vectors in the feature space , i.e. , ~Mt=1 ` b ( xt ) = 0 ; uncentered vectors can easily be converted to centered vectors ( Sch¨olkopf et al. , 1998 ) . 
+	</s>
+	
+
+	<s id="23">
+		 We wish to diagonalize the covariance matrix in F : ` b ( xj ) ` bT ( xj ) ( 1 ) To do this requires solving the equation Av = Cv for eigenvalues A &gt; 0 and eigenvectors v E F. Because ( ` b ( xj ) - v)`b ( xj ) ( 2 ) we can derive the following two useful results . 
+	</s>
+	
+
+	<s id="24">
+		 First , A ( ` b(xt) - v ) = ` b ( xt ) - Cv ( 3 ) for t = 1 , .. , M. Second , there exist ai for i = 1 , ... , M such that v= ~M ai`b ( xi ) ( 4 ) i=1 Combining ( 1 ) , ( 3 ) , and ( 4 ) , we obtain MA ~M ai ( ` b(xt) - ` b(xi)) i=1 ` b ( xj ) ) ( ` b(xj) - ` b(xi ) ) for t = 1 , .. , M . 
+	</s>
+	
+
+	<s id="25">
+		 Let Kˆ be the M x M matrix such that ˆKij = ` b ( xi ) - ` b ( xj ) ( 5 ) and let ˆA1 &gt; ˆA2 &gt; ... &gt; ˆAM denote the eigenvalues of Kˆ and ˆa1 , ... , ˆaM denote the corresponding complete set of normalized eigenvectors , such that ˆAt ( ˆat - ˆat ) = 1 when ˆAt &gt; 0 . 
+	</s>
+	
+
+	<s id="26">
+		 Then the lth nonlinear principal component of any test vector xt is defined as yi = ~M ˆali ( ` b(xi) - ` b(xt)) ( 6 ) i=1 where ˆali is the lth element of ˆal . 
+	</s>
+	
+
+	<s id="27">
+		 To illustrate the potential of nonlinear principal components for WSD , consider a simplified disambiguation example for the ambiguous target word “art” , with the two senses shown in Table 1 . 
+	</s>
+	
+
+	<s id="28">
+		 Assume a training corpus of the eight sentences as shown in Table 2 , adapted from Senseval-2 English lexical sample corpus . 
+	</s>
+	
+
+	<s id="29">
+		 For each sentence , we show the feature set associated with that occurrence of “art” and the correct sense class . 
+	</s>
+	
+
+	<s id="30">
+		 These eight occurrences of “art” can be transformed to a binary vector representation containing one dimension for each feature , as shown in Table 3 . 
+	</s>
+	
+
+	<s id="31">
+		 Extracting nonlinear principal components for the vectors in this simple corpus results in nonlinear generalization , reflecting an implicit consideration of combinations of features . 
+	</s>
+	
+
+	<s id="32">
+		 Table 3 shows the first three dimensions of the principal component vectors obtained by transforming each of the eight training vectors xt into ( a ) principal component vectors zt using the linear transform obtained via PCA , and ( b ) nonlinear principal component vectors yt using the nonlinear transform obtained via KPCA as described below . 
+	</s>
+	
+
+	<s id="33">
+		 Similarly , for the test vector x9 , Table 4 shows the first three dimensions of the principal component vectors obtained by transforming it into ( a ) a principal component vector z9 using the linear PCA transform obtained from training , and ( b ) a nonlinear principal component vector y9 using the nonlinear KPCA transform obtained obtained from training . 
+	</s>
+	
+
+	<s id="34">
+		 The vector similarities in the KPCA-transformed space can be quite different from those in the PCAtransformed space . 
+	</s>
+	
+
+	<s id="35">
+		 This causes the KPCA-based model to be able to make the correct class prediction , whereas the PCA-based model makes the 1 C = M M E j=1 Cv = M M E j=1 ~M i=1 ai(`b ( xt ) - M E j=1 Table 2 : A tiny corpus for the target word “art” , adapted from the Senseval-2 English lexical sample corpus 
+		<ref citStr="Kilgarriff 2001" id="12" label="OEPF" position="8274">
+			( Kilgarriff 2001 )
+		</ref>
+		 , together with a tiny example set of features . 
+	</s>
+	
+
+	<s id="36">
+		 The training and testing examples can be represented as a set of binary vectors : each row shows the correct class c for an observed vector x of five dimensions . 
+	</s>
+	
+
+	<s id="37">
+		 TRAINING design/N media/N the/DT entertainment/N world/N Class x1 He studies art in London . 
+	</s>
+	
+
+	<s id="38">
+		 1 x2 Punch’s weekly guide to the world of the arts , entertainment , media and more . 
+	</s>
+	
+
+	<s id="39">
+		 1 1 1 1 x3 All such studies have in- fluenced every form of art , design , and entertainment in some way . 
+	</s>
+	
+
+	<s id="40">
+		 1 1 1 x4 Among the techni- 1 2 cal arts cultivated in some continental schools that began to affect England soon after the Norman Conquest were those of measurement and calculation . 
+	</s>
+	
+
+	<s id="41">
+		 x5 The Art of Love . 
+	</s>
+	
+
+	<s id="42">
+		 1 2 x6 Indeed , the art of doc- 1 2 toring does contribute to better health results and discourages unwarranted malpractice litigation . 
+	</s>
+	
+
+	<s id="43">
+		 x7 Countless books and 1 2 classes teach the art of asserting oneself . 
+	</s>
+	
+
+	<s id="44">
+		 x8 Pop art is an example . 
+	</s>
+	
+
+	<s id="45">
+		 1 TESTING x9 In the world of de- 1 1 1 1 sign arts particularly , this led to appointments made for political rather than academic reasons . 
+	</s>
+	
+
+	<s id="46">
+		 wrong class prediction . 
+	</s>
+	
+
+	<s id="47">
+		 What permits KPCA to apply stronger generalization biases is its implicit consideration of combinations of feature information in the data distribution from the high-dimensional training vectors . 
+	</s>
+	
+
+	<s id="48">
+		 In this simplified illustrative example , there are just five input dimensions ; the effect is stronger in more realistic high dimensional vector spaces . 
+	</s>
+	
+
+	<s id="49">
+		 Since the KPCA transform is computed from unsupervised training vector data , and extracts generalizations that are subsequently utilized during supervised classification , it is quite possible to combine large amounts of unsupervised data with reasonable smaller amounts of supervised data . 
+	</s>
+	
+
+	<s id="50">
+		 It can be instructive to attempt to interpret this example graphically , as follows , even though the interpretation in three dimensions is severely limiting . 
+	</s>
+	
+
+	<s id="51">
+		 Figure 1(a) depicts the eight original observed training vectors xt in the first three of the five dimensions ; note that among these eight vectors , there happen to be only four unique points when restricting our view to these three dimensions . 
+	</s>
+	
+
+	<s id="52">
+		 Ordinary linear PCA can be straightforwardly seen as projecting the original points onto the principal axis , Table 3 : The original observed training vectors ( showing only the first three dimensions ) and their first three principal components as transformed via PCA and KPCA . 
+	</s>
+	
+
+	<s id="53">
+		 Observed vectors PCA-transformed vectors KPCA-transformed vectors Class t 1 2 3 1 2 3 1 2 3 ct ( xt,xt,xt ) ( zt,zt,zt ) ( yt,yt,yt ) 1 ( 0 , 0 , 0 ) ( -1.961 , 0.2829 , 0.2014 ) ( 0.2801 , -1.005 , -0.06861 ) 1 2 ( 0 , 1 , 1 ) ( 1.675 , -1.132 , 0.1049 ) ( 1.149 , 0.02934 , 0.322 ) 1 3 ( 1 , 0 , 0 ) ( -0.367 , 1.697 , -0.2391 ) ( 0.8209 , 0.7722 , -0.2015 ) 1 4 ( 0 , 0 , 1 ) ( -1.675 , -1.132 , -0.1049 ) ( -1.774 , -0.1216 , 0.03258 ) 2 5 ( 0 , 0 , 1 ) ( -1.675 , -1.132 , -0.1049 ) ( -1.774 , -0.1216 , 0.03258 ) 2 6 ( 0 , 0 , 1 ) ( -1.675 , -1.132 , -0.1049 ) ( -1.774 , -0.1216 , 0.03258 ) 2 7 ( 0 , 0 , 1 ) ( -1.675 , -1.132 , -0.1049 ) ( -1.774 , -0.1216 , 0.03258 ) 2 8 ( 0 , 0 , 0 ) ( -1.961 , 0.2829 , 0.2014 ) ( 0.2801 , -1.005 , -0.06861 ) 1 Table 4 : Testing vector ( showing only the first three dimensions ) and its first three principal components as transformed via the trained PCA and KPCA parameters . 
+	</s>
+	
+
+	<s id="54">
+		 The PCA-based and KPCA-based sense class predictions disagree . 
+	</s>
+	
+
+	<s id="55">
+		 Observed vectors PCA-transformed vectors KPCA-transformed vec- tors Predicted Class Correct Class t 1 2 3 1 2 3 1 2 3 ˆct ct ( xt,xt,xt ) ( zt,zt,zt ) ( yt,yt,yt ) 9 ( 1 , 0,1 ) ( -0.3671 , -0.5658 , -0.2392 ) 2 1 9 ( 1 , 0 , 1 ) ( 4e-06 , 8e-07 , 1.111 e- 18 ) 1 1 as can be seen for the case of the first principal axis in Figure 1(b) . 
+	</s>
+	
+
+	<s id="56">
+		 Note that in this space , the sense 2 instances are surrounded by sense 1 instances . 
+	</s>
+	
+
+	<s id="57">
+		 We can traverse each of the projections onto the principal axis in linear order , simply by visiting each of the first principal components z1t along the principle axis in order of their values , i.e. , such that zi - z18- z14- z15- z16- z17- z12- z13- z19 It is significantly more difficult to visualize the nonlinear principal components case , however . 
+	</s>
+	
+
+	<s id="58">
+		 Note that in general , there may not exist any principal axis in X , since an inverse mapping from F may not exist . 
+	</s>
+	
+
+	<s id="59">
+		 If we attempt to follow the same procedure to traverse each of the projections onto the first principal axis as in the case of linear PCA , by considering each of the first principal components y1t in order of their value , i.e. , such that y14 - y15 - y16 - y17 - y19 - y11 - y18 - y13 - y12 then we must arbitrarily select a “quasi-projection” direction for each y1t since there is no actual principal axis toward which to project . 
+	</s>
+	
+
+	<s id="60">
+		 This results in a “quasi-axis” roughly as shown in Figure 1(c) which , though not precisely accurate , provides some idea as to how the nonlinear generalization capability allows the data points to be grouped by principal components reflecting nonlinear patterns in the data distribution , in ways that linear PCA cannot do . 
+	</s>
+	
+
+	<s id="61">
+		 Note that in this space , the sense 1 instances are already better separated from sense 2 data points . 
+	</s>
+	
+
+	<s id="62">
+		 Moreover , unlike linear PCA , there may be up to M of the “quasi-axes” , which may number far more than five . 
+	</s>
+	
+
+	<s id="63">
+		 Such effects can become pronounced in the high dimensional spaces are actually used for real word sense disambiguation tasks . 
+	</s>
+	
+
+	<s id="64">
+		 3 A KPCA-based WSD model To extract nonlinear principal components efficiently , note that in both Equations ( 5 ) and ( 6 ) the explicit form of 4b ( xi ) is required only in the form of ( 4b ( xi ) • 4b ( xj ) ) , i.e. , the dot product of vectors in F . 
+	</s>
+	
+
+	<s id="65">
+		 This means that we can calculate the nonlinear principal components by substituting a kernel function k(xi , xj ) for ( 4b( xi ) • 4b(xj ) ) in Equations ( 5 ) and ( 6 ) without knowing the mapping 4b explicitly ; instead , the mapping 4b is implicitly defined by the kernel function . 
+	</s>
+	
+
+	<s id="66">
+		 It is always possible to construct a mapping into a space where k acts as a dot product so long as k is a continuous kernel of a positive integral operator ( Sch¨olkopf et al. , 1998 ) . 
+	</s>
+	
+
+	<s id="67">
+		 class 2 ( correct sense class=1 ) : test example with predicted sense class 1 ( correct sense class=1 ) Figure 1 : Original vectors , PCA projections , and KPCA “quasi-projections” ( see text ) . 
+	</s>
+	
+
+	<s id="68">
+		 Table 5 : Experimental results showing that the KPCA-based model performs significantly better than naive Bayes and maximum entropy models . 
+	</s>
+	
+
+	<s id="69">
+		 Significance intervals are computed via bootstrap resampling . 
+	</s>
+	
+
+	<s id="70">
+		 WSD Model Accuracy Sig . 
+	</s>
+	
+
+	<s id="71">
+		 Int. naive Bayes 63.3 % +/-0.91 % maximum entropy 63.8 % +/-0.79 % KPCA-based model 65.8 % +/-0.79 % Thus we train the KPCA model using the following algorithm : 1 . 
+	</s>
+	
+
+	<s id="72">
+		 Compute an M x M matrix Kˆ such that ˆKij = k(xi , xj ) ( 7 ) 2 . 
+	</s>
+	
+
+	<s id="73">
+		 Compute the eigenvalues and eigenvectors of matrix Kˆ and normalize the eigenvectors . 
+	</s>
+	
+
+	<s id="74">
+		 Let ˆA1 &gt; ˆA2 &gt; ... &gt; ˆAM denote the eigenvalues and ˆ~1 , ... , ˆ~M denote the corresponding complete set of normalized eigenvectors . 
+	</s>
+	
+
+	<s id="75">
+		 To obtain the sense predictions for test instances , we need only transform the corresponding vectors using the trained KPCA model and classify the resultant vectors using nearest neighbors . 
+	</s>
+	
+
+	<s id="76">
+		 For a given test instance vector x , its lth nonlinear principal component is ylt = ~M ˆ~lik(xi , xt ) ( 8 ) i=1 where ˆ~li is the ith element of ˆ~l . 
+	</s>
+	
+
+	<s id="77">
+		 For our disambiguation experiments we employ a polynomial kernel function of the form k(xi , xj ) = ( xi • xj )d , although other kernel functions such as gaussians could be used as well . 
+	</s>
+	
+
+	<s id="78">
+		 Note that the degenerate case of d = 1 yields the dot product kernel k(xi,xj) = ( xi•xj ) which covers linear PCA as a special case , which may explain why KPCA always outperforms PCA . 
+	</s>
+	
+
+	<s id="79">
+		 4 Experiments 4.1 KPCA versus naive Bayes and maximum entropy models We established two baseline models to represent the state-of-the-art for individual WSD models : ( 1 ) naive Bayes , and ( 2 ) maximum entropy models . 
+	</s>
+	
+
+	<s id="80">
+		 The naive Bayes model was found to be the most accurate classifier in a comparative study using a ( c ) the/DT the/DT media/N 2 4 , 5 , 6 , 7 9 1 , 8 3 design/N ( a ) the/DT media/N 2 first principal axis 4 , 5 , 6 , 7 9 1 , 8 3 design/N ( b ) first principal ` quasi-axis 2 media/N 4 , 5 , 6 , 7 9 1 , 8 3 : training example with sense class 1 ^ : training example with sense class 2 : test example with unknown sense class : test example with predicted sense design/N subset of Senseval-2 English lexical sample data by 
+		<ref citStr="Yarowsky and Florian ( 2002 )" id="13" label="OEPF" position="17243">
+			Yarowsky and Florian ( 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="81">
+		 However , the maximum entropy 
+		<ref citStr="Jaynes , 1978" id="14" label="CEPF" position="17302">
+			( Jaynes , 1978 )
+		</ref>
+		 was found to yield higher accuracy than naive Bayes in a subsequent comparison by 
+		<ref citStr="Klein and Manning ( 2002 )" id="15" label="CEPF" position="17411">
+			Klein and Manning ( 2002 )
+		</ref>
+		 , who used a different subset of either Senseval-1 or Senseval-2 English lexical sample data . 
+	</s>
+	
+
+	<s id="82">
+		 To control for data variation , we built and tuned models of both kinds . 
+	</s>
+	
+
+	<s id="83">
+		 Note that our objective in these experiments is to understand the performance and characteristics of KPCA relative to other individual methods . 
+	</s>
+	
+
+	<s id="84">
+		 It is not our objective here to compare against voting or other ensemble methods which , though known to be useful in practice ( e.g. , 
+		<ref citStr="Yarowsky et al . ( 2001 )" id="16" label="CEPF" position="17914">
+			Yarowsky et al . ( 2001 )
+		</ref>
+		 ) , would not add to our understanding . 
+	</s>
+	
+
+	<s id="85">
+		 To compare as evenly as possible , we employed features approximating those of the “feature- enhanced naive Bayes model” of 
+		<ref citStr="Yarowsky and Florian ( 2002 )" id="17" label="CERF" position="18120">
+			Yarowsky and Florian ( 2002 )
+		</ref>
+		 , which included position-sensitive , syntactic , and local collocational features . 
+	</s>
+	
+
+	<s id="86">
+		 The models in the comparative study by 
+		<ref citStr="Klein and Manning ( 2002 )" id="18" label="CEPF" position="18280">
+			Klein and Manning ( 2002 )
+		</ref>
+		 did not include such features , and so , again for consistency of comparison , we experimentally verified that our maximum entropy model ( a ) consistently yielded higher scores than when the features were not used , and ( b ) consistently yielded higher scores than naive Bayes using the same features , in agreement with 
+		<ref citStr="Klein and Manning ( 2002 )" id="19" label="CEPF" position="18630">
+			Klein and Manning ( 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="87">
+		 We also verified the maximum entropy results against several different implementations , using various smoothing criteria , to ensure that the comparison was even . 
+	</s>
+	
+
+	<s id="88">
+		 Evaluation was done on the Senseval 2 English lexical sample task . 
+	</s>
+	
+
+	<s id="89">
+		 It includes 73 target words , among which nouns , adjectives , adverbs and verbs . 
+	</s>
+	
+
+	<s id="90">
+		 For each word , training and test instances tagged with WordNet senses are provided . 
+	</s>
+	
+
+	<s id="91">
+		 There are an average of 7.8 senses per target word type . 
+	</s>
+	
+
+	<s id="92">
+		 On average 109 training instances per target word are available . 
+	</s>
+	
+
+	<s id="93">
+		 Note that we used the set of sense classes from Senseval’s ”fine-grained” rather than ”coarse-grained” classification task . 
+	</s>
+	
+
+	<s id="94">
+		 The KPCA-based model achieves the highest accuracy , as shown in Table 5 , followed by the maximum entropy model , with na¨íve Bayes doing the poorest . 
+	</s>
+	
+
+	<s id="95">
+		 Bear in mind that all of these models are significantly more accurate than any of the other reported models on Senseval . 
+	</s>
+	
+
+	<s id="96">
+		 “Accuracy” here refers to both precision and recall since disambiguation of all target words in the test set is attempted . 
+	</s>
+	
+
+	<s id="97">
+		 Results are statistically significant at the 0.10 level , using bootstrap resampling 
+		<ref citStr="Efron and Tibshirani , 1993" id="20" label="CEPF" position="19907">
+			( Efron and Tibshirani , 1993 )
+		</ref>
+		 ; moreover , we consistently witnessed the same level of accuracy gains from the KPCA-based model over Table 6 : Experimental results comparing the KPCA-based model versus the SVM model . 
+	</s>
+	
+
+	<s id="98">
+		 WSD Model Accuracy Sig . 
+	</s>
+	
+
+	<s id="99">
+		 Int. SVM-based model 65.2 % +/-1.00 % KPCA-based model 65.8 % +/-0.79 % many variations of the experiments . 
+	</s>
+	
+
+	<s id="100">
+		 4.2 KPCA versus SVM models Support vector machines ( e.g. , 
+		<ref citStr="Vapnik ( 1995 )" id="21" label="CEPF" position="20332">
+			Vapnik ( 1995 )
+		</ref>
+		 , 
+		<ref citStr="Joachims ( 1998 )" id="22" label="CEPF" position="20352">
+			Joachims ( 1998 )
+		</ref>
+		 ) are a different kind of kernel method that , unlike KPCA methods , have already gained high popularity for NLP applications ( e.g. , 
+		<ref citStr="Takamura and Matsumoto ( 2001 )" id="23" label="CEPF" position="20519">
+			Takamura and Matsumoto ( 2001 )
+		</ref>
+		 , 
+		<ref citStr="Isozaki and Kazawa ( 2002 )" id="24" label="CEPF" position="20549">
+			Isozaki and Kazawa ( 2002 )
+		</ref>
+		 , 
+		<ref citStr="Mayfield et al . ( 2003 )" id="25" label="CEPF" position="20577">
+			Mayfield et al . ( 2003 )
+		</ref>
+		 ) including the word sense disambiguation task ( e.g. , 
+		<ref citStr="Cabezas et al . ( 2001 )" id="26" label="CEPF" position="20658">
+			Cabezas et al . ( 2001 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="101">
+		 Given that SVM and KPCA are both kernel methods , we are frequently asked whether SVM-based WSD could achieve similar results . 
+	</s>
+	
+
+	<s id="102">
+		 To explore this question , we trained and tuned an SVM model , providing the same rich set of features and also varying the feature representations to optimize for SVM biases . 
+	</s>
+	
+
+	<s id="103">
+		 As shown in Table 6 , the highest-achieving SVM model is also able to obtain higher accuracies than the naive Bayes and maximum entropy models . 
+	</s>
+	
+
+	<s id="104">
+		 However , in all our experiments the KPCA-based model consistently outperforms the SVM model ( though the margin falls within the statistical significance interval as computed by bootstrap resampling for this single experiment ) . 
+	</s>
+	
+
+	<s id="105">
+		 The difference in KPCA and SVM performance is not surprising given that , aside from the use of kernels , the two models share little structural resemblance . 
+	</s>
+	
+
+	<s id="106">
+		 4.3 Running times Training and testing times for the various model implementations are given in Table 7 , as reported by the Unix time command . 
+	</s>
+	
+
+	<s id="107">
+		 Implementations of all models are in C++ , but the level of optimization is not controlled . 
+	</s>
+	
+
+	<s id="108">
+		 For example , no attempt was made to reduce the training time for naive Bayes , or to reduce the testing time for the KPCA-based model . 
+	</s>
+	
+
+	<s id="109">
+		 Nevertheless , we can note that in the operating range of the Senseval lexical sample task , the running times of the KPCA-based model are roughly within the same order of magnitude as for naive Bayes or maximum entropy . 
+	</s>
+	
+
+	<s id="110">
+		 On the other hand , training is much faster than the alternative kernel method based on SVMs . 
+	</s>
+	
+
+	<s id="111">
+		 However , the KPCAbased model’s times could be expected to suffer in situations where significantly larger amounts of Table 7 : Comparison of training and testing times for the different WSD model implementations . 
+	</s>
+	
+
+	<s id="112">
+		 WSD Model Training time [ CPU sec ] Testing time [ CPU sec ] naive Bayes 103.41 16.84 maximum entropy 104.62 59.02 SVM-based model 5024.34 16.21 KPCA-based model 216.50 128.51 training data are available . 
+	</s>
+	
+
+	<s id="113">
+		 5 Conclusion This work represents , to the best of our knowledge , the first application of Kernel PCA to a true natural language processing task . 
+	</s>
+	
+
+	<s id="114">
+		 We have shown that a KPCA-based model can significantly outperform state-of-the-art results from both naive Bayes as well as maximum entropy models , for supervised word sense disambiguation . 
+	</s>
+	
+
+	<s id="115">
+		 The fact that our KPCA-based model outperforms the SVMbased model indicates that kernel methods other than SVMs deserve more attention . 
+	</s>
+	
+
+	<s id="116">
+		 Given the theoretical advantages of KPCA , it is our hope that this work will encourage broader recognition , and further exploration , of the potential of KPCA modeling within NLP research . 
+	</s>
+	
+
+	<s id="117">
+		 Given the positive results , we plan next to combine large amounts of unsupervised data with reasonable smaller amounts of supervised data such as the Senseval lexical sample . 
+	</s>
+	
+
+	<s id="118">
+		 Earlier we mentioned that one of the promising advantages of KPCA is that it computes the transform purely from unsupervised training vector data . 
+	</s>
+	
+
+	<s id="119">
+		 We can thus make use of the vast amounts of cheap unannotated data to augment the model presented in this paper . 
+	</s>
+	
+
+	<s id="120">
+		 References Clara Cabezas , Philip Resnik , and Jessica Stevens . 
+	</s>
+	
+
+	<s id="121">
+		 Supervised sense tagging using support vector machines . 
+	</s>
+	
+
+	<s id="122">
+		 In Proceedings of Senseval-2 , Second International Workshop on Evaluating Word Sense Disambiguation Systems , pages 59–62 , Toulouse , France , July 2001 . 
+	</s>
+	
+
+	<s id="123">
+		 SIGLEX , Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="124">
+		 Martin Chodorow , Claudia Leacock , and George A. Miller . 
+	</s>
+	
+
+	<s id="125">
+		 A topical/local classifier for word sense identification . 
+	</s>
+	
+
+	<s id="126">
+		 Computers and the Humanities , 34(1-2):115–120 , 1999 . 
+	</s>
+	
+
+	<s id="127">
+		 Special issue on SENSEVAL . 
+	</s>
+	
+
+	<s id="128">
+		 Hoa Trang Dang and Martha Palmer . 
+	</s>
+	
+
+	<s id="129">
+		 Combining contextual features for word sense disambiguation . 
+	</s>
+	
+
+	<s id="130">
+		 In Proceedings of the SIGLEX/SENSEVAL Workshop on Word Sense Disambiguation : Recent Successes and Future Directions , pages 88– 94 , Philadelphia , July 2002 . 
+	</s>
+	
+
+	<s id="131">
+		 SIGLEX , Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="132">
+		 Konstantinos I. Diamantaras and Sun Yuan Kung . 
+	</s>
+	
+
+	<s id="133">
+		 Principal Component Neural Networks . 
+	</s>
+	
+
+	<s id="134">
+		 Wiley , New York , 1996 . 
+	</s>
+	
+
+	<s id="135">
+		 Bradley Efron and Robert J. Tibshirani . 
+	</s>
+	
+
+	<s id="136">
+		 An Introduction to the Bootstrap . 
+	</s>
+	
+
+	<s id="137">
+		 Chapman and Hall , 1993 . 
+	</s>
+	
+
+	<s id="138">
+		 Hideki Isozaki and Hideto Kazawa . 
+	</s>
+	
+
+	<s id="139">
+		 Efficient support vector classifiers for named entity recognition . 
+	</s>
+	
+
+	<s id="140">
+		 In Proceedings of COLING-2002 , pages 390–396 , Taipei , 2002 . 
+	</s>
+	
+
+	<s id="141">
+		 E.T. Jaynes . 
+	</s>
+	
+
+	<s id="142">
+		 Where do we Stand on Maximum Entropy ? 
+	</s>
+	
+
+	<s id="143">
+		 MIT Press , Cambridge MA , 1978 . 
+	</s>
+	
+
+	<s id="144">
+		 Thorsten Joachims . 
+	</s>
+	
+
+	<s id="145">
+		 Text categorization with support vector machines : Learning with many relevant features . 
+	</s>
+	
+
+	<s id="146">
+		 In Proceedings of ECML-98 , 10th European Conference on Machine Learning , pages 137–142 , 1998 . 
+	</s>
+	
+
+	<s id="147">
+		 Adam Kilgarriff and Joseph Rosenzweig . 
+	</s>
+	
+
+	<s id="148">
+		 Framework and results for English Senseval . 
+	</s>
+	
+
+	<s id="149">
+		 Computers and the Humanities , 34(1):15–48 , 1999 . 
+	</s>
+	
+
+	<s id="150">
+		 Special issue on SENSEVAL . 
+	</s>
+	
+
+	<s id="151">
+		 Adam Kilgarriff . 
+	</s>
+	
+
+	<s id="152">
+		 English lexical sample task description . 
+	</s>
+	
+
+	<s id="153">
+		 In Proceedings of Senseval-2 , Second International Workshop on Evaluating Word Sense Disambiguation Systems , pages 17–20 , Toulouse , France , July 2001 . 
+	</s>
+	
+
+	<s id="154">
+		 SIGLEX , Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="155">
+		 Dan Klein and Christopher D. Manning . 
+	</s>
+	
+
+	<s id="156">
+		 Conditional structure versus conditional estimation in NLP models . 
+	</s>
+	
+
+	<s id="157">
+		 In Proceedings of EMNLP2002 , Conference on Empirical Methods in Natural Language Processing , pages 9–16 , Philadelphia , July 2002 . 
+	</s>
+	
+
+	<s id="158">
+		 SIGDAT , Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="159">
+		 Taku Kudo and Yuji Matsumoto . 
+	</s>
+	
+
+	<s id="160">
+		 Fast methods for kernel-based text analysis . 
+	</s>
+	
+
+	<s id="161">
+		 In Proceedings of the 41set Annual Meeting of the Asoociation for Computational Linguistics , pages 24–31 , 2003 . 
+	</s>
+	
+
+	<s id="162">
+		 James Mayfield , Paul McNamee , and Christine Piatko . 
+	</s>
+	
+
+	<s id="163">
+		 Named entity recognition using hundreds of thousands of features . 
+	</s>
+	
+
+	<s id="164">
+		 In Walter Daelemans and Miles Osborne , editors , Proceedings of CoNLL2003 , pages 184–187 , Edmonton , Canada , 2003 . 
+	</s>
+	
+
+	<s id="165">
+		 Raymond J. Mooney . 
+	</s>
+	
+
+	<s id="166">
+		 Comparative experiments on disambiguating word senses : An illustration of the role of bias in machine learning . 
+	</s>
+	
+
+	<s id="167">
+		 In Proceedings of the Conference on Empirical Methods in Natural Language Processing , Philadelphia , May 1996 . 
+	</s>
+	
+
+	<s id="168">
+		 SIGDAT , Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="169">
+		 Ted Pedersen . 
+	</s>
+	
+
+	<s id="170">
+		 Machine learning with lexical features : The Duluth approach to SENSEVAL-2 . 
+	</s>
+	
+
+	<s id="171">
+		 In Proceedings of Senseval-2 , Second International Workshop on Evaluating Word Sense Disambiguation Systems , pages 139–142 , Toulouse , France , July 2001 . 
+	</s>
+	
+
+	<s id="172">
+		 SIGLEX , Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="173">
+		 Bernhard Sch¨olkopf , Alexander Smola , and KlausRober M¨uller . 
+	</s>
+	
+
+	<s id="174">
+		 Nonlinear component analysis as a kernel eigenvalue problem . 
+	</s>
+	
+
+	<s id="175">
+		 Neural Computation , 10(5) , 1998 . 
+	</s>
+	
+
+	<s id="176">
+		 Hiroya Takamura and Yuji Matsumoto . 
+	</s>
+	
+
+	<s id="177">
+		 Feature space restructuring for SVMs with application to text categorization . 
+	</s>
+	
+
+	<s id="178">
+		 In Proceedings of EMNLP2001 , Conference on Empirical Methods in Natural Language Processing , pages 51–57 , 2001 . 
+	</s>
+	
+
+	<s id="179">
+		 Vladimir N. Vapnik . 
+	</s>
+	
+
+	<s id="180">
+		 The Nature of Statistical Learning Theory . 
+	</s>
+	
+
+	<s id="181">
+		 Springer-Verlag , New York , 1995 . 
+	</s>
+	
+
+	<s id="182">
+		 David Yarowsky and Radu Florian . 
+	</s>
+	
+
+	<s id="183">
+		 Evaluating sense disambiguation across diverse parameter spaces . 
+	</s>
+	
+
+	<s id="184">
+		 Natural Language Engineering , 8(4):293–310 , 2002 . 
+	</s>
+	
+
+	<s id="185">
+		 David Yarowsky , Silviu Cucerzan , Radu Florian , Charles Schafer , and Richard Wicentowski . 
+	</s>
+	
+
+	<s id="186">
+		 The Johns Hopkins SENSEVAL2 system descriptions . 
+	</s>
+	
+
+	<s id="187">
+		 In Proceedings of Senseval-2 , Second International Workshop on Evaluating Word Sense Disambiguation Systems , pages 163–166 , Toulouse , France , July 2001 . 
+	</s>
+	
+
+	<s id="188">
+		 SIGLEX , Association for Computational Linguistics . 
+	</s>
+	
+
+
+</acldoc>

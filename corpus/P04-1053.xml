@@ -1,0 +1,1250 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1053">
+	
+
+	<s id="1">
+		 Discovering Relations among Named Entities from Large Corpora Takaaki Hasegawa Cyberspace Laboratories Nippon Telegraph and Telephone Corporation 1-1 Hikarinooka , Yokosuka , Kanagawa 239-0847 , Japan hasegawa.takaaki@lab.ntt.co.jp Satoshi Sekine and Ralph Grishman Dept. of Computer Science New York University 715 Broadway , 7th floor , New York , NY 10003 , U.S.A. sekine,grishman @cs.nyu.edu Abstract Discovering the significant relations embedded in documents would be very useful not only for information retrieval but also for question answering and summarization . 
+	</s>
+	
+
+	<s id="2">
+		 Prior methods for relation discovery , however , needed large annotated corpora which cost a great deal of time and effort . 
+	</s>
+	
+
+	<s id="3">
+		 We propose an unsupervised method for relation discovery from large corpora . 
+	</s>
+	
+
+	<s id="4">
+		 The key idea is clustering pairs of named entities according to the similarity of context words intervening between the named entities . 
+	</s>
+	
+
+	<s id="5">
+		 Our experiments using one year of newspapers reveals not only that the relations among named entities could be detected with high recall and precision , but also that appropriate labels could be automatically provided for the relations . 
+	</s>
+	
+
+	<s id="6">
+		 1 Introduction Although Internet search engines enable us to access a great deal of information , they cannot easily give us answers to complicated queries , such as “a list of recent mergers and acquisitions of companies” or “current leaders of nations from all over the world” . 
+	</s>
+	
+
+	<s id="7">
+		 In order to find answers to these types of queries , we have to analyze relevant documents to collect the necessary information . 
+	</s>
+	
+
+	<s id="8">
+		 If many relations such as “Company A merged with Company B” embedded in those documents could be gathered and structured automatically , it would be very useful not only for information retrieval but also for question answering and summarization . 
+	</s>
+	
+
+	<s id="9">
+		 Information Extraction provides methods for extracting information such as particular events and relations between entities from text . 
+	</s>
+	
+
+	<s id="10">
+		 However , it is domain dependent and it could not give answers to those types of queries from Web documents which include widely various domains . 
+	</s>
+	
+
+	<s id="11">
+		 Our goal is automatically discovering useful relations among arbitrary entities embedded in large This work is supported by Nippon Telegraph and Telephone ( NTT ) Corporation’s one-year visiting program at New York University . 
+	</s>
+	
+
+	<s id="12">
+		 text corpora . 
+	</s>
+	
+
+	<s id="13">
+		 We defined a relation broadly as an affiliation , role , location , part-whole , social relationship and so on between a pair of entities . 
+	</s>
+	
+
+	<s id="14">
+		 For example , if the sentence , “George Bush was inaugurated as the president of the United States.” exists in documents , the relation , “George Bush”(PERSON) is the “President of” the “United States” ( GPEI ) , should be extracted . 
+	</s>
+	
+
+	<s id="15">
+		 In this paper , we propose an unsupervised method of discovering relations among various entities from large text corpora . 
+	</s>
+	
+
+	<s id="16">
+		 Our method does not need the richly annotated corpora required for supervised learning — corpora which take great time and effort to prepare . 
+	</s>
+	
+
+	<s id="17">
+		 It also does not need any instances of relations as initial seeds for weakly supervised learning . 
+	</s>
+	
+
+	<s id="18">
+		 This is an advantage of our approach , since we cannot know in advance all the relations embedded in text . 
+	</s>
+	
+
+	<s id="19">
+		 Instead , we only need a named entity ( NE ) tagger to focus on the named entities which should be the arguments of relations . 
+	</s>
+	
+
+	<s id="20">
+		 Recently developed named entity taggers work quite well and are able to extract named entities from text at a practically useful level . 
+	</s>
+	
+
+	<s id="21">
+		 The rest of this paper is organized as follows . 
+	</s>
+	
+
+	<s id="22">
+		 We discuss prior work and their limitations in section 2 . 
+	</s>
+	
+
+	<s id="23">
+		 We propose a new method of relation discovery in section 3 . 
+	</s>
+	
+
+	<s id="24">
+		 Then we describe experiments and evaluations in section 4 and 5 , and discuss the approach in section 6 . 
+	</s>
+	
+
+	<s id="25">
+		 Finally , we conclude with future work . 
+	</s>
+	
+
+	<s id="26">
+		 2 Prior Work The concept of relation extraction was introduced as part of the Template Element Task , one of the information extraction tasks in the Sixth Message Understanding Conference ( MUC-6 ) 
+		<ref citStr="Defense Advanced Research Projects Agency , 1995" id="1" label="CEPF" position="4262">
+			( Defense Advanced Research Projects Agency , 1995 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="27">
+		 MUC-7 added a Template Relation Task , with three relations . 
+	</s>
+	
+
+	<s id="28">
+		 Following MUC , the Automatic Content Extraction ( ACE ) meetings 
+		<ref citStr="National Institute of Standards and Technology , 2000" id="2" label="CEPF" position="4468">
+			( National Institute of Standards and Technology , 2000 )
+		</ref>
+		 are pursuing informa- ' GPE is an acronym introduced by the ACE program to rep- resent a Geo-Political Entity — an entity with land and a government . 
+	</s>
+	
+
+	<s id="29">
+		 tion extraction . 
+	</s>
+	
+
+	<s id="30">
+		 In the ACE Program 2 , Relation Detection and Characterization ( RDC ) was introduced as a task in 2002 . 
+	</s>
+	
+
+	<s id="31">
+		 Most of approaches to the ACE RDC task involved supervised learning such as kernel methods 
+		<ref citStr="Zelenko et al. , 2002" id="3" label="CJPN" position="4888">
+			( Zelenko et al. , 2002 )
+		</ref>
+		 and need richly annotated corpora which are tagged with relation instances . 
+	</s>
+	
+
+	<s id="32">
+		 The biggest problem with this approach is that it takes a great deal of time and effort to prepare annotated corpora large enough to apply supervised learning . 
+	</s>
+	
+
+	<s id="33">
+		 In addition , the varieties of relations were limited to those defined by the ACE RDC task . 
+	</s>
+	
+
+	<s id="34">
+		 In order to discover knowledge from diverse corpora , a broader range of relations would be necessary . 
+	</s>
+	
+
+	<s id="35">
+		 Some previous work adopted a weakly supervised learning approach . 
+	</s>
+	
+
+	<s id="36">
+		 This approach has the advantage of not needing large tagged corpora . 
+	</s>
+	
+
+	<s id="37">
+		 Brin proposed the bootstrapping method for relation discovery 
+		<ref citStr="Brin , 1998" id="4" label="CJPN" position="5592">
+			( Brin , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="38">
+		 Brin’s method acquired patterns and examples by bootstrapping from a small initial set of seeds for a particular relation . 
+	</s>
+	
+
+	<s id="39">
+		 Brin used a few samples of book titles and authors , collected common patterns from context including the samples and finally found new examples of book title and authors whose context matched the common patterns . 
+	</s>
+	
+
+	<s id="40">
+		 Agichtein improved Brin’s method by adopting the constraint of using a named entity tagger 
+		<ref citStr="Agichtein and Gravano , 2000" id="5" label="CJPN" position="6086">
+			( Agichtein and Gravano , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="41">
+		 Ravichandran also explored a similar method for question answering 
+		<ref citStr="Ravichandran and Hovy , 2002" id="6" label="CJPN" position="6197">
+			( Ravichandran and Hovy , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="42">
+		 These approaches , however , need a small set of initial seeds . 
+	</s>
+	
+
+	<s id="43">
+		 It is also unclear how initial seeds should be selected and how many seeds are required . 
+	</s>
+	
+
+	<s id="44">
+		 Also their methods were only tried on functional relations , and this was an important constraint on their bootstrapping . 
+	</s>
+	
+
+	<s id="45">
+		 The variety of expressions conveying the same relation can be considered an example of paraphrases , and so some of the prior work on paraphrase acquisition is pertinent to relation discovery . 
+	</s>
+	
+
+	<s id="46">
+		 Lin proposed another weakly supervised approach for discovering paraphrase 
+		<ref citStr="Lin and Pantel , 2001" id="7" label="CJPF" position="6817">
+			( Lin and Pantel , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="47">
+		 Firstly Lin focused on verb phrases and their fillers as subject or object . 
+	</s>
+	
+
+	<s id="48">
+		 Lin’s idea was that two verb phrases which have similar fillers might be regarded as paraphrases . 
+	</s>
+	
+
+	<s id="49">
+		 This approach , however , also needs a sample verb phrase as an initial seed in order to find similar verb phrases . 
+	</s>
+	
+
+	<s id="50">
+		 3 Relation Discovery 3.1 Overview We propose a new approach to relation discovery from large text corpora . 
+	</s>
+	
+
+	<s id="51">
+		 Our approach is based on 2A research and evaluation program in information extraction organized by the U.S. Government . 
+	</s>
+	
+
+	<s id="52">
+		 context based clustering of pairs of entities . 
+	</s>
+	
+
+	<s id="53">
+		 We assume that pairs of entities occurring in similar context can be clustered and that each pair in a cluster is an instance of the same relation . 
+	</s>
+	
+
+	<s id="54">
+		 Relations between entities are discovered through this clustering process . 
+	</s>
+	
+
+	<s id="55">
+		 In cases where the contexts linking a pair of entities express multiple relations , we expect that the pair of entities either would not be clustered at all , or would be placed in a cluster corresponding to its most frequently expressed relation , because its contexts would not be sufficiently similar to contexts for less frequent relations . 
+	</s>
+	
+
+	<s id="56">
+		 We assume that useful relations will be frequently mentioned in large corpora . 
+	</s>
+	
+
+	<s id="57">
+		 Conversely , relations mentioned once or twice are not likely to be important . 
+	</s>
+	
+
+	<s id="58">
+		 Our basic idea is as follows : 1. tagging named entities in text corpora 2. getting co-occurrence pairs of named entities and their context 3. measuring context similarities among pairs of named entities 4. making clusters of pairs of named entities 5. labeling each cluster of pairs of named entities We show an example in Figure 1 . 
+	</s>
+	
+
+	<s id="59">
+		 First , we find the pair of ORGANIZATIONs ( ORG ) A and B , and the pair of ORGANIZATIONs ( ORG ) C and D , after we run the named entity tagger on our newspaper corpus . 
+	</s>
+	
+
+	<s id="60">
+		 We collect all instances of the pair A and B occurring within a certain distance of one another . 
+	</s>
+	
+
+	<s id="61">
+		 Then , we accumulate the context words intervening between A and B , such as “be offer to buy” , “be negotiate to acquire”.3 In same way , we also accumulate context words intervening between C and D . 
+	</s>
+	
+
+	<s id="62">
+		 If the set of contexts of A and B and those of C and D are similar , these two pairs are placed into the same cluster . 
+	</s>
+	
+
+	<s id="63">
+		 A – B and C – D would be in the same relation , in this case , merger and acquisition ( M&amp;A ) . 
+	</s>
+	
+
+	<s id="64">
+		 That is , we could discover the relation between these ORGANIZATIONs . 
+	</s>
+	
+
+	<s id="65">
+		 3.2 Named entity tagging Our proposed method is fully unsupervised . 
+	</s>
+	
+
+	<s id="66">
+		 We do not need richly annotated corpora or any initial manually selected seeds . 
+	</s>
+	
+
+	<s id="67">
+		 Instead of them , we use a named entity ( NE ) tagger . 
+	</s>
+	
+
+	<s id="68">
+		 Recently developed named entity taggers work quite well and extract named entities from text at a practically usable 3 We collect the base forms of words which are stemmed by a POS tagger 
+		<ref citStr="Sekine , 2001" id="8" label="OEPF" position="9834">
+			( Sekine , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="69">
+		 But verb past participles are distinguished from other verb forms in order to distinguish the passive voice from the active voice . 
+	</s>
+	
+
+	<s id="70">
+		 Figure 1 : Overview of our basic idea Similar context ? 
+	</s>
+	
+
+	<s id="71">
+		 Clustered ( the same relation ) ORGANIZATION A be offer to buy B NE tagger Context words A be offer to buy B Newspapers Tagged newspapers &lt;ORG&gt;A &lt;/ORG&gt; Accumulated context &lt;ORG&gt; C &lt;/ORG&gt; say it intend to buy agree to buy ' s purchase of plan to buy &lt;ORG&gt; B &lt;/ORG&gt; &lt;ORG&gt; D &lt;/ORG&gt; be offer to buy ' s propose acquisitions of ' s interest in be negotiate to acquire ' s plan purchase of level . 
+	</s>
+	
+
+	<s id="72">
+		 In addition , the set of types of named entities has been extended by several research groups . 
+	</s>
+	
+
+	<s id="73">
+		 For example , Sekine proposed 150 types of named entities 
+		<ref citStr="Sekine et al. , 2002" id="9" label="CEPF" position="10688">
+			( Sekine et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="74">
+		 Extending the range of NE types would lead to more effective relation discovery . 
+	</s>
+	
+
+	<s id="75">
+		 If the type ORGANIZATION could be divided into subtypes , COMPANY , MILITARY , GOVERNMENT and so on , the discovery procedure could detect more specific relations such as those between COMPANY and COMPANY . 
+	</s>
+	
+
+	<s id="76">
+		 We use an extended named entity tagger 
+		<ref citStr="Sekine , 2001" id="10" label="OERF" position="11063">
+			( Sekine , 2001 )
+		</ref>
+		 in order to detect useful relations between extended named entities . 
+	</s>
+	
+
+	<s id="77">
+		 3.3 NE pairs and context We define the co-occurrence of NE pairs as follows : two named entities are considered to co-occur if they appear within the same sentence and are separated by at most N intervening words . 
+	</s>
+	
+
+	<s id="78">
+		 We collect the intervening words between two named entities for each co-occurrence . 
+	</s>
+	
+
+	<s id="79">
+		 These words , which are stemmed , could be regarded as the context of the pair of named entities . 
+	</s>
+	
+
+	<s id="80">
+		 Different orders of occurrence of the named entities are also considered as different contexts . 
+	</s>
+	
+
+	<s id="81">
+		 For example , and are collected as different contexts , where and represent named entities . 
+	</s>
+	
+
+	<s id="82">
+		 Less frequent pairs of NEs should be eliminated because they might be less reliable in learning rela tions . 
+	</s>
+	
+
+	<s id="83">
+		 So we have set a frequency threshold to remove those pairs . 
+	</s>
+	
+
+	<s id="84">
+		 3.4 Context similarity among NE pairs We adopt a vector space model and cosine similarity in order to calculate the similarities between the set of contexts of NE pairs . 
+	</s>
+	
+
+	<s id="85">
+		 We only compare NE pairs which have the same NE types , e.g. , one PERSON – GPE pair and another PERSON – GPE pair . 
+	</s>
+	
+
+	<s id="86">
+		 We define a domain as a pair of named entity types , e.g. , the PERSON-GPE domain . 
+	</s>
+	
+
+	<s id="87">
+		 For example , we have to detect relations between PERSON and GPE in the PERSON-GPE domain . 
+	</s>
+	
+
+	<s id="88">
+		 Before making context vectors , we eliminate stop words , words in parallel expressions , and expressions peculiar to particular source documents ( examples of these are given below ) , because these expressions would introduce noise in calculating similarities . 
+	</s>
+	
+
+	<s id="89">
+		 A context vector for each NE pair consists of the bag of words formed from all intervening words from all co-occurrences of two named entities . 
+	</s>
+	
+
+	<s id="90">
+		 Each word of a context vector is weighed by tf*idf , the product of term frequency and inverse document frequency . 
+	</s>
+	
+
+	<s id="91">
+		 Term frequency is the number of occurrences of a word in the collected context words . 
+	</s>
+	
+
+	<s id="92">
+		 The order of co-occurrence of the named entities is also considered . 
+	</s>
+	
+
+	<s id="93">
+		 If a word occurred times in con- text and times in context , the term frequency of the word is defined as , where and are named entities . 
+	</s>
+	
+
+	<s id="94">
+		 We think that this term frequency of a word in different orders would be effective to detect the direction of a relation if the arguments of a relation have the same NE types . 
+	</s>
+	
+
+	<s id="95">
+		 Document frequency is the number of documents which include the word . 
+	</s>
+	
+
+	<s id="96">
+		 If the norm of the context vector is ex- tremely small due to a lack of content words , the cosine similarity between the vector and others might be unreliable . 
+	</s>
+	
+
+	<s id="97">
+		 So , we also define a norm threshold in advance to eliminate short context vectors . 
+	</s>
+	
+
+	<s id="98">
+		 The cosine similarity between context vectors and is calculated by the following formula. Cosine similarity varies from to . 
+	</s>
+	
+
+	<s id="99">
+		 A cosine similarity of would mean these NE pairs have exactly the same context words with the NEs appearing predominantly in the same order , and a cosine similarity of would mean these NE pairs have exactly the same context words with the NEs appearing predominantly in reverse order . 
+	</s>
+	
+
+	<s id="100">
+		 3.5 Clustering NE pairs After we calculate the similarity among context vectors of NE pairs , we make clusters of NE pairs based on the similarity . 
+	</s>
+	
+
+	<s id="101">
+		 We do not know how many clusters we should make in advance , so we adopt hierarchical clustering . 
+	</s>
+	
+
+	<s id="102">
+		 Many clustering methods were proposed for hierarchical clustering , but we adopt complete linkage because it is conservative in making clusters . 
+	</s>
+	
+
+	<s id="103">
+		 The distance between clusters is taken to be the distance of the furthest nodes between clusters in complete linkage . 
+	</s>
+	
+
+	<s id="104">
+		 3.6 Labeling clusters If most of the NE pairs in the same cluster had words in common , the common words would represent the characterization of the cluster . 
+	</s>
+	
+
+	<s id="105">
+		 In other words , we can regard the common words as the characterization of a particular relation . 
+	</s>
+	
+
+	<s id="106">
+		 We simply count the frequency of the common words in all combinations of the NE pairs in the same cluster . 
+	</s>
+	
+
+	<s id="107">
+		 The frequencies are normalized by the number of combinations . 
+	</s>
+	
+
+	<s id="108">
+		 The frequent common words in a cluster would become the label of the cluster , i.e. they would become the label of the relation , if the cluster would consist of the NE pairs in the same relation . 
+	</s>
+	
+
+	<s id="109">
+		 4 Experiments We experimented with one year of The New York 
+		<ref citStr="Times ( 1995 )" id="11" label="OEPF" position="15598">
+			Times ( 1995 )
+		</ref>
+		 as our corpus to verify our pro- posed method . 
+	</s>
+	
+
+	<s id="110">
+		 We determined three parameters for thresholds and identified the patterns for parallel expressions and expressions peculiar to The New York Times as ignorable context . 
+	</s>
+	
+
+	<s id="111">
+		 We set the maximum context word length to 5 words and set the frequency threshold of co-occurring NE pairs to 30 empirically . 
+	</s>
+	
+
+	<s id="112">
+		 We also used the patterns , “ , . 
+	</s>
+	
+
+	<s id="113">
+		 *,” , “and” and “or” for parallel expressions , and the pattern“ ) --”(used in datelines at the beginning of articles ) as peculiar to The New York Times . 
+	</s>
+	
+
+	<s id="114">
+		 In our experiment , the norm threshold was set to 10 . 
+	</s>
+	
+
+	<s id="115">
+		 We also used stop words when context vectors are made . 
+	</s>
+	
+
+	<s id="116">
+		 The stop words include symbols and words which occurred under 3 times as infrequent words and those which occurred over 100,000 times as highly frequent words . 
+	</s>
+	
+
+	<s id="117">
+		 We applied our proposed method to The New York Times 1995 , identified the NE pairs satisfying our criteria , and extracted the NE pairs along with their intervening words as our data set . 
+	</s>
+	
+
+	<s id="118">
+		 In order to evaluate the relations detected automatically , we analyzed the data set manually and identified the relations for two different domains . 
+	</s>
+	
+
+	<s id="119">
+		 One was the PERSON-GPE ( PER-GPE ) domain . 
+	</s>
+	
+
+	<s id="120">
+		 We obtained 177 distinct NE pairs and classified them into 38 classes ( relations ) manually . 
+	</s>
+	
+
+	<s id="121">
+		 The other was the COMPANY-COMPANY ( COM-COM ) domain . 
+	</s>
+	
+
+	<s id="122">
+		 We got 65 distinct NE pairs and classified them into 10 classes manually . 
+	</s>
+	
+
+	<s id="123">
+		 However , the types of both arguments of a relation are the same in the COM-COM domain . 
+	</s>
+	
+
+	<s id="124">
+		 So the COM-COM domain includes symmetrical relations as well as asymmetrical relations . 
+	</s>
+	
+
+	<s id="125">
+		 For the latter , we have to distinguish the different orders of arguments . 
+	</s>
+	
+
+	<s id="126">
+		 We show the types of classes and the number in each class in Table 1 . 
+	</s>
+	
+
+	<s id="127">
+		 The errors in NE tagging were eliminated to evaluate our method correctly . 
+	</s>
+	
+
+	<s id="128">
+		 5 Evaluation We evaluated separately the placement of the NE pairs into clusters and the assignment of labels to these clusters . 
+	</s>
+	
+
+	<s id="129">
+		 In the first step , we evaluated clusters consisting of two or more pairs . 
+	</s>
+	
+
+	<s id="130">
+		 For each cluster , we determined the relation ( R ) of the cluster as the most frequently represented relation ; we call this the major relation of the cluster . 
+	</s>
+	
+
+	<s id="131">
+		 NE pairs with relation R in a cluster whose major relation was R were counted as correct ; the correct pair count , , is defined as the total number of correct pairs in all clusters . 
+	</s>
+	
+
+	<s id="132">
+		 Other NE pairs in the cluster were counted as incorrect ; the incorrect pair count , , is also defined as the total number of incorrect pairs in all clusters . 
+	</s>
+	
+
+	<s id="133">
+		 We evaluated clusters based on Recall , Precision and F-measure . 
+	</s>
+	
+
+	<s id="134">
+		 We defined these mea- PER-GPE President Senator Governor Prime Minister Player Living # NE pairs 28 21 17 16 12 9 PER-GPE Republican Secretary Mayor Enemy Working others(2 and 3 ) # NE pairs 8 7 5 5 4 20 COM-COM M&amp;A Rival Parent Alliance Joint Venture Trading # NE pairs 35 8 8 6 2 2 Coach 8 others(only 1 ) 17 others(only 1 ) 4 Table 1 : Manually classified relations which are extracted from Newspapers sures as follows . 
+	</s>
+	
+
+	<s id="135">
+		 Recall ( R ) How many correct pairs are detected out of all the key pairs ? 
+	</s>
+	
+
+	<s id="136">
+		 The key pair count , , is defined as the total number of pairs manually classified in clusters of two or more pairs . 
+	</s>
+	
+
+	<s id="137">
+		 Recall is defined as follows : Precision ( P ) How many correct pairs are detected among the pairs clustered automatically ? 
+	</s>
+	
+
+	<s id="138">
+		 Precision is defined as follows : 100 80 80 60 50 6050 40 40 0 0 s 20 20 10 0 10 0 -1 -0.8 -0.6 -0.4 -0.2 0 0.2 0.4 0.6 0.8 1 Threshold of cosine similarity ecallure F-measure ( F ) F-measure is defined as a combination of recall and precision according to the following formula : These values vary depending on the threshold of cosine similarity . 
+	</s>
+	
+
+	<s id="139">
+		 As the threshold is decreased , the clusters gradually merge , finally forming one big cluster . 
+	</s>
+	
+
+	<s id="140">
+		 We show the results of complete linkage clustering for the PERSON-GPE ( PER-GPE ) domain in Figure 2 and for the COMPANY-COMPANY ( COM-COM ) domain in Figure 3 . 
+	</s>
+	
+
+	<s id="141">
+		 With these metrics , precision fell as the threshold of cosine similarity was lowered . 
+	</s>
+	
+
+	<s id="142">
+		 Recall increased until the threshold was almost 0 , at which point it fell because the total number of correct pairs in the remaining few big clusters decreased . 
+	</s>
+	
+
+	<s id="143">
+		 The best F-measure was 82 in the PER-GPE domain , 77 in the COM-COM domain . 
+	</s>
+	
+
+	<s id="144">
+		 In both domains , the best F-measure was found near 0 cosine similarity . 
+	</s>
+	
+
+	<s id="145">
+		 Generally , it is difficult to determine the threshold of similarity in advance . 
+	</s>
+	
+
+	<s id="146">
+		 Since the best threshold of cosine similarity was almost same in the two domains , we fixed the cosine threshold at a single value just above zero for both domains for simplicity . 
+	</s>
+	
+
+	<s id="147">
+		 We also investigated each cluster with the threshold of cosine similarity just above 0 . 
+	</s>
+	
+
+	<s id="148">
+		 We got 34 Figure 2 : F-measure , recall and precision by varying the threshold of cosine similarity in complete linkage clustering for the PERSON-GPE domain Precision 10090 90 80 90 80 70 60 70 70 60 J0 J0 40 40 30 20 30 20 10 10 0 0 -1 -0.8 -0.6 -0.4 -0.2 0 0.2 0.4 0.6 0.8 1 T res old ing the threshold of cosine similari ty in complete linkage clustering for the COMPANY-COMPANY domain Precision Recall F-measure PER-GPE 79 83 80 COM-COM 76 74 75 Figure 3 : F-measure , recall and precision by vary- Table 2 : F-measure , recall an d precision with the ilarity just above 0 100 Precision Recall F-measure Major relations Ratio Common words ( Relative frequency ) President 17/23 Senator 19/21 Prime Minister 15/16 Governor 15/16 Secretary 6/7 Republican 5/6 Coach 5/5 President ( 1.0 ) , president ( 0.415 ) , ... 
+	</s>
+	
+
+	<s id="149">
+		 Sen. ( 1.0 ) , Republican ( 0.214 ) , Democrat ( 0.133 ) , republican ( 0.133 ) , ... 
+	</s>
+	
+
+	<s id="150">
+		 Minister ( 1.0 ) , minister ( 0.875 ) , Prime ( 0.875 ) , prime ( 0.758 ) , ... 
+	</s>
+	
+
+	<s id="151">
+		 Gov. ( 1.0 ) , governor ( 0.458 ) , Governor ( 0.3 ) , ... 
+	</s>
+	
+
+	<s id="152">
+		 Secretary ( 1.0 ) , secretary ( 0. 143 ) , ... 
+	</s>
+	
+
+	<s id="153">
+		 Rep. ( 1.0 ) , Republican ( 0.667 ) , ... coach ( 1.0 ) , ... 
+	</s>
+	
+
+	<s id="154">
+		 M&amp;A 10/11 M&amp;A 9/9 Parent 7/7 Alliance 3/4 buy ( 1.0 ) , bid ( 0.3 82 ) , offer ( 0.273 ) , purchase ( 0.273 ) , ... acquire ( 1.0 ) , acquisition ( 0.583 ) , buy ( 0.583 ) , agree ( 0.417 ) , ... parent ( 1.0 ) , unit ( 0.476 ) , own ( 0. 143 ) , ... join ( 1.0 ) Table 3 : Major relations in clusters and the most frequent common words in each cluster PER-GPE clusters and 15 COM-COM clusters . 
+	</s>
+	
+
+	<s id="155">
+		 We show the F-measure , recall and precision at this cosine threshold in both domains in Table 2 . 
+	</s>
+	
+
+	<s id="156">
+		 We got 80 F-measure in the PER-GPE domain and 75 F- measure in the COM-COM domain . 
+	</s>
+	
+
+	<s id="157">
+		 These values were very close to the best F-measure . 
+	</s>
+	
+
+	<s id="158">
+		 Then , we evaluated the labeling of clusters of NE pairs . 
+	</s>
+	
+
+	<s id="159">
+		 We show the larger clusters for each domain , along with the ratio of the number of pairs bearing the major relation to the total number of pairs in each cluster , on the left in Table 3. ( As noted above , the major relation is the most frequently represented relation in the cluster . 
+	</s>
+	
+
+	<s id="160">
+		 ) We also show the most frequent common words and their relative frequency in each cluster on the right in Table 3 . 
+	</s>
+	
+
+	<s id="161">
+		 If two NE pairs in a cluster share a particular context word , we consider these pairs to be linked ( with respect to this word ) . 
+	</s>
+	
+
+	<s id="162">
+		 The relative frequency for a word is the number of such links , relative to the maxi- mal possible number of links ( for a cluster of pairs ) . 
+	</s>
+	
+
+	<s id="163">
+		 If the relative frequency is , the word is shared by all NE pairs . 
+	</s>
+	
+
+	<s id="164">
+		 Although we obtained some meaningful relations in small clusters , we have omitted the small clusters because the common words in such small clusters might be unreliable . 
+	</s>
+	
+
+	<s id="165">
+		 We found that all large clusters had appropriate relations and that the common words which occurred frequently in those clusters accurately represented the relations . 
+	</s>
+	
+
+	<s id="166">
+		 In other words , the frequent common words could be regarded as suitable labels for the relations . 
+	</s>
+	
+
+	<s id="167">
+		 6 Discussion The results of our experiments revealed good performance . 
+	</s>
+	
+
+	<s id="168">
+		 The performance was a little higher in the PER-GPE domain than in the COM-COM domain , perhaps because there were more NE pairs with high cosine similarity in the PER-GPE domain than in the COM-COM domain . 
+	</s>
+	
+
+	<s id="169">
+		 However , the graphs in both domains were similar , in particular when the cosine similarity was under 0.2 . 
+	</s>
+	
+
+	<s id="170">
+		 We would like to discuss the differences between the two domains and the following aspects of our unsupervised method for discovering the relations : properties of relations appropriate context word length selecting best clustering method covering less frequent pairs We address each of these points in turn . 
+	</s>
+	
+
+	<s id="171">
+		 6.1 Properties of relations We found that the COM-COM domain was more difficult to judge than the PER-GPE domain due to the similarities of relations . 
+	</s>
+	
+
+	<s id="172">
+		 For example , the pair of companies in M&amp;A relation might also subsequently appear in the parent relation . 
+	</s>
+	
+
+	<s id="173">
+		 Asymmetric properties caused additional difficulties in the COM-COM domain , because most relations have directions . 
+	</s>
+	
+
+	<s id="174">
+		 We have to recognize the direction of relations , vs. , to distinguish , for example , “A is parent company of B” and “B is parent company of A” . 
+	</s>
+	
+
+	<s id="175">
+		 In determining the similarities between the NE pairs A and B and the NE pairs C and D , we must calculate both the similarity with and the similarity with . 
+	</s>
+	
+
+	<s id="176">
+		 Sometimes the wrong correspondence ends up being favored . 
+	</s>
+	
+
+	<s id="177">
+		 This kind of error was observed in 2 out of the 15 clusters , due to the fact that words happened to be shared by NE pairs aligned in the wrong direction more than in right direction . 
+	</s>
+	
+
+	<s id="178">
+		 6.2 Context word length The main reason for undetected or mis-clustered NE pairs in both domains is the absence of common words in the pairs’ context which explicitly represent the particular relations . 
+	</s>
+	
+
+	<s id="179">
+		 Mis-clustered NE pairs were clustered based on another common word which occurred by accident . 
+	</s>
+	
+
+	<s id="180">
+		 If the maximum context length were longer than the limit of 5 words which we set in the experiments , we could detect additional common words , but the noise would also increase . 
+	</s>
+	
+
+	<s id="181">
+		 In our experiments , we used only the words between the two NEs . 
+	</s>
+	
+
+	<s id="182">
+		 Although the outer context words ( preceding the first NE or following the second NE ) may be helpful , extending the context in this way will have to be carefully evaluated . 
+	</s>
+	
+
+	<s id="183">
+		 It is future work to determine the best context word length . 
+	</s>
+	
+
+	<s id="184">
+		 6.3 Clustering method We tried single linkage and average linkage as well as complete linkage for making clusters . 
+	</s>
+	
+
+	<s id="185">
+		 Complete linkage was the best clustering method because it yielded the highest F-measure . 
+	</s>
+	
+
+	<s id="186">
+		 Furthermore , for the other two clustering methods , the threshold of cosine similarity producing the best F-measure was different in the two domains . 
+	</s>
+	
+
+	<s id="187">
+		 In contrast , for complete linkage the optimal threshold was almost the same in the two domains . 
+	</s>
+	
+
+	<s id="188">
+		 The best threshold of cosine similarity in complete linkage was determined to be just above 0 ; when this threshold reaches 0 , the F-measure drops suddenly because the pairs need not share any words . 
+	</s>
+	
+
+	<s id="189">
+		 A threshold just above 0 means that each combination of NE pairs in the same cluster shares at least one word in common — and most of these common words were pertinent to the relations . 
+	</s>
+	
+
+	<s id="190">
+		 We consider that this is relevant to context word length . 
+	</s>
+	
+
+	<s id="191">
+		 We used a relatively small maximum context word length – 5 words – making it less likely that noise words appear in common across different relations . 
+	</s>
+	
+
+	<s id="192">
+		 The combination of complete linkage and small context word length proved useful for relation discovery . 
+	</s>
+	
+
+	<s id="193">
+		 6.4 Less frequent pairs As we set the frequency threshold of NE co- occurrence to 30 , we will miss the less frequent NE pairs . 
+	</s>
+	
+
+	<s id="194">
+		 Some of those pairs might be in valuable relations . 
+	</s>
+	
+
+	<s id="195">
+		 For the less frequent NE pairs , since the context varieties would be small and the norms of context vectors would be too short , it is difficult to reliably classify the relation based on those pairs . 
+	</s>
+	
+
+	<s id="196">
+		 One way of addressing this defect would be through bootstrapping . 
+	</s>
+	
+
+	<s id="197">
+		 The problem of bootstrapping is how to select initial seeds ; we could resolve this problem with our proposed method . 
+	</s>
+	
+
+	<s id="198">
+		 NE pairs which have many context words in common in each cluster could be promising seeds . 
+	</s>
+	
+
+	<s id="199">
+		 Once these seeds have been established , additional , lower-frequency NE pairs could be added to these clusters based on more relaxed keyword-overlap criteria . 
+	</s>
+	
+
+	<s id="200">
+		 7 Conclusion We proposed an unsupervised method for relation discovery from large corpora . 
+	</s>
+	
+
+	<s id="201">
+		 The key idea was clustering of pairs of named entities according to the similarity of the context words intervening between the named entities . 
+	</s>
+	
+
+	<s id="202">
+		 The experiments using one year’s newspapers revealed not only that the relations among named entities could be detected with high recall and precision , but also that appropriate labels could be automatically provided to the relations . 
+	</s>
+	
+
+	<s id="203">
+		 In the future , we are planning to discover less frequent pairs of named entities by combining our method with bootstrapping as well as to improve our method by tuning parameters . 
+	</s>
+	
+
+	<s id="204">
+		 8 Acknowledgments This research was supported in part by the Defense Advanced Research Projects Agency as part of the Translingual Information Detection , Extraction and Summarization ( TIDES ) program , under Grant N66001-001-1-8917 from the Space and Naval Warfare Systems Center , San Diego , and by the National Science Foundation under Grant ITS- 00325657 . 
+	</s>
+	
+
+	<s id="205">
+		 This paper does not necessarily reflect the position of the U.S. Government . 
+	</s>
+	
+
+	<s id="206">
+		 We would like to thank Dr. Yoshihiko Hayashi at Nippon Telegraph and Telephone Corporation , currently at Osaka University , who gave one of us ( T.H. ) an opportunity to conduct this research . 
+	</s>
+	
+
+	<s id="207">
+		 References Eugene Agichtein and Luis Gravano . 
+	</s>
+	
+
+	<s id="208">
+		 2000. Snowball : Extracting relations from large plain-text collections . 
+	</s>
+	
+
+	<s id="209">
+		 In Proc . 
+	</s>
+	
+
+	<s id="210">
+		 of the 5th ACM International Conference on Digital Libraries ( ACM DL’00 ) , pages 85–94 . 
+	</s>
+	
+
+	<s id="211">
+		 Sergey Brin . 
+	</s>
+	
+
+	<s id="212">
+		 1998. Extracting patterns and relations from world wide web. . 
+	</s>
+	
+
+	<s id="213">
+		 In Proc . 
+	</s>
+	
+
+	<s id="214">
+		 of WebDB Workshop at 6th International Conference on Extending Database Technology ( WebDB’98 ) , pages 172–183 . 
+	</s>
+	
+
+	<s id="215">
+		 Defense Advanced Research Projects Agency . 
+	</s>
+	
+
+	<s id="216">
+		 1995. Proceedings of the Sixth Message Understanding Conference ( MUC-6 ) . 
+	</s>
+	
+
+	<s id="217">
+		 Morgan Kaufmann Publishers , Inc. . 
+	</s>
+	
+
+	<s id="218">
+		 Dekang Lin and Patrick Pantel . 
+	</s>
+	
+
+	<s id="219">
+		 200 1 . 
+	</s>
+	
+
+	<s id="220">
+		 Dirt - discov- ery of inference rules from text . 
+	</s>
+	
+
+	<s id="221">
+		 In Proc . 
+	</s>
+	
+
+	<s id="222">
+		 of the 7th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining ( KDD- 2001 ) , pages 323–328 . 
+	</s>
+	
+
+	<s id="223">
+		 National Institute of Standards and Technology . 
+	</s>
+	
+
+	<s id="224">
+		 2000. Automatic Content Extraction . 
+	</s>
+	
+
+	<s id="225">
+		 http://www.nist.gov/speech/tests/ace/index.htm . 
+	</s>
+	
+
+	<s id="226">
+		 Deepak Ravichandran and Eduard Hovy . 
+	</s>
+	
+
+	<s id="227">
+		 2002. Learning surface text patterns for a question answering system . 
+	</s>
+	
+
+	<s id="228">
+		 In Proc . 
+	</s>
+	
+
+	<s id="229">
+		 of the 40th Annual Meeting of the Association for Computational Linguistics ( ACL-2002 ) , pages 41–47 . 
+	</s>
+	
+
+	<s id="230">
+		 Satoshi Sekine , Kiyoshi Sudo , and Chikashi Nobata . 
+	</s>
+	
+
+	<s id="231">
+		 2002. Extended named entity hierarchy . 
+	</s>
+	
+
+	<s id="232">
+		 In Proc . 
+	</s>
+	
+
+	<s id="233">
+		 of the Third International Conference on Language Resources and Evaluation ( LREC2002 ) , pages 1818–1824 . 
+	</s>
+	
+
+	<s id="234">
+		 Satoshi Sekine . 
+	</s>
+	
+
+	<s id="235">
+		 2001. OAK System ( English Sentence Analyzer ) . 
+	</s>
+	
+
+	<s id="236">
+		 http://nlp.cs.nyu.edu/oak/ . 
+	</s>
+	
+
+	<s id="237">
+		 Dmitry Zelenko , Chinatsu Aone , and Anthony Richardella. 2002 . 
+	</s>
+	
+
+	<s id="238">
+		 Kernel methods for relation extraction . 
+	</s>
+	
+
+	<s id="239">
+		 In Proc . 
+	</s>
+	
+
+	<s id="240">
+		 of the Conference on Empirical Methods in Natural Language Processing ( EMNLP-2002 ) , pages 71–78 . 
+	</s>
+	
+
+
+</acldoc>

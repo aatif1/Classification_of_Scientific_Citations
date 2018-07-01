@@ -1,0 +1,1423 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1014">
+	
+
+	<s id="1">
+		 Parsing the WSJ using CCG and Log-Linear Models Stephen Clark School of Informatics University of Edinburgh 2 Buccleuch Place , Edinburgh , UK stephen.clark@ed.ac.uk James R. Curran School of Information Technologies University of Sydney NSW 2006 , Australia james@it.usyd.edu.au Abstract This paper describes and evaluates log-linear parsing models for Combinatory Categorial Grammar ( CCG ) . 
+	</s>
+	
+
+	<s id="2">
+		 A parallel implementation of the L-BFGS optimisation algorithm is described , which runs on a Beowulf cluster allowing the complete Penn Treebank to be used for estimation . 
+	</s>
+	
+
+	<s id="3">
+		 We also develop a new efficient parsing algorithm for CCG which maximises expected recall of dependencies . 
+	</s>
+	
+
+	<s id="4">
+		 We compare models which use all CCG derivations , including nonstandard derivations , with normal-form models . 
+	</s>
+	
+
+	<s id="5">
+		 The performances of the two models are comparable and the results are competitive with existing wide-coverage CCG parsers . 
+	</s>
+	
+
+	<s id="6">
+		 1 Introduction A number of statistical parsing models have recently been developed for Combinatory Categorial Grammar ( CCG ; Steedman , 2000 ) and used in parsers applied to the WSJ Penn Treebank 
+		<ref citStr="Clark et al. , 2002" id="1" label="OEPF" position="1160">
+			( Clark et al. , 2002 
+		</ref>
+		<ref citStr="Hockenmaier and Steedman , 2002" id="2" label="OEPF" position="1182">
+			; Hockenmaier and Steedman , 2002 
+		</ref>
+		<ref citStr="Hockenmaier , 2003b" id="3" label="OEPF" position="1216">
+			; Hockenmaier , 2003b )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="7">
+		 In 
+		<ref citStr="Clark and Curran ( 2003 )" id="4" label="CERF" position="1279">
+			Clark and Curran ( 2003 )
+		</ref>
+		 we argued for the use of log-linear parsing models for CCG . 
+	</s>
+	
+
+	<s id="8">
+		 However , estimating a log-linear model for a wide- coverage CCG grammar is very computationally expensive . 
+	</s>
+	
+
+	<s id="9">
+		 Following 
+		<ref citStr="Miyao and Tsujii ( 2002 )" id="5" label="CEPF" position="1503">
+			Miyao and Tsujii ( 2002 )
+		</ref>
+		 , we showed how the estimation can be performed efficiently by applying the inside-outside algorithm to a packed chart . 
+	</s>
+	
+
+	<s id="10">
+		 We also showed how the complete WSJ Penn Treebank can be used for training by developing a parallel version of Generalised Iterative Scaling ( GIS ) to perform the estimation . 
+	</s>
+	
+
+	<s id="11">
+		 This paper significantly extends our earlier work in a number of ways . 
+	</s>
+	
+
+	<s id="12">
+		 First , we evaluate a number of log-linear models , obtaining results which are competitive with the state-of-the-art for CCG parsing . 
+	</s>
+	
+
+	<s id="13">
+		 We also compare log-linear models which use all CCG derivations , including non-standard derivations , with normal-form models . 
+	</s>
+	
+
+	<s id="14">
+		 Second , we find that GIS is unsuitable for estimating a model of the size being considered , and develop a parallel version of the L-BFGS algorithm 
+		<ref citStr="Nocedal and Wright , 1999" id="6" label="CERF" position="2362">
+			( Nocedal and Wright , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="15">
+		 And finally , we show that the parsing algo rithm described in 
+		<ref citStr="Clark and Curran ( 2003 )" id="7" label="CEPN" position="2462">
+			Clark and Curran ( 2003 )
+		</ref>
+		 is extremely slow in some cases , and suggest an efficient alternative based on 
+		<ref citStr="Goodman ( 1996 )" id="8" label="CERF" position="2559">
+			Goodman ( 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="16">
+		 The development of parsing and estimation algorithms for models which use all derivations extends existing CCG parsing techniques , and allows us to test whether there is useful information in the additional derivations . 
+	</s>
+	
+
+	<s id="17">
+		 However , we find that the performance of the normal-form model is at least as good as the all-derivations model , in our experiments to- date . 
+	</s>
+	
+
+	<s id="18">
+		 The normal-form approach allows the use of additional constraints on rule applications , leading to a smaller model , reducing the computational resources required for estimation , and resulting in an extremely efficient parser . 
+	</s>
+	
+
+	<s id="19">
+		 This paper assumes a basic understanding of CCG ; see 
+		<ref citStr="Steedman ( 2000 )" id="9" label="CEPF" position="3266">
+			Steedman ( 2000 )
+		</ref>
+		 for an introduction , and 
+		<ref citStr="Clark et al . ( 2002 )" id="10" label="CEPF" position="3315">
+			Clark et al . ( 2002 )
+		</ref>
+		 and 
+		<ref citStr="Hockenmaier ( 2003a )" id="11" label="CEPF" position="3341">
+			Hockenmaier ( 2003a )
+		</ref>
+		 for an introduction to statistical parsing with CCG . 
+	</s>
+	
+
+	<s id="20">
+		 2 Parsing Models for CCG CCG is unusual among grammar formalisms in that , for each derived structure for a sentence , there can be many derivations leading to that structure . 
+	</s>
+	
+
+	<s id="21">
+		 The presence of such ambiguity , sometimes referred to as spurious ambiguity , enables CCG to produce elegant analyses of coordination and extraction phenomena 
+		<ref citStr="Steedman , 2000" id="12" label="CEPF" position="3770">
+			( Steedman , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="22">
+		 However , the introduction of extra derivations increases the complexity of the modelling and parsing problem . 
+	</s>
+	
+
+	<s id="23">
+		 
+		<ref citStr="Clark et al . ( 2002 )" id="13" label="CEPF" position="3925">
+			Clark et al . ( 2002 )
+		</ref>
+		 handle the additional derivations by modelling the derived structure , in their case dependency structures . 
+	</s>
+	
+
+	<s id="24">
+		 They use a conditional model , based on 
+		<ref citStr="Collins ( 1996 )" id="14" label="CEPN" position="4100">
+			Collins ( 1996 )
+		</ref>
+		 , which , as the authors acknowledge , has a number of theoretical deficiencies ; thus the results of Clark et al . 
+	</s>
+	
+
+	<s id="25">
+		 provide a useful baseline for the new models presented here . 
+	</s>
+	
+
+	<s id="26">
+		 
+		<ref citStr="Hockenmaier ( 2003a )" id="15" label="CEPF" position="4318">
+			Hockenmaier ( 2003a )
+		</ref>
+		 uses a model which favours only one of the derivations leading to a derived structure , namely the normal -form derivation 
+		<ref citStr="Eisner , 1996" id="16" label="CEPF" position="4459">
+			( Eisner , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="27">
+		 In this paper we compare the normal-form approach with a dependency model . 
+	</s>
+	
+
+	<s id="28">
+		 For the dependency model , we define the probabil- ity of a dependency structure as follows : P(7rIS) = z P(d , 7rIS ) ( 1 ) dE4(7r) where 7r is a dependency structure , S is a sentence and A(7r) is the set of derivations which lead to 7r . 
+	</s>
+	
+
+	<s id="29">
+		 This extends the approach of 
+		<ref citStr="Clark et al . ( 2002 )" id="17" label="CERF" position="4857">
+			Clark et al . ( 2002 )
+		</ref>
+		 who modelled the dependency structures directly , not using any information from the derivations . 
+	</s>
+	
+
+	<s id="30">
+		 In contrast to the dependency model , the normal-form model simply defines a distribution over normal- form derivations . 
+	</s>
+	
+
+	<s id="31">
+		 The dependency structures considered in this paper are described in detail in 
+		<ref citStr="Clark et al . ( 2002 )" id="18" label="CEPF" position="5197">
+			Clark et al . ( 2002 )
+		</ref>
+		 and 
+		<ref citStr="Clark and Curran ( 2003 )" id="19" label="CEPF" position="5227">
+			Clark and Curran ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="32">
+		 Each argument slot in a CCG lexical category represents a dependency relation , and a dependency is defined as a 5-tuple ( h f , f , s , ha , l ) , where h f is the head word of the lexical category , f is the lexical category , s is the argument slot , ha is the head word of the argument , and l indicates whether the dependency is long-range . 
+	</s>
+	
+
+	<s id="33">
+		 For example , the long-range dependency encoding company as the extracted object of bought ( as in the company that IBM bought ) is represented as the following 5-tuple : ( bought , (S[dcl]\NP,)/NP , , 2 , company , * ) where * is the category (NP\NP)/(S[dcl]/NP) assigned to the relative pronoun . 
+	</s>
+	
+
+	<s id="34">
+		 For local dependencies l is assigned a null value . 
+	</s>
+	
+
+	<s id="35">
+		 A dependency structure is a multiset of these dependencies . 
+	</s>
+	
+
+	<s id="36">
+		 3 Log-Linear Parsing Models Log-linear models ( also known as Maximum Entropy models ) are popular in NLP because of the ease with which discriminating features can be included in the model . 
+	</s>
+	
+
+	<s id="37">
+		 Log-linear models have been applied to the parsing problem across a range of grammar formalisms , e.g. 
+		<ref citStr="Riezler et al . ( 2002 )" id="20" label="CEPF" position="6362">
+			Riezler et al . ( 2002 )
+		</ref>
+		 and 
+		<ref citStr="Toutanova et al . ( 2002 )" id="21" label="CEPF" position="6393">
+			Toutanova et al . ( 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="38">
+		 One motivation for using a log-linear model is that long-range dependencies which CCG was designed to handle can easily be encoded as features . 
+	</s>
+	
+
+	<s id="39">
+		 A conditional log-linear model of a parse W E 92 , given a sentence S , is defined as follows : P(WIS) = 1 eA.f(-) ( 2 ) ZS where A. f(W) = EZ AZfZ ( W ) . 
+	</s>
+	
+
+	<s id="40">
+		 The function fZ is a feature of the parse which can be any real-valued function over the space of parses 92 . 
+	</s>
+	
+
+	<s id="41">
+		 Each feature fZ has an associated weight AZ which is a parameter of the model to be estimated . 
+	</s>
+	
+
+	<s id="42">
+		 ZS is a normalising constant which ensures that P(WIS) is a probability distribution : ZS = z eA.f(-') ( 3 ) -'EP(S) where p(S) is the set of possible parses for S . 
+	</s>
+	
+
+	<s id="43">
+		 For the dependency model a parse , W , is a ( d , 7r ) pair ( as given in ( 1 ) ) . 
+	</s>
+	
+
+	<s id="44">
+		 A feature is a count of the number of times some configuration occurs in d or the number of times some dependency occurs in 7r . 
+	</s>
+	
+
+	<s id="45">
+		 Section 6 gives examples of features . 
+	</s>
+	
+
+	<s id="46">
+		 3.1 The Dependency Model We follow 
+		<ref citStr="Riezler et al . ( 2002 )" id="22" label="CERF" position="7461">
+			Riezler et al . ( 2002 )
+		</ref>
+		 in using a discriminative estimation method by maximising the conditional likelihood of the model given the data . 
+	</s>
+	
+
+	<s id="47">
+		 For the dependency model , the data consists of sentences S 1 , ... , SM , together with gold standard dependency structures , 7r1 , ... , 7rM . 
+	</s>
+	
+
+	<s id="48">
+		 The gold standard structures are multisets of dependencies , as described earlier . 
+	</s>
+	
+
+	<s id="49">
+		 Section 6 explains how the gold standard structures are obtained . 
+	</s>
+	
+
+	<s id="50">
+		 The objective function of a model A is the conditional log-likelihood , L(A) , minus a Gaussian prior term , G(A) , used to reduce overfitting 
+		<ref citStr="Chen and Rosenfeld , 1999" id="23" label="CEPF" position="8081">
+			( Chen and Rosenfeld , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="51">
+		 Hence , given the definition of the probability of a dependency structure ( 1 ) , the objective function is as follows : L'(A) = L(A) — G(A) ( 4 ) = log M P~(7rjISj) — zn A. H Z=1 Z j=1 20 . 
+	</s>
+	
+
+	<s id="52">
+		 Z lo EdEA(7rj) eA.f(d,7rj) g eA.f(-) G -EP(Sj) log z eA.f(d,7rj) dEA(7rj) log z eA.f(-) — -EP(Sj) where n is the number of features . 
+	</s>
+	
+
+	<s id="53">
+		 Rather than have a different smoothing parameter 0Z for each feature , we use a single parameter 0 . 
+	</s>
+	
+
+	<s id="54">
+		 We use a technique from the numerical optimisation literature , the L-BFGS algorithm 
+		<ref citStr="Nocedal and Wright , 1999" id="24" label="CERF" position="8663">
+			( Nocedal and Wright , 1999 )
+		</ref>
+		 , to optimise the objective function . 
+	</s>
+	
+
+	<s id="55">
+		 L-BFGS is an iterative algorithm which requires the gradient of the objective function to be computed at each iteration . 
+	</s>
+	
+
+	<s id="56">
+		 The components of the gradient vec- = M = z j=1 M z j=1 — M z j=1 A. Z zn Z=1 20 . 
+	</s>
+	
+
+	<s id="57">
+		 Z A. Z zn Z=1 20 . 
+	</s>
+	
+
+	<s id="58">
+		 Z tor are as follows : eA.f(d,,rj) fi ( d , ~ j ) ( 5 ) EdE4(,rj) eA.f(d,,rj) eA.f(-) fi(to) Ai E— -EP(Sj) eA.f(-) ~2i The first two terms in ( 5 ) are expectations of feature fi : the first expectation is over all derivations leading to each gold standard dependency structure ; the second is over all derivations for each sentence in the training data . 
+	</s>
+	
+
+	<s id="59">
+		 Setting the gradient to zero yields the usual maximum entropy constraints 
+		<ref citStr="Berger et al. , 1996" id="25" label="CEPF" position="9428">
+			( Berger et al. , 1996 )
+		</ref>
+		 , except that in this case the empirical values are themselves expectations ( over all derivations leading to each gold standard dependency structure ) . 
+	</s>
+	
+
+	<s id="60">
+		 The estimation process attempts to make the expectations equal , by putting as much mass as possible on the derivations leading to the gold standard structures.1 The Gaussian prior term penalises any model whose weights get too large in absolute value . 
+	</s>
+	
+
+	<s id="61">
+		 Calculation of the feature expectations requires summing over all derivations for a sentence , and summing over all derivations leading to a gold standard dependency structure . 
+	</s>
+	
+
+	<s id="62">
+		 In both cases there can be exponentially many derivations , and so enumerating all derivations is not possible ( at least for wide-coverage automatically extracted grammars ) . 
+	</s>
+	
+
+	<s id="63">
+		 
+		<ref citStr="Clark and Curran ( 2003 )" id="26" label="CEPF" position="10253">
+			Clark and Curran ( 2003 )
+		</ref>
+		 show how the sum over the complete derivation space can be performed efficiently using a packed chart and a variant of the inside-outside algorithm . 
+	</s>
+	
+
+	<s id="64">
+		 Section 5 shows how the same technique can also be applied to all derivations leading to a gold standard dependency structure . 
+	</s>
+	
+
+	<s id="65">
+		 3.2 The Normal-Form Model The objective function and gradient vector for the normal-form model are as follows : L'(A) = L(A) — G(A) ( 6 ) = log M PA(djlSj) — Zn i=1 A2 H i j=1 2^2 i aL ' ( A ) M fi ( dj ) ( 7 ) Z j=1 aAi = eA.f(d) fi(d) EdEB(Sj) eA.f(d) 1See 
+		<ref citStr="Riezler et al . ( 2002 )" id="27" label="CEPF" position="10835">
+			Riezler et al . ( 2002 )
+		</ref>
+		 for a similar description in the context of LFG parsing . 
+	</s>
+	
+
+	<s id="66">
+		 where dj is the the gold standard derivation for sentence Sj and B(Sj) is the set of possible derivations for Sj . 
+	</s>
+	
+
+	<s id="67">
+		 Note that the empirical expectation in ( 7 ) is simply a count of the number of times the feature appears in the gold-standard derivations . 
+	</s>
+	
+
+	<s id="68">
+		 4 Packed Charts The packed charts perform a number of roles : they are a compact representation of a very large number of CCG derivations ; they allow recovery of the highest scoring parse or dependency structure without enumerating all derivations ; and they represent an instance of what 
+		<ref citStr="Miyao and Tsujii ( 2002 )" id="28" label="CEPF" position="11492">
+			Miyao and Tsujii ( 2002 )
+		</ref>
+		 call a feature forest , which is used to efficiently estimate a log-linear model . 
+	</s>
+	
+
+	<s id="69">
+		 The idea behind a packed chart is simple : equivalent chart entries of the same type , in the same cell , are grouped together , and back pointers to the daughters indicate how an individual entry was created . 
+	</s>
+	
+
+	<s id="70">
+		 Equivalent entries form the same structures in any subsequent parsing . 
+	</s>
+	
+
+	<s id="71">
+		 Since the packed charts are used for model estimation and recovery of the highest scoring parse or dependency structure , the features in the model partly determine which entries can be grouped together . 
+	</s>
+	
+
+	<s id="72">
+		 In this paper we use features from the dependency structure , and features defined on the local rule instantiations.2 Hence , any two entries with identical category type , identical head , and identical unfilled dependencies are equivalent . 
+	</s>
+	
+
+	<s id="73">
+		 Note that not all features are local to a rule instantiation ; for example , features encoding long-range dependencies may involve words which are a long way apart in the sentence . 
+	</s>
+	
+
+	<s id="74">
+		 For the purposes of estimation and finding the highest scoring parse or dependency structure , only entries which are part of a derivation spanning the whole sentence are relevant . 
+	</s>
+	
+
+	<s id="75">
+		 These entries can be easily found by traversing the chart top-down , starting with the entries which span the sentence . 
+	</s>
+	
+
+	<s id="76">
+		 The entries within spanning derivations form a feature forest 
+		<ref citStr="Miyao and Tsujii , 2002" id="29" label="CEPF" position="12953">
+			( Miyao and Tsujii , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="77">
+		 A feature forest ( D is a tuple ( C , D , R , y , S ) where : C is a set of conjunctive nodes ; D is a set of disjunctive nodes ; R c D is a set of root disjunctive nodes ; y : D 2C is a conjunctive daughter function ; 6 : C 2D is a disjunctive daughter function . 
+	</s>
+	
+
+	<s id="78">
+		 The individual entries in a cell are conjunctive nodes , and the equivalence classes of entries are dis- 2By rule instantiation we mean the local tree arising from the application of a CCG combinatory rule . 
+	</s>
+	
+
+	<s id="79">
+		 aL ' ( A ) M Z Z dE4(,rj) j=1 aAi = Z -EP(Sj) — M Z j=1 — M Z Z dEB(Sj) j=1 Ai ~2 i ( C , D , R , y , 8 ) is a packed chart / feature forest G is a set of gold standard dependencies Let c be a conjunctive node Let d be a disjunctive node deps(c) is the set of dependencies on node c ~cdeps(c) c —1 if , for some T E deps(c),T V G O — |deps(c)| otherwise —1 if cdeps(c) = —1 —1 if dmax(d) = —1 for some d E 8(c) Zd-~8(c) dmax(d) + cdeps(c) otherwise dmax(d) = max{dmax(c) |I c E y(d) } mark(d) : mark d as a correct node foreach c E y(d) if dmax(c) = dmax(d) mark c as a correct node foreach d~ E 8(c) mark(d~) foreach d , E R such that dmax.(d,) = |G| mark(d,) Figure 1 : Finding nodes in correct derivations junctive nodes . 
+	</s>
+	
+
+	<s id="80">
+		 The roots of the CCG derivations represent the root disjunctive nodes.3 5 Efficient Estimation The L-BFGS algorithm requires the following values at each iteration : the expected value , and the empirical expected value , of each feature ( to calculate the gradient ) ; and the value of the likelihood function . 
+	</s>
+	
+
+	<s id="81">
+		 For the normal-form model , the empirical expected values and the likelihood can easily be obtained , since these only involve the single gold- standard derivation for each sentence . 
+	</s>
+	
+
+	<s id="82">
+		 The expected values can be calculated using the method in 
+		<ref citStr="Clark and Curran ( 2003 )" id="30" label="CERF" position="14797">
+			Clark and Curran ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="83">
+		 For the dependency model , the computations of the empirical expected values ( 5 ) and the likelihood function ( 4 ) are more complex , since these require sums over just those derivations leading to the gold standard dependency structure . 
+	</s>
+	
+
+	<s id="84">
+		 We will refer to such derivations as correct derivations . 
+	</s>
+	
+
+	<s id="85">
+		 Figure 1 gives an algorithm for finding nodes in a packed chart which appear in correct derivations . 
+	</s>
+	
+
+	<s id="86">
+		 cdeps(c) is the number of correct dependencies on conjunctive node c , and takes the value —1 if there are any incorrect dependencies on c. dmax(c) is 3A more complete description of CCG feature forests is given in 
+		<ref citStr="Clark and Curran ( 2003 )" id="31" label="CEPF" position="15479">
+			Clark and Curran ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="87">
+		 the maximum number of correct dependencies produced by any sub-derivation headed by c , and takes the value —1 if there are no sub-derivations producing only correct dependencies . 
+	</s>
+	
+
+	<s id="88">
+		 dmax(d) is the same value but for disjunctive node d. Recursive definitions for calculating these values are given in Figure 1 ; the base case occurs when conjunctive nodes have no disjunctive daughters . 
+	</s>
+	
+
+	<s id="89">
+		 The algorithm identifies all those root nodes heading derivations which produce just the correct dependencies , and traverses the chart top-down marking the nodes in those derivations . 
+	</s>
+	
+
+	<s id="90">
+		 The insight behind the algorithm is that , for two conjunctive nodes in the same equivalence class , if one node heads a sub-derivation producing more correct dependencies than the other node ( and each sub-derivation only produces correct dependencies ) , then the node with less correct dependencies cannot be part of a correct derivation . 
+	</s>
+	
+
+	<s id="91">
+		 The conjunctive and disjunctive nodes appearing in correct derivations form a new correct feature forest . 
+	</s>
+	
+
+	<s id="92">
+		 The correct forest , and the complete forest containing all derivations spanning the sentence , can be used to estimate the required likelihood value and feature expectations . 
+	</s>
+	
+
+	<s id="93">
+		 Let E ' fi be the expected value of fi over the forest ( D for model A ; then the values in ( 5 ) can be obtained by calculating E( ' fi for the complete forest ( Dj for each sentence Sj in the train- ing data ( the second sum in ( 5 ) ) , and also EIY ' ~fi for each forest Tj of correct derivations ( the first sum in ( 5 ) ) : ( E~'.f — EA'.f ) ( 8 ) The likelihood in ( 4 ) can be calculated as follows : ( log ZIY ' — log Z~ ' ) ( 9 ) where log Z(D is the normalisation constant for ( D. 6 Estimation in Practice The gold standard dependency structures are produced by running our CCG parser over the normal-form derivations in CCGbank 
+		<ref citStr="Hockenmaier , 2003a" id="32" label="OEPF" position="17411">
+			( Hockenmaier , 2003a )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="94">
+		 Not all rule instantiations in CCGbank are instances of combinatory rules , and not all can be produced by the parser , and so gold standard structures were created for 85.5 % of the sentences in sections 2-21 ( 33,777 sentences ) . 
+	</s>
+	
+
+	<s id="95">
+		 The same parser is used to produce the packed charts . 
+	</s>
+	
+
+	<s id="96">
+		 The parser uses a maximum entropy supertagger 
+		<ref citStr="Clark and Curran , 2004" id="33" label="OEPF" position="17802">
+			( Clark and Curran , 2004 )
+		</ref>
+		 to assign lexical ~~ ~~~ ~~~~ dmax(c) = aL(A) M z j=1 aAi = M z j=1 L(A) = categories to the words in a sentence , and applies the CKY chart parsing algorithm described in 
+		<ref citStr="Steedman ( 2000 )" id="34" label="CEPF" position="17992">
+			Steedman ( 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="97">
+		 For parsing the training data , we ensure that the correct category is a member of the set assigned to each word . 
+	</s>
+	
+
+	<s id="98">
+		 The average number of categories assigned to each word is determined by a parameter in the supertagger . 
+	</s>
+	
+
+	<s id="99">
+		 For the first set of experiments , we used a setting which assigns 1.7 categories on average per word . 
+	</s>
+	
+
+	<s id="100">
+		 The feature set for the dependency model consists of the following types of features : dependency features ( with and without distance measures ) , rule instantiation features ( with and without a lexical head ) , lexical category features , and root category features . 
+	</s>
+	
+
+	<s id="101">
+		 Dependency features are the 5-tuples defined in Section 1 . 
+	</s>
+	
+
+	<s id="102">
+		 There are also three additional dependency feature types which have an extra distance field ( and only include the head of the lexical category , and not the head of the argument ) ; these count the number of words ( 0 , 1 , 2 or more ) , punctuation marks ( 0 , 1 , 2 or more ) , and verbs ( 0 , 1 or more ) between head and dependent . 
+	</s>
+	
+
+	<s id="103">
+		 Lexical category features are word–category pairs at the leaf nodes , and root features are headword–category pairs at the root nodes . 
+	</s>
+	
+
+	<s id="104">
+		 Rule instantiation features simply encode the combining categories together with the result category . 
+	</s>
+	
+
+	<s id="105">
+		 There is an additional rule feature type which also encodes the lexical head of the resulting category . 
+	</s>
+	
+
+	<s id="106">
+		 Additional generalised features for each feature type are formed by replacing words with their POS tags . 
+	</s>
+	
+
+	<s id="107">
+		 The feature set for the normal-form model is the same except that , following 
+		<ref citStr="Hockenmaier and Steedman ( 2002 )" id="35" label="CERF" position="19650">
+			Hockenmaier and Steedman ( 2002 )
+		</ref>
+		 , the dependency features are defined in terms of the local rule instantiations , by adding the heads of the combining categories to the rule instantiation features . 
+	</s>
+	
+
+	<s id="108">
+		 Again there are 3 additional distance feature types , as above , which only include the head of the resulting category . 
+	</s>
+	
+
+	<s id="109">
+		 We had hoped that by modelling the predicate-argument dependencies produced by the parser , rather than local rule dependencies , we would improve performance . 
+	</s>
+	
+
+	<s id="110">
+		 However , using the predicate-argument dependencies in the normal-form model instead of , or in addition to , the local rule dependencies , has not led to an improvement in parsing accuracy . 
+	</s>
+	
+
+	<s id="111">
+		 Only features which occurred more than once in the training data were included , except that , for the dependency model , the cutoff for the rule features was 9 and the counting was performed across all derivations , not just the gold-standard derivation . 
+	</s>
+	
+
+	<s id="112">
+		 The normal-form model has 482,007 features and the dependency model has 984,522 features . 
+	</s>
+	
+
+	<s id="113">
+		 We used 45 machines of a 64-node Beowulf clus ter to estimate the dependency model , with an average memory usage of approximately 550 MB for each machine . 
+	</s>
+	
+
+	<s id="114">
+		 For the normal-form model we were able to reduce the size of the charts considerably by applying two types of restriction to the parser : first , categories can only combine if they appear together in a rule instantiation in sections 2–21 of CCGbank ; and second , we apply the normal-form restrictions described in 
+		<ref citStr="Eisner ( 1996 )" id="36" label="CERF" position="21192">
+			Eisner ( 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="115">
+		 ( See 
+		<ref citStr="Clark and Curran ( 2004 )" id="37" label="CEPF" position="21235">
+			Clark and Curran ( 2004 )
+		</ref>
+		 for a description of the Eisner constraints . 
+	</s>
+	
+
+	<s id="116">
+		 ) The normal-form model requires only 5 machines for estimation , with an average memory usage of 730 MB for each machine . 
+	</s>
+	
+
+	<s id="117">
+		 Initially we tried the parallel version of GIS described in 
+		<ref citStr="Clark and Curran ( 2003 )" id="38" label="CJPN" position="21509">
+			Clark and Curran ( 2003 )
+		</ref>
+		 to perform the estimation , running over the Beowulf cluster . 
+	</s>
+	
+
+	<s id="118">
+		 However , we found that GIS converged extremely slowly ; this is in line with other recent results in the literature applying GIS to globally optimised models such as conditional random fields , e.g. 
+		<ref citStr="Sha and Pereira ( 2003 )" id="39" label="CEPF" position="21806">
+			Sha and Pereira ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="119">
+		 As an alternative to GIS , we have implemented a parallel version of our L-BFGS code using the Message Passing Interface ( MPI ) standard . 
+	</s>
+	
+
+	<s id="120">
+		 L-BFGS over forests can be parallelised , using the method described in 
+		<ref citStr="Clark and Curran ( 2003 )" id="40" label="CERF" position="22064">
+			Clark and Curran ( 2003 )
+		</ref>
+		 to calculate the feature expectations . 
+	</s>
+	
+
+	<s id="121">
+		 The L-BFGS algorithm , run to convergence on the cluster , takes 479 iterations and 2 hours for the normal-form model , and 1,550 iterations and roughly 17 hours for the dependency model . 
+	</s>
+	
+
+	<s id="122">
+		 7 Parsing Algorithm For the normal-form model , the Viterbi algorithm is used to find the most probable derivation . 
+	</s>
+	
+
+	<s id="123">
+		 For the dependency model , the highest scoring dependency structure is required . 
+	</s>
+	
+
+	<s id="124">
+		 
+		<ref citStr="Clark and Curran ( 2003 )" id="41" label="CEPN" position="22554">
+			Clark and Curran ( 2003 )
+		</ref>
+		 outlines an algorithm for finding the most probable dependency structure , which keeps track of the highest scoring set of dependencies for each node in the chart . 
+	</s>
+	
+
+	<s id="125">
+		 For a set of equivalent entries in the chart ( a disjunctive node ) , this involves summing over all conjunctive node daughters which head sub- derivations leading to the same set of high scoring dependencies . 
+	</s>
+	
+
+	<s id="126">
+		 In practice large numbers of such conjunctive nodes lead to very long parse times . 
+	</s>
+	
+
+	<s id="127">
+		 As an alternative to finding the most probable dependency structure , we have developed an algorithm which maximises the expected labelled recall over dependencies . 
+	</s>
+	
+
+	<s id="128">
+		 Our algorithm is based on Goodman’s ( 1996 ) labelled recall algorithm for the phrase-structure PARSEVAL measures . 
+	</s>
+	
+
+	<s id="129">
+		 Let L , be the number of correct dependencies in 7r with respect to a gold standard dependency structure G ; then the dependency structure , 7rmax , which maximises the expected recall rate is : LP LR UP UR cat Dep model 86.7 85.6 92.6 91.5 93.5 N-form model 86.4 86.2 92.4 92.2 93.6 7rmax = arg max E(LK/IGI) ( 10 ) K = arg max P(7riIS)I7r n 7riI Table 1 : Results on development set ; labelled and unlabelled precision and recall , and lexical category accuracy Z where S is the sentence for gold standard dependency structure G and 7ri ranges over the dependency structures for S . 
+	</s>
+	
+
+	<s id="130">
+		 This expression can be expanded further : z 7rmax = arg max K Ki z = arg max K TEK z= arg max KTEK The final score for a dependency structure 7r is a sum of the scores for each dependency T in 7r ; and the score for a dependency T is the sum of the probabilities of those derivations producing T . 
+	</s>
+	
+
+	<s id="131">
+		 This latter sum can be calculated efficiently using inside and outside scores : z 7rmax = arg max K TEK ( 12 ) where Oc is the inside score and q1c is the outside score for node c ( see 
+		<ref citStr="Clark and Curran ( 2003 )" id="42" label="CEPF" position="24455">
+			Clark and Curran ( 2003 )
+		</ref>
+		 ) ; C is the set of conjunctive nodes in the packed chart for sentence S and deps(c) is the set of dependencies on conjunctive node c . 
+	</s>
+	
+
+	<s id="132">
+		 The intuition behind the expected recall score is that a dependency structure scores highly if it has dependencies produced by high scoring derivations.4 The algorithm which finds 7rmax is a simple variant on the Viterbi algorithm , efficiently finding a derivation which produces the highest scoring set of dependencies . 
+	</s>
+	
+
+	<s id="133">
+		 8 Experiments Gold standard dependency structures were derived from section 00 ( for development ) and section 23 ( for testing ) by running the parser over the derivations in CCGbank , some of which the parser could not process . 
+	</s>
+	
+
+	<s id="134">
+		 In order to increase the number of test sentences , and to allow a fair comparison with other CCG parsers , extra rules were encoded in the parser ( but we emphasise these were only used to obtain 4Coordinate constructions can create multiple dependencies for a single argument slot ; in this case the score for the multiple dependencies is the average of the individual scores . 
+	</s>
+	
+
+	<s id="135">
+		 Features LP LR UP UR cat RULES 82.6 82.0 89.7 89.1 92.4 +HEADS 83.6 83.3 90.2 90.0 92.8 +DEPS 85.5 85.3 91.6 91.3 93.5 +DISTANCE 86.4 86.2 92.4 92.2 93.6 FINAL 87.0 86.8 92.7 92.5 93.9 Table 2 : Results on development set for the normal- form models the section 23 test data ; they were not used to parse unseen data as part of the testing ) . 
+	</s>
+	
+
+	<s id="136">
+		 This resulted in 2,365 dependency structures for section 23 ( 98.5 % of the full section ) , and 1,825 ( 95.5 % ) dependency structures for section 00 . 
+	</s>
+	
+
+	<s id="137">
+		 The first stage in parsing the test data is to apply the supertagger . 
+	</s>
+	
+
+	<s id="138">
+		 We use the novel strategy developed in 
+		<ref citStr="Clark and Curran ( 2004 )" id="43" label="CERF" position="26221">
+			Clark and Curran ( 2004 )
+		</ref>
+		 : first assign a small number of categories ( approximately 1.4 ) on average to each word , and increase the number of categories if the parser fails to find an analysis . 
+	</s>
+	
+
+	<s id="139">
+		 We were able to parse 98.9 % of section 23 using this strategy . 
+	</s>
+	
+
+	<s id="140">
+		 
+		<ref citStr="Clark and Curran ( 2004 )" id="44" label="CEPF" position="26502">
+			Clark and Curran ( 2004 )
+		</ref>
+		 shows that this supertagging method results in a highly efficient parser . 
+	</s>
+	
+
+	<s id="141">
+		 For the normal-form model we returned the dependency structure for the most probable derivation , applying the two types of normal-form constraints described in Section 6 . 
+	</s>
+	
+
+	<s id="142">
+		 For the dependency model we returned the dependency structure with the highest expected labelled recall score . 
+	</s>
+	
+
+	<s id="143">
+		 Following 
+		<ref citStr="Clark et al . ( 2002 )" id="45" label="CEPF" position="26922">
+			Clark et al . ( 2002 )
+		</ref>
+		 , evaluation is by precision and recall over dependencies . 
+	</s>
+	
+
+	<s id="144">
+		 For a labelled dependency to be correct , the first 4 elements of the dependency tuple must match exactly . 
+	</s>
+	
+
+	<s id="145">
+		 For an unlabelled dependency to be correct , the heads of the functor and argument must appear together in some relation in the gold standard ( in any order ) . 
+	</s>
+	
+
+	<s id="146">
+		 The results on section 00 , using the feature sets described earlier , are given in Table 1 , with similar results overall for the normal-form model and the dependency model . 
+	</s>
+	
+
+	<s id="147">
+		 Since experimentation is easier with the normal-form model than the dependency model , we present additional results for the normal- form model . 
+	</s>
+	
+
+	<s id="148">
+		 Table 2 gives the results for the normal-form model for various feature sets . 
+	</s>
+	
+
+	<s id="149">
+		 The results show that each additional feature type increases perfor- P(7riIS) z 1 if T E 7ri TEK z P(7r ' IS ) K1 ITEK1 z P(dIS) ( 11 ) dE0(K1)ITEK1 z Ocq1c if T E deps(c) 1 ZS cEC LP LR UP UR cat Clark et al . 2002 81.9 81.8 90.1 89.9 90.3 Hockenmaier 2003 84.3 84.6 91.8 92.2 92.2 Log-linear 86.6 86.3 92.5 92.1 93.6 Hockenmaier(POS) 83.1 83.5 91.1 91.5 91.5 Log-linear ( POS ) 84.8 84.5 91.4 91.0 92.5 Table 3 : Results on the test set mance . 
+	</s>
+	
+
+	<s id="150">
+		 Hockenmaier also found the dependencies to be very beneficial — in contrast to recent results from the lexicalised PCFG parsing literature 
+		<ref citStr="Gildea , 2001" id="46" label="CJPF" position="28320">
+			( Gildea , 2001 )
+		</ref>
+		 — but did not gain from the use of distance measures . 
+	</s>
+	
+
+	<s id="151">
+		 One of the advantages of a log-linear model is that it is easy to include additional information , such as distance , as features . 
+	</s>
+	
+
+	<s id="152">
+		 The FINAL result in Table 2 is obtained by using a larger derivation space for training , created using more categories per word from the supertagger , 2.9 , and hence using charts containing more derivations . 
+	</s>
+	
+
+	<s id="153">
+		 ( 15 machines were used to estimate this model . 
+	</s>
+	
+
+	<s id="154">
+		 ) More investigation is needed to find the optimal chart size for estimation , but the results show a gain in accuracy . 
+	</s>
+	
+
+	<s id="155">
+		 Table 3 gives the results of the best performing normal-form model on the test set . 
+	</s>
+	
+
+	<s id="156">
+		 The results of 
+		<ref citStr="Clark et al . ( 2002 )" id="47" label="CJPN" position="29066">
+			Clark et al . ( 2002 )
+		</ref>
+		 and 
+		<ref citStr="Hockenmaier ( 2003a )" id="48" label="CEPF" position="29092">
+			Hockenmaier ( 2003a )
+		</ref>
+		 are shown for comparison . 
+	</s>
+	
+
+	<s id="157">
+		 The dependency set used by Hockenmaier contains some minor differences to the set used here , but “evaluating” our test set against Hockenmaier’s gives an F-score of over 97 % , showing the test sets to be very similar . 
+	</s>
+	
+
+	<s id="158">
+		 The results show that our parser is performing significantly better than that of Clark et al. , demonstrating the benefit of derivation features and the use of a sound statistical model . 
+	</s>
+	
+
+	<s id="159">
+		 The results given so far have all used gold standard POS tags from CCGbank . 
+	</s>
+	
+
+	<s id="160">
+		 Table 3 also gives the results if automatically assigned POS tags are used in the training and testing phases , using the C&amp;C POS tagger 
+		<ref citStr="Curran and Clark , 2003" id="49" label="OEPF" position="29813">
+			( Curran and Clark , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="161">
+		 The performance reduction is expected given that the supertagger relies heavily on POS tags as features . 
+	</s>
+	
+
+	<s id="162">
+		 More investigation is needed to properly compare our parser and Hockenmaier’s , since there are a number of differences in addition to the models used : Hockenmaier effectively reads a lexicalised PCFG off CCGbank , and is able to use all of the available training data ; Hockenmaier does not use a supertagger , but does use a beam search . 
+	</s>
+	
+
+	<s id="163">
+		 Parsing the 2,401 sentences in section 23 takes 1.6 minutes using the normal-form model , and 10.5 minutes using the dependency model . 
+	</s>
+	
+
+	<s id="164">
+		 The difference is due largely to the normal-form constraints used by the normal-form parser . 
+	</s>
+	
+
+	<s id="165">
+		 
+		<ref citStr="Clark and Curran ( 2004 )" id="50" label="CEPF" position="30565">
+			Clark and Curran ( 2004 )
+		</ref>
+		 shows that the normal-form constraints significantly increase parsing speed and , in combination with adaptive supertagging , result in a highly efficient wide-coverage parser . 
+	</s>
+	
+
+	<s id="166">
+		 As a final oracle experiment we parsed the sentences in section 00 using the correct lexical categories from CCGbank . 
+	</s>
+	
+
+	<s id="167">
+		 Since the parser uses only a subset of the lexical categories in CCGbank , 7 % of the sentences could not be parsed ; however , the labelled F-score for the parsed sentences was almost 98 % . 
+	</s>
+	
+
+	<s id="168">
+		 This very high score demonstrates the large amount of information in lexical categories . 
+	</s>
+	
+
+	<s id="169">
+		 9 Conclusion A major contribution of this paper has been the development of a parsing model for CCG which uses all derivations , including non-standard derivations . 
+	</s>
+	
+
+	<s id="170">
+		 Non-standard derivations are an integral part of the CCG formalism , and it is an interesting question whether efficient estimation and parsing algorithms can be defined for models which use all derivations . 
+	</s>
+	
+
+	<s id="171">
+		 We have answered this question , and in doing so developed a new parsing algorithm for CCG which maximises expected recall of dependencies . 
+	</s>
+	
+
+	<s id="172">
+		 We would like to extend the dependency model , by including the local-rule dependencies which are used by the normal-form model , for example . 
+	</s>
+	
+
+	<s id="173">
+		 However , one of the disadvantages of the dependency model is that the estimation process is already using a large proportion of our existing resources , and extending the feature set will further increase the execution time and memory requirement of the estimation algorithm . 
+	</s>
+	
+
+	<s id="174">
+		 We have also shown that a normal-form model performs as well as the dependency model . 
+	</s>
+	
+
+	<s id="175">
+		 There are a number of advantages to the normal-form model : it requires less space and time resources for estimation and it produces a faster parser . 
+	</s>
+	
+
+	<s id="176">
+		 Our normal-form parser significantly outperforms the parser of 
+		<ref citStr="Clark et al . ( 2002 )" id="51" label="OJPN" position="32505">
+			Clark et al . ( 2002 )
+		</ref>
+		 and produces results at least as good as the current state-of-the-art for CCG parsing . 
+	</s>
+	
+
+	<s id="177">
+		 The use of adaptive supertagging and the normal-form constraints result in a very efficient wide-coverage parser . 
+	</s>
+	
+
+	<s id="178">
+		 Our system demonstrates that accurate and efficient wide-coverage CCG parsing is feasible . 
+	</s>
+	
+
+	<s id="179">
+		 Future work will investigate extending the feature sets used by the log-linear models with the aim of further increasing parsing accuracy . 
+	</s>
+	
+
+	<s id="180">
+		 Finally , the oracle results suggest that further experimentation with the supertagger will significantly improve parsing accuracy , efficiency and robustness . 
+	</s>
+	
+
+	<s id="181">
+		 Acknowledgements We would like to thank Julia Hockenmaier for the use of CCGbank and helpful comments , and Mark Steedman for guidance and advice . 
+	</s>
+	
+
+	<s id="182">
+		 Jason Baldridge , Frank Keller , Yuval Krymolowski and Miles Osborne provided useful feedback . 
+	</s>
+	
+
+	<s id="183">
+		 This work was supported by EPSRC grant GR/M96889 , and a Commonwealth scholarship and a Sydney University Travelling scholarship to the second author . 
+	</s>
+	
+
+	<s id="184">
+		 References Adam Berger , Stephen Della Pietra , and Vincent Della Pietra . 
+	</s>
+	
+
+	<s id="185">
+		 1996. A maximum entropy approach to natural language processing . 
+	</s>
+	
+
+	<s id="186">
+		 Computational Linguistics , 22(1):39–71 . 
+	</s>
+	
+
+	<s id="187">
+		 Stanley Chen and Ronald Rosenfeld . 
+	</s>
+	
+
+	<s id="188">
+		 1999. A Gaussian prior for smoothing maximum entropy models . 
+	</s>
+	
+
+	<s id="189">
+		 Technical report , Carnegie Mellon University , Pittsburgh , PA . 
+	</s>
+	
+
+	<s id="190">
+		 Stephen Clark and James R. Curran . 
+	</s>
+	
+
+	<s id="191">
+		 2003. Log-linear models for wide-coverage CCG parsing . 
+	</s>
+	
+
+	<s id="192">
+		 In Proceedings of the EMNLP Conference , pages 97–104 , Sapporo , Japan . 
+	</s>
+	
+
+	<s id="193">
+		 Stephen Clark and James R. Curran . 
+	</s>
+	
+
+	<s id="194">
+		 2004. The importance of supertagging for wide-coverage CCG parsing . 
+	</s>
+	
+
+	<s id="195">
+		 In Proceedings of COLING-04 , Geneva , Switzerland . 
+	</s>
+	
+
+	<s id="196">
+		 Stephen Clark , Julia Hockenmaier , and Mark Steedman . 
+	</s>
+	
+
+	<s id="197">
+		 2002. Building deep dependency structures with a wide-coverage CCG parser . 
+	</s>
+	
+
+	<s id="198">
+		 In Proceedings of the 40th Meeting of the ACL , pages 327–334 , Philadelphia , PA . 
+	</s>
+	
+
+	<s id="199">
+		 Michael Collins . 
+	</s>
+	
+
+	<s id="200">
+		 1996. A new statistical parser based on bigram lexical dependencies . 
+	</s>
+	
+
+	<s id="201">
+		 In Proceedings of the 34th Meeting of the ACL , pages 184–191 , Santa Cruz , CA . 
+	</s>
+	
+
+	<s id="202">
+		 James R. Curran and Stephen Clark . 
+	</s>
+	
+
+	<s id="203">
+		 2003. Investigating GIS and smoothing for maximum entropy taggers . 
+	</s>
+	
+
+	<s id="204">
+		 In Proceedings of the 10th Meeting of the EACL , pages 91–98 , Budapest , Hungary . 
+	</s>
+	
+
+	<s id="205">
+		 Jason Eisner . 
+	</s>
+	
+
+	<s id="206">
+		 1996. Efficient normal-form parsing for Combinatory Categorial Grammar . 
+	</s>
+	
+
+	<s id="207">
+		 In Proceedings of the 34th Meeting of the ACL , pages 79–86 , Santa Cruz , CA . 
+	</s>
+	
+
+	<s id="208">
+		 Daniel Gildea . 
+	</s>
+	
+
+	<s id="209">
+		 2001. Corpus variation and parser performance . 
+	</s>
+	
+
+	<s id="210">
+		 In Proceedings of the EMNLP Conference , pages 167–202 , Pittsburgh , PA . 
+	</s>
+	
+
+	<s id="211">
+		 Joshua Goodman . 
+	</s>
+	
+
+	<s id="212">
+		 1996. Parsing algorithms and metrics . 
+	</s>
+	
+
+	<s id="213">
+		 In Proceedings of the 34th Meeting of the ACL , pages 177–183 , Santa Cruz , CA . 
+	</s>
+	
+
+	<s id="214">
+		 Julia Hockenmaier and Mark Steedman . 
+	</s>
+	
+
+	<s id="215">
+		 2002. Generative models for statistical parsing with Combinatory Categorial Grammar . 
+	</s>
+	
+
+	<s id="216">
+		 In Proceedings of the 40th Meeting ofthe ACL , pages 335–342 , Philadelphia , PA . 
+	</s>
+	
+
+	<s id="217">
+		 Julia Hockenmaier . 
+	</s>
+	
+
+	<s id="218">
+		 2003a . 
+	</s>
+	
+
+	<s id="219">
+		 Data and Models for Statistical Parsing with Combinatory Categorial Grammar . 
+	</s>
+	
+
+	<s id="220">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="221">
+		 thesis , University of Edinburgh . 
+	</s>
+	
+
+	<s id="222">
+		 Julia Hockenmaier . 
+	</s>
+	
+
+	<s id="223">
+		 2003b . 
+	</s>
+	
+
+	<s id="224">
+		 Parsing with generative models of predicate-argument structure . 
+	</s>
+	
+
+	<s id="225">
+		 In Proceedings of the 41st Meeting of the ACL , pages 359–366 , Sapporo , Japan . 
+	</s>
+	
+
+	<s id="226">
+		 Yusuke Miyao and Jun’ichi Tsujii . 
+	</s>
+	
+
+	<s id="227">
+		 2002. Maximum entropy estimation for feature forests . 
+	</s>
+	
+
+	<s id="228">
+		 In Proceedings of the Human Language Technology Conference , San Diego , CA . 
+	</s>
+	
+
+	<s id="229">
+		 Jorge Nocedal and Stephen J. Wright . 
+	</s>
+	
+
+	<s id="230">
+		 1999. Numerical Optimization . 
+	</s>
+	
+
+	<s id="231">
+		 Springer , New York , USA . 
+	</s>
+	
+
+	<s id="232">
+		 Stefan Riezler , Tracy H. King , Ronald M. Kaplan , Richard Crouch , John T. Maxwell III , and Mark Johnson . 
+	</s>
+	
+
+	<s id="233">
+		 2002. Parsing the Wall Street Journal using a Lexical-Functional Grammar and discriminative estimation techniques . 
+	</s>
+	
+
+	<s id="234">
+		 In Proceedings of the 40th Meeting of the ACL , pages 271–278 , Philadelphia , PA . 
+	</s>
+	
+
+	<s id="235">
+		 Fei Sha and Fernando Pereira . 
+	</s>
+	
+
+	<s id="236">
+		 2003. Shallow parsing with conditional random fields . 
+	</s>
+	
+
+	<s id="237">
+		 In Proceedings of the HLT/NAACL Conference , pages 213–220 , Edmonton , Canada . 
+	</s>
+	
+
+	<s id="238">
+		 Mark Steedman . 
+	</s>
+	
+
+	<s id="239">
+		 2000. The Syntactic Process . 
+	</s>
+	
+
+	<s id="240">
+		 The MIT Press , Cambridge , MA . 
+	</s>
+	
+
+	<s id="241">
+		 Kristina Toutanova , Christopher Manning , Stuart Shieber , Dan Flickinger , and Stephan Oepen . 
+	</s>
+	
+
+	<s id="242">
+		 2002. Parse disambiguation for a rich HPSG grammar . 
+	</s>
+	
+
+	<s id="243">
+		 In Proceedings of the First Workshop on Treebanks and Linguistic Theories , pages 253–263 , Sozopol , Bulgaria . 
+	</s>
+	
+
+
+</acldoc>

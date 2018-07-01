@@ -1,0 +1,1793 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1009">
+	
+
+	<s id="1">
+		 Developing A Flexible Spoken Dialog System Using Simulation Grace Chung Corporation for National Research Initiatives 1895 Preston White Drive , Suite 100 Reston , VA , 20191 gchung@cnri.reston.va.us Abstract In this paper , we describe a new methodology to develop mixed-initiative spoken dialog systems , which is based on the extensive use of simulations to accelerate the development process . 
+	</s>
+	
+
+	<s id="2">
+		 With the help of simulations , a system providing information about a database of nearly 1000 restaurants in the Boston area has been developed . 
+	</s>
+	
+
+	<s id="3">
+		 The simulator can produce thousands of unique dialogs which benefit not only dialog development but also provide data to train the speech recognizer and understanding components , in preparation for real user interactions . 
+	</s>
+	
+
+	<s id="4">
+		 Also described is a strategy for creating cooperative responses to user queries , incorporating an intelligent language generation capability that produces content-dependent verbal descriptions of listed items . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction Spoken dialog systems have traditionally been difficult to instantiate because of the extensive efforts required for configuring each component from the natural language ( NL ) understanding to the domain- specific context tracking and dialog engines . 
+	</s>
+	
+
+	<s id="6">
+		 This task is particularly involved when building systems that empower users with greater flexibility at the spoken input via mixed-initiative interaction 
+		<ref citStr="Zue et al. , 2000" id="1" label="CEPF" position="1452">
+			( Zue et al. , 2000 
+		</ref>
+		<ref citStr="Ferguson and Allen , 1998" id="2" label="CEPF" position="1472">
+			; Ferguson and Allen , 1998 )
+		</ref>
+		 , and systems that enable querying across large and frequently changing databases . 
+	</s>
+	
+
+	<s id="7">
+		 The goal of this work is to assemble natural spoken dialog interfaces that enable flexible interactions through mixed initiative dialog and cooperative responses . 
+	</s>
+	
+
+	<s id="8">
+		 Such interfaces aim to help users navigate large information spaces such as on-line databases . 
+	</s>
+	
+
+	<s id="9">
+		 Conventional systems generally guide the users through a series of scripted prompts , either through This research is sponsored in part by SPAWAR SSC-SD . 
+	</s>
+	
+
+	<s id="10">
+		 The content of this paper does not necessarily reflect the position or policy of the Government , and no official endorsement should be inferred . 
+	</s>
+	
+
+	<s id="11">
+		 User : Are there any Thai restaurants ? 
+	</s>
+	
+
+	<s id="12">
+		 System : Can you provide a neighborhood or city ? 
+	</s>
+	
+
+	<s id="13">
+		 Boston . 
+	</s>
+	
+
+	<s id="14">
+		 User : There are 21 entries found . 
+	</s>
+	
+
+	<s id="15">
+		 Can you be more specific ? 
+	</s>
+	
+
+	<s id="16">
+		 System : A restaurant in Dorchester . 
+	</s>
+	
+
+	<s id="17">
+		 User : System : There are no Thai restaurants in Dorchester . 
+	</s>
+	
+
+	<s id="18">
+		 Is there anything else I can help you with ? 
+	</s>
+	
+
+	<s id="19">
+		 User : System : What about in the South End ? 
+	</s>
+	
+
+	<s id="20">
+		 There are 2 entries found . 
+	</s>
+	
+
+	<s id="21">
+		 Thai Village and House of Siam . 
+	</s>
+	
+
+	<s id="22">
+		 Table 1 : Example human-computer dialog . 
+	</s>
+	
+
+	<s id="23">
+		 a finite-state grammar or a dialog control table . 
+	</s>
+	
+
+	<s id="24">
+		 In Table 1 , the system prompts present a sequence of questions in an attempt to solicit more constraints from the user , with the goal of obtaining a small data subset from the database . 
+	</s>
+	
+
+	<s id="25">
+		 The system responses are generated from a set of rules that only anticipate one of a handful of situations : ( 1 ) when the set of entries returned is too large , ( 2 ) the set of entries is adequately small to enumerate , and ( 3 ) no available entries have been returned . 
+	</s>
+	
+
+	<s id="26">
+		 A more flexible scenario would allow the user to browse the content by specifying one or more constraints in any order . 
+	</s>
+	
+
+	<s id="27">
+		 The system should then return a succinct summary of the content upon user specification of each constraint . 
+	</s>
+	
+
+	<s id="28">
+		 This would provide improved feedback to the user about the available choices so far , guards against stilted conversations with a fixed number of dialog turns for every interaction , and mitigates against repeated scenarios where user queries return no items . 
+	</s>
+	
+
+	<s id="29">
+		 However , much effort is then required in configuring the numerous scenarios for users to make sequences of queries in various orders . 
+	</s>
+	
+
+	<s id="30">
+		 User queries are likely to differ if the database contents shift over time , changing the frequency and availability of certain entries . 
+	</s>
+	
+
+	<s id="31">
+		 Furthermore , there remains the well-known “chicken-andegg” problem of obtaining real-user data . 
+	</s>
+	
+
+	<s id="32">
+		 With no real examples of human-computer interactions , it is difficult for developers to instantiate and configure a robust system . 
+	</s>
+	
+
+	<s id="33">
+		 Yet without a reasonably operational system , it is equally difficult to convince real users to generate dialogs , particularly those which achieve successful completion . 
+	</s>
+	
+
+	<s id="34">
+		 Hence , the usual development process consists of multiple iterations of expensive data collections and incremental system improvements . 
+	</s>
+	
+
+	<s id="35">
+		 This paper presents an alternative paradigm for designing such a spoken dialog system . 
+	</s>
+	
+
+	<s id="36">
+		 Our methodology employs simulations to reduce the time and effort required to build the system . 
+	</s>
+	
+
+	<s id="37">
+		 Simulations facilitate prototyping and testing of an initial version of the system that automatically produces cooperative responses to user queries . 
+	</s>
+	
+
+	<s id="38">
+		 We advocate the use of a suite of simulation techniques to create large numbers of synthetic user interactions with the system , including both typed and spoken inputs , where the speech is generated using a speech synthesizer . 
+	</s>
+	
+
+	<s id="39">
+		 The resulting dialogs can be used to ( 1 ) diagnose the system for any problematic interactions , ( 2 ) enable a developer to examine system responses for large numbers of possible user queries , and ( 3 ) create an initial corpus for training the language models and probabilistic NL grammar . 
+	</s>
+	
+
+	<s id="40">
+		 Thus , the initial phase of development comprises simulating hundreds of dialogs and iterative refinements prior to real-user data collection . 
+	</s>
+	
+
+	<s id="41">
+		 In the next sections , we first describe our spoken dialog system architecture . 
+	</s>
+	
+
+	<s id="42">
+		 This is followed by a description of a simulator , which operates in concert with a language generation system to output synthetic user queries . 
+	</s>
+	
+
+	<s id="43">
+		 We elaborate on how the architecture can simulate coherent dialogs , and can be tuned to simulate a cooperative or uncooperative user . 
+	</s>
+	
+
+	<s id="44">
+		 Then , methods for generating cooperative responses for a restaurant information domain are described . 
+	</s>
+	
+
+	<s id="45">
+		 We detail how simulations have accelerated these developments . 
+	</s>
+	
+
+	<s id="46">
+		 2 System Architecture with Simulator Figure 1 depicts a spoken dialog system architecture functioning with simulator components , which create synthetic user inputs . 
+	</s>
+	
+
+	<s id="47">
+		 Simulations can be customized to generate in text or speech mode . 
+	</s>
+	
+
+	<s id="48">
+		 In text mode , text utterances are treated as user inputs to the understanding components . 
+	</s>
+	
+
+	<s id="49">
+		 The dialog manager creates reply frames that encode information for generating the system reply string . 
+	</s>
+	
+
+	<s id="50">
+		 These are also used by the simulator for selecting a random user response in the next turn . 
+	</s>
+	
+
+	<s id="51">
+		 In speech mode , synthetic waveforms are created and recognized by the speech recognizer , yielding an -best list for the understanding components . 
+	</s>
+	
+
+	<s id="52">
+		 Figure 1 : A spoken dialog system architecture integrated with user simulation components . 
+	</s>
+	
+
+	<s id="53">
+		 Examples and experiments in this paper are drawn from a Boston restaurant information system . 
+	</s>
+	
+
+	<s id="54">
+		 Obtained from an on-line source , the content offers information for 863 restaurants , located in 106 cities in the Boston metropolitan area ( e.g. , Newton , Cambridge ) and 45 neighborhoods ( e.g. , Back Bay , South End ) . 
+	</s>
+	
+
+	<s id="55">
+		 Individual restaurant entries are associated with detailed information such as cuisines , phone numbers , opening hours , credit-card acceptance , price range , handicap accessibility , and menu offerings . 
+	</s>
+	
+
+	<s id="56">
+		 Additionally , latitude and longitude information for each restaurant location have been obtained . 
+	</s>
+	
+
+	<s id="57">
+		 2.1 Instantiation of a System The concept of driving the instantiation of a dialog system from the data source was described in 
+		<ref citStr="Polifroni et al. , 2003" id="3" label="CERF" position="7969">
+			( Polifroni et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="58">
+		 In the following , the steps envisioned for creating an initial prototype starting with on-line content are summarized below : 1 . 
+	</s>
+	
+
+	<s id="59">
+		 Combing the web for database content 2 . 
+	</s>
+	
+
+	<s id="60">
+		 Identifying the relevant set of keys associated with the domain , and mapping to the information parsed from the content originator 3 . 
+	</s>
+	
+
+	<s id="61">
+		 Creating an NL grammar covering possible domain queries 4 . 
+	</s>
+	
+
+	<s id="62">
+		 Configuring the discourse and dialog components for an initial set of interactions 5 . 
+	</s>
+	
+
+	<s id="63">
+		 Defining templates for system responses The above steps are sufficient for enabling a working prototype to communicate with the proposed simulator in text mode . 
+	</s>
+	
+
+	<s id="64">
+		 The next phase will involve iteratively running simulated dialogs and refinements on the spoken dialog system , followed by Speech Recognizer Language Generation Simulation Architecture Simulator Simulated Semantic Frame Simulated User Text System Reply String NL Understanding &amp; Context Resolution Language Generation Reply Frame Semantic Frame Dialog Management Database Simulated User Speech Waveform Synthesizer Dialog System Architecture Table 2 : Example summary frame derived from the system reply frame . 
+	</s>
+	
+
+	<s id="65">
+		 examination of successive corpora of simulated dialogs . 
+	</s>
+	
+
+	<s id="66">
+		 Later phases will then incorporate the speech recognition and text-to-speech components . 
+	</s>
+	
+
+	<s id="67">
+		 2.2 Simulation with User Modeling The simulator , Figure 1 , is composed of several modular components . 
+	</s>
+	
+
+	<s id="68">
+		 The core simulator accepts reply frames from the dialog system , and produces a meaning representation of the next synthetic user response . 
+	</s>
+	
+
+	<s id="69">
+		 A text generation component paraphrases the meaning representation into a text string . 
+	</s>
+	
+
+	<s id="70">
+		 In text mode , this poses as a typed user input , whereas in speech mode , the text is passed to a synthesizer as part of a synthesize/recognize cycle . 
+	</s>
+	
+
+	<s id="71">
+		 Configuring a simulation for any domain involves customizing a simple external text file to control the behavior of the domain-independent simulator module , and tailoring text generation rules to output a variety of example user input sentences from the meaning representation . 
+	</s>
+	
+
+	<s id="72">
+		 One simulated dialog would commence with an initial query such as “what restaurants do you provide?” . 
+	</s>
+	
+
+	<s id="73">
+		 The synthetic user makes successive queries that constrain the search to data subsets . 
+	</s>
+	
+
+	<s id="74">
+		 It may ( 1 ) continue to browse more data subsets , or ( 2 ) when a small list of data entries is in focus , choose to query attributes pertaining to one or more individual items , or ( 3 ) terminate the conversation . 
+	</s>
+	
+
+	<s id="75">
+		 The entire system is run continuously through hundreds of dialogs to produce log files of user and system sentences , and dialog information for subsequent analyses . 
+	</s>
+	
+
+	<s id="76">
+		 The simulator also generates generic kinds of statements such as asking for help , repeat and clearing the dialog history . 
+	</s>
+	
+
+	<s id="77">
+		 2.2.1 Generation of Semantic Frames The simulator takes input from the system- generated reply frame , and outputs a flat semantic frame , encapsulating the meaning representation of the next intended user query . 
+	</s>
+	
+
+	<s id="78">
+		 The system reply frame contains the essential entities , used in the paraphrase for creating the system prompt . 
+	</s>
+	
+
+	<s id="79">
+		 But also , a sub-frame , shown in Figure 2 , retains pre- Select A Key and Value c summary :count 14 :categories ( c cuisine :ordered counts ( 4 2 2 2 ... :ordered values ( “american” “indian” .. c price range :ordered counts ( 7 2 2 1 ) :ordered values ( “cheap” “low” “medium” .. Load History Frame No Use System Reply Frame ? 
+	</s>
+	
+
+	<s id="80">
+		 Set Size &lt; N ? 
+	</s>
+	
+
+	<s id="81">
+		 No Begin Yes Yes Select Database Item &amp; Key Output Frame Terminate ? 
+	</s>
+	
+
+	<s id="82">
+		 No Yes Terminate Frame Figure 2 : A schematic showing the decision making procedure for the simulator . 
+	</s>
+	
+
+	<s id="83">
+		 computed counts associated with the frequency of occurrence of values for every key pertaining to the data subset within the discourse focus . 
+	</s>
+	
+
+	<s id="84">
+		 During the browsing stage , the simulator randomly selects a key ( e.g , a cuisine ) from the given frame , and then makes a random selection on the value , ( e.g. , “Chinese.” ) . 
+	</s>
+	
+
+	<s id="85">
+		 The simulator may choose one or more of these key-value pairs as constraints to narrow the search . 
+	</s>
+	
+
+	<s id="86">
+		 For each key , more than one value from the list of possible values may be specified , ( e.g. , querying for “Chinese or Japanese restaurants.” ) . 
+	</s>
+	
+
+	<s id="87">
+		 When querying about individual restaurants , the simulator randomly selects one restaurant entry from a small list , and then seeks to obtain the value for one key characteristic for a restaurant entry . 
+	</s>
+	
+
+	<s id="88">
+		 For example , this could be a phone number or an address . 
+	</s>
+	
+
+	<s id="89">
+		 Figure 2 illustrates the decision making performed by the simulator at each turn . 
+	</s>
+	
+
+	<s id="90">
+		 At each decision point , the system “throws the dice” to determine how to proceed , for example , whether to select an additional key for constraint within the same turn , and whether to persist in querying about the available attributes of the small list of restaurants or to start over . 
+	</s>
+	
+
+	<s id="91">
+		 The behavior of the simulator at each decision point can be tuned from an external text file , which allows the following to be specified : Probability of combining several constraints into a single query Probability of querying a different value for a previous key versus selecting from among other keys presented by the reply frame No Output Frame Select Another Key ? 
+	</s>
+	
+
+	<s id="92">
+		 Yes Probability of continued querying of the attributes of restaurants from a list of one or more restaurants Probability of the user changing his goals , hence querying with alternative constraints A simple user model is maintained by the simulator to track the key-value pairs that have already been queried in the current dialog . 
+	</s>
+	
+
+	<s id="93">
+		 This tracks the dialog history so as to enable the synthetic user to further query about a previously mentioned item . 
+	</s>
+	
+
+	<s id="94">
+		 It also prevents the dialog from cycling indefinitely through the same combinations of constraints , helping to make the dialog more coherent . 
+	</s>
+	
+
+	<s id="95">
+		 The external configuration file can effectively tune the level of cooperative behavior for the synthetic user . 
+	</s>
+	
+
+	<s id="96">
+		 If the synthetic user selects a single key- value pair from the reply frame at each turn , a non- empty and successively smaller data subset is guaranteed to result at each turn . 
+	</s>
+	
+
+	<s id="97">
+		 Moreover , selections can be configured to bias towards frequencies of instance values . 
+	</s>
+	
+
+	<s id="98">
+		 The basis for this stems from the hypothesis that locations populated with more restaurants are likely to be queried . 
+	</s>
+	
+
+	<s id="99">
+		 That is , the statistics of the database instances can directly reflect on the distribution of user queries . 
+	</s>
+	
+
+	<s id="100">
+		 For instance , users are more likely to query about , “Chinese restaurants in Chinatown.” Hence , the output dialogs may be more suitable for training language models . 
+	</s>
+	
+
+	<s id="101">
+		 Alternatively , the synthetic user may be configured to select random combinations of various keys and values from the current or stored summary frame at a turn . 
+	</s>
+	
+
+	<s id="102">
+		 Under these circumstances , the subsequent database retrieval may yield no data for those particular combinations of constraints . 
+	</s>
+	
+
+	<s id="103">
+		 2.2.2 Generation of Simulated Utterances Each semantic frame is input to Genesis , a text generation module 
+		<ref citStr="Seneff , 2002" id="4" label="OEPF" position="15380">
+			( Seneff , 2002 )
+		</ref>
+		 , to output a synthetic user utterance . 
+	</s>
+	
+
+	<s id="104">
+		 Genesis executes surface-form generation via recursive generation rules and an associated lexicon . 
+	</s>
+	
+
+	<s id="105">
+		 A recent addition to Genesis is the ability to randomly generate one of several variant sentences for the same semantic frame . 
+	</s>
+	
+
+	<s id="106">
+		 A developer can specify several rules for each linguistic entity allowing the generator to randomly select one . 
+	</s>
+	
+
+	<s id="107">
+		 Due to the hierarchical nature of these templates , numerous output sentences can be produced from a single semantic frame , with only a few variants specified for each rule . 
+	</s>
+	
+
+	<s id="108">
+		 Table 3 depicts example semantic frames and corresponding sample sentences from the simulator . 
+	</s>
+	
+
+	<s id="109">
+		 In total , the full corpus of simulated sentences are generated from approximately 55 hand-written rules in the restaurants domain . 
+	</s>
+	
+
+	<s id="110">
+		 These rules distinguish themselves from previous text generation tasks by the incorporation of spontaneous speech phenomena such as filled pauses and fragments . 
+	</s>
+	
+
+	<s id="111">
+		 In the initial phase , this small rules set is not systematically mined from any existing corpora , but is handcrafted by the developer . 
+	</s>
+	
+
+	<s id="112">
+		 However , it may be possible in future to incorporate both statistics and observations learned from real data to augment the generation rules . 
+	</s>
+	
+
+	<s id="113">
+		 2.2.3 Synthetic User Waveforms A concatenative speech synthesizer 
+		<ref citStr="Yi et al. , 2000" id="5" label="CEPF" position="16788">
+			( Yi et al. , 2000 )
+		</ref>
+		 is used to synthesize the simulated user utterances for this domain . 
+	</s>
+	
+
+	<s id="114">
+		 The parameters and concatenative units employed in this synthesizer were tailored for a previous domain , and therefore , the naturalness and intelligibility of the output waveforms are expected to be poor . 
+	</s>
+	
+
+	<s id="115">
+		 However , the occurrence of some recognition errors may help in assessing their impact on the system . 
+	</s>
+	
+
+	<s id="116">
+		 3 Cooperative Response Strategies We have aimed to design a more cooperative spoken dialog system in two respects . 
+	</s>
+	
+
+	<s id="117">
+		 First , the information is delivered so that at each turn a dynamic summary of the database items in focus is presented . 
+	</s>
+	
+
+	<s id="118">
+		 Secondly , the dialog manager is augmented with a domain-independent algorithm to handle over-constrained queries . 
+	</s>
+	
+
+	<s id="119">
+		 The system gives alternative suggestions that are integrated with the dynamic summaries . 
+	</s>
+	
+
+	<s id="120">
+		 3.1 Flexible System Responses Response planning is performed both in the dialog management and the language generator , Genesis . 
+	</s>
+	
+
+	<s id="121">
+		 To enable flexible responses , and avoid rigid system prompts , the dialog manager accesses the database at every turn with the current set of user-specified constraints in focus . 
+	</s>
+	
+
+	<s id="122">
+		 With this data subset returned , a data refinement server 
+		<ref citStr="Polifroni et al. , 2003" id="6" label="OEPF" position="18091">
+			( Polifroni et al. , 2003 )
+		</ref>
+		 then computes frequency characteristics of relevant keys for the subset . 
+	</s>
+	
+
+	<s id="123">
+		 This is incorporated into the system reply frame as shown in Table 2 . 
+	</s>
+	
+
+	<s id="124">
+		 Following this , Genesis provides a summary of the characteristics of the data set , utilizing context information provided by the dialog manager and the frequency statistics . 
+	</s>
+	
+
+	<s id="125">
+		 Genesis provides control on how to summarize the data linguistically via explicit rules files . 
+	</s>
+	
+
+	<s id="126">
+		 The developer can specify variables , , and which control how lists of items are summarized , separately for different classes of data . 
+	</s>
+	
+
+	<s id="127">
+		 If the number of items is under , all options are enumerated . 
+	</s>
+	
+
+	<s id="128">
+		 If the top frequency counts cover more than of the data , then these categories will be suggested , ( e.g. “Some choices are Italian Frame Example Sentences c seek I’m interested in some low end restaurants in Back Bay please . 
+	</s>
+	
+
+	<s id="129">
+		 Inexpensive restaurants in Back Bay . 
+	</s>
+	
+
+	<s id="130">
+		 :neighborhood “Back Bay” :price range “low” Okay a cheap restaurant in Back Bay . 
+	</s>
+	
+
+	<s id="131">
+		 uh Are there any cheap restaurants in Back Bay ? 
+	</s>
+	
+
+	<s id="132">
+		 c request property :property ”hours” :name ”Emma’s” Can you please tell me the hours for Emma’s ? 
+	</s>
+	
+
+	<s id="133">
+		 When is Emma’s open ? 
+	</s>
+	
+
+	<s id="134">
+		 Well what are the hours for Emma’s ? 
+	</s>
+	
+
+	<s id="135">
+		 Okay then what are the opening hours of Emma’s ? 
+	</s>
+	
+
+	<s id="136">
+		 Table 3 : Sample semantic frames from the simulator , along with examples of generated sentence outputs . 
+	</s>
+	
+
+	<s id="137">
+		 For each example frame above , hundreds of simulated variant sentences can be obtained . 
+	</s>
+	
+
+	<s id="138">
+		 and Chinese.” ) . 
+	</s>
+	
+
+	<s id="139">
+		 Alternatively , summaries can indicate values that are missing or common across the set , ( e.g. “All of them are cheap.” ) . 
+	</s>
+	
+
+	<s id="140">
+		 By accessing the database and then examining the data subset at each turn , the system informs the user with a concise description of the choices available at that point in the dialog . 
+	</s>
+	
+
+	<s id="141">
+		 This is a more flexible alternative than following a script of prompts where in the end the user may arrive at an empty set . 
+	</s>
+	
+
+	<s id="142">
+		 Moreover , we argue that performing the summary in real time yields greater robustness against changes in the database contents . 
+	</s>
+	
+
+	<s id="143">
+		 3.2 Dialog Management The domain-independent dialog manager is configurable via an external dialog control table . 
+	</s>
+	
+
+	<s id="144">
+		 A set of generic functions are triggered by logical conditions specified in formal rules , where typically several rules fire in each turn . 
+	</s>
+	
+
+	<s id="145">
+		 The dialog manager has been extended to handle scenarios in which the user constraints yield an empty set . 
+	</s>
+	
+
+	<s id="146">
+		 The aim is to avoid simply stating that no data items were found , without providing some guidance on how the user could re-formulate his query . 
+	</s>
+	
+
+	<s id="147">
+		 Domain-independent routines relax the constraints using a set of pre-defined and configurable criteria . 
+	</s>
+	
+
+	<s id="148">
+		 Alternate methods for relaxing constraints are : If a geographical key has been specified , relax the value according to a geography ontology . 
+	</s>
+	
+
+	<s id="149">
+		 For instance , if a particular street name has been specified , the relaxation generates a subsuming neighborhood constraint in place of the street name . 
+	</s>
+	
+
+	<s id="150">
+		 If a geographical key has been specified , remove the geographical constraint and search for the nearest item that satisfies the remaining constraints . 
+	</s>
+	
+
+	<s id="151">
+		 The algorithm computes the nearest item according to the central latitude/longitude coordinates of the neighborhood or city . 
+	</s>
+	
+
+	<s id="152">
+		 Relax the key-value with alternative values that have been set to defaults in an external file . 
+	</s>
+	
+
+	<s id="153">
+		 For instance , if a Vietnamese restaurant is not available at all , the system relaxes the query to alternative Asian cuisines . 
+	</s>
+	
+
+	<s id="154">
+		 Choose the one constraint to remove that produces the smallest data subset to speak about . 
+	</s>
+	
+
+	<s id="155">
+		 If no one constraint is able to produce a non- empty set , successively remove more constraints . 
+	</s>
+	
+
+	<s id="156">
+		 The rationale for finding a constraint combination that produces a small data set , is to avoid suggesting very general alternatives : for instance , suggesting and summarizing the “337 cheap restaurants” when “cheap fondue restaurants” were requested . 
+	</s>
+	
+
+	<s id="157">
+		 The routine will attempt to apply each of these relaxation techniques in turn until a non-zero data set can be attained . 
+	</s>
+	
+
+	<s id="158">
+		 4 Experiments 4.1 Simulations in Text Mode The first stage of development involved iteratively running the system in text mode and inspecting log files of the generated interactions for problems . 
+	</s>
+	
+
+	<s id="159">
+		 This development cycle was particularly useful for extending the coverage of the NL parser and ensuring the proper operation of the end-to-end system . 
+	</s>
+	
+
+	<s id="160">
+		 Simulations have helped diagnose initial problems overlooked in the rule-based mechanisms for context tracking ; this has served to ensure correct inheritance of attributes given the many permutations of sequences of input sentences that are possible within a single conversation . 
+	</s>
+	
+
+	<s id="161">
+		 This is valuable because in such a mixed-initiative system , the user is free to change topics and specify new parameters at any time . 
+	</s>
+	
+
+	<s id="162">
+		 For instance , a user may or may not follow up with suggestions for restaurants offered by the system . 
+	</s>
+	
+
+	<s id="163">
+		 In fact , the user could continue to modify any of the constraints previously specified in the conversation or query any attributes for an alternate newly spoken restaurant . 
+	</s>
+	
+
+	<s id="164">
+		 There are vast numbers of dialog contexts that can result , and simulations have assisted greatly in detecting problems . 
+	</s>
+	
+
+	<s id="165">
+		 Furthermore , by generating many variations of possible user constraints , simulations have also helped identify initial problems in the summarization rules for system response generation . 
+	</s>
+	
+
+	<s id="166">
+		 The text generation component is handcrafted and benefits largely from examples of real queries to ensure their proper operation . 
+	</s>
+	
+
+	<s id="167">
+		 These kinds of problems would otherwise normally be encountered only after many user interactions have occurred . 
+	</s>
+	
+
+	<s id="168">
+		 Table 4 shows a typical simulated dialog . 
+	</s>
+	
+
+	<s id="169">
+		 In the interaction shown , the simulator provides one or more constraints at each turn . 
+	</s>
+	
+
+	<s id="170">
+		 It also selects alternative values according to the previous chosen key . 
+	</s>
+	
+
+	<s id="171">
+		 After the dialog has arrived at a small data set , the simulator randomly asks questions about individual items . 
+	</s>
+	
+
+	<s id="172">
+		 During one simulation run , we completed 2000 dialogs in text mode . 
+	</s>
+	
+
+	<s id="173">
+		 There were a total of 8147 input utterances , resulting in an average of 4.07 input utterances per dialog . 
+	</s>
+	
+
+	<s id="174">
+		 Of the input utterances , 5446 were unique . 
+	</s>
+	
+
+	<s id="175">
+		 These were generated from 3349 unique semantic frames . 
+	</s>
+	
+
+	<s id="176">
+		 There were 4320 unique system replies . 
+	</s>
+	
+
+	<s id="177">
+		 4.2 Simulating Over-Constrained Queries By configuring the simulator to query with multiple constraints in single turns , we were able to synthesize over-constrained queries , in which , initially , empty data sets were retrieved . 
+	</s>
+	
+
+	<s id="178">
+		 In earlier development cycles , simulated dialogs were crucial in finding combinations that yielded problematic responses due to over-constrained queries . 
+	</s>
+	
+
+	<s id="179">
+		 In one run after refinements , we tested 300 dialogs whereby two or more constraints were combined in each query by the simulator . 
+	</s>
+	
+
+	<s id="180">
+		 As a result , 113 queries necessitated the system to invoke the relaxation algorithm in order to present a suggested alternative data set . 
+	</s>
+	
+
+	<s id="181">
+		 Under all these cases , the system gave suggestions without fail . 
+	</s>
+	
+
+	<s id="182">
+		 Some examples of the replies are shown in Table 5 . 
+	</s>
+	
+
+	<s id="183">
+		 4.3 Simulation with Speech Recognition The next step is to implement the synthesize-andrecognize cycle whereby the text-to-speech output is directly piped to the recognition engine . 
+	</s>
+	
+
+	<s id="184">
+		 A speech recognizer 
+		<ref citStr="Glass , 2003" id="7" label="CEPF" position="25898">
+			( Glass , 2003 )
+		</ref>
+		 is built using the utterances produced by the text mode as training data for the language model . 
+	</s>
+	
+
+	<s id="185">
+		 This recognizer uses class -gram models . 
+	</s>
+	
+
+	<s id="186">
+		 With the training set of 8147 utterances , the perplexity of the bigram and trigram models are respectively 6.6 and 5.1 . 
+	</s>
+	
+
+	<s id="187">
+		 The speech recognizer , including the restaurant names contains 2325 vocab- SIm : SYS : What restaurants do you know ? 
+	</s>
+	
+
+	<s id="188">
+		 There are 863 restaurants . 
+	</s>
+	
+
+	<s id="189">
+		 Some of the options are American , Pizza , and Italian . 
+	</s>
+	
+
+	<s id="190">
+		 Most of them are located in Boston and Cambridge . 
+	</s>
+	
+
+	<s id="191">
+		 SIm : SYS : Any restaurants in Back Bay ? 
+	</s>
+	
+
+	<s id="192">
+		 There are 57 restaurants in Back Bay . 
+	</s>
+	
+
+	<s id="193">
+		 Many of them are American , and Nouvelle Cuisine . 
+	</s>
+	
+
+	<s id="194">
+		 SIm : SYS : So how about food in The South End ? 
+	</s>
+	
+
+	<s id="195">
+		 There are 42 restaurants in The South End . 
+	</s>
+	
+
+	<s id="196">
+		 They are mostly American , and Nouvelle Cuisine . 
+	</s>
+	
+
+	<s id="197">
+		 Many of them are located on Columbus Avenue , and Tremont Street . 
+	</s>
+	
+
+	<s id="198">
+		 SIm : SYS : I would like a moderately priced restaurant . 
+	</s>
+	
+
+	<s id="199">
+		 There are 9 medium priced restaurants in The South End . 
+	</s>
+	
+
+	<s id="200">
+		 Some of the options are Nouvelle Cuisine , and American . 
+	</s>
+	
+
+	<s id="201">
+		 Many of them are on Tremont Street and Appleton Street . 
+	</s>
+	
+
+	<s id="202">
+		 SIm : SYS : oh What about any cheap American restaurants ? 
+	</s>
+	
+
+	<s id="203">
+		 There are 7 cheap American restaurants in The South End . 
+	</s>
+	
+
+	<s id="204">
+		 They are located on Columbus Avenue , Tremont Street , Dartmouth Street , and Washington Street . 
+	</s>
+	
+
+	<s id="205">
+		 SIm : SYS : Columbus Avenue . 
+	</s>
+	
+
+	<s id="206">
+		 I have found 3 cheap American restaurants in The South End on Columbus Avenue . 
+	</s>
+	
+
+	<s id="207">
+		 Their names are Charlie’s Sandwich Shoppe , Bob The Chefs , and Grill Fish . 
+	</s>
+	
+
+	<s id="208">
+		 SIm : SYS : What is the phone number of first one ? 
+	</s>
+	
+
+	<s id="209">
+		 The phone number of Charlie’s Sandwich Shoppe is 617 536 7669 . 
+	</s>
+	
+
+	<s id="210">
+		 SIm : SYS : What is the price range for Grill Fish ? 
+	</s>
+	
+
+	<s id="211">
+		 The price range of Grill Fish is cheap . 
+	</s>
+	
+
+	<s id="212">
+		 Table 4 : Typical example of a simulated dialog . 
+	</s>
+	
+
+	<s id="213">
+		 SIm are the simulated inputs and SYS are the system responses . 
+	</s>
+	
+
+	<s id="214">
+		 ulary items . 
+	</s>
+	
+
+	<s id="215">
+		 The understanding component would select one sentence of an -best list output from the speech recognizer . 
+	</s>
+	
+
+	<s id="216">
+		 Presently , when a recognition error causes a hard parse failure in the understanding , the simulator is configured to output the same semantic frame as contained in the previous utterance . 
+	</s>
+	
+
+	<s id="217">
+		 This will cause the text generator to output a different variant of the same query . 
+	</s>
+	
+
+	<s id="218">
+		 If the parse failures occur multiple times in sequence , the simulated user aborts and terminates the dialog . 
+	</s>
+	
+
+	<s id="219">
+		 4.4 Results from Spoken Dialog System Our initial run of 36 dialogs yielded 213 sentences . 
+	</s>
+	
+
+	<s id="220">
+		 To simplify dialogs , the simulator is configured to specify just one constraint at each turn . 
+	</s>
+	
+
+	<s id="221">
+		 After the 1 . 
+	</s>
+	
+
+	<s id="222">
+		 Cheap Restaurants on Rowes Wharf : There are no cheap restaurants on Rowes Wharf . 
+	</s>
+	
+
+	<s id="223">
+		 However , there are in total 5 cheap restaurants in the Financial District . 
+	</s>
+	
+
+	<s id="224">
+		 They are on Broad Street , Post Office Square , Federal Street , and Bromfield Street . 
+	</s>
+	
+
+	<s id="225">
+		 2. Cheap Thai Restaurants in Dorchester : There are no cheap Thai restaurants in Dorchester . 
+	</s>
+	
+
+	<s id="226">
+		 However , there are in total 14 cheap Thai restaurants . 
+	</s>
+	
+
+	<s id="227">
+		 They are predominantly in Brighton , and The South End . 
+	</s>
+	
+
+	<s id="228">
+		 The nearest one is Thai Village in the South End . 
+	</s>
+	
+
+	<s id="229">
+		 It is less than 3 miles away from Dorchester . 
+	</s>
+	
+
+	<s id="230">
+		 3. Expensive Asian Restaurants on Hale Street : There are no high end Asian restaurants on Hale Street . 
+	</s>
+	
+
+	<s id="231">
+		 Alternatively Yanks serves high end American food . 
+	</s>
+	
+
+	<s id="232">
+		 It is located at 717 Hale Street in Beverly Farms . 
+	</s>
+	
+
+	<s id="233">
+		 Table 5 : Example summary responses from simulation generated over-constrained queries after relaxation of user constraints . 
+	</s>
+	
+
+	<s id="234">
+		 Various schemes for relaxation are shown . 
+	</s>
+	
+
+	<s id="235">
+		 ( 1 ) relaxes on the geographical location , ( 2 ) offers a nearest alternative , and ( 3 ) removes the cuisine constraint , outputting a single alternate selection . 
+	</s>
+	
+
+	<s id="236">
+		 data subset has been narrowed down to six items or less , the simulator queries focus on one of the six items . 
+	</s>
+	
+
+	<s id="237">
+		 For the 213 utterances , the recognition word error rate is 11.2 % , and the sentence error rate is 32.4 % . 
+	</s>
+	
+
+	<s id="238">
+		 Because the synthesizer is highly domain specific and was originally trained on another domain , the synthetic waveforms were in fact highly unnatural . 
+	</s>
+	
+
+	<s id="239">
+		 However , the relatively good recognition performance can be attributed to segmental units being well matched to the segment-based recognizer , an exact match to the trained -gram model and the lack of spontaneous speech phenomena such as disfluencies . 
+	</s>
+	
+
+	<s id="240">
+		 These 36 dialogs were analysed by hand . 
+	</s>
+	
+
+	<s id="241">
+		 All dialogs successfully arrived at some small data subset at termination , without aborting due to errors . 
+	</s>
+	
+
+	<s id="242">
+		 29 ( 80.1 % ) of the dialogs completed without errors , with the correct desired data set achieved . 
+	</s>
+	
+
+	<s id="243">
+		 Of the errorful dialogs , 3 exhibited problems due to recognition errors and 4 dialogs exhibited errors in the parse and context tracking mechanisms . 
+	</s>
+	
+
+	<s id="244">
+		 All the questions regarding querying of individual restaurants were answered correctly . 
+	</s>
+	
+
+	<s id="245">
+		 5 Discussion The above evaluations have been conducted on highly restricted scenarios in order to focus development on any fundamental problems that may exist in the system . 
+	</s>
+	
+
+	<s id="246">
+		 In all , large numbers of synthetic dialogs have helped us identify problems that in the past would have been discovered only after data collections , and possibly after many failed dialogs with frustrated real users . 
+	</s>
+	
+
+	<s id="247">
+		 The hope is that using simulation runs will improve system performance to a level such that the first collection of real user data will contain a reasonable rate of task success , ultimately providing a more useful training corpus . 
+	</s>
+	
+
+	<s id="248">
+		 Having eliminated many software problems , a final real user evaluation will be more meaningful . 
+	</s>
+	
+
+	<s id="249">
+		 6 Related Work Recently , researchers have begun to address the rapid prototyping of spoken dialog applications . 
+	</s>
+	
+
+	<s id="250">
+		 While some are concerned with the generation of systems from on-line content 
+		<ref citStr="Feng et al. , 2003" id="8" label="CEPF" position="32176">
+			( Feng et al. , 2003 )
+		</ref>
+		 , others have addressed portability issues within the dialog manager 
+		<ref citStr="Denecke et al. , 2002" id="9" label="CEPF" position="32271">
+			( Denecke et al. , 2002 )
+		</ref>
+		 and the understanding components 
+		<ref citStr="Dzikovska et al. , 2003" id="10" label="CEPF" position="32332">
+			( Dzikovska et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="251">
+		 Real user simulations have been employed in other areas of software engineering . 
+	</s>
+	
+
+	<s id="252">
+		 Various kinds of human-computer user interfaces can be evaluated for usability , via employing simulated human users 
+		<ref citStr="Riedl and St. Amant , 2002" id="11" label="CEPF" position="32552">
+			( Riedl and St. Amant , 2002 
+		</ref>
+		<ref citStr="Ritter and Young , 2001" id="12" label="CEPF" position="32581">
+			; Ritter and Young , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="253">
+		 These can range from web pages to cockpits and air traffic control systems . 
+	</s>
+	
+
+	<s id="254">
+		 Simulated users have also accounted for perceptual and cognitive models . 
+	</s>
+	
+
+	<s id="255">
+		 Previous work in dialog systems has addressed simulation techniques towards the goal of training and evaluation . 
+	</s>
+	
+
+	<s id="256">
+		 In 
+		<ref citStr="Scheffler and Young , 2000" id="13" label="CEPF" position="32945">
+			( Scheffler and Young , 2000 )
+		</ref>
+		 , extensive simulations incorporating user modeling were used to train a system to select dialog strategies in clarification sub-dialogs . 
+	</s>
+	
+
+	<s id="257">
+		 These simulations required collecting real-user data to build the user model . 
+	</s>
+	
+
+	<s id="258">
+		 Other researchers have used simulations for the evaluation of dialog systems 
+		<ref citStr="Hone and Baber , 1995" id="14" label="CEPF" position="33259">
+			( Hone and Baber , 1995 
+		</ref>
+		<ref citStr="Araki and Doshita , 1997" id="15" label="CEPF" position="33283">
+			; Araki and Doshita , 1997 
+		</ref>
+		<ref citStr="Lin and Lee , 2001" id="16" label="CEPF" position="33310">
+			; Lin and Lee , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="259">
+		 In 
+		<ref citStr="Lopez et al. , 2003" id="17" label="CEPN" position="33370">
+			( Lopez et al. , 2003 )
+		</ref>
+		 , recorded utterances with additive noise were used to run a dialog system in simulation-mode . 
+	</s>
+	
+
+	<s id="260">
+		 This was used to test alternate confirmation strategies under various recognition accuracies . 
+	</s>
+	
+
+	<s id="261">
+		 Their methods did require the recording of scripted user utterances , and hence were limited in the variations of user input . 
+	</s>
+	
+
+	<s id="262">
+		 Our specific goals have dealt with creating more cooperative and flexible responses in spoken dialog . 
+	</s>
+	
+
+	<s id="263">
+		 The issues of mismatch between user queries and database contents have been addressed by others in database systems 
+		<ref citStr="Gaasterland et al. , 1992" id="18" label="CEPF" position="33973">
+			( Gaasterland et al. , 1992 )
+		</ref>
+		 , while the potential for problems with dead-end dialogs caused by over-constrained queries have also been recognized and tackled in 
+		<ref citStr="Qu and Green , 2002" id="19" label="CEPF" position="34130">
+			( Qu and Green , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="264">
+		 7 Conclusions and Future Work The use of a simulator has greatly facilitated the development of our dialog system , with the availabil- ity of thousands of artificial dialogs . 
+	</s>
+	
+
+	<s id="265">
+		 Even relatively restricted synthetic dialogs have already accelerated development . 
+	</s>
+	
+
+	<s id="266">
+		 In the next phase , real user data collection will be conducted , along with full-scale evaluation . 
+	</s>
+	
+
+	<s id="267">
+		 We plan to compare the efficacy of our language models built from simulated data with those trained from real user data . 
+	</s>
+	
+
+	<s id="268">
+		 Future research will address issues of graceful recovery from recognition error . 
+	</s>
+	
+
+	<s id="269">
+		 We believe that the framework of using simulated dialogs possibly with synthesized speech input augmented with controlled levels of additive noise can be an effective way to develop and evaluate error recovery strategies . 
+	</s>
+	
+
+	<s id="270">
+		 Current methods for simulating dialogs are quite rudimentary . 
+	</s>
+	
+
+	<s id="271">
+		 The text only produces certain variants that have been observed but does not respect corpus statistics , nor , in the case of synthetic speech , do they account for spontaneous speech phenomena . 
+	</s>
+	
+
+	<s id="272">
+		 Improved simulations could use a set of indexed real speech waveforms invoked by the core simulator to create more realistic input . 
+	</s>
+	
+
+	<s id="273">
+		 The main functionalities in the simulator software are now customizable from an external file . 
+	</s>
+	
+
+	<s id="274">
+		 The simulator is domain independent and can be tailored for development of similar spoken dialog systems for browsing and navigating large databases . 
+	</s>
+	
+
+	<s id="275">
+		 However further work is needed to incorporate greater configurability to the dialog flow . 
+	</s>
+	
+
+	<s id="276">
+		 Increased flexibility for customizing the model of the dialog is needed to enable the software to be applied to the development of other kinds of dialog systems . 
+	</s>
+	
+
+	<s id="277">
+		 8 Acknowledgment The author wishes to thank Stephanie Seneff for her valuable feedback and the anonymous reviewers for their insightful comments and suggestions . 
+	</s>
+	
+
+	<s id="278">
+		 References M. Araki and S. Doshita . 
+	</s>
+	
+
+	<s id="279">
+		 1997. Automatic evaluation environment for spoken dialog system evaluation . 
+	</s>
+	
+
+	<s id="280">
+		 In Dialog Processing in Spoken Language Systems , 183–194 . 
+	</s>
+	
+
+	<s id="281">
+		 M. Denecke et al . 2002. Rapid Prototyping for Spoken Dialog Systems . 
+	</s>
+	
+
+	<s id="282">
+		 Proc . 
+	</s>
+	
+
+	<s id="283">
+		 COLING , Taipei , Taiwan . 
+	</s>
+	
+
+	<s id="284">
+		 M. Dzikovska et al . 2003 . 
+	</s>
+	
+
+	<s id="285">
+		 Integrating linguistic and domain knowledge for spoken dialog systems in multiple domains . 
+	</s>
+	
+
+	<s id="286">
+		 Proc . 
+	</s>
+	
+
+	<s id="287">
+		 IJCAI , Acapulco , Mexico . 
+	</s>
+	
+
+	<s id="288">
+		 J. Feng et al . 2003. Webtalk : Mining Websites for Automatically Building Dialog Systems . 
+	</s>
+	
+
+	<s id="289">
+		 Proc . 
+	</s>
+	
+
+	<s id="290">
+		 IEEE ASRU , Virgin Islands . 
+	</s>
+	
+
+	<s id="291">
+		 G. Ferguson and J Allen . 
+	</s>
+	
+
+	<s id="292">
+		 1998. TRIPS : An Integrated Intelligent Problem-Solving Assistant . 
+	</s>
+	
+
+	<s id="293">
+		 Proc . 
+	</s>
+	
+
+	<s id="294">
+		 of the Fifteenth National Conference on AI ( AAAI-98 ) , 26–30 . 
+	</s>
+	
+
+	<s id="295">
+		 Madison , WI . 
+	</s>
+	
+
+	<s id="296">
+		 T. Gaasterland et al . 1992. An Overview of Cooperative Answering . 
+	</s>
+	
+
+	<s id="297">
+		 Journal of Intelligent Information Systems , 1(2) , 123–157 . 
+	</s>
+	
+
+	<s id="298">
+		 J. Glass . 
+	</s>
+	
+
+	<s id="299">
+		 2003. A Probabilistic Framework for Segment-Based Speech Recognition . 
+	</s>
+	
+
+	<s id="300">
+		 Computer Speech and Language , 17 , 137–152 . 
+	</s>
+	
+
+	<s id="301">
+		 K. Hone and C. Baber . 
+	</s>
+	
+
+	<s id="302">
+		 1995. Using a simulation method to predict the transaction time effects of applying alternative levels of constraint to user utterances within speech interactive dialogs . 
+	</s>
+	
+
+	<s id="303">
+		 ESCA Workshop on Spoken Dialog Systems . 
+	</s>
+	
+
+	<s id="304">
+		 B. S. Lin and L. S. Lee . 
+	</s>
+	
+
+	<s id="305">
+		 2001 . 
+	</s>
+	
+
+	<s id="306">
+		 Computer-aided analysis and design for spoken dialog systems based on quantitative simulations . 
+	</s>
+	
+
+	<s id="307">
+		 IEEE Trans . 
+	</s>
+	
+
+	<s id="308">
+		 on Speech and Audio Processing , 9(5) , 534–548 . 
+	</s>
+	
+
+	<s id="309">
+		 R. Lopez-Cozar et al . 2003. Assessment of dialog systems by means of a new simulation technique . 
+	</s>
+	
+
+	<s id="310">
+		 Speech Communication , 40 , 387–407 . 
+	</s>
+	
+
+	<s id="311">
+		 J. Polifroni , G. Chung and S. Seneff . 
+	</s>
+	
+
+	<s id="312">
+		 2003. Towards automatic generation of mixed-initiative dialog systems from web content . 
+	</s>
+	
+
+	<s id="313">
+		 Proc . 
+	</s>
+	
+
+	<s id="314">
+		 EUROSPEECH , 193–196 . 
+	</s>
+	
+
+	<s id="315">
+		 Geneva , Switzerland . 
+	</s>
+	
+
+	<s id="316">
+		 Y. Qu and N. Green . 
+	</s>
+	
+
+	<s id="317">
+		 2002. A Constraint-Based Approach for Cooperative Information-Seeking Dialog . 
+	</s>
+	
+
+	<s id="318">
+		 Proc . 
+	</s>
+	
+
+	<s id="319">
+		 INLG , New York . 
+	</s>
+	
+
+	<s id="320">
+		 M. Riedl and R. St. Amant . 
+	</s>
+	
+
+	<s id="321">
+		 2002. Toward automated exploration of interactive systems . 
+	</s>
+	
+
+	<s id="322">
+		 Proc . 
+	</s>
+	
+
+	<s id="323">
+		 IUI , 135–142 . 
+	</s>
+	
+
+	<s id="324">
+		 F. Ritter and R. Young . 
+	</s>
+	
+
+	<s id="325">
+		 2001. Embodied models as simulated users : Introduction to this special issue on using cognitive models to improve interface design . 
+	</s>
+	
+
+	<s id="326">
+		 International Journal of Human- Computer Studies , 55 , 1–14 . 
+	</s>
+	
+
+	<s id="327">
+		 K. Scheffler and S. Young . 
+	</s>
+	
+
+	<s id="328">
+		 2000. Probabilistic simulation of human-machine dialogs . 
+	</s>
+	
+
+	<s id="329">
+		 Proc . 
+	</s>
+	
+
+	<s id="330">
+		 ICASSP , 1217–1220 . 
+	</s>
+	
+
+	<s id="331">
+		 Istanbul , Turkey . 
+	</s>
+	
+
+	<s id="332">
+		 S. Seneff et al . 1998. Galaxy-II : A Reference Architecture For Conversational System Development . 
+	</s>
+	
+
+	<s id="333">
+		 Proc . 
+	</s>
+	
+
+	<s id="334">
+		 ICSLP . 
+	</s>
+	
+
+	<s id="335">
+		 Sydney , Australia . 
+	</s>
+	
+
+	<s id="336">
+		 S. Seneff . 
+	</s>
+	
+
+	<s id="337">
+		 2002. Response Planning and Generation in the MERCURY Flight Reservation System . 
+	</s>
+	
+
+	<s id="338">
+		 Computer Speech and Language 16 , 283– 312 . 
+	</s>
+	
+
+	<s id="339">
+		 V. Zue , et al . 2000. JUPITER : A Telephone-Based Conversational Interface for Weather Information IEEE Transactions on Speech and Audio Processing , 8(1) . 
+	</s>
+	
+
+	<s id="340">
+		 J. Yi et al . 2000. A flexible , scalable finite-state transducer architecture for corpus-based concatenative speech synthesis . 
+	</s>
+	
+
+	<s id="341">
+		 Proc . 
+	</s>
+	
+
+	<s id="342">
+		 ICSLP . 
+	</s>
+	
+
+	<s id="343">
+		 Beijing , China . 
+	</s>
+	
+
+
+</acldoc>

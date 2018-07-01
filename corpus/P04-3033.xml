@@ -1,0 +1,878 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-3033">
+	
+
+	<s id="1">
+		 MATCHKiosk : A Multimodal Interactive City Guide Michael Johnston AT&amp;T Research 180 Park Avenue Florham Park , NJ 07932 johnston@research.att.com Srinivas Bangalore AT&amp;T Research 180 Park Avenue Florham Park , NJ 07932 srini@research.att.com Abstract Multimodal interfaces provide more flexible and compelling interaction and can enable public information kiosks to support more complex tasks for a broader community of users . 
+	</s>
+	
+
+	<s id="2">
+		 MATCHKiosk is a multimodal interactive city guide which provides users with the freedom to interact using speech , pen , touch or multimodal inputs . 
+	</s>
+	
+
+	<s id="3">
+		 The system responds by generating multimodal presentations that synchronize synthetic speech with a life-like virtual agent and dynamically generated graphics . 
+	</s>
+	
+
+	<s id="4">
+		 1 Introduction Since the introduction of automated teller machines in the late 1970s , public kiosks have been introduced to provide users with automated access to a broad range of information , assistance , and services . 
+	</s>
+	
+
+	<s id="5">
+		 These include self check-in at airports , ticket machines in railway and bus stations , directions and maps in car rental offices , interactive tourist and visitor guides in tourist offices and museums , and more recently , automated check-out in retail stores . 
+	</s>
+	
+
+	<s id="6">
+		 The majority of these systems provide a rigid structured graphical interface and user input by only touch or keypad , and as a result can only support a small number of simple tasks . 
+	</s>
+	
+
+	<s id="7">
+		 As automated kiosks become more commonplace and have to support more complex tasks for a broader community of users , they will need to provide a more flexible and compelling user interface . 
+	</s>
+	
+
+	<s id="8">
+		 One major motivation for developing multimodal interfaces for mobile devices is the lack of a keyboard or mouse 
+		<ref citStr="Oviatt and Cohen , 2000" id="1" label="CEPF" position="1789">
+			( Oviatt and Cohen , 2000 
+		</ref>
+		<ref citStr="Johnston and Bangalore , 2000" id="2" label="CEPF" position="1815">
+			; Johnston and Bangalore , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="9">
+		 This limitation is also true of many different kinds of public information kiosks where security , hygiene , or space concerns make a physical keyboard or mouse impractical . 
+	</s>
+	
+
+	<s id="10">
+		 Also , mobile users interacting with kiosks are often encumbered with briefcases , phones , or other equipment , leaving only one hand free for interaction . 
+	</s>
+	
+
+	<s id="11">
+		 Kiosks often provide a touchscreen for input , opening up the possibility of an onscreen keyboard , but these can be awkward to use and occupy a considerable amount of screen real estate , generally leading to a more moded and cumbersome graphical interface . 
+	</s>
+	
+
+	<s id="12">
+		 A number of experimental systems have investigated adding speech input to interactive graphical kiosks 
+		<ref citStr="Raisamo , 1998" id="3" label="CEPF" position="2583">
+			( Raisamo , 1998 
+		</ref>
+		<ref citStr="Gustafson et al. , 1999" id="4" label="CEPF" position="2600">
+			; Gustafson et al. , 1999 
+		</ref>
+		<ref citStr="Narayanan et al. , 2000" id="5" label="CEPF" position="2626">
+			; Narayanan et al. , 2000 
+		</ref>
+		<ref citStr="Lamel et al. , 2002" id="6" label="CEPF" position="2652">
+			; Lamel et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="13">
+		 Other work has investigated adding both speech and gesture input ( using computer vision ) in an interactive kiosk 
+		<ref citStr="Wahlster , 2003" id="7" label="CEPF" position="2802">
+			( Wahlster , 2003 
+		</ref>
+		<ref citStr="Cassell et al. , 2002" id="8" label="CEPF" position="2820">
+			; Cassell et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="14">
+		 We describe MATCHKiosk , ( Multimodal Access To City Help Kiosk ) an interactive public information kiosk with a multimodal interface which provides users with the flexibility to provide input using speech , handwriting , touch , or composite multimodal commands combining multiple different modes . 
+	</s>
+	
+
+	<s id="15">
+		 The system responds to the user by generating multimodal presentations which combine spoken output , a life-like graphical talking head , and dynamic graphical displays . 
+	</s>
+	
+
+	<s id="16">
+		 MATCHKiosk provides an interactive city guide for New York and Washington D.C. , including information about restaurants and directions on the subway or metro . 
+	</s>
+	
+
+	<s id="17">
+		 It develops on our previous work on a multimodal city guide on a mobile tablet ( MATCH ) 
+		<ref citStr="Johnston et al. , 2001" id="9" label="OERF" position="3605">
+			( Johnston et al. , 2001 
+		</ref>
+		<ref citStr="Johnston et al. , 2002b" id="10" label="OERF" position="3630">
+			; Johnston et al. , 2002b 
+		</ref>
+		<ref citStr="Johnston et al. , 2002a" id="11" label="OERF" position="3656">
+			; Johnston et al. , 2002a )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="18">
+		 The system has been deployed for testing and data collection in an AT&amp;T facility in Washington , D.C. where it provides visitors with information about places to eat , points of interest , and getting around on the DC Metro . 
+	</s>
+	
+
+	<s id="19">
+		 2 The MATCHKiosk The MATCHKiosk runs on a Windows PC mounted in a rugged cabinet ( Figure 1 ) . 
+	</s>
+	
+
+	<s id="20">
+		 It has a touch screen which supports both touch and pen input , and also contains a printer , whose output emerges from a slot below the screen . 
+	</s>
+	
+
+	<s id="21">
+		 The cabinet also contains speakers and an array microphone is mounted above the screen . 
+	</s>
+	
+
+	<s id="22">
+		 There are three main components to the graphical user interface ( Figure 2 ) . 
+	</s>
+	
+
+	<s id="23">
+		 On the right , there is a panel with a dynamic map display , a click-to-speak button , and a window for feedback on speech recognition . 
+	</s>
+	
+
+	<s id="24">
+		 As the user interacts with the system the map display dynamically pans and zooms and the locations of restaurants and other points of interest , graphical callouts with information , and subway route segments are displayed . 
+	</s>
+	
+
+	<s id="25">
+		 In Figure 1 : Kiosk Hardware the top left there is a photo-realistic virtual agent 
+		<ref citStr="Cosatto and Graf , 2000" id="12" label="OEPF" position="4870">
+			( Cosatto and Graf , 2000 )
+		</ref>
+		 , synthesized by concatenating and blending image samples . 
+	</s>
+	
+
+	<s id="26">
+		 Below the agent , there is a panel with large buttons which enable easy access to help and common functions . 
+	</s>
+	
+
+	<s id="27">
+		 The buttons presented are context sensitive and change over the course of interaction . 
+	</s>
+	
+
+	<s id="28">
+		 Figure 2 : Kiosk Interface The basic functions of the system are to enable users to locate restaurants and other points of interest based on attributes such as price , location , and food type , to request information about them such as phone numbers , addresses , and reviews , and to provide directions on the subway or metro between locations . 
+	</s>
+	
+
+	<s id="29">
+		 There are also commands for panning and zooming the map . 
+	</s>
+	
+
+	<s id="30">
+		 The system provides users with a high degree of flexibility in the inputs they use in accessing these functions . 
+	</s>
+	
+
+	<s id="31">
+		 For example , when looking for restaurants the user can employ speech e.g. find me moderately priced italian restaurants in Alexandria , a multimodal combination of speech and pen , e.g. moderate italian restaurants in this area and circling Alexandria on the map , or solely pen , e.g. user writes moderate italian and alexandria . 
+	</s>
+	
+
+	<s id="32">
+		 Similarly , when requesting directions they can use speech , e.g. . 
+	</s>
+	
+
+	<s id="33">
+		 How do I get to the Smithsonian ? 
+	</s>
+	
+
+	<s id="34">
+		 , multimodal , e.g. . 
+	</s>
+	
+
+	<s id="35">
+		 How do I get from here to here ? 
+	</s>
+	
+
+	<s id="36">
+		 and circling or touching two locations on the map , or pen , e.g. in Figure 2 the user has circled a location on the map and handwritten the word route . 
+	</s>
+	
+
+	<s id="37">
+		 System output consists of coordinated presentations combining synthetic speech with graphical actions on the map . 
+	</s>
+	
+
+	<s id="38">
+		 For example , when showing a subway route , as the virtual agent speaks each instruction in turn , the map display zooms and shows the corresponding route segment graphically . 
+	</s>
+	
+
+	<s id="39">
+		 The kiosk system also has a print capability . 
+	</s>
+	
+
+	<s id="40">
+		 When a route has been presented , one of the context sensitive buttons changes to Print Directions . 
+	</s>
+	
+
+	<s id="41">
+		 When this is pressed the system generates an XHTML document containing a map with step by step textual directions and this is sent to the printer using an XHTML-print capability . 
+	</s>
+	
+
+	<s id="42">
+		 If the system has low confidence in a user input , based on the ASR or pen recognition score , it requests confirmation from the user . 
+	</s>
+	
+
+	<s id="43">
+		 The user can confirm using speech , pen , or by touching on a checkmark or cross mark which appear in the bottom right of the screen . 
+	</s>
+	
+
+	<s id="44">
+		 Context-sensitive graphical widgets are also used for resolving ambiguity and vagueness in the user inputs . 
+	</s>
+	
+
+	<s id="45">
+		 For example , if the user asks for the Smithsonian Museum a small menu appears in the bottom right of the map enabling them to select between the different museum sites . 
+	</s>
+	
+
+	<s id="46">
+		 If the user asks to see restaurants near a particular location , e.g. show restaurants near the white house , a graphical slider appears enabling the user to fine tune just how near . 
+	</s>
+	
+
+	<s id="47">
+		 The system also features a context-sensitive multimodal help mechanism 
+		<ref citStr="Hastie et al. , 2002" id="13" label="OEPF" position="7941">
+			( Hastie et al. , 2002 )
+		</ref>
+		 which provides assistance to users in the context of their current task , without redirecting them to separate help system . 
+	</s>
+	
+
+	<s id="48">
+		 The help system is triggered by spoken or written requests for help , by touching the help buttons on the left , or when the user has made several unsuccessful inputs . 
+	</s>
+	
+
+	<s id="49">
+		 The type of help is chosen based on the current dialog state and the state of the visual interface . 
+	</s>
+	
+
+	<s id="50">
+		 If more than one type of help is applicable a graphical menu appears . 
+	</s>
+	
+
+	<s id="51">
+		 Help messages consist of multimodal presentations combining spoken output with ink drawn on the display by the system . 
+	</s>
+	
+
+	<s id="52">
+		 For example , if the user has just requested to see restaurants and they are now clearly visible on the display , the system will provide help on getting information about them . 
+	</s>
+	
+
+	<s id="53">
+		 3 Multimodal Kiosk Architecture The underlying architecture of MATCHKiosk consists of a series of re-usable components which communicate using XML messages sent over sockets through a facilitator ( MCUBE ) ( Figure 3 ) . 
+	</s>
+	
+
+	<s id="54">
+		 Users interact with the system through the Multimodal UI displayed on the touchscreen . 
+	</s>
+	
+
+	<s id="55">
+		 Their speech and ink are processed by speech recognition ( ASR ) and handwriting/gesture recognition ( GESTURE , HW RECO ) components respectively . 
+	</s>
+	
+
+	<s id="56">
+		 These recognition processes result in lattices of potential words and gestures/handwriting . 
+	</s>
+	
+
+	<s id="57">
+		 These are then combined and assigned a meaning representation using a multimodal language processing architecture based on finite-state techniques ( MMFST ) 
+		<ref citStr="Johnston and Bangalore , 2000" id="14" label="CEPF" position="9505">
+			( Johnston and Bangalore , 2000 
+		</ref>
+		<ref citStr="Johnston et al. , 2002b" id="15" label="CEPF" position="9537">
+			; Johnston et al. , 2002b )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="58">
+		 This provides as output a lattice encoding all of the potential meaning representations assigned to the user inputs . 
+	</s>
+	
+
+	<s id="59">
+		 This lattice is flattened to an N-best list and passed to a multimodal dialog manager ( MDM ) 
+		<ref citStr="Johnston et al. , 2002b" id="16" label="OEPF" position="9824">
+			( Johnston et al. , 2002b )
+		</ref>
+		 which re-ranks them in accordance with the current dialogue state . 
+	</s>
+	
+
+	<s id="60">
+		 If additional information or confirmation is required , the MDM uses the virtual agent to enter into a short information gathering dialogue with the user . 
+	</s>
+	
+
+	<s id="61">
+		 Once a command or query is complete , it is passed to the multimodal generation component ( MMGEN ) , which builds a multimodal score indicating a coordinated sequence of graphical actions and TTS prompts . 
+	</s>
+	
+
+	<s id="62">
+		 This score is passed back to the Multimodal UI . 
+	</s>
+	
+
+	<s id="63">
+		 The Multi- modal UI passes prompts to a visual text-to-speech component 
+		<ref citStr="Cosatto and Graf , 2000" id="17" label="OEPF" position="10440">
+			( Cosatto and Graf , 2000 )
+		</ref>
+		 which communicates with the AT&amp;T Natural Voices TTS engine 
+		<ref citStr="Beutnagel et al. , 1999" id="18" label="OEPF" position="10531">
+			( Beutnagel et al. , 1999 )
+		</ref>
+		 in order to coordinate the lip movements of the virtual agent with synthetic speech output . 
+	</s>
+	
+
+	<s id="64">
+		 As prompts are realized the Multi- modal UI receives notifications and presents coordinated graphical actions . 
+	</s>
+	
+
+	<s id="65">
+		 The subway route server is an application server which identifies the best route between any two locations . 
+	</s>
+	
+
+	<s id="66">
+		 Figure 3 : Multimodal Kiosk Architecture 4 Discussion and Related Work A number of design issues arose in the development of the kiosk , many of which highlight differences between multimodal interfaces for kiosks and those for mobile systems . 
+	</s>
+	
+
+	<s id="67">
+		 Array Microphone While on a mobile device a close-talking headset or on-device microphone can be used , we found that a single microphone had very poor performance on the kiosk . 
+	</s>
+	
+
+	<s id="68">
+		 Users stand in different positions with respect to the display and there may be more than one person standing in front . 
+	</s>
+	
+
+	<s id="69">
+		 To overcome this problem we mounted an array microphone above the touchscreen which tracks the location of the talker . 
+	</s>
+	
+
+	<s id="70">
+		 Robust Recognition and Understanding is particularly important for kiosks since they have so many first-time users . 
+	</s>
+	
+
+	<s id="71">
+		 We utilize the techniques for robust language modelling and multimodal understanding described in 
+		<ref citStr="Bangalore and Johnston ( 2004 )" id="19" label="CERF" position="11829">
+			Bangalore and Johnston ( 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="72">
+		 Social Interaction For mobile multimodal interfaces , even those with graphical embodiment , we found there to be little or no need to support social greetings and small talk . 
+	</s>
+	
+
+	<s id="73">
+		 However , for a public kiosk which different unknown users will approach those capabilities are important . 
+	</s>
+	
+
+	<s id="74">
+		 We added basic support for social interaction to the language understanding and dialog components . 
+	</s>
+	
+
+	<s id="75">
+		 The system is able to respond to inputs such as Hello , How are you ? 
+	</s>
+	
+
+	<s id="76">
+		 , Would you like to join us for lunch ? 
+	</s>
+	
+
+	<s id="77">
+		 and so on . 
+	</s>
+	
+
+	<s id="78">
+		 Context-sensitive GUI Compared to mobile systems , on palmtops , phones , and tablets , kiosks can offer more screen real estate for graphical interaction . 
+	</s>
+	
+
+	<s id="79">
+		 This allowed for large easy to read buttons for accessing help and other functions . 
+	</s>
+	
+
+	<s id="80">
+		 The system alters these as the dialog progresses . 
+	</s>
+	
+
+	<s id="81">
+		 These buttons enable the system to support a kind of mixed- initiative in multimodal interaction where the user can take initiative in the spoken and handwritten modes while the system is also able to provide a more system-oriented initiative in the graphical mode . 
+	</s>
+	
+
+	<s id="82">
+		 Printing Kiosks can make use of printed output as a modality . 
+	</s>
+	
+
+	<s id="83">
+		 One of the issues that arises is that it is frequently the case that printed outputs such as directions should take a very different style and format from onscreen presentations . 
+	</s>
+	
+
+	<s id="84">
+		 In previous work , a number of different multi- modal kiosk systems supporting different sets of input and output modalities have been developed . 
+	</s>
+	
+
+	<s id="85">
+		 The Touch-N-Speak kiosk 
+		<ref citStr="Raisamo , 1998" id="20" label="OEPF" position="13457">
+			( Raisamo , 1998 )
+		</ref>
+		 combines spoken language input with a touchscreen . 
+	</s>
+	
+
+	<s id="86">
+		 The August system 
+		<ref citStr="Gustafson et al. , 1999" id="21" label="OEPF" position="13564">
+			( Gustafson et al. , 1999 )
+		</ref>
+		 is a multimodal dialog system mounted in a public kiosk . 
+	</s>
+	
+
+	<s id="87">
+		 It supported spoken input from users and multi- modal output with a talking head , text to speech , and two graphical displays . 
+	</s>
+	
+
+	<s id="88">
+		 The system was deployed in a cultural center in Stockholm , enabling collection of realistic data from the general public . 
+	</s>
+	
+
+	<s id="89">
+		 SmartKom-Public 
+		<ref citStr="Wahlster , 2003" id="22" label="OEPF" position="13938">
+			( Wahlster , 2003 )
+		</ref>
+		 is an interactive public information kiosk that supports multimodal input through speech , hand gestures , and facial expressions . 
+	</s>
+	
+
+	<s id="90">
+		 The system uses a number of cameras and a video projector for the display . 
+	</s>
+	
+
+	<s id="91">
+		 The MASK kiosk 
+		<ref citStr="Lamel et al. , 2002" id="23" label="OEPF" position="14203">
+			( Lamel et al. , 2002 )
+		</ref>
+		 , developed by LIMSI and the French national railway ( SNCF ) , provides rail tickets and information using a speech and touch interface . 
+	</s>
+	
+
+	<s id="92">
+		 The mVPQ kiosk system 
+		<ref citStr="Narayanan et al. , 2000" id="24" label="OEPF" position="14401">
+			( Narayanan et al. , 2000 )
+		</ref>
+		 provides access to corporate directory information and call completion . 
+	</s>
+	
+
+	<s id="93">
+		 Users can provide input by either speech or touching options presented on a graphical display . 
+	</s>
+	
+
+	<s id="94">
+		 MACK , the Media Lab Autonomous Conversational Kiosk , 
+		<ref citStr="Cassell et al. , 2002" id="25" label="OEPF" position="14669">
+			( Cassell et al. , 2002 )
+		</ref>
+		 provides information about groups and individuals at the MIT Media Lab . 
+	</s>
+	
+
+	<s id="95">
+		 Users interact using speech and gestures on a paper map that sits between the user and an embodied agent . 
+	</s>
+	
+
+	<s id="96">
+		 In contrast to August and mVPQ , MATCHKiosk supports composite multimodal input combining speech with pen drawings and touch . 
+	</s>
+	
+
+	<s id="97">
+		 The SmartKom-Public kiosk supports composite input , but differs in that it uses free hand gesture for pointing while MATCH utilizes pen input and touch . 
+	</s>
+	
+
+	<s id="98">
+		 August , SmartKom-Public , and MATCHKiosk all employ graphical embodiments . 
+	</s>
+	
+
+	<s id="99">
+		 SmartKom uses an animated character , August a model-based talking head , and MATCHKiosk a sample-based video- realistic talking head . 
+	</s>
+	
+
+	<s id="100">
+		 MACK uses articulated graphical embodiment with ability to gesture . 
+	</s>
+	
+
+	<s id="101">
+		 In Touch-N-Speak a number of different techniques using time and pressure are examined for enabling selection of areas on a map using touch input . 
+	</s>
+	
+
+	<s id="102">
+		 In MATCHKiosk , this issue does not arise since areas can be selected precisely by drawing with the pen . 
+	</s>
+	
+
+	<s id="103">
+		 5 Conclusion We have presented a multimodal public information kiosk , MATCHKiosk , which supports complex unstructured tasks such as browsing for restaurants and subway directions . 
+	</s>
+	
+
+	<s id="104">
+		 Users have the flexibility to interact using speech , pen/touch , or multimodal inputs . 
+	</s>
+	
+
+	<s id="105">
+		 The system responds with multimodal presentations which coordinate synthetic speech , a virtual agent , graphical displays , and system use of electronic ink . 
+	</s>
+	
+
+	<s id="106">
+		 Acknowledgements Thanks to Eric Cosatto , Hans Peter Graf , and Joern Ostermann for their help with integrating the talking head . 
+	</s>
+	
+
+	<s id="107">
+		 Thanks also to Patrick Ehlen , Amanda Stent , Helen Hastie , Guna Vasireddy , Mazin Rahim , Candy Kamm , Marilyn Walker , Steve Whittaker , and Preetam Maloor for their contributions to the MATCH project . 
+	</s>
+	
+
+	<s id="108">
+		 Thanks to Paul Burke for his assistance with XHTML-print . 
+	</s>
+	
+
+	<s id="109">
+		 References S. Bangalore and M. Johnston . 
+	</s>
+	
+
+	<s id="110">
+		 2004 . 
+	</s>
+	
+
+	<s id="111">
+		 Balancing Data-driven and Rule-based Approaches in the Context of a Multimodal Conversational System . 
+	</s>
+	
+
+	<s id="112">
+		 In Proceedings ofHLT-NAACL , Boston , MA . 
+	</s>
+	
+
+	<s id="113">
+		 M. Beutnagel , A. Conkie , J. Schroeter , Y. Stylianou , and A. Syrdal . 
+	</s>
+	
+
+	<s id="114">
+		 1999. The AT&amp;T Next- Generation TTS . 
+	</s>
+	
+
+	<s id="115">
+		 In In Joint Meeting of ASA ; EAA and DA GA . 
+	</s>
+	
+
+	<s id="116">
+		 J. Cassell , T. Stocky , T. Bickmore , Y. Gao , Y. Nakano , K. Ryokai , D. Tversky , C. Vaucelle , and H. Vilhjalmsson . 
+	</s>
+	
+
+	<s id="117">
+		 2002. MACK : Media lab autonomous conversational kiosk . 
+	</s>
+	
+
+	<s id="118">
+		 In Proceedings ofIMAGINA02 , Monte Carlo . 
+	</s>
+	
+
+	<s id="119">
+		 E. Cosatto and H. P. Graf . 
+	</s>
+	
+
+	<s id="120">
+		 2000. Photo-realistic Talking-heads from Image Samples . 
+	</s>
+	
+
+	<s id="121">
+		 IEEE Transactions on Multimedia , 2(3):152–163 . 
+	</s>
+	
+
+	<s id="122">
+		 J. Gustafson , N. Lindberg , and M. Lundeberg . 
+	</s>
+	
+
+	<s id="123">
+		 1999. The August spoken dialogue system . 
+	</s>
+	
+
+	<s id="124">
+		 In Proceedings of Eurospeech 99 , pages 1151– 1154 . 
+	</s>
+	
+
+	<s id="125">
+		 H. Hastie , M. Johnston , and P. Ehlen . 
+	</s>
+	
+
+	<s id="126">
+		 2002. Context-sensitive Help for Multimodal Dialogue . 
+	</s>
+	
+
+	<s id="127">
+		 In Proceedings of the 4th IEEE International Conference on Multimodal Interfaces , pages 93– 98 , Pittsburgh , PA . 
+	</s>
+	
+
+	<s id="128">
+		 M. Johnston and S. Bangalore . 
+	</s>
+	
+
+	<s id="129">
+		 2000. Finite- state Multimodal Parsing and Understanding . 
+	</s>
+	
+
+	<s id="130">
+		 In Proceedings of COLING 2000 , pages 369–375 , Saarbr¨ucken , Germany . 
+	</s>
+	
+
+	<s id="131">
+		 M. Johnston , S. Bangalore , and G. Vasireddy . 
+	</s>
+	
+
+	<s id="132">
+		 2001. MATCH : Multimodal Access To City Help . 
+	</s>
+	
+
+	<s id="133">
+		 In Workshop on Automatic Speech Recognition and Understanding , Madonna di Campiglio , Italy . 
+	</s>
+	
+
+	<s id="134">
+		 M. Johnston , S. Bangalore , A. Stent , G. Vasireddy , and P. Ehlen . 
+	</s>
+	
+
+	<s id="135">
+		 2002a . 
+	</s>
+	
+
+	<s id="136">
+		 Multimodal Language Processing for Mobile Information Access . 
+	</s>
+	
+
+	<s id="137">
+		 In Proceedings ofICSLP 2002 , pages 2237–2240 . 
+	</s>
+	
+
+	<s id="138">
+		 M. Johnston , S. Bangalore , G. Vasireddy , A. Stent , P. Ehlen , M. Walker , S. Whittaker , and P. Maloor . 
+	</s>
+	
+
+	<s id="139">
+		 2002b . 
+	</s>
+	
+
+	<s id="140">
+		 MATCH : An Architecture for Multimodal Dialog Systems . 
+	</s>
+	
+
+	<s id="141">
+		 In Proceedings ofACL02 , pages 376–383 . 
+	</s>
+	
+
+	<s id="142">
+		 L. Lamel , S. Bennacef , J. L. Gauvain , H. Dartigues , and J. N. Temem . 
+	</s>
+	
+
+	<s id="143">
+		 2002. User Evaluation of the MASK Kiosk . 
+	</s>
+	
+
+	<s id="144">
+		 Speech Communication , 38(1- 2):131–139 . 
+	</s>
+	
+
+	<s id="145">
+		 S. Narayanan , G. DiFabbrizio , C. Kamm , J. Hubbell , B. Buntschuh , P. Ruscitti , and J. Wright . 
+	</s>
+	
+
+	<s id="146">
+		 2000. Effects of Dialog Initiative and Multi-modal Presentation Strategies on Large Directory Information Access . 
+	</s>
+	
+
+	<s id="147">
+		 In Proceedings of ICSLP 2000 , pages 636–639 . 
+	</s>
+	
+
+	<s id="148">
+		 S. Oviatt and P. Cohen . 
+	</s>
+	
+
+	<s id="149">
+		 2000. Multimodal Interfaces That Process What Comes Naturally . 
+	</s>
+	
+
+	<s id="150">
+		 Communications of the ACM , 43(3):45–53 . 
+	</s>
+	
+
+	<s id="151">
+		 R. Raisamo . 
+	</s>
+	
+
+	<s id="152">
+		 1998. A Multimodal User Interface for Public Information Kiosks . 
+	</s>
+	
+
+	<s id="153">
+		 In Proceedings of PUI Workshop , San Francisco . 
+	</s>
+	
+
+	<s id="154">
+		 W. Wahlster . 
+	</s>
+	
+
+	<s id="155">
+		 2003. SmartKom : Symmetric Multi- modality in an Adaptive and Reusable Dialogue Shell . 
+	</s>
+	
+
+	<s id="156">
+		 In R. Krahl and D. Gunther , editors , Proceedings oftheHuman Computer Interaction Status Conference 2003 , pages 47–62 . 
+	</s>
+	
+
+
+</acldoc>

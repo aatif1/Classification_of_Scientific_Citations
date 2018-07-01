@@ -1,0 +1,1264 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-2005">
+	
+
+	<s id="1">
+		 Automatic Acquisition of English Topic Signatures Based on a Second Language Xinglong Wang Department of Informatics University of Sussex Brighton , BN1 9QH , UK xw20@sussex.ac.uk Abstract We present a novel approach for automatically acquiring English topic signatures . 
+	</s>
+	
+
+	<s id="2">
+		 Given a particular concept , or word sense , a topic signature is a set of words that tend to co-occur with it . 
+	</s>
+	
+
+	<s id="3">
+		 Topic signatures can be useful in a number of Natural Language Processing ( NLP ) applications , such as Word Sense Disambiguation ( WSD ) and Text Summarisation . 
+	</s>
+	
+
+	<s id="4">
+		 Our method takes advantage of the different way in which word senses are lexicalised in English and Chinese , and also exploits the large amount of Chinese text available in corpora and on the Web. . 
+	</s>
+	
+
+	<s id="5">
+		 We evaluated the topic signatures on a WSD task , where we trained a second-order vector co- occurrence algorithm on standard WSD datasets , with promising results . 
+	</s>
+	
+
+	<s id="6">
+		 1 Introduction Lexical knowledge is crucial for many NLP tasks . 
+	</s>
+	
+
+	<s id="7">
+		 Huge efforts and investments have been made to build repositories with different types of knowledge . 
+	</s>
+	
+
+	<s id="8">
+		 Many of them have proved useful , such as WordNet 
+		<ref citStr="Miller et al. , 1990" id="1" label="OJPF" position="1224">
+			( Miller et al. , 1990 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="9">
+		 However , in some areas , such as WSD , manually created knowledge bases seem never to satisfy the huge requirement by supervised machine learning systems . 
+	</s>
+	
+
+	<s id="10">
+		 This is the so-called knowledge acquisition bottleneck . 
+	</s>
+	
+
+	<s id="11">
+		 As an alternative , automatic or semi-automatic acquisition methods have been proposed to tackle the bottleneck . 
+	</s>
+	
+
+	<s id="12">
+		 For example , 
+		<ref citStr="Agirre et al . ( 2001 )" id="2" label="CEPF" position="1628">
+			Agirre et al . ( 2001 )
+		</ref>
+		 tried to automatically extract topic signatures by querying a search engine using monosemous synonyms or other knowledge associated with a concept defined in WordNet . 
+	</s>
+	
+
+	<s id="13">
+		 The Web provides further ways of overcoming the bottleneck . 
+	</s>
+	
+
+	<s id="14">
+		 
+		<ref citStr="Mihalcea et al . ( 1999 )" id="3" label="CEPF" position="1901">
+			Mihalcea et al . ( 1999 )
+		</ref>
+		 presented a method enabling automatic acquisition of sense- tagged corpora , based on WordNet and an Internet search engine . 
+	</s>
+	
+
+	<s id="15">
+		 
+		<ref citStr="Chklovski and Mihalcea ( 2002 )" id="4" label="CEPF" position="2068">
+			Chklovski and Mihalcea ( 2002 )
+		</ref>
+		 presented another interesting proposal which turns to Web users to produce sense-tagged corpora . 
+	</s>
+	
+
+	<s id="16">
+		 Another type of method , which exploits differences between languages , has shown great promise . 
+	</s>
+	
+
+	<s id="17">
+		 For example , some work has been done based on the assumption that mappings of words and meanings are different in different languages . 
+	</s>
+	
+
+	<s id="18">
+		 
+		<ref citStr="Gale et al . ( 1992 )" id="5" label="CJPF" position="2450">
+			Gale et al . ( 1992 )
+		</ref>
+		 proposed a method which automatically produces sense-tagged data using parallel bilingual corpora . 
+	</s>
+	
+
+	<s id="19">
+		 
+		<ref citStr="Diab and Resnik ( 2002 )" id="6" label="CJPN" position="2584">
+			Diab and Resnik ( 2002 )
+		</ref>
+		 presented an unsupervised method for WSD using the same type of resource . 
+	</s>
+	
+
+	<s id="20">
+		 One problem with relying on bilingual corpora for data collection is that bilingual corpora are rare , and aligned bilingual corpora are even rarer . 
+	</s>
+	
+
+	<s id="21">
+		 Mining the Web for bilingual text 
+		<ref citStr="Resnik , 1999" id="7" label="CJPN" position="2879">
+			( Resnik , 1999 )
+		</ref>
+		 is not likely to provide sufficient quantities of high quality data . 
+	</s>
+	
+
+	<s id="22">
+		 Another problem is that if two languages are closely related , data for some words cannot be collected because different senses of polysemous words in one language often translate to the same word in the other . 
+	</s>
+	
+
+	<s id="23">
+		 In this paper , we present a novel approach for automatically acquiring topic signatures ( see Ta- ble 1 for an example of topic signatures ) , which also adopts the cross-lingual paradigm . 
+	</s>
+	
+
+	<s id="24">
+		 To solve the problem of different senses not being distinguishable mentioned in the previous paragraph , we chose a language very distant to English – Chinese , since the more distant two languages are , the more likely that senses are lexicalised differently 
+		<ref citStr="Resnik and Yarowsky , 1999" id="8" label="CEPF" position="3671">
+			( Resnik and Yarowsky , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="25">
+		 Because our approach only uses Chinese monolingual text , we also avoid the problem of shortage of aligned bilingual corpora . 
+	</s>
+	
+
+	<s id="26">
+		 We build the topic signatures by using Chinese-English and English- Chinese bilingual lexicons and a large amount of Chinese text , which can be collected either from the Web or from Chinese corpora . 
+	</s>
+	
+
+	<s id="27">
+		 Since topic signatures are potentially good training data for WSD algorithms , we set up a task to disambiguate 6 words using a WSD algorithm similar to Sch¨utze’s ( 1998 ) context-group discrimination . 
+	</s>
+	
+
+	<s id="28">
+		 The results show that our topic signatures are useful for WSD . 
+	</s>
+	
+
+	<s id="29">
+		 The remainder of the paper is organised as follows . 
+	</s>
+	
+
+	<s id="30">
+		 Section 2 describes the process of acquisition of the topic signatures . 
+	</s>
+	
+
+	<s id="31">
+		 Section 3 demonstrates the application of this resource on WSD , and presents the results of our experiments . 
+	</s>
+	
+
+	<s id="32">
+		 Section 4 discusses factors that could affect the acquisition process and then we conclude in Section 5 . 
+	</s>
+	
+
+	<s id="33">
+		 2 Acquisition of Topic Signatures A topic signature is defined as : TS = { ( t1 , w1 ) , ... , ( ti , wi ) , ... } , where ti is a term highly correlated to a target topic ( or concept ) with association weight wi , which can be omitted . 
+	</s>
+	
+
+	<s id="34">
+		 The steps we perform to produce the topic signatures are described below , and illustrated in Figure 1. 1 . 
+	</s>
+	
+
+	<s id="35">
+		 Translate an English ambiguous word w to Chinese , using an English-Chinese lexicon . 
+	</s>
+	
+
+	<s id="36">
+		 Given the assumption we mentioned , each sense si of w maps to a distinct Chinese word1 . 
+	</s>
+	
+
+	<s id="37">
+		 At the end of this step , we have produced a set C , which consists of Chinese words { c1 , c2 , ... , cn } , where ci is the translation corresponding to sense si of w , and n is the number of senses that w has . 
+	</s>
+	
+
+	<s id="38">
+		 2. Query large Chinese corpora or/and a search engine that supports Chinese using each element in C . 
+	</s>
+	
+
+	<s id="39">
+		 Then , for each ci in C , we collect the text snippets retrieved and construct a Chinese corpus . 
+	</s>
+	
+
+	<s id="40">
+		 1It is also possible that the English sense maps to a set of Chinese synonyms that realise the same concept . 
+	</s>
+	
+
+	<s id="41">
+		 English ambiguous word W Sense 1 of W English-Chinese Sense 2 of W Lexicon Chinese Search Engine Chinese segmentation and POS tagging ; C Chinese- I English Lexicon Chinese translation o Chinese translation o sense 1 ^ sense 2 1 . 
+	</s>
+	
+
+	<s id="42">
+		 Chinese document 1 1 . 
+	</s>
+	
+
+	<s id="43">
+		 Chinese document 1 2 . 
+	</s>
+	
+
+	<s id="44">
+		 Chinese document 2 ... ... 2 . 
+	</s>
+	
+
+	<s id="45">
+		 Chinese document 2 ... ... 1 . 
+	</s>
+	
+
+	<s id="46">
+		 { English topic signature 1 } 1 . 
+	</s>
+	
+
+	<s id="47">
+		 { English topic signature 1 } 2 . 
+	</s>
+	
+
+	<s id="48">
+		 { English topic signature 2 } ... ... 2 . 
+	</s>
+	
+
+	<s id="49">
+		 { English topic signature 2 } ... ... Figure 1:Process of automatic acquisition of topic signatures . 
+	</s>
+	
+
+	<s id="50">
+		 For simplicity , we assume here that w has two senses . 
+	</s>
+	
+
+	<s id="51">
+		 3. Shallow process these Chinese corpora . 
+	</s>
+	
+
+	<s id="52">
+		 Text segmentation and POS tagging are done in this step . 
+	</s>
+	
+
+	<s id="53">
+		 4. Either use an electronic Chinese-English lexicon to translate the Chinese corpora word by word to English , or use machine translation software to translate the whole text . 
+	</s>
+	
+
+	<s id="54">
+		 In our experiments , we did the former . 
+	</s>
+	
+
+	<s id="55">
+		 The complete process is automatic , and unsupervised . 
+	</s>
+	
+
+	<s id="56">
+		 At the end of this process , for each sense si of an ambiguous word w , we have a large set of English contexts . 
+	</s>
+	
+
+	<s id="57">
+		 Each context is a topic signature , which represents topical information that tends to co-occur with sense si . 
+	</s>
+	
+
+	<s id="58">
+		 Note that an element in our topic signatures is not necessarily a single English word . 
+	</s>
+	
+
+	<s id="59">
+		 It can be a set of English words which are translations of a Chinese word c . 
+	</s>
+	
+
+	<s id="60">
+		 For example , the component of a topic signature , { vesture , clothing , clothes } , is translated from the Chinese word ~~ . 
+	</s>
+	
+
+	<s id="61">
+		 Under the assumption that the majority of c’s are unambiguous , which we discuss later , we refer to elements in a topic signature as concepts in this paper . 
+	</s>
+	
+
+	<s id="62">
+		 Choosing an appropriate English-Chinese dictionary is the first problem we faced . 
+	</s>
+	
+
+	<s id="63">
+		 The one we decided to use is the Yahoo ! 
+	</s>
+	
+
+	<s id="64">
+		 Student English- Chinese On-line Dictionary2 . 
+	</s>
+	
+
+	<s id="65">
+		 As this dictionary is designed for English learners , its sense granularity is far coarser-grained than that of Word- Net . 
+	</s>
+	
+
+	<s id="66">
+		 However , researchers argue that the granularity of WordNet is too fine for many applications , and some also proposed new evaluation standards . 
+	</s>
+	
+
+	<s id="67">
+		 For example , 
+		<ref citStr="Resnik and Yarowsky ( 1999 )" id="9" label="CEPF" position="8192">
+			Resnik and Yarowsky ( 1999 )
+		</ref>
+		 sug- 2See : http://cn.yahoo.com/dictionary/ gested that for the purpose of WSD , the different senses of a word could be determined by considering only sense distinctions that are lexicalised cross-linguistically . 
+	</s>
+	
+
+	<s id="68">
+		 Our approach is in accord with their proposal , since bilingual dictionaries interpret sense distinctions crossing two languages . 
+	</s>
+	
+
+	<s id="69">
+		 For efficiency purposes , we extract our topic signatures mainly from the Mandarin portion of the Chinese Gigaword Corpus ( CGC ) , produced by the LDC3 , which contains 1.3GB of newswire text drawn from Xinhua newspaper . 
+	</s>
+	
+
+	<s id="70">
+		 Some Chinese translations of English word senses could be sparse , making it impossible to extract sufficient training data simply relying on CGC . 
+	</s>
+	
+
+	<s id="71">
+		 In this situation , we can turn to the large amount of Chinese text on the Web. . 
+	</s>
+	
+
+	<s id="72">
+		 There are many good search engines and on-line databases supporting the Chinese language . 
+	</s>
+	
+
+	<s id="73">
+		 After investigation , we chose People’s Daily On-line4 , which is the website for People’s Daily , one of the most influential newspaper in mainland China . 
+	</s>
+	
+
+	<s id="74">
+		 It maintains a vast database of news stories , available to search by the public . 
+	</s>
+	
+
+	<s id="75">
+		 Among other reasons , we chose this website because its articles have similar quality and coverage to those in the CGC , so that we could combine texts from these two resources to get a larger amount of topic signatures . 
+	</s>
+	
+
+	<s id="76">
+		 Note that we can always turn to other sources on the Web to retrieve even more data , if needed . 
+	</s>
+	
+
+	<s id="77">
+		 For Chinese text segmentation and POS tagging5 we adopted the freely-available software package — ICTCLAS6 . 
+	</s>
+	
+
+	<s id="78">
+		 This system includes a word segmenter , a POS tagger and an unknown- word recogniser . 
+	</s>
+	
+
+	<s id="79">
+		 The claimed precision of segmentation is 97.58 % , evaluated on a 1.2M word portion of the People’s Daily Corpus . 
+	</s>
+	
+
+	<s id="80">
+		 To automatically translate the Chinese text back to English , we used the electronic LDC Chinese- English Translation Lexicon Version 3.0 . 
+	</s>
+	
+
+	<s id="81">
+		 An alternative was to use machine translation software , which would yield a rather different type of resource , but this is beyond the scope of this paper . 
+	</s>
+	
+
+	<s id="82">
+		 Then , we filtered the topic signatures with 3Available at : http://www.ldc.upenn.edu/Catalog/ 4See : http://www.people.com.cn 5POS tagging can be omitted . 
+	</s>
+	
+
+	<s id="83">
+		 We did it in our experiments purely for convenience for error analysis in the future . 
+	</s>
+	
+
+	<s id="84">
+		 6See : http://mtgroup.ict.ac.cn/-zhp/ICTCLAS/index.html a stop-word list , to ensure only content words are included in our final results . 
+	</s>
+	
+
+	<s id="85">
+		 One might argue that , since many Chinese words are also ambiguous , a Chinese word may have more than one English translation and thus translated concepts in topic signatures would still be ambiguous . 
+	</s>
+	
+
+	<s id="86">
+		 This happens for some Chinese words , and will inevitably affect the performance of our system to some extent . 
+	</s>
+	
+
+	<s id="87">
+		 A practical solution is to expand the queries with different descriptions associated with each sense of w , normally provided in a bilingual dictionary , when retrieving the Chinese text . 
+	</s>
+	
+
+	<s id="88">
+		 To get an idea of the baseline performance , we did not follow this solution in our experiments . 
+	</s>
+	
+
+	<s id="89">
+		 Topic signatures for the MfinancialM sense of MinterestM M 1 . 
+	</s>
+	
+
+	<s id="90">
+		 rate;2 . 
+	</s>
+	
+
+	<s id="91">
+		 bond;3 . 
+	</s>
+	
+
+	<s id="92">
+		 payment ; 4. market ; 5 . 
+	</s>
+	
+
+	<s id="93">
+		 debt;6 . 
+	</s>
+	
+
+	<s id="94">
+		 dollar ; ^ 7. bank;8 . 
+	</s>
+	
+
+	<s id="95">
+		 year ; 9. loan ; 10 . 
+	</s>
+	
+
+	<s id="96">
+		 income;11.company ; 12. inflation ; 13. reserve ; 14. government ; 15. economy ; 16 . 
+	</s>
+	
+
+	<s id="97">
+		 stock;17 . 
+	</s>
+	
+
+	<s id="98">
+		 fund;18 . 
+	</s>
+	
+
+	<s id="99">
+		 week ; 19. security ; 20. level ; AC 1 . 
+	</s>
+	
+
+	<s id="100">
+		 { bank } ; 2 . 
+	</s>
+	
+
+	<s id="101">
+		 { loan } ; 3 . 
+	</s>
+	
+
+	<s id="102">
+		 { company , firm , corporation } ; 4 . 
+	</s>
+	
+
+	<s id="103">
+		 { rate } ; 5 . 
+	</s>
+	
+
+	<s id="104">
+		 { deposit } ; 6 . 
+	</s>
+	
+
+	<s id="105">
+		 { income , revenue } ; 7 . 
+	</s>
+	
+
+	<s id="106">
+		 { fund } ; 8 . 
+	</s>
+	
+
+	<s id="107">
+		 { bonus , divident } ; 9 . 
+	</s>
+	
+
+	<s id="108">
+		 { investment } ; 10 . 
+	</s>
+	
+
+	<s id="109">
+		 {market};^ 11 . 
+	</s>
+	
+
+	<s id="110">
+		 { tax , duty } ; 12 . 
+	</s>
+	
+
+	<s id="111">
+		 { economy } ; 13 . 
+	</s>
+	
+
+	<s id="112">
+		 { debt } ; 14 . 
+	</s>
+	
+
+	<s id="113">
+		 { money } ; 15 . 
+	</s>
+	
+
+	<s id="114">
+		 { saving } ; 16 . 
+	</s>
+	
+
+	<s id="115">
+		 { profit } ; 17 . 
+	</s>
+	
+
+	<s id="116">
+		 { bond } ; 18 . 
+	</s>
+	
+
+	<s id="117">
+		 { income , earning } ; 19 . 
+	</s>
+	
+
+	<s id="118">
+		 { share , stock } ; 20 . 
+	</s>
+	
+
+	<s id="119">
+		 { finance , banking } ; ^ Table 1:A sample of our topic signatures . 
+	</s>
+	
+
+	<s id="120">
+		 Signature M was extracted from a manually-sense-tagged corpus and A was produced by our algorithm . 
+	</s>
+	
+
+	<s id="121">
+		 Words occurring in both A and M are marked in bold . 
+	</s>
+	
+
+	<s id="122">
+		 The topic signatures we acquired contain rich topical information . 
+	</s>
+	
+
+	<s id="123">
+		 But they do not provide any other types of linguistic knowledge . 
+	</s>
+	
+
+	<s id="124">
+		 Since they were created by word to word translation , syntactic analysis of them is not possible . 
+	</s>
+	
+
+	<s id="125">
+		 Even the distances between the target ambiguous word and its context words are not reliable because of differences in word order between Chinese and English . 
+	</s>
+	
+
+	<s id="126">
+		 Table 1 lists two sets of topic signatures , each containing the 20 most frequent nouns , ranked by occurrence count , that surround instances of the financial sense of interest . 
+	</s>
+	
+
+	<s id="127">
+		 One set was extracted from a hand-tagged corpus 
+		<ref citStr="Bruce and Wiebe , 1994" id="10" label="OEPF" position="13347">
+			( Bruce and Wiebe , 1994 )
+		</ref>
+		 and the other by our algorithm . 
+	</s>
+	
+
+	<s id="128">
+		 3 Application on WSD To evaluate the usefulness of the topic signatures acquired , we applied them in a WSD task . 
+	</s>
+	
+
+	<s id="129">
+		 We adopted an algorithm similar to Sch¨utze’s ( 1998 ) context-group discrimination , which determines a word sense according to the semantic similarity of contexts , computed using a second-order co- occurrence vector model . 
+	</s>
+	
+
+	<s id="130">
+		 In this section , we firstly introduce our adaptation of this algorithm , and then describe the disambiguation experiments on 6 words for which a gold standard is available . 
+	</s>
+	
+
+	<s id="131">
+		 3.1 Context-Group Discrimination We chose the so-called context-group discrimination algorithm because it disambiguates instances only relying on topical information , which happens to be what our topic signatures specialise in7 . 
+	</s>
+	
+
+	<s id="132">
+		 The original context-group discrimination is a disambiguation algorithm based on clustering . 
+	</s>
+	
+
+	<s id="133">
+		 Words , contexts and senses are represented in Word Space , a high-dimensional , real-valued space in which closeness corresponds to semantic similarity . 
+	</s>
+	
+
+	<s id="134">
+		 Similarity in Word Space is based on second-order co-occurrence : two tokens ( or contexts ) of the ambiguous word are assigned to the same sense cluster if the words they co-occur with themselves occur with similar words in a training corpus . 
+	</s>
+	
+
+	<s id="135">
+		 The number of sense clusters determines sense granularity . 
+	</s>
+	
+
+	<s id="136">
+		 In our adaptation of this algorithm , we omitted the clustering step , because our data has already been sense classified according to the senses defined in the English-Chinese dictionary . 
+	</s>
+	
+
+	<s id="137">
+		 In other words , our algorithm performs sense classification by using a bilingual lexicon and the level of sense granularity of the lexicon determines the sense distinctions that our system can handle : a finer-grained lexicon would enable our system to identify finer-grained senses . 
+	</s>
+	
+
+	<s id="138">
+		 Also , our adaptation represents senses in Concept Space , in contrast to Word Space in the original algorithm . 
+	</s>
+	
+
+	<s id="139">
+		 This is because our topic signatures are not realised in the form of words , but concepts . 
+	</s>
+	
+
+	<s id="140">
+		 For example , a topic signature may consist of { duty , tariff , customs duty } , which represents a concept of “a government tax on imports or exports” . 
+	</s>
+	
+
+	<s id="141">
+		 A vector for concept c is derived from all the close neighbours of c , where close neighbours refer to all concepts that co-occur with c in a context window . 
+	</s>
+	
+
+	<s id="142">
+		 The size of the window is around 100 7Using our topic signatures as training data , other classification algorithms would also work on this WSD task . 
+	</s>
+	
+
+	<s id="143">
+		 words . 
+	</s>
+	
+
+	<s id="144">
+		 The entry for concept c ' in the vector for c records the number of times that c ' occurs close to c in the corpus . 
+	</s>
+	
+
+	<s id="145">
+		 It is this representational vector space that we refer to as Concept Space . 
+	</s>
+	
+
+	<s id="146">
+		 In our experiments , we chose concepts that serve as dimensions of Concept Space using a frequency cut-off . 
+	</s>
+	
+
+	<s id="147">
+		 We count the number of occurrences of any concepts that co-occur with the ambiguous word within a context window . 
+	</s>
+	
+
+	<s id="148">
+		 The 2 , 500 most frequent concepts are chosen as the dimensions of the space . 
+	</s>
+	
+
+	<s id="149">
+		 Thus , the Concept Space was formed by collecting a n-by-2 , 500 matrix M , such that element mid records the number of times that concept i and j co-occur in a window , where n is the number of concept vectors that occur in the corpus . 
+	</s>
+	
+
+	<s id="150">
+		 Row l of matrix M represents concept vector l . 
+	</s>
+	
+
+	<s id="151">
+		 We measure the similarity of two vectors by the cosine score : N 2 N 2 ~i=1 vZ ~i=1 wi where v~ and w~ are vectors and N is the dimension of the vector space . 
+	</s>
+	
+
+	<s id="152">
+		 The more overlap there is between the neighbours of the two words whose vectors are compared , the higher the score . 
+	</s>
+	
+
+	<s id="153">
+		 Contexts are represented as context vectors in Concept Space . 
+	</s>
+	
+
+	<s id="154">
+		 A context vector is the sum of the vectors of concepts that occur in a context window . 
+	</s>
+	
+
+	<s id="155">
+		 If many of the concepts in a window have a strong component for one of the topics , then the sum of the vectors , the context vector , will also have a strong component for the topic . 
+	</s>
+	
+
+	<s id="156">
+		 Hence , the context vector indicates the strength of different topical or semantic components in a context . 
+	</s>
+	
+
+	<s id="157">
+		 Senses are represented as sense vectors in Concept Space . 
+	</s>
+	
+
+	<s id="158">
+		 A vector of sense si is the sum of the vectors of contexts in which the ambiguous word realises si . 
+	</s>
+	
+
+	<s id="159">
+		 Since our topic signatures are classified naturally according to definitions in a bilingual dictionary , calculation of the vector for sense si is fairly straightforward : simply sum all the vectors of the contexts associated with sense si . 
+	</s>
+	
+
+	<s id="160">
+		 After the training phase , we have obtained a sense vector vi* for each sense si of an ambiguous word w . 
+	</s>
+	
+
+	<s id="161">
+		 Then , we perform the following steps to tag an occurrence t of w : N corr ( v , w ) = ~i=1 viwi 1 . 
+	</s>
+	
+
+	<s id="162">
+		 Compute the context vector c~ for t in Concept Space by summing the vectors of the concepts in t’s context . 
+	</s>
+	
+
+	<s id="163">
+		 Since the basic units of the test data are words rather than concepts , we have to convert all words in the test data into concepts . 
+	</s>
+	
+
+	<s id="164">
+		 A simple way to achieve this is to replace a word v with all the concepts that contain v. 2 . 
+	</s>
+	
+
+	<s id="165">
+		 Compute the cosine scores between all sense vectors of w and ~c , and then assign t to the sense si whose sense vector ~sj is closest to ~c . 
+	</s>
+	
+
+	<s id="166">
+		 3.2 Experiments and Results We tested our system on 6 nouns , as shown in Table 2 , which also shows information on the training and test data we used in the experiments . 
+	</s>
+	
+
+	<s id="167">
+		 The training sets for motion , plant and tank are topic signatures extracted from the CGC ; whereas those for bass , crane and palm are obtained from both CGC and the People’s Daily On-line . 
+	</s>
+	
+
+	<s id="168">
+		 This is because the Chinese translation equivalents of senses of the latter 3 words don’t occur frequently in CGC , and we had to seek more data from the Web. . 
+	</s>
+	
+
+	<s id="169">
+		 Where applicable , we also limited the training data of each sense to a maximum of 6 , 000 instances for efficiency purposes . 
+	</s>
+	
+
+	<s id="170">
+		 Word^ Sense[] Training 11 Test[] 'Supervised'[ Precision Baseline bass[] 1. fish[ 418[] 12031 10[ 107 90.7 % 93.5 % 2. music 825 97 crane[ 1. bird[ 829[ 2301[ 24[ 95 74.7 % 76.6 % 2. machine 1472 71 motion[ 1. physical[ 6000[] 9265[ 141[ 201 70.1 % 69.7 % 2. legal 3265 60 palm 11 1 . 
+	</s>
+	
+
+	<s id="171">
+		 hand[ 852[] 12481 143[ 201 71.1 % 76.1 % 2. tree 396 58 plant[] 1. living[ 6000[ 12000E 86[ 188[ 54.3 % 11 70.2%[] 2. 2. factory 6000 102 tank[] 1. container[ 6000[] 93461 126[ 201 62.7 % 70.1 % 2. vehicle 3346 75 Table 2:Sizes of the training data and the test data , baseline performance , and the results . 
+	</s>
+	
+
+	<s id="172">
+		 The test data is a binary sense-tagged corpus , the TWA Sense Tagged Data Set , manually produced by Rada Mihalcea and Li Yang 
+		<ref citStr="Mihalcea , 2003" id="11" label="OEPF" position="20236">
+			( Mihalcea , 2003 )
+		</ref>
+		 , from text drawn from the British National Corpus . 
+	</s>
+	
+
+	<s id="173">
+		 We calculated a ‘supervised’ baseline from the annotated data by assigning the most frequent sense in the test data to all instances , although it could be argued that the baseline for unsupervised disambiguation should be computed by randomly assigning one of the senses to instances ( e.g. it would be 50 % for words with two senses ) . 
+	</s>
+	
+
+	<s id="174">
+		 According to our previous description , the 2 , 500 most frequent concepts were selected as di- mensions . 
+	</s>
+	
+
+	<s id="175">
+		 The number of features in a Concept Space depends on how many unique concepts actually occur in the training sets . 
+	</s>
+	
+
+	<s id="176">
+		 Larger amounts of training data tend to yield a larger set of features . 
+	</s>
+	
+
+	<s id="177">
+		 At the end of the training stage , for each sense , a sense vector was produced . 
+	</s>
+	
+
+	<s id="178">
+		 Then we lemmatised the test data and extracted a set of context vectors for all instances in the same way . 
+	</s>
+	
+
+	<s id="179">
+		 For each instance in the test data , the cosine scores between its context vector and all possible sense vectors acquired through training were calculated and compared , and then the sense scoring the highest was allocated to the instance . 
+	</s>
+	
+
+	<s id="180">
+		 The results of the experiments are also given in Table 2 ( last column ) . 
+	</s>
+	
+
+	<s id="181">
+		 Using our topic signatures , we obtained good results : the accuracy for all words exceeds the supervised baseline , except for motion which approaches it . 
+	</s>
+	
+
+	<s id="182">
+		 The Chinese translations for motion are also ambiguous , which might be the reason that our WSD system performed less well on this word . 
+	</s>
+	
+
+	<s id="183">
+		 However , as we mentioned , to avoid this problem , we could have expanded motion’s Chinese translations , using their Chinese monosemous synonyms , when we query the Chinese corpus or the Web. . 
+	</s>
+	
+
+	<s id="184">
+		 Considering our system is unsupervised , the results are very promising . 
+	</s>
+	
+
+	<s id="185">
+		 An indicative comparison might be with the work of 
+		<ref citStr="Mihalcea ( 2003 )" id="12" label="CJPF" position="22184">
+			Mihalcea ( 2003 )
+		</ref>
+		 , who with a very different approach achieved similar performance on the same test data . 
+	</s>
+	
+
+	<s id="186">
+		 4 Discussion Although these results are promising , higher quality topic signatures would probably yield better results in our WSD experiments . 
+	</s>
+	
+
+	<s id="187">
+		 There are a number of factors that could affect the acquisition process , which determines the quality of this resource . 
+	</s>
+	
+
+	<s id="188">
+		 Firstly , since the translation was achieved by looking up in a bilingual dictionary , the deficiencies of the dictionary could cause problems . 
+	</s>
+	
+
+	<s id="189">
+		 For example , the LDC Chinese-English Lexicon we used is not up to date , for example , lacking entries for words such as T-#L ( mobile phone ) , 3~ ~ ( the Internet ) , etc. . 
+	</s>
+	
+
+	<s id="190">
+		 This defect makes our WSD algorithm unable to use the possibly strong topical information contained in those words . 
+	</s>
+	
+
+	<s id="191">
+		 Secondly , errors generated during Chinese segmentation could affect the distributions of words . 
+	</s>
+	
+
+	<s id="192">
+		 For example , a Chinese string ABC may be segmented as either A + BC or AB + C ; assuming the former is correct whereas AB + C was produced by the segmenter , distributions of words A , AB , BC , and C are all affected accordingly . 
+	</s>
+	
+
+	<s id="193">
+		 Other factors such as cultural differences reflected in the different languages could also affect the results of this knowledge acquisition process . 
+	</s>
+	
+
+	<s id="194">
+		 In our experiments , we adopted Chinese as a source language to retrieve English topic signatures . 
+	</s>
+	
+
+	<s id="195">
+		 Nevertheless , our technique should also work on other distant language pairs , as long as there are existing bilingual lexicons and large monolingual corpora for the languages used . 
+	</s>
+	
+
+	<s id="196">
+		 For example , one should be able to build French topic signatures using Chinese text , or Spanish topic signatures from Japanese text . 
+	</s>
+	
+
+	<s id="197">
+		 In particular cases , where one only cares about translation ambiguity , this technique can work on any language pair . 
+	</s>
+	
+
+	<s id="198">
+		 5 Conclusion and Future Work We presented a novel method for acquiring English topic signatures from large quantities of Chinese text and English-Chinese and Chinese- English bilingual dictionaries . 
+	</s>
+	
+
+	<s id="199">
+		 The topic signatures we acquired are a new type of resource , which can be useful in a number of NLP applications . 
+	</s>
+	
+
+	<s id="200">
+		 Experimental results have shown its application to WSD is promising and the performance is competitive with other unsupervised algorithms . 
+	</s>
+	
+
+	<s id="201">
+		 We intend to carry out more extensive evaluation to further explore this new resource’s properties and potential . 
+	</s>
+	
+
+	<s id="202">
+		 Acknowledgements This research is funded by EU IST-2001- 34460 project MEANING : Developing Multilingual Web-Scale Language Technologies , and by the Department of Informatics at Sussex University . 
+	</s>
+	
+
+	<s id="203">
+		 I am very grateful to Dr John Carroll , my supervisor , for his continual help and encouragement . 
+	</s>
+	
+
+	<s id="204">
+		 References Eneko Agirre , Olatz Ansa , David Martinez , and Eduard Hovy . 
+	</s>
+	
+
+	<s id="205">
+		 2001 . 
+	</s>
+	
+
+	<s id="206">
+		 Enriching WordNet concepts with topic signatures . 
+	</s>
+	
+
+	<s id="207">
+		 In Proceedings of the NAACL workshop on WordNet and Other Lexical Resources : Applications , Extensions and Customizations . 
+	</s>
+	
+
+	<s id="208">
+		 Pittsburgh , USA . 
+	</s>
+	
+
+	<s id="209">
+		 Rebecca Bruce and Janyce Wiebe . 
+	</s>
+	
+
+	<s id="210">
+		 1994. Word-sense disambiguation using decomposable models . 
+	</s>
+	
+
+	<s id="211">
+		 In Proceedings of the 32nd Annual Meeting of the Association for Computational Linguistics , pages 139– 146 . 
+	</s>
+	
+
+	<s id="212">
+		 Timothy Chklovski and Rada Mihalcea . 
+	</s>
+	
+
+	<s id="213">
+		 2002. Building a sense tagged corpus with open mind word expert . 
+	</s>
+	
+
+	<s id="214">
+		 In Proceedings of the ACL 2002 Workshop on “Word Sense Disambiguation Recent Successes and Future Directions” . 
+	</s>
+	
+
+	<s id="215">
+		 Philadelphia , USA . 
+	</s>
+	
+
+	<s id="216">
+		 Mona Diab and Philip Resnik . 
+	</s>
+	
+
+	<s id="217">
+		 2002. An unsupervised method for word sense taggin-1 using parallel cor- pora . 
+	</s>
+	
+
+	<s id="218">
+		 In Proceedings of the 40t Anniversary Meeting ofthe Association for Computational Linguistics ( ACL-02 ) . 
+	</s>
+	
+
+	<s id="219">
+		 Philadelphia , USA . 
+	</s>
+	
+
+	<s id="220">
+		 William A. Gale , Kenneth W. Church , and David Yarowsky . 
+	</s>
+	
+
+	<s id="221">
+		 1992. Using bilingual materials to develop word sense disambiguation methods . 
+	</s>
+	
+
+	<s id="222">
+		 In Proceedings of the International Conference on Theoretical and Methodological Issues in Machine Translation , pages 101–112 . 
+	</s>
+	
+
+	<s id="223">
+		 Rada Mihalcea and Dan I. Moldovan . 
+	</s>
+	
+
+	<s id="224">
+		 1999. An automatic method for generating sense tagged corpora . 
+	</s>
+	
+
+	<s id="225">
+		 In Proceedings of the 16th Conference of the American Association ofArtificialIntelligence . 
+	</s>
+	
+
+	<s id="226">
+		 Rada Mihalcea . 
+	</s>
+	
+
+	<s id="227">
+		 2003. The role of non-ambiguous words in natural language disambiguation . 
+	</s>
+	
+
+	<s id="228">
+		 In Proceedings of the Conference on Recent Advances in Natural Language Processing , RANLP 2003 . 
+	</s>
+	
+
+	<s id="229">
+		 Borovetz , Bulgaria . 
+	</s>
+	
+
+	<s id="230">
+		 George A. Miller , Richard Beckwith , Christiane Fellbaum , Derek Gross , and Katherine J. Miller . 
+	</s>
+	
+
+	<s id="231">
+		 1990. Introduction to WordNet : An on-line lexical database . 
+	</s>
+	
+
+	<s id="232">
+		 Journal ofLexicography , 3(4):235–244 . 
+	</s>
+	
+
+	<s id="233">
+		 Philip Resnik and David Yarowsky . 
+	</s>
+	
+
+	<s id="234">
+		 1999 . 
+	</s>
+	
+
+	<s id="235">
+		 Distinguishing systems and distinguishing senses : New evaluation methods for word sense disambiguation . 
+	</s>
+	
+
+	<s id="236">
+		 Natural Language Engineering , 5(2):113–133 . 
+	</s>
+	
+
+	<s id="237">
+		 Philip Resnik . 
+	</s>
+	
+
+	<s id="238">
+		 1999. Mining the Web for bilingual text . 
+	</s>
+	
+
+	<s id="239">
+		 In Proceedings of the 37th Annual Meeting of the Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="240">
+		 Hinrich Sch¨utze . 
+	</s>
+	
+
+	<s id="241">
+		 1998. Automatic word sense discrimination . 
+	</s>
+	
+
+	<s id="242">
+		 Computational Linguistics , 24(1):97– 123. 
+	</s>
+	
+
+
+</acldoc>

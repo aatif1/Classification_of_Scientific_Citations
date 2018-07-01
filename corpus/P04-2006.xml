@@ -1,0 +1,1096 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-2006">
+	
+
+	<s id="1">
+		 iSTART : Paraphrase Recognition Chutima Boonthum Computer Science Department Old Dominion University , Norfolk , VA-23508 USA cboont@cs.odu.edu Abstract Paraphrase recognition is used in a number of applications such as tutoring systems , question answering systems , and information retrieval systems . 
+	</s>
+	
+
+	<s id="2">
+		 The context of our research is the iSTART reading strategy trainer for science texts , which needs to understand and recognize the trainee’s input and respond appropriately . 
+	</s>
+	
+
+	<s id="3">
+		 This paper describes the motivation for paraphrase recognition and develops a definition of the strategy as well as a recognition model for paraphrasing . 
+	</s>
+	
+
+	<s id="4">
+		 Lastly , we discuss our preliminary implementation and research plan . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction A web-based automated reading strategy trainer called iSTART ( Interactive Strategy Trainer for Active Reading and Thinking ) adaptively assigns individual students to appropriate reading training programs . 
+	</s>
+	
+
+	<s id="6">
+		 It follows the SERT ( Self- Explanation Reading Training ) methodology developed by McNamara ( in press ) as a way to improve high school students’ reading ability by teaching them to use active reading strategies in self-explaining difficult texts . 
+	</s>
+	
+
+	<s id="7">
+		 Details of the strategies can be found in McNamara ( in press ) and of iSTART in 
+		<ref citStr="Levinstein et al . ( 2003 )" id="1" label="OERF" position="1348">
+			Levinstein et al . ( 2003 )
+		</ref>
+		 During iSTART’s practice module , the student self-explains a sentence . 
+	</s>
+	
+
+	<s id="8">
+		 Then the trainer analyzes the student’s explanation and responds . 
+	</s>
+	
+
+	<s id="9">
+		 The current system uses simple word- matching algorithms to evaluate the student’s input that do not yield results that are sufficiently reliable or accurate . 
+	</s>
+	
+
+	<s id="10">
+		 We therefore propose a new system for handling the student’s explanation more effectively . 
+	</s>
+	
+
+	<s id="11">
+		 Two major tasks of this semantically-based system are to ( 1 ) construct an internal representation of sentences and explanations and ( 2 ) recognize the reading strategies the student uses beginning with paraphrasing . 
+	</s>
+	
+
+	<s id="12">
+		 Construct an Internal Representation : We transform the natural language explanation into a representation suitable for later analysis . 
+	</s>
+	
+
+	<s id="13">
+		 The Sentence Parser gives us a syntactically and morphologically tagged representation . 
+	</s>
+	
+
+	<s id="14">
+		 We transform the output of the Link Grammar parser ( CMU , 2000 ) that generates syntactical and morphological information into an appropriate knowledge representation using the Representation Generator . 
+	</s>
+	
+
+	<s id="15">
+		 Recognize Paraphrasing : In what follows , we list the paraphrase patterns that we plan to cover and define a recognition model for each pattern . 
+	</s>
+	
+
+	<s id="16">
+		 This involves two steps : ( 1 ) recognizing paraphrasing patterns , and ( 2 ) reporting the result . 
+	</s>
+	
+
+	<s id="17">
+		 The Paraphrase Recognizer compares two internal representation ( one is of a given sentence and another is of the student’s explanation ) and finds paraphrase matches ( “concept-relationconcept” triplet matches ) according to a paraphrasing pattern . 
+	</s>
+	
+
+	<s id="18">
+		 The Reporter provides the final summary of the total paraphrase matches , noting unmatched information in either the sentence or the explanation . 
+	</s>
+	
+
+	<s id="19">
+		 Based on the similarity measure , the report will include whether the student has fully or partially paraphrased a given sentence and whether it contains any additional information . 
+	</s>
+	
+
+	<s id="20">
+		 2 Paraphrase When two expressions describe the same situation , each is considered to be a paraphrase of the other . 
+	</s>
+	
+
+	<s id="21">
+		 There is no precise paraphrase definition in general ; instead there are frequently-accepted paraphrasing patterns to which various authorities refer . 
+	</s>
+	
+
+	<s id="22">
+		 Academic writing centers ( ASU Writing Center , 2000 ; BAC Writing Center ; USCA Writing Room ; and Hawes , 2003 ) provide a number of characterizations , such as using syno- nyms , changing part-of-speech , reordering ideas , breaking a sentence into smaller ones , using definitions , and using examples . 
+	</s>
+	
+
+	<s id="23">
+		 McNamara ( in press ) , on the other hand , does not consider using definitions or examples to be part of paraphrasing , but rather considers them elaboration . 
+	</s>
+	
+
+	<s id="24">
+		 
+		<ref citStr="Stede ( 1996 )" id="2" label="CJPF" position="4133">
+			Stede ( 1996 )
+		</ref>
+		 considers different aspects or intentions to be paraphrases if they mention the same content or situation . 
+	</s>
+	
+
+	<s id="25">
+		 Instead of attempting to find a single paraphrase definition , we will start with six commonly mentioned paraphrasing patterns : 1 . 
+	</s>
+	
+
+	<s id="26">
+		 Synonym : substitute a word with its synonym , e.g. help , assist , aid ; 2 . 
+	</s>
+	
+
+	<s id="27">
+		 Voice : change the voice of sentence from active to passive or vice versa ; 3 . 
+	</s>
+	
+
+	<s id="28">
+		 Word-Form/Part-of-speech : change a word into a different form , e.g. change a noun to a verb , adverb , or adjective ; 4 . 
+	</s>
+	
+
+	<s id="29">
+		 Break down Sentence : break a long sentence down into small sentences ; 5 . 
+	</s>
+	
+
+	<s id="30">
+		 Definition/Meaning : substitute a word with its definition or meaning ; 6 . 
+	</s>
+	
+
+	<s id="31">
+		 Sentence Structure : use different sentence structures to express the same thing . 
+	</s>
+	
+
+	<s id="32">
+		 If the explanation has any additional information or misses some information that appeared in the original sentence , we should be able to detect this as well for use in discovering additional strategies employed . 
+	</s>
+	
+
+	<s id="33">
+		 3 Recognition Model To recognize paraphrasing , we convert natural language sentences into Conceptual Graphs ( CG , Sowa , 1983 ; 1992 ) and then compare two CGs for matching according to paraphrasing patterns . 
+	</s>
+	
+
+	<s id="34">
+		 The matching process is to find as many “concept-relation-concept triplet” matches as possible . 
+	</s>
+	
+
+	<s id="35">
+		 A triplet match means that a triplet from the student’s input matches with a triplet from the given sentence . 
+	</s>
+	
+
+	<s id="36">
+		 In particular , the left-concept , right-concept , and relation of both sub-graphs have to be exactly the same , or the same under a transformation based on a relationship of synonymy ( or other relation defined in WordNet ) , or the same because of idiomatic usage . 
+	</s>
+	
+
+	<s id="37">
+		 It is also possible that several triplets of one sentence together match a single triplet of the other . 
+	</s>
+	
+
+	<s id="38">
+		 At the end of this pattern matching , a summary result is provided : total paraphrasing matches , unpara- phrased information and additional information ( not appearing in the given sentence ) . 
+	</s>
+	
+
+	<s id="39">
+		 3.1 Conceptual Graph Generation A natural language sentence is converted into a conceptual graph using the Link Grammar parser . 
+	</s>
+	
+
+	<s id="40">
+		 This process mainly requires mapping one or more Link connector types into a relation of the conceptual graph . 
+	</s>
+	
+
+	<s id="41">
+		 A parse from the Link Grammar consists of triplets : starting word , an ending word , and a connector type between these two words . 
+	</s>
+	
+
+	<s id="42">
+		 For example , [ 1 2 ( Sp ) ] means word-1 connects to word-2 with a subject connector or that word-1 is the subject of word-2 . 
+	</s>
+	
+
+	<s id="43">
+		 The sentence “A walnut is eaten by a monkey” is parsed as follows : [ (0=LEFT-WALL)(1=a)(2=walnut.n)(3=is.v) (4=eaten.v)(5=by)(6=a)(7=monkey.n)(8=.) ] [ [ 0 8 ( Xp ) ] [ 0 2 ( Wd ) ] [ 1 2 ( Dsu ) ] [ 2 3 ( Ss ) ] [ 3 4 ( Pv ) ] [ 4 5 ( MVp ) ] [ 5 7 ( Js ) ] [ 6 7 ( Ds ) ] ] We then convert each Link triplet into a corresponding CG triplet . 
+	</s>
+	
+
+	<s id="44">
+		 Two words in the Link triplet can be converted into two concepts of the CG . 
+	</s>
+	
+
+	<s id="45">
+		 To decide whether to put a word on the left or the right side of the CG triplet , we define a mapping rule for each Link connector type . 
+	</s>
+	
+
+	<s id="46">
+		 For example , a Link triplet [ 1 2 ( S* ) ] will be mapped to the ‘Agent’ relation , with word-2 as the left-concept and word-1 as the right-concept : [ Word-2 ] —&gt; ( Agent ) —&gt; [ Word-1 ] . 
+	</s>
+	
+
+	<s id="47">
+		 Sometimes it is necessary to consider several Link triplets in generating a single CG triplet . 
+	</s>
+	
+
+	<s id="48">
+		 A CG of previous example is shown below : 0 [ 0 8 ( Xp ) ] -&gt; #S# -&gt; - N/A - 1 [ 0 2 ( Wd ) ] -&gt; #S# -&gt; - N/A - 2 [ 1 2 ( Dsu ) ] -&gt; #S# -&gt; [walnut.n]-&gt;(Article)-&gt;[a] 3 [ 2 3 ( Ss ) ] -&gt; #M# S + Pv ( 4 ) # -&gt; [eaten.v]-&gt;(Patient)-&gt;[walnut.n] 4 [ 3 4 ( Pv ) ] -&gt; #M# Pv +MV(5)+O(6)# -&gt; [ eaten.v ] -&gt; ( Agent ) -&gt; [ monkey.n ] 5 [ 4 5 ( MVp ) ] -&gt; #S# eaten.v by 6 [ 5 7 ( Js ) ] -&gt; #S# monkey.n by 7 [ 6 7 ( Ds ) ] -&gt; #S# -&gt; [ monkey.n ] -&gt; ( Article ) -&gt; [ a ] Each line ( numbered 0-7 ) shows a Link triplet and its corresponding CG triplet . 
+	</s>
+	
+
+	<s id="49">
+		 These will be used in the recognition process . 
+	</s>
+	
+
+	<s id="50">
+		 The ‘#S#’ and ‘#M’ indicate single and multiple mapping rules . 
+	</s>
+	
+
+	<s id="51">
+		 3.2 Paraphrase Recognition We illustrate our approach to paraphrase pattern recognition on single sentences : using synonyms ( single or compound-word synonyms and idiomatic expressions ) , changing the voice , using a different word form , breaking a long sentence into smaller sentences , substituting a definition for a word , and changing the sentence structure . 
+	</s>
+	
+
+	<s id="52">
+		 Preliminaries : Before we start the recognition process , we need to assume that we have all the information about the text : each sentence has various content words ( excluding such ‘stop words’ as a , an , the , etc. ) ; each content word has a definition together with a list of synonyms , antonyms , and other relations provided by WordNet 
+		<ref citStr="Fellbaum , 1998" id="3" label="OEPF" position="9171">
+			( Fellbaum , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="53">
+		 To prepare a given text and a sentence , we plan to have an automated process that generates necessary information as well as manual intervention to verify and rectify the automated result , if necessary . 
+	</s>
+	
+
+	<s id="54">
+		 Single-Word Synonyms : First we discover that both CGs have the same pattern and then we check whether words in the same position are synonyms . 
+	</s>
+	
+
+	<s id="55">
+		 Example : “Jenny helps Kay” [ Help ] --&gt; ( Agent ) --&gt; [ Person : Jenny ] i~--&gt; ( Patient ) --&gt; [ Person : Kay ] vs. “Jenny assists Kay” [ Assist ] --&gt; ( Agent ) --&gt; [ Person : Jenny ] i~--&gt; ( Patient ) --&gt; [ Person : Kay ] Compound-Word Synonyms : In this case , we need to be able to match a word and its compound-word synonym . 
+	</s>
+	
+
+	<s id="56">
+		 For example , ‘install’ has ‘set up’ and ‘put in’ as its compound-word synonyms . 
+	</s>
+	
+
+	<s id="57">
+		 The compound words are declared by the parser program . 
+	</s>
+	
+
+	<s id="58">
+		 During the preliminary processing CGs are pre-generated . 
+	</s>
+	
+
+	<s id="59">
+		 [ Install ] --&gt; ( Object ) --&gt; [ Thing ] ~ [ Set-Up ] --&gt; ( Object ) --&gt; [ Thing ] ~ [ Put-In ] --&gt; ( Object ) --&gt; [ Thing ] Then , this case will be treated like the single- word synonym . 
+	</s>
+	
+
+	<s id="60">
+		 “Jenny installs a computer” [ Install ] --&gt; ( Agent ) --&gt; [ Person : Jenny ] i~--&gt; ( Object ) --&gt; [ Computer ] vs. “Jenny sets up a computer” [ Set-Up ] --&gt; ( Agent ) --&gt; [ Person : Jenny ] i~--&gt; ( Object ) --&gt; [ Computer ] Idiomatic Clause/Phrase : For each idiom , a CG will be generated and used in the comparison process . 
+	</s>
+	
+
+	<s id="61">
+		 For example , the phrase ‘give someone a hand’ means ‘help’ . 
+	</s>
+	
+
+	<s id="62">
+		 The preliminary process will generate the following conceptual graph : [ Help ] --&gt; ( Patient ) --&gt; [ Person : x ] ~ [ Give ] --&gt; ( Patient ) --&gt; [ Person : x ] i~--&gt; ( Object ) --&gt; [ Hand ] which gives us “Jenny gives Kay a hand” [ Give ] --&gt; ( Agent ) --&gt; [ Person : Jenny ] i~--&gt; ( Patient ) --&gt; [ Person : Kay ] i~--&gt; ( Object ) --&gt; [ Hand ] In this example , one might say that a ‘hand’ might be an actual ( physical ) hand rather than a synonym phrase for ‘help’ . 
+	</s>
+	
+
+	<s id="63">
+		 To reduce this particular ambiguity , the analysis of the context may be necessary . 
+	</s>
+	
+
+	<s id="64">
+		 Voice : Even if the voice of a sentence is changed , it will have the same CG . 
+	</s>
+	
+
+	<s id="65">
+		 For example , both “Jenny helps Kay” and “Kay is helped by Jenny” have the same graphs as follows : [ Help ] --&gt; ( Agent ) --&gt; [ Person : Jenny ] i~--&gt; ( Patient ) --&gt; [ Person : Kay ] At this time we are assuming that if two CGs are exactly the same , it means paraphrasing by changing voice pattern . 
+	</s>
+	
+
+	<s id="66">
+		 However , we plan to introduce a modified conceptual graph that retains the original sentence structure so that we can verify that it was paraphrasing by change of voice and not simple copying . 
+	</s>
+	
+
+	<s id="67">
+		 Part-of-speech : A paraphrase can be generated by changing the part-of-speech of some keywords . 
+	</s>
+	
+
+	<s id="68">
+		 In the following example , the student uses “a historical life story” instead of “life history” , and ‘similarity’ instead of ‘similar’ . 
+	</s>
+	
+
+	<s id="69">
+		 Original sentence : “All thunderstorms have a similar life history.” Student’s Explanation : “All thunderstorms have similarity in their historical life story.” To find this paraphrasing pattern , we look for the same word , or a word that has the same base- form . 
+	</s>
+	
+
+	<s id="70">
+		 In this example , the sentences share the same base-form for ‘similar’ and ‘similarity’ as well as for ‘history’ and ‘historical’ . 
+	</s>
+	
+
+	<s id="71">
+		 Breaking long sentence : A sentence can be explained by small sentences coupled up together in such a way that each covers a part of the original sentence . 
+	</s>
+	
+
+	<s id="72">
+		 We integrate CGs of all sentences in the student’s input together before comparing it with the original sentence . 
+	</s>
+	
+
+	<s id="73">
+		 Original sentence : “All thunderstorms have a similar life history.” [ Thunderstorm : b ' ] – ( Feature ) --&gt; [ History ] – ( Attribute ) --&gt; [ Life ] ( Attribute ) --&gt; [ Similar ] Student’s Explanation : “Thunderstorms have life history . 
+	</s>
+	
+
+	<s id="74">
+		 It is similar among all thunderstorms” [ Thunderstorm ] – ( Feature ) --&gt; [ History ] – ( Attribute ) --&gt; [ Life ] [ It ] (pronoun)– ( Attribute ) --&gt; [ Similar ] ( Mod ) --&gt; [ Thunderstorm : b ' ] ( among ) We will provisionally assume that the student uses only the words that appear in the sentence in this breaking down process . 
+	</s>
+	
+
+	<s id="75">
+		 One solution is to combine graphs from all sentences together . 
+	</s>
+	
+
+	<s id="76">
+		 This can be done by merging graphs of the same concept . 
+	</s>
+	
+
+	<s id="77">
+		 This process involves pronoun resolution . 
+	</s>
+	
+
+	<s id="78">
+		 In this example , ‘it’ could refer to ‘life’ or ‘history’ . 
+	</s>
+	
+
+	<s id="79">
+		 Our plan is to exercise all possible pronoun references and select one that gives the best paraphrasing recognition result . 
+	</s>
+	
+
+	<s id="80">
+		 Definition/Meaning : A CG is pre-generated for a definition of each word and its associations ( synonyms , idiomatic expressions , etc. ) . 
+	</s>
+	
+
+	<s id="81">
+		 To find a paraphrasing pattern of using the definition , for example , a ‘history’ means “the continuum of events occurring in succession leading from the past to the present and even into the future” , we build a CG for this as shown below : [ Continuum ] – ( Attribute ) --&gt; [ Event : 3 ] [ Occur ] – ( Patient ) --&gt; [ Event : 3 ] ( Mod ) --&gt; [ Succession ] ( in ) [ Lead ] – ( Initiator ) --&gt; [ Succession ] ( Source ) --&gt; [ Time : Past ] ( from ) ( Path ) --&gt; [ Time : Present ] ( to ) ( Path ) --&gt; [ Time : Future ] ( into ) We refine this CG by incorporating CGs of the definition into a single integrated CG , if possible . 
+	</s>
+	
+
+	<s id="82">
+		 ( Patient ) --&gt; [ Event : 3 ] ( Mod ) --&gt; [ Succession ] ( in ) ( Source ) --&gt; [ Time : Past ] ( from ) ( Path ) --&gt; [ Time : Present ] ( to ) ( Path ) --&gt; [ Time : Future ] ( into ) From WordNet 2.0 , the synonyms of ‘past’ , ‘present’ , and ‘future’ found to be “begin , start , beginning process” , “middle , go though , middle process” , and “end , last , ending process” , respectively . 
+	</s>
+	
+
+	<s id="83">
+		 The following example shows how they can be used in recognizing paraphrases . 
+	</s>
+	
+
+	<s id="84">
+		 Original sentence : “All thunderstorms have a similar life history.” [ Thunderstorm : b ' ] – ( Feature ) --&gt; [ History ] – ( Attribute ) --&gt; [ Life ] ( Attribute ) --&gt; [ Similar ] Student’s Explanation : “Thunderstorms go through similar cycles . 
+	</s>
+	
+
+	<s id="85">
+		 They will begin the same , go through the same things , and end the same way.” [ Go ] – ( Agent ) --&gt; [ Thunderstorm : # ] ( Path ) --&gt; [ Cycle ] --&gt; ( Attribute ) --&gt; [ Similar ] [ Begin ] – ( Agent ) --&gt; [ Thunderstorm : # ] ( Attribute ) --&gt; [ Same ] [ Go-Through ] – ( Agent ) --&gt; [ Thunderstorm : # ] ( Path ) --&gt; [ Thing : 3 ] --&gt; ( Attribute ) --&gt; [ Same ] [ End ] – ( Agent ) --&gt; [ Thunderstorm : # ] ( Path ) --&gt; [ Way : 3 ] --&gt; ( Attribute ) --&gt; [ Same ] From this CG , we found the use of ‘begin’ , ‘go- through’ , and ‘end’ , which are parts of the CG of history’s definition . 
+	</s>
+	
+
+	<s id="86">
+		 These together with the correspondence of words in the sentences show that the student has used paraphrasing by using a definition of ‘history’ in the self-explanation . 
+	</s>
+	
+
+	<s id="87">
+		 Sentence Structure : The same thing can be said in a number of different ways . 
+	</s>
+	
+
+	<s id="88">
+		 For example , to say “There is someone happy” , we can say “Someone is happy” , “A person is happy” , or “There is a person who is happy” , etc. . 
+	</s>
+	
+
+	<s id="89">
+		 As can be easily seen , all sentences have a similar CG trip- let of “[Person : 3 ] --&gt; ( Char ) --&gt; [Happy]” in their CGs . 
+	</s>
+	
+
+	<s id="90">
+		 But , we cannot simply say that they are paraphrases of each other ; therefore , need to study more on possible solutions . 
+	</s>
+	
+
+	<s id="91">
+		 3.3 Similarity Measure The similarity between the student’s input and the given sentence can be categorized into one of these four cases : 1 . 
+	</s>
+	
+
+	<s id="92">
+		 Complete paraphrase without extra info . 
+	</s>
+	
+
+	<s id="93">
+		 2. Complete paraphrase with extra info . 
+	</s>
+	
+
+	<s id="94">
+		 3. Partial paraphrase without extra info . 
+	</s>
+	
+
+	<s id="95">
+		 4. Partial paraphrase with extra info . 
+	</s>
+	
+
+	<s id="96">
+		 To distinguish between ‘complete’ and ‘partial’ paraphrasing , we will use the triplet matching result . 
+	</s>
+	
+
+	<s id="97">
+		 What counts as complete depends on the context in which the paraphrasing occurs . 
+	</s>
+	
+
+	<s id="98">
+		 If we consider the paraphrasing as a writing technique , the ‘complete’ paraphrasing would mean that all triplets of the given sentence are matched to those in the student’s input . 
+	</s>
+	
+
+	<s id="99">
+		 Similarly , if any triplets in the given sentence do not have a match , it means that the student is ‘partially’ paraphrasing at best . 
+	</s>
+	
+
+	<s id="100">
+		 On the other hand , if we consider the paraphrasing as a reading behavior or strategy , the ‘complete’ paraphrasing may not need all triplets of the given sentence to be matched . 
+	</s>
+	
+
+	<s id="101">
+		 Hence , recognizing which part of the student’s input is a paraphrase of which part of the given sentence is significant . 
+	</s>
+	
+
+	<s id="102">
+		 How can we tell that this explanation is an adequate paraphrase ? 
+	</s>
+	
+
+	<s id="103">
+		 Can we use information provided in the given sentence as a measurement ? 
+	</s>
+	
+
+	<s id="104">
+		 If so , how can we use it ? 
+	</s>
+	
+
+	<s id="105">
+		 These questions still need to be answered . 
+	</s>
+	
+
+	<s id="106">
+		 4 Related Work A number of people have worked on paraphrasing such as the multilingual-translation recognition by 
+		<ref citStr="Smith ( 2003 )" id="4" label="CEPF" position="18616">
+			Smith ( 2003 )
+		</ref>
+		 , the multilingual sentence generation by 
+		<ref citStr="Stede ( 1996 )" id="5" label="CEPF" position="18673">
+			Stede ( 1996 )
+		</ref>
+		 , universal model paraphrasing using transformation by 
+		<ref citStr="Murata and Isahara ( 2001 )" id="6" label="CEPF" position="18756">
+			Murata and Isahara ( 2001 )
+		</ref>
+		 , DIRT – using inference rules in question answering and information retrieval by 
+		<ref citStr="Lin and Pantel ( 2001 )" id="7" label="CEPF" position="18863">
+			Lin and Pantel ( 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="107">
+		 Due to the space limitation we will mention only a few related works . 
+	</s>
+	
+
+	<s id="108">
+		 ExtrAns ( Extracting answers from technical texts ) by 
+		<ref citStr="Molla et al , 2003" id="8" label="OEPF" position="19032">
+			( Molla et al , 2003 )
+		</ref>
+		 and 
+		<ref citStr="Rinaldi et al , 2003" id="9" label="OEPF" position="19061">
+			( Rinaldi et al , 2003 )
+		</ref>
+		 uses minimal logical forms ( MLF ) to represent both texts and questions . 
+	</s>
+	
+
+	<s id="109">
+		 They identify terminological paraphrases by using a term-based hierarchy with their synonyms and variations ; and syntactic paraphrases by constructing a common representation for different types of syntactic variation via meaning postulates . 
+	</s>
+	
+
+	<s id="110">
+		 Absent a paraphrase , they loosen the criteria by using hyponyms , finding highest overlap of predicates , and simple keyword matching . 
+	</s>
+	
+
+	<s id="111">
+		 Barzilay &amp; 
+		<ref citStr="Lee ( 2003 )" id="10" label="OEPF" position="19572">
+			Lee ( 2003 )
+		</ref>
+		 also identify paraphrases in their paraphrased sentence generation system . 
+	</s>
+	
+
+	<s id="112">
+		 They first find different paraphrasing rules by clustering sentences in comparable corpora using n-gram word-overlap . 
+	</s>
+	
+
+	<s id="113">
+		 Then for each cluster , they use multi-sequence alignment to find intra-cluster paraphrasing rules : either morphosyntactic or lexical patterns . 
+	</s>
+	
+
+	<s id="114">
+		 To identify inter- cluster paraphrasing , they compare the slot values without considering word ordering . 
+	</s>
+	
+
+	<s id="115">
+		 In our system sentences are represented by conceptual graphs . 
+	</s>
+	
+
+	<s id="116">
+		 Paraphrases are recognized through idiomatic expressions , definition , and sentence break up . 
+	</s>
+	
+
+	<s id="117">
+		 Morpho-syntatic variations are also used but in more general way than the term hierarchy-based approach of ExtrAns . 
+	</s>
+	
+
+	<s id="118">
+		 5 Preliminary Implementation We have implemented two components to recognize paraphrasing with the CG for a single simple sentence : Automated Conceptual Graph Generator and Automated Paraphrasing Recognizer . 
+	</s>
+	
+
+	<s id="119">
+		 Automated Conceptual Graph Generator : is a C++ program that calls the Link Grammar API to get the parse result for the input sentence , and generates a CG . 
+	</s>
+	
+
+	<s id="120">
+		 We can generate a CG for a simple sentence using the first linkage result . 
+	</s>
+	
+
+	<s id="121">
+		 Future versions will deal with complex sentence structure as well as multiple linkages , so that we can cover most paraphrases . 
+	</s>
+	
+
+	<s id="122">
+		 Automated Paraphrasing Recognizer : The input to the Recognizer is a pair of CGs : one from the original sentence and another from the student’s explanation . 
+	</s>
+	
+
+	<s id="123">
+		 Our goal is to recognize whether any paraphrasing was used and , if so , what was the paraphrasing pattern . 
+	</s>
+	
+
+	<s id="124">
+		 Our first implementation is able to recognize paraphrasing on a single sentence for exact match , direct synonym match , first level antonyms match , hyponyms and hypernyms match . 
+	</s>
+	
+
+	<s id="125">
+		 We plan to cover more relationships available in WordNet as well as definitions , idioms , and logically equivalent expressions . 
+	</s>
+	
+
+	<s id="126">
+		 Currently , voice difference is treated as an exact match because both active voices have the same CGs and we have not yet modified the conceptual graph as indicated above . 
+	</s>
+	
+
+	<s id="127">
+		 6 Discussion and Remaining Work Our preliminary implementation shows us that paraphrase recognition is feasible and allows us to recognize different types of paraphrases . 
+	</s>
+	
+
+	<s id="128">
+		 We continue to work on this and improve our recognizer so that it can handle more word relations and more types of paraphrases . 
+	</s>
+	
+
+	<s id="129">
+		 During the testing , we will use data gathered during our previous iSTART trainer experiments . 
+	</s>
+	
+
+	<s id="130">
+		 These are the actual explanations entered by students who were given the task of explaining sentences . 
+	</s>
+	
+
+	<s id="131">
+		 Fortu- nately , quite a bit of these data have been evaluated by human experts for quality of explanation . 
+	</s>
+	
+
+	<s id="132">
+		 Therefore , we can validate our paraphrasing recognition result against the human evaluation . 
+	</s>
+	
+
+	<s id="133">
+		 Besides implementing the recognizer to cover all paraphrasing patterns addressed above , there are many issues that need to be solved and implemented during this course of research . 
+	</s>
+	
+
+	<s id="134">
+		 The Representation for a simple sentence is the Conceptual Graph , which is not powerful enough to represent complex , compound sentences , multiple sentences , paragraphs , or entire texts . 
+	</s>
+	
+
+	<s id="135">
+		 We will use Rhetorical Structure Theory ( RST ) to represent the relations among the CGs of these components of these more complex structures . 
+	</s>
+	
+
+	<s id="136">
+		 This will also involve Pronoun Resolution as well as Discourse Chunking . 
+	</s>
+	
+
+	<s id="137">
+		 Once a representation has been selected , we will implement an automated generator for such representation . 
+	</s>
+	
+
+	<s id="138">
+		 The Recognizer and Paraphrase Reporter have to be completed . 
+	</s>
+	
+
+	<s id="139">
+		 The similarity measures for writing technique and reading behavior must still be defined . 
+	</s>
+	
+
+	<s id="140">
+		 Once all processes have been implemented , we need to verify that they are correct and validate the results . 
+	</s>
+	
+
+	<s id="141">
+		 Finally , we can integrate this recognition process into the iSTART trainer in order to improve the existing evaluation system . 
+	</s>
+	
+
+	<s id="142">
+		 Acknowledgements This dissertation work is under the supervision of Dr. Shunichi Toida and Dr. Irwin Levinstein . 
+	</s>
+	
+
+	<s id="143">
+		 iSTART is supported by National Science Foundation grant REC-0089271 . 
+	</s>
+	
+
+	<s id="144">
+		 References ASU Writing Center . 
+	</s>
+	
+
+	<s id="145">
+		 2000 . 
+	</s>
+	
+
+	<s id="146">
+		 Paraphrasing : Restating Ideas in Your Own Words . 
+	</s>
+	
+
+	<s id="147">
+		 Arizona State University , Tempe : AZ . 
+	</s>
+	
+
+	<s id="148">
+		 BAC Writing Center . 
+	</s>
+	
+
+	<s id="149">
+		 Paraphrasing . 
+	</s>
+	
+
+	<s id="150">
+		 Boston Architectural Center . 
+	</s>
+	
+
+	<s id="151">
+		 Boston : MA . 
+	</s>
+	
+
+	<s id="152">
+		 Carnegie Mellon University . 
+	</s>
+	
+
+	<s id="153">
+		 2000. Link Grammar . 
+	</s>
+	
+
+	<s id="154">
+		 R. Barzilay and L. Lee . 
+	</s>
+	
+
+	<s id="155">
+		 2003. Learning to Paraphrase : An Unsupervised Approach Using Multiple- Sequence Alignment . 
+	</s>
+	
+
+	<s id="156">
+		 In HLT-NAACL , Edmonton : Canada , pp. 16-23 . 
+	</s>
+	
+
+	<s id="157">
+		 C. Boonthum , S. Toida , and I. Levinstein . 
+	</s>
+	
+
+	<s id="158">
+		 2003 . 
+	</s>
+	
+
+	<s id="159">
+		 Paraphrasing Recognition through Conceptual Graphs . 
+	</s>
+	
+
+	<s id="160">
+		 Computer Science Department , Old Dominion University , Norfolk : VA . 
+	</s>
+	
+
+	<s id="161">
+		 ( TR# is not available ) C. Boonthum . 
+	</s>
+	
+
+	<s id="162">
+		 2004. iSTART : Paraphrasing Recognition . 
+	</s>
+	
+
+	<s id="163">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="164">
+		 Proposal : Computer Science Department , Old Dominion University , VA . 
+	</s>
+	
+
+	<s id="165">
+		 C. Fellbaum . 
+	</s>
+	
+
+	<s id="166">
+		 1998. WordNet : an electronic lexical database . 
+	</s>
+	
+
+	<s id="167">
+		 The MIT Press : MA . 
+	</s>
+	
+
+	<s id="168">
+		 K. Hawes . 
+	</s>
+	
+
+	<s id="169">
+		 2003. Mastering Academic Writing : Write a Paraphrase Sentence . 
+	</s>
+	
+
+	<s id="170">
+		 University of Memphis , Memphis : TN . 
+	</s>
+	
+
+	<s id="171">
+		 I. Levinstein , D. McNamara , C. Boonthum , S. Pillarisetti , and K. Yadavalli . 
+	</s>
+	
+
+	<s id="172">
+		 2003. Web-Based Intervention for Higher-Order Reading Skills . 
+	</s>
+	
+
+	<s id="173">
+		 In ED- MEDIA , Honolulu : HI , pp. 835-841 . 
+	</s>
+	
+
+	<s id="174">
+		 D. Lin and P. Pantel . 
+	</s>
+	
+
+	<s id="175">
+		 2001. Discovery of Inference Rules for Question Answering . 
+	</s>
+	
+
+	<s id="176">
+		 Natural Language Engineering 7(4):343-360 . 
+	</s>
+	
+
+	<s id="177">
+		 W. Mann and S. Thompson , 1987 . 
+	</s>
+	
+
+	<s id="178">
+		 Rhetorical Structure Theory : A Theory of Text Organization . 
+	</s>
+	
+
+	<s id="179">
+		 The Structure of Discourse , Ablex . 
+	</s>
+	
+
+	<s id="180">
+		 D. McNamara . 
+	</s>
+	
+
+	<s id="181">
+		 ( in press ) . 
+	</s>
+	
+
+	<s id="182">
+		 SERT : Self-Explanation Reading Training . 
+	</s>
+	
+
+	<s id="183">
+		 Discourse Processes . 
+	</s>
+	
+
+	<s id="184">
+		 D. Molla , R. Schwitter , F. Rinaldi , J. Dowdall , and M. Hess . 
+	</s>
+	
+
+	<s id="185">
+		 2003. ExtrAns : Extracting Answers from Technical Texts . 
+	</s>
+	
+
+	<s id="186">
+		 IEEE Intelligent System 18(4) : 12-17 . 
+	</s>
+	
+
+	<s id="187">
+		 M. Murata and H. Isahara . 
+	</s>
+	
+
+	<s id="188">
+		 2001. Universal Model for Paraphrasing – Using Transformation Based on a Defined Criteria . 
+	</s>
+	
+
+	<s id="189">
+		 In NLPRS : Workshop on Automatic Paraphrasing : Theories and Application . 
+	</s>
+	
+
+	<s id="190">
+		 F. Rinaldi , J. Dowdall , K. Kaljurand , M. Hess , and D. Molla. 2003 . 
+	</s>
+	
+
+	<s id="191">
+		 Exploiting Paraphrases in Question Answering System . 
+	</s>
+	
+
+	<s id="192">
+		 In ACL : Workshop in Paraphrasing , Sapporo : Japan , pp. 25-32 . 
+	</s>
+	
+
+	<s id="193">
+		 N. Smith . 
+	</s>
+	
+
+	<s id="194">
+		 2002. From Words to Corpora : Recognizing Translation . 
+	</s>
+	
+
+	<s id="195">
+		 In EMNLP , Philadelphia : PA . 
+	</s>
+	
+
+	<s id="196">
+		 J. Sowa . 
+	</s>
+	
+
+	<s id="197">
+		 1983. Conceptual Structures : Information Processing in Mind and Machine . 
+	</s>
+	
+
+	<s id="198">
+		 Addison-Wesley , MA . 
+	</s>
+	
+
+	<s id="199">
+		 J. Sowa . 
+	</s>
+	
+
+	<s id="200">
+		 1992. Conceptual Graphs as a Universal Knowledge Representation . 
+	</s>
+	
+
+	<s id="201">
+		 Computers Math . 
+	</s>
+	
+
+	<s id="202">
+		 Application , 23(2-5) : 75-93 . 
+	</s>
+	
+
+	<s id="203">
+		 M. Stede . 
+	</s>
+	
+
+	<s id="204">
+		 1996. Lexical semantics and knowledge representation in multilingual sentence generation . 
+	</s>
+	
+
+	<s id="205">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="206">
+		 thesis : Department of Computer Science , University of Toronto , Canada . 
+	</s>
+	
+
+	<s id="207">
+		 USCA Writing Room . 
+	</s>
+	
+
+	<s id="208">
+		 Paraphrasing . 
+	</s>
+	
+
+	<s id="209">
+		 The University of South Carolina : Aiken . 
+	</s>
+	
+
+	<s id="210">
+		 Aiken : SC . 
+	</s>
+	
+
+
+</acldoc>

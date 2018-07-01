@@ -1,0 +1,862 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-2003">
+	
+
+	<s id="1">
+		 Searching for Topics in a Large Collection of Texts Martin Holub Ji^r´í Semeck´y Ji^r´í Divi^s Center for Computational Linguistics Charles University , Prague holub|semecky @ufal.mff.cuni.cz jiri.divis@atlas.cz Abstract We describe an original method that automatically finds specific topics in a large collection of texts . 
+	</s>
+	
+
+	<s id="2">
+		 Each topic is first identified as a specific cluster of texts and then represented as a virtual concept , which is a weighted mixture of words . 
+	</s>
+	
+
+	<s id="3">
+		 Our intention is to employ these virtual concepts in document indexing . 
+	</s>
+	
+
+	<s id="4">
+		 In this paper we show some preliminary experimental results and discuss directions of future work . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction In the field of information retrieval ( for a detailed survey see e.g. 
+		<ref citStr="Baeza-Yates and Ribeiro-Neto , 1999" id="1" label="CEPF" position="815">
+			( Baeza-Yates and Ribeiro-Neto , 1999 )
+		</ref>
+		 ) , document indexing and representing documents as vectors belongs among the most successful techniques . 
+	</s>
+	
+
+	<s id="6">
+		 Within the framework of the well known vector model , the indexed elements are usually individual words , which leads to high dimensional vectors . 
+	</s>
+	
+
+	<s id="7">
+		 However , there are several approaches that try to reduce the high dimensionality of the vectors in order to improve the effectivity of retrieving . 
+	</s>
+	
+
+	<s id="8">
+		 The most famous is probably the method called Latent Semantic Indexing ( LSI ) , introduced by 
+		<ref citStr="Deerwester et al . ( 1990 )" id="2" label="CEPF" position="1369">
+			Deerwester et al . ( 1990 )
+		</ref>
+		 , which employs a specific linear transformation of original word-based vectors using a system of “latent semantic concepts” . 
+	</s>
+	
+
+	<s id="9">
+		 Other two approaches which inspired us , namely 
+		<ref citStr="Dhillon and Modha , 2001" id="3" label="CERF" position="1584">
+			( Dhillon and Modha , 2001 )
+		</ref>
+		 and 
+		<ref citStr="Torkkola , 2002" id="4" label="CERF" position="1608">
+			( Torkkola , 2002 )
+		</ref>
+		 , are similar to LSI but dif- ferent in the way how they project the vectors of documents into a space of a lower dimension . 
+	</s>
+	
+
+	<s id="10">
+		 Our idea is to establish a system of “virtual concepts” , which are linear functions represented by vectors , extracted from automatically discovered “concept-formative clusters” of documents . 
+	</s>
+	
+
+	<s id="11">
+		 Shortly speaking , concept-formative clusters are semantically coherent and specific sets of documents , which represent specific topics . 
+	</s>
+	
+
+	<s id="12">
+		 This idea was originally proposed by 
+		<ref citStr="Holub ( 2003 )" id="5" label="CERF" position="2150">
+			Holub ( 2003 )
+		</ref>
+		 , who hypothesizes that concept-oriented vector models of documents based on indexing virtual concepts could improve the effectiveness of both automatic comparison of documents and their matching with queries . 
+	</s>
+	
+
+	<s id="13">
+		 The paper is organized as follows . 
+	</s>
+	
+
+	<s id="14">
+		 In section 2 we formalize the notion of concept-formative clusters and give a heuristic method of finding them . 
+	</s>
+	
+
+	<s id="15">
+		 Section 3 first introduces virtual concepts in a formal way and shows an algorithm to construct them . 
+	</s>
+	
+
+	<s id="16">
+		 Then , some experiments are shown . 
+	</s>
+	
+
+	<s id="17">
+		 In sections 4 we compare our model with another approach and give a brief survey of some open questions . 
+	</s>
+	
+
+	<s id="18">
+		 Finally , a short summary is given in section 5 . 
+	</s>
+	
+
+	<s id="19">
+		 2 Concept-formative clusters 2.1 Graph of a text collection Let be a collection of text documents ; is the size of the collection . 
+	</s>
+	
+
+	<s id="20">
+		 Now suppose that we have a function , which gives a degree of document similarity for each pair of documents . 
+	</s>
+	
+
+	<s id="21">
+		 Then we represent the collection as a graph . 
+	</s>
+	
+
+	<s id="22">
+		 Definition : A labeled graph is called graph of collection if where and each edge is labeled by number , called weight of ; is a given document similarity threshold ( i.e. a threshold weight of edge ) . 
+	</s>
+	
+
+	<s id="23">
+		 Now we introduce some terminology and neces- sary notation . 
+	</s>
+	
+
+	<s id="24">
+		 Let be a graph of col- lection . 
+	</s>
+	
+
+	<s id="25">
+		 Each subset is called a cut of ; stands for the complement . 
+	</s>
+	
+
+	<s id="26">
+		 If are disjoint cuts then . 
+	</s>
+	
+
+	<s id="27">
+		 Both functions are positive . 
+	</s>
+	
+
+	<s id="28">
+		 Thus , the specificity of cut can be formalized by the following formula — the greater this value , the more specific the cut ; and are positive parameters , which are used for balancing the two factors . 
+	</s>
+	
+
+	<s id="29">
+		 The extensity of cut is defined as a positive function where is a threshold size of cut . 
+	</s>
+	
+
+	<s id="30">
+		 is a set of edges within cut ; Definition : The total quality of cut is a pos- itive real function composed of all factors mentioned above and is defined as is called weight of cut ; is a set of edges between cuts and ; is called weight of the connection between cuts and ; is the expected weight of edge in graph ; is the expected weight of cut ; is the expected weight of the connection between cut X and the rest of the collection ; each cut naturally splits the collection into three disjoint subsets where and . 
+	</s>
+	
+
+	<s id="31">
+		 2.2 Quality of cuts Now we formalize the property of “being concept- -formative” by a positive real function called quality of cut . 
+	</s>
+	
+
+	<s id="32">
+		 A high value of quality means that a cut must be specific and extensive . 
+	</s>
+	
+
+	<s id="33">
+		 A cut is called specific if ( i ) the weight is relatively high and ( ii ) the connection between and the rest of the collection is relatively small . 
+	</s>
+	
+
+	<s id="34">
+		 The first property is called compactness of cut , and is defined as , while the other is called exhaustivity of cut , which is defined as where the three lambdas are parameters whose purpose is balancing the three factors . 
+	</s>
+	
+
+	<s id="35">
+		 To be concept-formative , a cut ( i ) must have a sufficiently high quality and ( ii ) must be locally optimal . 
+	</s>
+	
+
+	<s id="36">
+		 2.3 Local optimization of cuts A cut is called locally optimal regarding quality function if each cut which is only a small modification of the original does not have greater quality , i.e. . 
+	</s>
+	
+
+	<s id="37">
+		 Now we describe a local search procedure whose purpose is to optimize any input cut ; if is not locally optimal , the output of the Local Search procedure is a locally optimal cut which results from the original as its local modification . 
+	</s>
+	
+
+	<s id="38">
+		 First we need the following definition : Definition : Potential of document with re- spect to cut is a real function :defined as The Local Search procedure is described in Fig . 
+	</s>
+	
+
+	<s id="39">
+		 1. Note that 1 . 
+	</s>
+	
+
+	<s id="40">
+		 Local Search gradually generates a sequence of cuts so that Figure 1 : The Local Search Algorithm ( i ) for , and ( ii ) cut always arises from by adding or taking away one document into/from it ; 2. since the quality of modified cuts cannot in- crease infinitely , a finite necessarily exists so that is locally optimal and con- sequently the program stops at least after the -th iteration ; 3. each output cut is locally optimal . 
+	</s>
+	
+
+	<s id="41">
+		 Now we are ready to precisely define concept- -formative clusters : Definition : A cut is called a concept- -formative cluster if ( ii ) where is the output of the Local Search algorithm . 
+	</s>
+	
+
+	<s id="42">
+		 The whole procedure for finding concept- formative clusters consists of two basic stages : first , a set of initial cuts is found within the whole collection , and then each of them is used as a seed for the Local Search algorithm , which locally optimizes the quality function . 
+	</s>
+	
+
+	<s id="43">
+		 Note that are crucial parameters , which strongly affect the whole process of searching and consequently also the character of resulting concept-formative clusters . 
+	</s>
+	
+
+	<s id="44">
+		 We have optimized their values by a sort of machine learning , using a small manually annotated collection of texts . 
+	</s>
+	
+
+	<s id="45">
+		 When optimized -parameters are used , the Local Search procedure tries to simulate the behavior of human annotator who finds topically coherent clusters in a training collection . 
+	</s>
+	
+
+	<s id="46">
+		 The task of -optimization leads to a system of linear inequalities , which we solve via linear programming . 
+	</s>
+	
+
+	<s id="47">
+		 As there is no scope for this issue here , we cannot go into details . 
+	</s>
+	
+
+	<s id="48">
+		 3 Virtual concepts In this section we first show that concept- -formative clusters can be viewed as fuzzy sets . 
+	</s>
+	
+
+	<s id="49">
+		 In this sense , each concept-formative cluster can be characterized by a membership function . 
+	</s>
+	
+
+	<s id="50">
+		 Fuzzy clustering allows for some ambiguity in the data , and its main advantage over hard clustering is that it yields much more detailed information on the structure of the data ( cf. 
+		<ref citStr="Kaufman and Rousseeuw , 1990" id="6" label="CEPF" position="7961">
+			( Kaufman and Rousseeuw , 1990 )
+		</ref>
+		 , chapter 4 ) . 
+	</s>
+	
+
+	<s id="51">
+		 Then we define virtual concepts as linear functions which estimate degree of membership of documents in concept-formative clusters . 
+	</s>
+	
+
+	<s id="52">
+		 Since virtual concepts are weighted mixtures of words represented as vectors , they can also be seen as virtual documents representing specific topics that emerge in the analyzed collection . 
+	</s>
+	
+
+	<s id="53">
+		 Definition : Degree of membership of a document in a concept-formative cluster is a function : . 
+	</s>
+	
+
+	<s id="54">
+		 For we define where is a constant . 
+	</s>
+	
+
+	<s id="55">
+		 For we define . 
+	</s>
+	
+
+	<s id="56">
+		 The following holds true for any concept- -formative cluster and any document : iff ; iff . 
+	</s>
+	
+
+	<s id="57">
+		 Now we formalize the notion of virtual con- cepts . 
+	</s>
+	
+
+	<s id="58">
+		 Let be vector rep- resentations of documents , where Input : the graph of text collection ; an initial cut . 
+	</s>
+	
+
+	<s id="59">
+		 Output : locally optimal cut . 
+	</s>
+	
+
+	<s id="60">
+		 Algorithm : loop : if then goto loop if then goto loop end ( i ) where is a threshold quality and Figure 2 : The Greedy Regression Algorithm is the number of indexed terms . 
+	</s>
+	
+
+	<s id="61">
+		 We look for such a vector so that approximately holds for any . 
+	</s>
+	
+
+	<s id="62">
+		 This vector is then called virtual concept corre- sponding to concept -formative cluster . 
+	</s>
+	
+
+	<s id="63">
+		 The task of finding virtual concepts can be solved using the Greedy Regression Algorithm ( GRA ) , originally suggested by Semeck´y ( 2003 ) . 
+	</s>
+	
+
+	<s id="64">
+		 3.1 Greedy Regression Algorithm The GRA is directly based on multiple linear regression ( see e.g. 
+		<ref citStr="Rice , 1994" id="7" label="CEPF" position="9449">
+			( Rice , 1994 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="65">
+		 The GRA works in iterations and gradually increases the number of non-zero elements in the resulting vector , i.e. the number of words with non-zero weight in the resulting mixture . 
+	</s>
+	
+
+	<s id="66">
+		 So this number can be explicitly restricted by a parameter . 
+	</s>
+	
+
+	<s id="67">
+		 This feature of the GRA has been designed for the sake of generalization , in order to not overfit the input sample . 
+	</s>
+	
+
+	<s id="68">
+		 The input of the GRA consists of ( i ) a sample set of document vectors with the corresponding values of , ( ii ) a maximum number of non-zero elements , and ( iii ) an error threshold . 
+	</s>
+	
+
+	<s id="69">
+		 The GRA , which is described in Fig . 
+	</s>
+	
+
+	<s id="70">
+		 2 , requires a procedure for solving multiple linear regression ( MLR ) with a limited number of nonzero elements in the resulting vector . 
+	</s>
+	
+
+	<s id="71">
+		 Formally , gets on input a set of vectors ; a corresponding set of values to be approximated ; and a set of indexes of the ele- ments which are allowed to be non-zero in the output vector . 
+	</s>
+	
+
+	<s id="72">
+		 The output of the MLR is a vector . 
+	</s>
+	
+
+	<s id="73">
+		 Implementation and time complexity For solving multiple linear regression we use a public-domain Java package JAMA ( 2004 ) , developed by the MathWorks and NIST . 
+	</s>
+	
+
+	<s id="74">
+		 The computation of inverse matrix is based on the LU decomposition , which makes it faster 
+		<ref citStr="Press et al. , 1992" id="8" label="CEPF" position="10775">
+			( Press et al. , 1992 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="75">
+		 As for the asymptotic time complexity of the GRA , it is in complexity of the MLR since the outer loop runs times at maximum and the inner loop always runs nearly times . 
+	</s>
+	
+
+	<s id="76">
+		 The MLR substantially consists of matrix multiplica- tions in dimension and a matrix inversion in dimension . 
+	</s>
+	
+
+	<s id="77">
+		 Thus the complexity of the MLR is in because . 
+	</s>
+	
+
+	<s id="78">
+		 So the total complexity of the GRA is in . 
+	</s>
+	
+
+	<s id="79">
+		 To reduce this high computational complexity , we make a term pre-selection using a heuristic method based on linear programming . 
+	</s>
+	
+
+	<s id="80">
+		 Then , the GRA does not need to deal with high-dimensional vectors in , but works with vectors in dimen- sion . 
+	</s>
+	
+
+	<s id="81">
+		 Although the acceleration is only linear , the required time has been reduced more than ten times , which is practically significant . 
+	</s>
+	
+
+	<s id="82">
+		 3.2 Experiments The experiments reported here were done on a small experimental collection of Output : end ... output concept ; ... quadratic residual error ; ... number of words in the output concept . 
+	</s>
+	
+
+	<s id="83">
+		 Algorithm : , while do for each do output of MLR if then , , Input : pairs where ; ... maximal number of words in output concept ; ... quadratic residual error threshold . 
+	</s>
+	
+
+	<s id="84">
+		 where each considered must fulfill for any Czech documents . 
+	</s>
+	
+
+	<s id="85">
+		 The texts were articles from two different newspapers and one journal . 
+	</s>
+	
+
+	<s id="86">
+		 Each document was morphologically analyzed and lemmatized ( Haji^c , 2000 ) and then indexed and represented as a vector . 
+	</s>
+	
+
+	<s id="87">
+		 We indexed only lemmas of nouns , adjectives , verbs , adverbs and numerals whose document frequency was greater than and less than . 
+	</s>
+	
+
+	<s id="88">
+		 Then the number of indexed terms was . 
+	</s>
+	
+
+	<s id="89">
+		 The cosine similarity was used to compute the document similarity ; threshold was . 
+	</s>
+	
+
+	<s id="90">
+		 There were edges in the graph of the collection . 
+	</s>
+	
+
+	<s id="91">
+		 We had computed a set of concept-formative clusters and then approximated the corresponding membership functions by virtual concepts . 
+	</s>
+	
+
+	<s id="92">
+		 The first thing we have observed was that the quadratic residual error systematically and progresivelly decreases in each GRA iteration . 
+	</s>
+	
+
+	<s id="93">
+		 Moreover , the words in virtual concepts are obviously intelligible for humans and strongly suggest the topic . 
+	</s>
+	
+
+	<s id="94">
+		 An example is given in Table 1. words in the concept the weights Czech lemma literally transl . 
+	</s>
+	
+
+	<s id="95">
+		 bosensk´y Bosnian Srb Serb UNPROFOR UNPROFOR OSN UN Sarajevo Sarajevo — — — — — muslimsk´y Muslim ( adj ) odvolat withdraw srbsk´y Serbian gener´al general ( n ) list paper quadratic residual error : Table 1 : Two virtual concepts ( and ) corresponding to cluster #318 . 
+	</s>
+	
+
+	<s id="96">
+		 Another example is cluster #19 focused on “pension funds” , which was approximated ( ) by the following words ( literally translated ) : pension ( adj ) , pension ( n ) , fund , additional insurance , inheritance , payment , interest ( n ) , dealer , regulation , lawsuit , August ( adj ) , measure ( n ) , approve , increase ( v ) , appreciation , property , trade ( adj ) , attentively , improve , coupon ( adj ) . 
+	</s>
+	
+
+	<s id="97">
+		 ( The signs after the words indicate their positive or negative weights in the concept . 
+	</s>
+	
+
+	<s id="98">
+		 ) Figure 3 shows the approximation of this cluster by virtual concept . 
+	</s>
+	
+
+	<s id="99">
+		 Figure 3 : The approximation of membership function corresponding to cluster #19 by a virtual concept ( the number of words in the concept ) . 
+	</s>
+	
+
+	<s id="100">
+		 4 Discussion 4.1 Related work A similar approach to searching for topics and employing them for document retrieval has been recently suggested by 
+		<ref citStr="Xu and Croft ( 2000 )" id="9" label="CJPN" position="14350">
+			Xu and Croft ( 2000 )
+		</ref>
+		 , who , however , try to employ the topics in the area of distributed retrieval . 
+	</s>
+	
+
+	<s id="101">
+		 They use document clustering , treat each cluster as a topic , and then define topics as probability distributions of words . 
+	</s>
+	
+
+	<s id="102">
+		 They use the Kullback-Leibler divergence with some modification as a distance metric to determine the closeness of a document to a cluster . 
+	</s>
+	
+
+	<s id="103">
+		 Although our virtual concepts cannot be interpreted as probability distributions , in this point both approaches are quite similar . 
+	</s>
+	
+
+	<s id="104">
+		 The substantial difference is in the clustering method used . 
+	</s>
+	
+
+	<s id="105">
+		 Xu and Croft have chosen the K-Means algorithm , “for its efficiency” . 
+	</s>
+	
+
+	<s id="106">
+		 In contrast to this hard clustering algorithm , ( i ) our method is consistently based on empirical analysis of a text collection and does not require an a priori given number of topics ; ( ii ) in order to induce permeable topics , our concept-formative clusters are not disjoint ; ( iii ) the specificity of our clusters is driven by training samples given by human . 
+	</s>
+	
+
+	<s id="107">
+		 Xu and Croft suggest that retrieval based on topics may be more robust in comparison with the classic vector technique : Document ranking against a query is based on statistical correlation between query words and words in a document . 
+	</s>
+	
+
+	<s id="108">
+		 Since a document is a small sample of text , the statistics in a document are often too sparse to reliably predict how likely the document is relevant to a query . 
+	</s>
+	
+
+	<s id="109">
+		 In contrast , we have much more texts for a topic and the statistics are more stable . 
+	</s>
+	
+
+	<s id="110">
+		 By excluding clearly unrelated topics , we can avoid retrieving many of the non-relevant documents . 
+	</s>
+	
+
+	<s id="111">
+		 4.2 Future work As our work is still in progress , there are some open questions , which we will concentrate on in the near future . 
+	</s>
+	
+
+	<s id="112">
+		 Three main issues are ( i ) evaluation , ( ii ) parameters setting ( which is closely connected to the previous one ) , and ( iii ) an effective implementation of crucial algorithms ( the current implementation is still experimental ) . 
+	</s>
+	
+
+	<s id="113">
+		 As for the evaluation , we are building a manually annotated test collection using which we want to test the capability of our model to estimate inter- -document similarity in comparison with the classic vector model and the LSI model . 
+	</s>
+	
+
+	<s id="114">
+		 So far , we have been working with a Czech collection for we also test the impact of morphology and some other NLP methods developed for Czech . 
+	</s>
+	
+
+	<s id="115">
+		 Next step will be the evaluation on the English TREC collections , which will enable us to rigorously evaluate if our model really helps to improve IR tasks . 
+	</s>
+	
+
+	<s id="116">
+		 The evaluation will also give us criteria for parameters setting . 
+	</s>
+	
+
+	<s id="117">
+		 We expect that a positive value of will significantly accelerate the computation without loss of quality , but finding the right value must be based on the evaluation . 
+	</s>
+	
+
+	<s id="118">
+		 As for the most important parameters of the GRA ( i.e. the size of the sample set and the number of words in concept ) , these should be set so that the resulting concept is a good membership estimator also for documents not included in the sample set . 
+	</s>
+	
+
+	<s id="119">
+		 5 Summary We have designed and implemented a system that automatically discovers specific topics in a text collection . 
+	</s>
+	
+
+	<s id="120">
+		 We try to employ it in document indexing . 
+	</s>
+	
+
+	<s id="121">
+		 The main directions for our future work are thorough evaluation of the model and optimization of the parameters . 
+	</s>
+	
+
+	<s id="122">
+		 Acknowledgments This work has been supported by the Ministry of Education , project Center for Computational Linguistics ( project LN00A063 ) . 
+	</s>
+	
+
+	<s id="123">
+		 References Ricardo A. Baeza-Yates and Berthier A. Ribeiro-Neto . 
+	</s>
+	
+
+	<s id="124">
+		 1999. Modern Information Retrieval . 
+	</s>
+	
+
+	<s id="125">
+		 ACM Press / Addison-Wesley . 
+	</s>
+	
+
+	<s id="126">
+		 Scott C. Deerwester , Susan T. Dumais , Thomas K. Landauer , George W. Furnas , and Richard A. Harshman . 
+	</s>
+	
+
+	<s id="127">
+		 1990 . 
+	</s>
+	
+
+	<s id="128">
+		 Indexing by latent semantic analysis . 
+	</s>
+	
+
+	<s id="129">
+		 JASIS , 41(6):391–407 . 
+	</s>
+	
+
+	<s id="130">
+		 Inderjit S. Dhillon and D. S. Modha . 
+	</s>
+	
+
+	<s id="131">
+		 2001. Concept decompositions for large sparse text data using clustering . 
+	</s>
+	
+
+	<s id="132">
+		 Machine Learning , 42(1/2):143–175 . 
+	</s>
+	
+
+	<s id="133">
+		 Jan Haji^c . 
+	</s>
+	
+
+	<s id="134">
+		 2000. Morphological tagging : Data vs. dictionaries . 
+	</s>
+	
+
+	<s id="135">
+		 In Proceedings of the 6th ANLP Conference , 1stNAACL Meeting , pages 94–101 , Seattle . 
+	</s>
+	
+
+	<s id="136">
+		 Martin Holub . 
+	</s>
+	
+
+	<s id="137">
+		 2003. A new approach to conceptual document indexing : Building a hierarchical system of concepts based on document clusters . 
+	</s>
+	
+
+	<s id="138">
+		 In M. Aleksy et al . 
+	</s>
+	
+
+	<s id="139">
+		 ( eds . 
+	</s>
+	
+
+	<s id="140">
+		 ) : ISICT 2003 , Proceedings of the International Symposium on Information and Communication Technologies , pages 311–316 . 
+	</s>
+	
+
+	<s id="141">
+		 Trinity College Dublin , Ireland . 
+	</s>
+	
+
+	<s id="142">
+		 JAMA . 
+	</s>
+	
+
+	<s id="143">
+		 2004. JAMA : A Java Matrix Package . 
+	</s>
+	
+
+	<s id="144">
+		 Public- domain , http://math.nist.gov/javanumerics/jama/ . 
+	</s>
+	
+
+	<s id="145">
+		 Leonard Kaufman and Peter J. Rousseeuw . 
+	</s>
+	
+
+	<s id="146">
+		 1990. Finding Groups in Data . 
+	</s>
+	
+
+	<s id="147">
+		 John Wiley &amp; Sons . 
+	</s>
+	
+
+	<s id="148">
+		 W. H. Press , S. A. Teukolsky , W. T. Vetterling , and B. P. Flannery . 
+	</s>
+	
+
+	<s id="149">
+		 1992. Numerical Recipes in C. Second edition , Cambridge University Press , Cambridge . 
+	</s>
+	
+
+	<s id="150">
+		 John A. Rice . 
+	</s>
+	
+
+	<s id="151">
+		 1994. Mathematical Statistics and Data Analysis . 
+	</s>
+	
+
+	<s id="152">
+		 Second edition , Duxbury Press , California . 
+	</s>
+	
+
+	<s id="153">
+		 Ji^r´ í Semeck´y . 
+	</s>
+	
+
+	<s id="154">
+		 2003. Semantic word classes extracted from text clusters . 
+	</s>
+	
+
+	<s id="155">
+		 In 12th Annual Conference WDS 2003 , Proceeding of Contributed Papers . 
+	</s>
+	
+
+	<s id="156">
+		 MATFYZPRESS , Prague . 
+	</s>
+	
+
+	<s id="157">
+		 Kari Torkkola. 2002 . 
+	</s>
+	
+
+	<s id="158">
+		 Discriminative features for document classification . 
+	</s>
+	
+
+	<s id="159">
+		 In Proceedings of the International Conference on Pattern Recognition , Quebec City , Canada , August 11–15 . 
+	</s>
+	
+
+	<s id="160">
+		 Jinxi Xu and W. Bruce Croft . 
+	</s>
+	
+
+	<s id="161">
+		 2000. Topic-based language models for distributed retrieval . 
+	</s>
+	
+
+	<s id="162">
+		 In W. Bruce Croft ( ed . 
+	</s>
+	
+
+	<s id="163">
+		 ) : Advances in Information Retrieval , pages 151–172 . 
+	</s>
+	
+
+	<s id="164">
+		 Kluwer Academic Publishers . 
+	</s>
+	
+
+
+</acldoc>

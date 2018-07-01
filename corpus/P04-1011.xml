@@ -1,0 +1,1392 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1011">
+	
+
+	<s id="1">
+		 Trainable Sentence Planning for Complex Information Presentation in Spoken Dialog Systems Amanda Stent Stony Brook University Stony Brook , NY 11794 U.S.A. stent@cs.sunysb.edu Rashmi Prasad University of Pennsylvania Philadelphia , PA 19104 U.S.A. rjprasad@linc.cis.upenn.edu Marilyn Walker University of Sheffield Sheffield S1 4DP U.K. M.A.Walker@sheffield.ac.uk Abstract A challenging problem for spoken dialog systems is the design of utterance generation modules that are fast , flexible and general , yet produce high quality output in particular domains . 
+	</s>
+	
+
+	<s id="2">
+		 A promising approach is trainable generation , which uses general-purpose linguistic knowledge automatically adapted to the application domain . 
+	</s>
+	
+
+	<s id="3">
+		 This paper presents a trainable sentence planner for the MATCH dialog system . 
+	</s>
+	
+
+	<s id="4">
+		 We show that trainable sentence planning can produce output comparable to that of MATCH’s template-based generator even for quite complex information presentations . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction One very challenging problem for spoken dialog systems is the design of the utterance generation module . 
+	</s>
+	
+
+	<s id="6">
+		 This challenge arises partly from the need for the generator to adapt to many features of the dialog domain , user population , and dialog context . 
+	</s>
+	
+
+	<s id="7">
+		 There are three possible approaches to generating system utterances . 
+	</s>
+	
+
+	<s id="8">
+		 The first is template- based generation , used in most dialog systems today . 
+	</s>
+	
+
+	<s id="9">
+		 Template-based generation enables a programmer without linguistic training to program a generator that can efficiently produce high quality output specific to different dialog situations . 
+	</s>
+	
+
+	<s id="10">
+		 Its drawbacks include the need to ( 1 ) create templates anew by hand for each application ; ( 2 ) design and maintain a set of templates that work well together in many dialog contexts ; and ( 3 ) repeatedly encode linguistic constraints such as subject-verb agreement . 
+	</s>
+	
+
+	<s id="11">
+		 The second approach is natural language generation ( NLG ) , which divides generation into : ( 1 ) text ( or content ) planning , ( 2 ) sentence planning , and ( 3 ) surface realization . 
+	</s>
+	
+
+	<s id="12">
+		 NLG promises portability across domains and dialog contexts by using general rules for each generation module . 
+	</s>
+	
+
+	<s id="13">
+		 However , the quality of the output for a particular domain , or a particular dialog context , may be inferior to that of a template- based system unless domain-specific rules are developed or general rules are tuned for the particular domain . 
+	</s>
+	
+
+	<s id="14">
+		 Furthermore , full NLG may be too slow for use in dialog systems . 
+	</s>
+	
+
+	<s id="15">
+		 A third , more recent , approach is trainable generation : techniques for automatically training NLG modules , or hybrid techniques that adapt NLG modules to particular domains or user groups , e.g. 
+		<ref citStr="Langkilde , 2000" id="1" label="CEPF" position="2774">
+			( Langkilde , 2000 
+		</ref>
+		<ref citStr="Mellish , 1998" id="2" label="CEPF" position="2793">
+			; Mellish , 1998 
+		</ref>
+		<ref citStr="Walker , Rambow and Rogati , 2002" id="3" label="CEPF" position="2810">
+			; Walker , Rambow and Rogati , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="16">
+		 Open questions about the trainable approach include ( 1 ) whether the output quality is high enough , and ( 2 ) whether the techniques work well across domains . 
+	</s>
+	
+
+	<s id="17">
+		 For example , the training method used in SPoT ( Sentence Planner Trainable ) , as described in 
+		<ref citStr="Walker , Rambow and Rogati , 2002" id="4" label="CEPF" position="3163">
+			( Walker , Rambow and Rogati , 2002 )
+		</ref>
+		 , was only shown to work in the travel domain , for the information gathering phase of the dialog , and with simple content plans involving no rhetorical relations . 
+	</s>
+	
+
+	<s id="18">
+		 This paper describes trainable sentence planning for information presentation in the MATCH ( Multimodal Access To City Help ) dialog system 
+		<ref citStr="Johnston et al. , 2002" id="5" label="OEPF" position="3505">
+			( Johnston et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="19">
+		 We provide evidence that the trainable approach is feasible by showing ( 1 ) that the training technique used for SPoT can be extended to a new domain ( restaurant information ) ; ( 2 ) that this technique , previously used for information- gathering utterances , can be used for information presentations , namely recommendations and comparisons ; and ( 3 ) that the quality of the output is comparable to that of a template-based generator previously developed and experimentally evaluated with MATCH users 
+		<ref citStr="Walker et al. , 2002" id="6" label="CEPF" position="4026">
+			( Walker et al. , 2002 
+		</ref>
+		<ref citStr="Stent et al. , 2002" id="7" label="CEPF" position="4049">
+			; Stent et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="20">
+		 Section 2 describes SPaRKy ( Sentence Planning with Rhetorical Knowledge ) , an extension of SPoT that uses rhetorical relations . 
+	</s>
+	
+
+	<s id="21">
+		 SPaRKy consists of a randomized sentence plan generator ( SPG ) and a trainable sentence plan ranker ( SPR ) ; these are described in Sections 3 strategy : recommend items : Chanpen Thai relations justify ( nuc:1 ; sat : 2 ) ; justify ( nuc:1;sat:3 ) ; jus- tify(nuc:1;sat:4) content : 1. assert ( best ( Chanpen Thai ) ) 2. assert ( has-att ( Chanpen Thai , decor(decent))) 3. assert ( has-att ( Chanpen Thai , service(good)) 4. assert ( has-att ( Chanpen Thai , cuisine(Thai))) Figure 1 : A content plan for a recommendation for a restaurant in midtown Manhattan strategy:compare3 items : Above , Carmine’s relations :elaboration(1;2) ; elaboration ( 1;3 ) ; elabora- tion(1,4) ; elaboration ( 1,5 ) ; elaboration(1,6) ; elaboration(1,7) ; contrast(2;3) ; contrast(4;5) ; contrast(6;7) content : 1. assert ( exceptional ( Above , Carmine’s ) ) 2. assert ( has-att ( Above , decor(good))) 3. assert ( has-att ( Carmine’s , decor(decent))) 4. assert ( has-att ( Above , service(good))) 5. assert ( has-att ( Carmine’s , service(good))) 6. assert ( has-att ( Above , cuisine(New American ) ) ) 7. assert ( has-att ( Carmine’s , cuisine(italian))) Figure 2 : A content plan for a comparison between restaurants in midtown Manhattan and 4 . 
+	</s>
+	
+
+	<s id="22">
+		 Section 5 presents the results of two experiments . 
+	</s>
+	
+
+	<s id="23">
+		 The first experiment shows that given a content plan such as that in Figure 1 , SPaRKy can select sentence plans that communicate the desired rhetorical relations , are significantly better than a randomly selected sentence plan , and are on average less than 10 % worse than a sentence plan ranked highest by human judges . 
+	</s>
+	
+
+	<s id="24">
+		 The second experiment shows that the quality of SPaRKy’s output is comparable to that of MATCH’s template-based generator . 
+	</s>
+	
+
+	<s id="25">
+		 We sum up in Section 6 . 
+	</s>
+	
+
+	<s id="26">
+		 2 SPaRKy Architecture Information presentation in the MATCH system focuses on user-tailored recommendations and comparisons of restaurants 
+		<ref citStr="Walker et al. , 2002" id="8" label="CEPF" position="6203">
+			( Walker et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="27">
+		 Following the bottom-up approach to text-planning described in 
+		<ref citStr="Marcu , 1997" id="9" label="CEPF" position="6278">
+			( Marcu , 1997 
+		</ref>
+		<ref citStr="Mellish , 1998" id="10" label="CEPF" position="6293">
+			; Mellish , 1998 )
+		</ref>
+		 , each presentation consists of a set of assertions about a set of restaurants and a specification of the rhetorical relations that hold between them . 
+	</s>
+	
+
+	<s id="28">
+		 Example content plans are shown in Figures 1 and 2 . 
+	</s>
+	
+
+	<s id="29">
+		 The job of the sentence planner is to choose linguistic resources to realize a content plan and then rank the resulting alternative realizations . 
+	</s>
+	
+
+	<s id="30">
+		 Figures 3 and 4 show alternative realizations for the content plans in Figures 1 and 2 . 
+	</s>
+	
+
+	<s id="31">
+		 Alt Realization H SPR 2 Chanpen Thai , which is a Thai restau- rant , has decent decor . 
+	</s>
+	
+
+	<s id="32">
+		 It has good service . 
+	</s>
+	
+
+	<s id="33">
+		 It has the best overall quality among the selected restaurants . 
+	</s>
+	
+
+	<s id="34">
+		 3 .28 5 Since Chanpen Thai is a Thai restau- rant , with good service , and it has decent decor , it has the best overall quality among the selected restaurants . 
+	</s>
+	
+
+	<s id="35">
+		 2.5 .14 6 Chanpen Thai , which is a Thai restau- rant , with decent decor and good service , has the best overall quality among the selected restaurants . 
+	</s>
+	
+
+	<s id="36">
+		 4 .70 Figure 3 : Some alternative sentence plan realizations for the recommendation in Figure 1. H = Humans’ score . 
+	</s>
+	
+
+	<s id="37">
+		 SPR = SPR’s score . 
+	</s>
+	
+
+	<s id="38">
+		 Alt Realization H SPR 11 Above and Carmine’s offer exceptional value among the selected restaurants . 
+	</s>
+	
+
+	<s id="39">
+		 Above , which is a New American restaurant , with good decor , has good service . 
+	</s>
+	
+
+	<s id="40">
+		 Carmine’s , which is an Italian restaurant , with good service , has decent decor . 
+	</s>
+	
+
+	<s id="41">
+		 2 .73 12 Above and Carmine’s offer exceptional value among the selected restaurants . 
+	</s>
+	
+
+	<s id="42">
+		 Above has good decor , and Carmine’s has decent decor . 
+	</s>
+	
+
+	<s id="43">
+		 Above and Carmine’s 2.5 .50 have good service . 
+	</s>
+	
+
+	<s id="44">
+		 Above is a New American restaurant . 
+	</s>
+	
+
+	<s id="45">
+		 On the other hand , Carmine’s is an Italian restaurant . 
+	</s>
+	
+
+	<s id="46">
+		 13 Above and Carmine’s offer exceptional value among the selected restaurants . 
+	</s>
+	
+
+	<s id="47">
+		 Above is a New American restaurant . 
+	</s>
+	
+
+	<s id="48">
+		 It has good decor . 
+	</s>
+	
+
+	<s id="49">
+		 It has good service . 
+	</s>
+	
+
+	<s id="50">
+		 Carmine’s , which is an Italian restaurant , has decent decor and good service . 
+	</s>
+	
+
+	<s id="51">
+		 3 .67 20 Above and Carmine’s offer exceptional value among the selected restaurants . 
+	</s>
+	
+
+	<s id="52">
+		 Carmine’s has decent decor but Above has good decor , and Carmine’s and Above have good service . 
+	</s>
+	
+
+	<s id="53">
+		 Carmine’s is an Italian restaurant . 
+	</s>
+	
+
+	<s id="54">
+		 Above , however , is a New American restaurant . 
+	</s>
+	
+
+	<s id="55">
+		 2.5 .49 25 Above and Carmine’s offer exceptional value among the selected restaurants . 
+	</s>
+	
+
+	<s id="56">
+		 Above has good decor . 
+	</s>
+	
+
+	<s id="57">
+		 Carmine’s is an Italian restaurant . 
+	</s>
+	
+
+	<s id="58">
+		 Above has good service . 
+	</s>
+	
+
+	<s id="59">
+		 Carmine’s has decent decor . 
+	</s>
+	
+
+	<s id="60">
+		 Above is a New American restaurant . 
+	</s>
+	
+
+	<s id="61">
+		 Carmine’s has good service . 
+	</s>
+	
+
+	<s id="62">
+		 NR NR Figure 4 : Some of the alternative sentence plan realizations for the comparison in Figure 2. H = Humans’ score . 
+	</s>
+	
+
+	<s id="63">
+		 SPR = SPR’s score . 
+	</s>
+	
+
+	<s id="64">
+		 NR = Not generated or ranked The architecture of the spoken language generation module in MATCH is shown in Figure 5 . 
+	</s>
+	
+
+	<s id="65">
+		 The dialog manager sends a high-level communicative goal to the SPUR text planner , which selects the content to be communicated using a user model and brevity constraints ( see ( Walker DIALOGUE MANAGER Communicative Goals Speech Synthesizer SYSTEM UTTERANCE Figure 5 : A dialog system with a spoken language generator et al. , 2002 ) ) . 
+	</s>
+	
+
+	<s id="66">
+		 The output is a content plan for a recommendation or comparison such as those in Figures 1 and 2 . 
+	</s>
+	
+
+	<s id="67">
+		 SPaRKy , the sentence planner , gets the content plan , and then a sentence plan generator ( SPG ) generates one or more sentence plans ( Figure 7 ) and a sentence plan ranker ( SPR ) ranks the generated plans . 
+	</s>
+	
+
+	<s id="68">
+		 In order for the SPG to avoid generating sentence plans that are clearly bad , a content-structuring module first finds one or more ways to linearly order the input content plan using principles of entity-based coherence based on rhetorical relations 
+		<ref citStr="Knott et al. , 2001" id="11" label="CEPF" position="10287">
+			( Knott et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="69">
+		 It outputs a set of text plan trees ( tp-trees ) , consisting of a set of speech acts to be communicated and the rhetorical relations that hold between them . 
+	</s>
+	
+
+	<s id="70">
+		 For example , the two tp-trees in Figure 6 are generated for the content plan in Figure 2 . 
+	</s>
+	
+
+	<s id="71">
+		 Sentence plans such as alternative 25 in Figure 4 are avoided ; it is clearly worse than alternatives 12 , 13 and 20 since it neither combines information based on a restaurant entity ( e.g Babbo ) nor on an attribute ( e.g. decor ) . 
+	</s>
+	
+
+	<s id="72">
+		 The top ranked sentence plan output by the SPR is input to the RealPro surface realizer which produces a surface linguistic utterance 
+		<ref citStr="Lavoie and Rambow , 1997" id="12" label="OEPF" position="10974">
+			( Lavoie and Rambow , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="73">
+		 A prosody assignment module uses the prior levels of linguistic representation to determine the appropriate prosody for the utterance , and passes a marked- up string to the text-to-speech module . 
+	</s>
+	
+
+	<s id="74">
+		 3 Sentence Plan Generation As in SPoT , the basis of the SPG is a set of clause-combining operations that operate on tptrees and incrementally transform the elementary predicate-argument lexico-structural representations ( called DSyntS 
+		<ref citStr="Melcuk , 1988" id="13" label="OEPF" position="11447">
+			( Melcuk , 1988 )
+		</ref>
+		 ) associated with the speech-acts on the leaves of the tree . 
+	</s>
+	
+
+	<s id="75">
+		 The operations are applied in a bottom-up left-to-right fashion and the resulting representation may contain one or more sentences . 
+	</s>
+	
+
+	<s id="76">
+		 The application of the operations yields two parallel structures : ( 1 ) a sentence plan tree ( sp-tree ) , a binary tree with leaves labeled by the assertions from the input tp-tree , and interior nodes labeled with clause-combining operations ; and ( 2 ) one or more DSyntS trees ( d-trees ) which reflect the parallel operations on the predicate-argument representations . 
+	</s>
+	
+
+	<s id="77">
+		 We generate a random sample of possible sentence plans for each tp-tree , up to a pre- specified number of sentence plans , by randomly selecting among the operations according to a probability distribution that favors pre- ferred operations ' . 
+	</s>
+	
+
+	<s id="78">
+		 The choice of operation is further constrained by the rhetorical relation that relates the assertions to be combined , as in other work e.g. 
+		<ref citStr="Scott and de Souza , 1990" id="14" label="CEPF" position="12471">
+			( Scott and de Souza , 1990 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="79">
+		 In the current work , three RST rhetorical relations 
+		<ref citStr="Mann and Thompson , 1987" id="15" label="CEPF" position="12564">
+			( Mann and Thompson , 1987 )
+		</ref>
+		 are used in the content planning phase to express the relations between assertions : the JUSTIFY relation for recommendations , and the CONTRAST and ELABORATION relations for comparisons . 
+	</s>
+	
+
+	<s id="80">
+		 We added another relation to be used during the content-structuring phase , called INFER , which holds for combinations of speech acts for which there is no rhetorical relation expressed in the content plan , as in 
+		<ref citStr="Marcu , 1997" id="16" label="CERF" position="12994">
+			( Marcu , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="81">
+		 By explicitly representing the discourse structure of the information presentation , we can generate information presentations with considerably more internal complexity than those generated in 
+		<ref citStr="Walker , Rambow and Rogati , 2002" id="17" label="CEPN" position="13237">
+			( Walker , Rambow and Rogati , 2002 )
+		</ref>
+		 and eliminate those that violate certain coherence principles , as described in Section 2 . 
+	</s>
+	
+
+	<s id="82">
+		 The clause-combining operations are general operations similar to aggregation operations used in other research 
+		<ref citStr="Rambow and Korelsky , 1992" id="18" label="CEPF" position="13451">
+			( Rambow and Korelsky , 1992 
+		</ref>
+		<ref citStr="Danlos , 2000" id="19" label="CEPF" position="13480">
+			; Danlos , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="83">
+		 The operations and the ' Although the probability distribution here is hand- crafted based on assumed preferences for operations such as MERGE , RELATIVE-CLAUSE and WITH-REDUCTION , it might also be possible to learn this probability distribution from the data by training in two phases . 
+	</s>
+	
+
+	<s id="84">
+		 SPUR Text Planner What to Say Sentence Planner Surface Realizer Prosody Assigner How to Say It elaboration nucleus:&lt;1&gt;assert-com-list_exceptional infer contrast contrast contrast nucleus:&lt;2&gt;assert-com-decor nucleus:&lt;4&gt;assert-com-service nucleus:&lt;6&gt;assert-com-cuisine nucleus:&lt;3&gt;assert-com-decor nucleus:&lt;5&gt;assert-com-service nucleus:&lt;7&gt;assert-com-cuisine elaboration nucleus:&lt;1&gt;assert-com-list_exceptional contrast Figure 6 : Two tp-trees for alternative 13 in Figure 4. nucleus:&lt;5&gt;assert-com-service nucleus:&lt;4&gt;assert-com-service nucleus:&lt;2&gt;assert-com-decor nucleus:&lt;6&gt;assert-com-cuisine nucleus:&lt;3&gt;assert-com-decor nucleus:&lt;7&gt;assert-com-cuisine infer infer constraints on their use are described below . 
+	</s>
+	
+
+	<s id="85">
+		 MERGE applies to two clauses with identical matrix verbs and all but one identical arguments . 
+	</s>
+	
+
+	<s id="86">
+		 The clauses are combined and the nonidentical arguments coordinated . 
+	</s>
+	
+
+	<s id="87">
+		 For example , MERGE(Above has good service ; Carmine’s has good service ) yields Above and Carmine’s have good service . 
+	</s>
+	
+
+	<s id="88">
+		 MERGE applies only for the relations INFER and CONTRAST . 
+	</s>
+	
+
+	<s id="89">
+		 WITH-REDUCTION is treated as a kind of “verbless” participial clause formation in which the participial clause is interpreted with the subject of the unreduced clause . 
+	</s>
+	
+
+	<s id="90">
+		 For example , WITH-REDUCTION(Above is a New American restaurant ; Above has good decor ) yields Above is a New American restaurant , with good decor . 
+	</s>
+	
+
+	<s id="91">
+		 WITH-REDUCTION uses two syntactic constraints : ( a ) the subjects of the clauses must be identical , and ( b ) the clause that undergoes the participial formation must have a have- possession predicate . 
+	</s>
+	
+
+	<s id="92">
+		 In the example above , for instance , the Above is a New American restaurant clause cannot undergo participial formation since the predicate is not one of have- possession . 
+	</s>
+	
+
+	<s id="93">
+		 WITH-REDUCTION applies only for the relations INFER and JUSTIFY . 
+	</s>
+	
+
+	<s id="94">
+		 RELATIVE-CLAUSE combines two clauses with identical subjects , using the second clause to relativize the first clause’s subject . 
+	</s>
+	
+
+	<s id="95">
+		 For example , RELATIVE-CLAUSE(Chanpen Thai is a Thai restaurant , with decent decor and good ser vice ; Chanpen Thai has the best overall quality among the selected restaurants ) yields Chanpen Thai , which is a Thai restaurant , with decent decor and good service , has the best overall quality among the selected restaurants . 
+	</s>
+	
+
+	<s id="96">
+		 RELATIVE- CLAUSE also applies only for the relations INFER and JUSTIFY . 
+	</s>
+	
+
+	<s id="97">
+		 CUE-WORD inserts a discourse connective ( one of since , however , while , and , but , and on the other hand ) , between the two clauses to be combined . 
+	</s>
+	
+
+	<s id="98">
+		 CUE-WORD CONJUNCTION combines two distinct clauses into a single sentence with a coordinating or subordinating conjunction ( e.g. . 
+	</s>
+	
+
+	<s id="99">
+		 Above has decent decor BUT Carmine’s has good decor ) , while CUE-WORD INSERTION inserts a cue word at the start of the second clause , producing two separate sentences ( e.g. Carmine’s is an Italian restaurant . 
+	</s>
+	
+
+	<s id="100">
+		 HOWEVER , Above is a New American restaurant ) . 
+	</s>
+	
+
+	<s id="101">
+		 The choice of cue word is dependent on the rhetorical relation holding between the clauses . 
+	</s>
+	
+
+	<s id="102">
+		 Finally , PERIOD applies to two clauses to be treated as two independent sentences . 
+	</s>
+	
+
+	<s id="103">
+		 Note that a tp-tree can have very different realizations , depending on the operations of the SPG . 
+	</s>
+	
+
+	<s id="104">
+		 For example , the second tp-tree in Figure 6 yields both Alt 11 and Alt 13 in Figure 4 . 
+	</s>
+	
+
+	<s id="105">
+		 However , Alt 13 is more highly rated than Alt 11 . 
+	</s>
+	
+
+	<s id="106">
+		 The sp-tree and d-tree produced by the SPG for Alt 13 are shown in Figures 7 and 8 . 
+	</s>
+	
+
+	<s id="107">
+		 The composite labels on the interior nodes of the sp- PERIOD—elaboration &lt;1&gt;assert-com-list—exceptional PERIOD—contrast PERIOD—infer RELATIVE—CLAUSE—infer PERIOD—infer &lt;4&gt;assert-com-service &lt;7&gt;assert-com-cuisine MERGE—infer &lt;6&gt;assert-com-cuisine &lt;2&gt;assert-com-decor &lt;3&gt;assert-come-decor &lt;5&gt;assert-com-service Figure 7 : Sentence plan tree ( sp-tree ) for alternative 13 in Figure 4 PERIOD Figure 8 : Dependency tree ( d-tree ) for alternative 13 in Figure 4 offer PERIOD value among exceptional restaurant selected Above_and_Carmine’s BE3 PERIOD HAVE1 Above HAVE1 good HAVE 1 PERIOD New_American Above restaurant Above decor Carmine’s BE3 decor decent AND2 service good service Carmine’s restaurant good Italian tree indicate the clause-combining relation selected to communicate the specified rhetorical relation . 
+	</s>
+	
+
+	<s id="108">
+		 The d-tree for Alt 13 in Figure 8 shows that the SPG treats the PERIOD operation as part of the lexico-structural representation for the d-tree . 
+	</s>
+	
+
+	<s id="109">
+		 After sentence planning , the d-tree is split into multiple d-trees at PERIOD nodes ; these are sent to the RealPro surface realizer . 
+	</s>
+	
+
+	<s id="110">
+		 Separately , the SPG also handles referring expression generation by converting proper names to pronouns when they appear in the previous utterance . 
+	</s>
+	
+
+	<s id="111">
+		 The rules are applied locally , across adjacent sequences of utterances 
+		<ref citStr="Brennan et al. , 1987" id="20" label="CEPF" position="18937">
+			( Brennan et al. , 1987 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="112">
+		 Referring expressions are manipulated in the d-trees , either intrasententially during the creation of the sp-tree , or intersententially , if the full sp-tree contains any PERIOD operations . 
+	</s>
+	
+
+	<s id="113">
+		 The third and fourth sentences for Alt 13 in Figure 4 show the conversion of a named restaurant ( Carmine’s ) to a pronoun . 
+	</s>
+	
+
+	<s id="114">
+		 4 Training the Sentence Plan Ranker The SPR takes as input a set of sp-trees generated by the SPG and ranks them . 
+	</s>
+	
+
+	<s id="115">
+		 The SPR’s rules for ranking sp-trees are learned from a labeled set of sentence-plan training examples using the RankBoost algorithm 
+		<ref citStr="Schapire , 1999" id="21" label="CERF" position="19563">
+			( Schapire , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="116">
+		 Examples and Feedback : To apply Rank- Boost , a set of human-rated sp-trees are encoded in terms of a set of features . 
+	</s>
+	
+
+	<s id="117">
+		 We started with a set of 30 representative content plans for each strategy . 
+	</s>
+	
+
+	<s id="118">
+		 The SPG produced as many as 20 distinct sp-trees for each content plan . 
+	</s>
+	
+
+	<s id="119">
+		 The sentences , realized by RealPro from these sp-trees , were then rated by two expert judges on a scale from 1 to 5 , and the ratings averaged . 
+	</s>
+	
+
+	<s id="120">
+		 Each sptree was an example input for RankBoost , with each corresponding rating its feedback . 
+	</s>
+	
+
+	<s id="121">
+		 Features used by RankBoost : RankBoost requires each example to be encoded as a set of real-valued features ( binary features have values 0 and 1 ) . 
+	</s>
+	
+
+	<s id="122">
+		 A strength of RankBoost is that the set of features can be very large . 
+	</s>
+	
+
+	<s id="123">
+		 We used 7024 features for training the SPR . 
+	</s>
+	
+
+	<s id="124">
+		 These features count the number of occurrences of certain structural configurations in the sp-trees and the d-trees , in order to capture declaratively decisions made by the randomized SPG , as in 
+		<ref citStr="Walker , Rambow and Rogati , 2002" id="22" label="CEPF" position="20661">
+			( Walker , Rambow and Rogati , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="125">
+		 The features were automatically generated using feature templates . 
+	</s>
+	
+
+	<s id="126">
+		 For this experiment , we use two classes of feature : ( 1 ) Rule-features : These features are derived from the sp-trees and represent the ways in which MERGE , INFER and CUE- WORD operations are applied to the tp-trees . 
+	</s>
+	
+
+	<s id="127">
+		 These feature names start with “rule” . 
+	</s>
+	
+
+	<s id="128">
+		 ( 2 ) Sent- features : These features are derived from the DSyntSs , and describe the deep-syntactic structure of the utterance , including the chosen lexemes . 
+	</s>
+	
+
+	<s id="129">
+		 As a result , some may be domain specific . 
+	</s>
+	
+
+	<s id="130">
+		 These feature names are prefixed with “sent” . 
+	</s>
+	
+
+	<s id="131">
+		 We now describe the feature templates used in the discovery process . 
+	</s>
+	
+
+	<s id="132">
+		 Three templates were used for both sp-tree and d-tree features ; two were used only for sp-tree features . 
+	</s>
+	
+
+	<s id="133">
+		 Local feature templates record structural configurations local to a particular node ( its ancestors , daughters etc. ) . 
+	</s>
+	
+
+	<s id="134">
+		 Global feature templates , which are used only for sp-tree features , record properties of the entire sp-tree . 
+	</s>
+	
+
+	<s id="135">
+		 We discard features that occur fewer than 10 times to avoid those specific to particular text plans . 
+	</s>
+	
+
+	<s id="136">
+		 Strategy System Min Max Mean S.D. Recommend SPaRKy 2.0 5.0 3.6 .71 HUMAN 2.5 5.0 3.9 .55 RANDOM 1.5 5.0 2.9 .88 Compare2 SPaRKy 2.5 5.0 3.9 .71 HUMAN 2.5 5.0 4.4 .54 RANDOM 1.0 5.0 2.9 1.3 Compare3 SPaRKy 1.5 4.5 3.4 .63 HUMAN 3.0 5.0 4.0 .49 RANDOM 1.0 4.5 2.7 1.0 Table 1 : Summary of Recommend , Compare2 and Compare3 results ( N = 180 ) There are four types of local feature template : traversal features , sister features , ancestor features and leaf features . 
+	</s>
+	
+
+	<s id="137">
+		 Local feature templates are applied to all nodes in a sp-tree or d-tree ( except that the leaf feature is not used for d-trees ) ; the value of the resulting feature is the number of occurrences of the described configuration in the tree . 
+	</s>
+	
+
+	<s id="138">
+		 For each node in the tree , traversal features record the preorder traversal of the subtree rooted at that node , for all subtrees of all depths . 
+	</s>
+	
+
+	<s id="139">
+		 An example is the feature “rule traversal assertcom-list exceptional” ( with value 1 ) of the tree in Figure 7 . 
+	</s>
+	
+
+	<s id="140">
+		 Sister features record all consecutive sister nodes . 
+	</s>
+	
+
+	<s id="141">
+		 An example is the feature “rule sisters PERIOD infer RELATIVE CLAUSE infer” ( with value 1 ) of the tree in Figure 7 . 
+	</s>
+	
+
+	<s id="142">
+		 For each node in the tree , ancestor features record all the initial subpaths of the path from that node to the root . 
+	</s>
+	
+
+	<s id="143">
+		 An example is the feature “rule ancestor PERIOD contrast*PERIOD infer” ( with value 1 ) of the tree in Figure 7 . 
+	</s>
+	
+
+	<s id="144">
+		 Finally , leaf features record all initial substrings of the frontier of the sp-tree . 
+	</s>
+	
+
+	<s id="145">
+		 For example , the sp-tree of Figure 7 has value 1 for the feature “leaf #assert-com-list exceptional#assert-comcuisine” . 
+	</s>
+	
+
+	<s id="146">
+		 Global features apply only to the sptree . 
+	</s>
+	
+
+	<s id="147">
+		 They record , for each sp-tree and for each clause-combining operation labeling a non- frontier node , ( 1 ) the minimal number of leaves dominated by a node labeled with that operation in that tree ( MIN ) ; ( 2 ) the maximal number of leaves dominated by a node labeled with that operation ( MAX ) ; and ( 3 ) the average number of leaves dominated by a node labeled with that operation ( AVG ) . 
+	</s>
+	
+
+	<s id="148">
+		 For example , the sp-tree in Figure 7 has value 3 for “PERIOD infer max” , value 2 for “PERIOD infer min” and value 2.5 for “PERIOD infer avg” . 
+	</s>
+	
+
+	<s id="149">
+		 5 Experimental Results We report two sets of experiments . 
+	</s>
+	
+
+	<s id="150">
+		 The first experiment tests the ability of the SPR to select a high quality sentence plan from a population of sentence plans randomly generated by the SPG . 
+	</s>
+	
+
+	<s id="151">
+		 Because the discriminatory power of the SPR is best tested by the largest possible population of sentence plans , we use 2-fold cross validation for this experiment . 
+	</s>
+	
+
+	<s id="152">
+		 The second experiment compares SPaRKy to template-based generation . 
+	</s>
+	
+
+	<s id="153">
+		 Cross Validation Experiment : We repeatedly tested SPaRKy on the half of the corpus of 1756 sp-trees held out as test data for each fold . 
+	</s>
+	
+
+	<s id="154">
+		 The evaluation metric is the human- assigned score for the variant that was rated highest by SPaRKy for each text plan for each task/user combination . 
+	</s>
+	
+
+	<s id="155">
+		 We evaluated SPaRKy on the test sets by comparing three data points for each text plan : HUMAN ( the score of the top-ranked sentence plan ) ; SPARKY ( the score of the SPR’s selected sentence ) ; and RANDOM ( the score of a sentence plan randomly selected from the alternate sentence plans ) . 
+	</s>
+	
+
+	<s id="156">
+		 We report results separately for comparisons between two entities and among three or more entities . 
+	</s>
+	
+
+	<s id="157">
+		 These two types of comparison are generated using different strategies in the SPG , and can produce text that is very different both in terms of length and structure . 
+	</s>
+	
+
+	<s id="158">
+		 Table 1 summarizes the difference between SPaRKy , HUMAN and RANDOM for recommendations , comparisons between two entities and comparisons between three or more entities . 
+	</s>
+	
+
+	<s id="159">
+		 For all three presentation types , a paired t-test comparing SPaRKy to HUMAN to RANDOM showed that SPaRKy was significantly better than RANDOM ( df = 59 , p &lt; .001 ) and significantly worse than HUMAN ( df = 59 , p &lt; .001 ) . 
+	</s>
+	
+
+	<s id="160">
+		 This demonstrates that the use of a trainable sentence planner can lead to sentence plans that are significantly better than baseline ( RANDOM ) , with less human effort than programming templates . 
+	</s>
+	
+
+	<s id="161">
+		 Comparison with template generation : For each content plan input to SPaRKy , the judges also rated the output of a template- based generator for MATCH . 
+	</s>
+	
+
+	<s id="162">
+		 This template- based generator performs text planning and sentence planning ( the focus of the current paper ) , including some discourse cue insertion , clause combining and referring expression generation ; the templates themselves are described in 
+		<ref citStr="Walker et al. , 2002" id="23" label="CERF" position="26627">
+			( Walker et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="163">
+		 Because the templates are highly tailored to this domain , this generator can be expected to perform well . 
+	</s>
+	
+
+	<s id="164">
+		 Example template-based and SPaRKy outputs for a comparison between three or more items are shown in Figure 9 . 
+	</s>
+	
+
+	<s id="165">
+		 Strategy System Min Max Mean S.D. Recommend Template 2.5 5.0 4.22 0.74 SPaRKy 2.5 4.5 3.57 0.59 HUMAN 4.0 5.0 4.37 0.37 Compare2 Template 2.0 5.0 3.62 0.75 SPaRKy 2.5 4.75 3.87 0.52 HUMAN 4.0 5.0 4.62 0.39 Compare3 Template 1.0 5.0 4.08 1.23 SPaRKy 2.5 4.25 3.375 0.38 HUMAN 4.0 5.0 4.63 0.35 Table 2 : Summary of template-based generation results . 
+	</s>
+	
+
+	<s id="166">
+		 N = 180 Table 2 shows the mean HUMAN scores for the template-based sentence planning . 
+	</s>
+	
+
+	<s id="167">
+		 A paired t-test comparing HUMAN and template-based scores showed that HUMAN was significantly better than template-based sentence planning only for compare2 ( df = 29 , t = 6.2 , p &lt; .001 ) . 
+	</s>
+	
+
+	<s id="168">
+		 The judges evidently did not like the template for comparisons between two items . 
+	</s>
+	
+
+	<s id="169">
+		 A paired t-test comparing SPaRKy and template-based sentence planning showed that template-based sentence planning was significantly better than SPaRKy only for recommendations ( df = 29 , t = 3.55 , p &lt; .01 ) . 
+	</s>
+	
+
+	<s id="170">
+		 These results demonstrate that trainable sentence planning shows promise for producing output comparable to that of a template-based generator , with less programming effort and more flexibility . 
+	</s>
+	
+
+	<s id="171">
+		 The standard deviation for all three template- based strategies was wider than for HUMAN or SPaRKy , indicating that there may be content-specific aspects to the sentence planning done by SPaRKy that contribute to output variation . 
+	</s>
+	
+
+	<s id="172">
+		 The data show this to be correct ; SPaRKy learned content-specific preferences about clause combining and discourse cue insertion that a template-based generator can- System Realization H Template Among the selected restaurants , the fol- lowing offer exceptional overall value . 
+	</s>
+	
+
+	<s id="173">
+		 4.5 Uguale’s price is 33 dollars . 
+	</s>
+	
+
+	<s id="174">
+		 It has good decor and very good service . 
+	</s>
+	
+
+	<s id="175">
+		 It’s a French , Italian restaurant . 
+	</s>
+	
+
+	<s id="176">
+		 Da Andrea’s price is 28 dollars . 
+	</s>
+	
+
+	<s id="177">
+		 It has good decor and very good service . 
+	</s>
+	
+
+	<s id="178">
+		 It’s an Italian restaurant . 
+	</s>
+	
+
+	<s id="179">
+		 John’s Pizzeria’s price is 20 dollars . 
+	</s>
+	
+
+	<s id="180">
+		 It has mediocre decor and decent service . 
+	</s>
+	
+
+	<s id="181">
+		 It’s an Italian , Pizza restaurant . 
+	</s>
+	
+
+	<s id="182">
+		 SPaRKy Da Andrea , Uguale , and John’s Pizze- ria offer exceptional value among the selected restaurants . 
+	</s>
+	
+
+	<s id="183">
+		 Da Andrea is an Italian restaurant , with very good service , it has good decor , and its price is 28 dollars . 
+	</s>
+	
+
+	<s id="184">
+		 John’s Pizzeria is an Italian , Pizza restaurant . 
+	</s>
+	
+
+	<s id="185">
+		 It has decent service . 
+	</s>
+	
+
+	<s id="186">
+		 It has mediocre decor . 
+	</s>
+	
+
+	<s id="187">
+		 Its price is 20 dollars . 
+	</s>
+	
+
+	<s id="188">
+		 4 Uguale is a French , Italian restaurant , with very good service . 
+	</s>
+	
+
+	<s id="189">
+		 It has good decor , and its price is 33 dollars . 
+	</s>
+	
+
+	<s id="190">
+		 Figure 9 : Comparisons between 3 or more items , H = Humans’ score not easily model , but that a trainable sentence planner can . 
+	</s>
+	
+
+	<s id="191">
+		 For example , Table 3 shows the nine rules generated on the first test fold which have the largest negative impact on the final RankBoost score ( above the double line ) and the largest positive impact on the final Rank- Boost score ( below the double line ) , for comparisons between three or more entities . 
+	</s>
+	
+
+	<s id="192">
+		 The rule with the largest positive impact shows that SPaRKy learned to prefer that justifications involving price be merged with other information using a conjunction . 
+	</s>
+	
+
+	<s id="193">
+		 These rules are also specific to presentation type . 
+	</s>
+	
+
+	<s id="194">
+		 Averaging over both folds of the experiment , the number of unique features appearing in rules is 708 , of which 66 appear in the rule sets for two presentation types and 9 appear in the rule sets for all three presentation types . 
+	</s>
+	
+
+	<s id="195">
+		 There are on average 214 rule features , 428 sentence features and 26 leaf features . 
+	</s>
+	
+
+	<s id="196">
+		 The majority of the features are ancestor features ( 319 ) followed by traversal features ( 264 ) and sister features ( 60 ) . 
+	</s>
+	
+
+	<s id="197">
+		 The remainder of the features ( 67 ) are for specific lexemes . 
+	</s>
+	
+
+	<s id="198">
+		 To sum up , this experiment shows that the ability to model the interactions between domain content , task and presentation type is a strength of the trainable approach to sentence planning . 
+	</s>
+	
+
+	<s id="199">
+		 6 Conclusions This paper shows that the training technique used in SPoT can be easily extended to a new N Condition a3 1 sent anc PROPERNOUN RESTAURANT *HAVE1 &gt; 16.5 -0.859 2 sent anc II Upper East Side*ATTR IN1* locate &gt; 4.5 -0.852 3 sent anc PERIOD infer*PERIOD infer *PERIOD elaboration &gt; -oo -0.542 4 rule anc assert-com-service*MERGE infer &gt; 1.5 -0.356 5 sent tvl depth 0 BE3 &gt; 4.5 -0.346 6 rule anc PERIOD infer*PERIOD infer *PERIOD elaboration &gt; -oo -0.345 7 rule anc assert-com-decor*PERIOD infer *PERIOD infer*PERIOD contrast *PERIOD elaboration &gt; -oo -0.342 8 rule anc assert-com-food quality*MERGE infer &gt; 1.5 0.398 9 rule anc assert-com-price*CW CONJUNCTION infer*PERIOD justify 0.527 &gt; -oo Table 3 : The nine rules generated on the first test fold which have the largest negative impact on the final RankBoost score ( above the double line ) and the largest positive impact on the final RankBoost score ( below the double line ) , for Compare3 . 
+	</s>
+	
+
+	<s id="200">
+		 as represents the increment or decrement associated with satisfying the condition . 
+	</s>
+	
+
+	<s id="201">
+		 domain and used for information presentation as well as information gathering . 
+	</s>
+	
+
+	<s id="202">
+		 Previous work on SPoT also compared trainable sentence planning to a template-based generator that had previously been developed for the same application 
+		<ref citStr="Rambow et al. , 2001" id="24" label="CEPF" position="32352">
+			( Rambow et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="203">
+		 The evaluation results for SPaRKy ( 1 ) support the results for SPoT , by showing that trainable sentence generation can produce output comparable to template-based generation , even for complex information presentations such as extended comparisons ; ( 2 ) show that trainable sentence generation is sensitive to variations in domain application , presentation type , and even human preferences about the arrangement of particular types of information . 
+	</s>
+	
+
+	<s id="204">
+		 7 Acknowledgments We thank AT&amp;T for supporting this research , and the anonymous reviewers for their helpful comments on this paper . 
+	</s>
+	
+
+	<s id="205">
+		 References I. Langkilde . 
+	</s>
+	
+
+	<s id="206">
+		 Forest-based statistical sentence generation . 
+	</s>
+	
+
+	<s id="207">
+		 In Proc . 
+	</s>
+	
+
+	<s id="208">
+		 NAACL 2000 , 2000 . 
+	</s>
+	
+
+	<s id="209">
+		 S. E. Brennan , M. Walker Friedman , and C. J. Pollard . 
+	</s>
+	
+
+	<s id="210">
+		 A centering approach to pronouns . 
+	</s>
+	
+
+	<s id="211">
+		 In Proc . 
+	</s>
+	
+
+	<s id="212">
+		 25th Annual Meeting of the ACL , Stanford , pages 155–162,1987 . 
+	</s>
+	
+
+	<s id="213">
+		 L. Danlos . 
+	</s>
+	
+
+	<s id="214">
+		 2000. G-TAG : A lexicalized formalism for text generation inspired by tree adjoining grammar . 
+	</s>
+	
+
+	<s id="215">
+		 In Tree Adjoining Grammars : Formalisms , Linguistic Analysis , and Processing . 
+	</s>
+	
+
+	<s id="216">
+		 CSLI Publications . 
+	</s>
+	
+
+	<s id="217">
+		 M. Johnston , S. Bangalore , G. Vasireddy , A. Stent , P. Ehlen , M. Walker , S. Whittaker , and P. Maloor . 
+	</s>
+	
+
+	<s id="218">
+		 MATCH : An architecture for multimodal dialogue systems . 
+	</s>
+	
+
+	<s id="219">
+		 In Annual Meeting of the ACL , 2002 . 
+	</s>
+	
+
+	<s id="220">
+		 A. Knott , J. Oberlander , M. O’Donnell and C. Mellish . 
+	</s>
+	
+
+	<s id="221">
+		 Beyond Elaboration : the interaction of relations and focus in coherent text . 
+	</s>
+	
+
+	<s id="222">
+		 In Text Representation : linguistic and psycholinguistic aspects , pages 181-196 , 2001 . 
+	</s>
+	
+
+	<s id="223">
+		 B. Lavoie and O. Rambow . 
+	</s>
+	
+
+	<s id="224">
+		 A fast and portable realizer for text generation systems . 
+	</s>
+	
+
+	<s id="225">
+		 In Proc . 
+	</s>
+	
+
+	<s id="226">
+		 of the 3rd Conference on Applied Natural Language Processing , ANLP97 , pages 265–268 , 1997 . 
+	</s>
+	
+
+	<s id="227">
+		 W.C. Mann and S.A. Thompson . 
+	</s>
+	
+
+	<s id="228">
+		 Rhetorical structure theory : A framework for the analysis of texts . 
+	</s>
+	
+
+	<s id="229">
+		 Technical Report RS-87-190 , USC/Information Sciences Institute , 1987 . 
+	</s>
+	
+
+	<s id="230">
+		 D. Marcu . 
+	</s>
+	
+
+	<s id="231">
+		 From local to global coherence : a bottom-up approach to text planning . 
+	</s>
+	
+
+	<s id="232">
+		 In Proceedings of the National Conference on Artificial Intelligence ( AAAI’97 ) , 1997 . 
+	</s>
+	
+
+	<s id="233">
+		 C. Mellish , A. Knott , J. Oberlander , and M. O’Donnell . 
+	</s>
+	
+
+	<s id="234">
+		 Experiments using stochastic search for text planning . 
+	</s>
+	
+
+	<s id="235">
+		 In Proceedings of INLG-98 . 
+	</s>
+	
+
+	<s id="236">
+		 1998. I. A. Mel~cuk . 
+	</s>
+	
+
+	<s id="237">
+		 Dependency Syntax : Theory and Practice . 
+	</s>
+	
+
+	<s id="238">
+		 SUNY , Albany , New York , 1988 . 
+	</s>
+	
+
+	<s id="239">
+		 O. Rambow and T. Korelsky . 
+	</s>
+	
+
+	<s id="240">
+		 Applied text generation . 
+	</s>
+	
+
+	<s id="241">
+		 In Proceedings of the Third Conference on Applied Natural Language Processing , ANLP92 , pages 40–47 , 1992 . 
+	</s>
+	
+
+	<s id="242">
+		 O. Rambow , M. Rogati and M. A. Walker . 
+	</s>
+	
+
+	<s id="243">
+		 Evaluating a Trainable Sentence Planner for a Spoken Dialogue Travel System In Meeting of the ACL , 2001 . 
+	</s>
+	
+
+	<s id="244">
+		 R. E. Schapire . 
+	</s>
+	
+
+	<s id="245">
+		 A brief introduction to boosting . 
+	</s>
+	
+
+	<s id="246">
+		 In Proc . 
+	</s>
+	
+
+	<s id="247">
+		 of the 16th IJCAI , 1999 . 
+	</s>
+	
+
+	<s id="248">
+		 D. R. Scott and C. Sieckenius de Souza . 
+	</s>
+	
+
+	<s id="249">
+		 Getting the message across in RST-based text generation . 
+	</s>
+	
+
+	<s id="250">
+		 In Current Research in Natural Language Generation , pages 47–73 , 1990 . 
+	</s>
+	
+
+	<s id="251">
+		 A. Stent , M. Walker , S. Whittaker , and P. Maloor . 
+	</s>
+	
+
+	<s id="252">
+		 User-tailored generation for spoken dialogue : An experiment . 
+	</s>
+	
+
+	<s id="253">
+		 In Proceedings of ICSLP 2002. , 2002 . 
+	</s>
+	
+
+	<s id="254">
+		 M. A. Walker , S. J. Whittaker , A. Stent , P. Maloor , J. D. Moore , M. Johnston , and G. Vasireddy . 
+	</s>
+	
+
+	<s id="255">
+		 Speech-Plans : Generating evaluative responses in spoken dialogue . 
+	</s>
+	
+
+	<s id="256">
+		 In Proceedings of INLG-02. , 2002 . 
+	</s>
+	
+
+	<s id="257">
+		 M. Walker , O. Rambow , and M. Rogati . 
+	</s>
+	
+
+	<s id="258">
+		 Training a sentence planner for spoken dialogue using boosting . 
+	</s>
+	
+
+	<s id="259">
+		 Computer Speech and Language : Special Issue on Spoken Language Generation , 2002 . 
+	</s>
+	
+
+
+</acldoc>

@@ -1,0 +1,1110 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-2001">
+	
+
+	<s id="1">
+		 Determining the Specificity of Terms using Compositional and Con- textual Information Pum-Mo Ryu Department of Electronic Engineering and Computer Science KAIST Pum-Mo.Ryu@kaist.ac.kr Abstract This paper introduces new specificity determining methods for terms using compositional and contextual information . 
+	</s>
+	
+
+	<s id="2">
+		 Specificity of terms is the quantity of domain specific information that is contained in the terms . 
+	</s>
+	
+
+	<s id="3">
+		 The methods are modeled as information theory like measures . 
+	</s>
+	
+
+	<s id="4">
+		 As the methods don’t use domain specific information , they can be applied to other domains without extra processes . 
+	</s>
+	
+
+	<s id="5">
+		 Experiments showed very promising result with the precision of 82.0 % when the methods were applied to the terms in MeSH thesaurus . 
+	</s>
+	
+
+	<s id="6">
+		 1. Introduction Terminology management concerns primarily with terms , i.e. , the words that are assigned to concepts used in domain-related texts . 
+	</s>
+	
+
+	<s id="7">
+		 A term is a meaningful unit that represents a specific concept within a domain 
+		<ref citStr="Wright , 1997" id="1" label="CEPF" position="1029">
+			( Wright , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="8">
+		 Specificity of a term represents the quantity of domain specific information contained in the term . 
+	</s>
+	
+
+	<s id="9">
+		 If a term has large quantity of domain specific information , specificity value of the term is large ; otherwise specificity value of the term is small . 
+	</s>
+	
+
+	<s id="10">
+		 Specificity of term X is quantified to positive real number as equation ( 1 ) . 
+	</s>
+	
+
+	<s id="11">
+		 Spec(X)^ R+ ( 1 ) Specificity of terms is an important necessary condition in term hierarchy , i.e. , if X1 is one of ancestors of X2 , then Spec(X1) is less than Spec(X2) . 
+	</s>
+	
+
+	<s id="12">
+		 Specificity can be applied in automatic construction and evaluation of term hierarchy . 
+	</s>
+	
+
+	<s id="13">
+		 When domain specific concepts are represented as terms , the terms are classified into two categories based on composition of unit words . 
+	</s>
+	
+
+	<s id="14">
+		 In the first category , new terms are created by adding modifiers to existing terms . 
+	</s>
+	
+
+	<s id="15">
+		 For example “insulin-dependent diabetes mellitus” was created by adding modifier “insulin-dependent” to its hypernym “diabetes mellitus” as in Table 1 . 
+	</s>
+	
+
+	<s id="16">
+		 In English , the specific level terms are very commonly compounds of the generic level term and some modifier 
+		<ref citStr="Croft , 2004" id="2" label="CEPF" position="2220">
+			( Croft , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="17">
+		 In this case , compositional information is important to get their meaning . 
+	</s>
+	
+
+	<s id="18">
+		 In the second category , new terms are created independently to existing terms . 
+	</s>
+	
+
+	<s id="19">
+		 For example , “wolfram syndrome” is semantically related to its ancestor terms as in Table 1 . 
+	</s>
+	
+
+	<s id="20">
+		 But it shares no common words with its ancestor terms . 
+	</s>
+	
+
+	<s id="21">
+		 In this case , contextual information is used to discriminate the features of the terms . 
+	</s>
+	
+
+	<s id="22">
+		 Node Number Terms C18.452.297 diabetes mellitus C18.452.297.267 insulin-dependent diabetes mellitus C18.452.297.267.960 wolfram syndrome Table 1 . 
+	</s>
+	
+
+	<s id="23">
+		 Subtree of MeSH1 tree . 
+	</s>
+	
+
+	<s id="24">
+		 Node numbers represent hierarchical structure of terms Contextual information has been mainly used to represent the characteristics of terms . 
+	</s>
+	
+
+	<s id="25">
+		 ( Caraballo , 1999A ) 
+		<ref citStr="Grefenstette , 1994" id="3" label="CJPF" position="3064">
+			( Grefenstette , 1994 )
+		</ref>
+		 
+		<ref citStr="Hearst , 1992" id="4" label="CJPF" position="3082">
+			( Hearst , 1992 )
+		</ref>
+		 
+		<ref citStr="Pereira , 1993" id="5" label="CJPF" position="3101">
+			( Pereira , 1993 )
+		</ref>
+		 and 
+		<ref citStr="Sanderson , 1999" id="6" label="CJPF" position="3126">
+			( Sanderson , 1999 )
+		</ref>
+		 used contextual information to find hyponymy relation between terms . 
+	</s>
+	
+
+	<s id="26">
+		 ( Caraballo , 1999B ) also used contextual information to determine the specificity of nouns . 
+	</s>
+	
+
+	<s id="27">
+		 Contrary , compositional information of terms has not been commonly discussed . 
+	</s>
+	
+
+	<s id="28">
+		 1 MeSH is available at http://www.nlm.nih.gov/mesh . 
+	</s>
+	
+
+	<s id="29">
+		 MeSH 2003 was used in this research . 
+	</s>
+	
+
+	<s id="30">
+		 We propose new specificity measuring methods based on both compositional and contextual information . 
+	</s>
+	
+
+	<s id="31">
+		 The methods are formulated as information theory like measures . 
+	</s>
+	
+
+	<s id="32">
+		 Because the methods do n't use domain specific information , they are easily adapted to terms of other domains . 
+	</s>
+	
+
+	<s id="33">
+		 This paper consists as follow : compositional and contextual information is discussed in section 2 , information theory like measures are described in section 3 , experiment and evaluation is discussed in section 4 , finally conclusions are drawn in section 5. 2 . 
+	</s>
+	
+
+	<s id="34">
+		 Information for Term Specificity In this section , we describe compositional information and contextual information . 
+	</s>
+	
+
+	<s id="35">
+		 2.1 . 
+	</s>
+	
+
+	<s id="36">
+		 Compositional Information By compositionality , the meaning of whole term can be strictly predicted from the meaning of the individual words 
+		<ref citStr="Manning , 1999" id="7" label="CEPF" position="4390">
+			( Manning , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="37">
+		 Many terms are created by appending modifiers to existing terms . 
+	</s>
+	
+
+	<s id="38">
+		 In this mechanism , features of modifiers are added to features of existing terms to make new concepts . 
+	</s>
+	
+
+	<s id="39">
+		 Word frequency and tf.idf value are used to quantify features of unit words . 
+	</s>
+	
+
+	<s id="40">
+		 Internal modifier-head structure of terms is used to measure specificity incrementally . 
+	</s>
+	
+
+	<s id="41">
+		 We assume that terms composed of low frequency words have large quantity of domain information . 
+	</s>
+	
+
+	<s id="42">
+		 Because low frequency words appear only in limited number of terms , the words can clearly discriminate the terms to other terms . 
+	</s>
+	
+
+	<s id="43">
+		 tf.idf , multiplied value of term frequency ( tf ) and inverse document frequency ( idf ) , is widely used term weighting scheme in information retrieval 
+		<ref citStr="Manning , 1999" id="8" label="CEPF" position="5194">
+			( Manning , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="44">
+		 Words with high term frequency and low document frequency get large tf.idf value . 
+	</s>
+	
+
+	<s id="45">
+		 Because a document usually discusses one topic , and words of large tf.idf values are good index terms for the document , the words are considered to have topic specific information . 
+	</s>
+	
+
+	<s id="46">
+		 Therefore , if a term includes words of large tf.idf value , the term is assumed to have topic or domain specific information . 
+	</s>
+	
+
+	<s id="47">
+		 If the modifier-head structure of a term is known , the specificity of the term is calculated incrementally starting from head noun . 
+	</s>
+	
+
+	<s id="48">
+		 In this manner , specificity value of a term is always larger than that of the base ( head ) term . 
+	</s>
+	
+
+	<s id="49">
+		 This result answers to the assumption that more specific term has larger specificity value . 
+	</s>
+	
+
+	<s id="50">
+		 However , it is very difficult to analyze modifier-head structure of compound noun . 
+	</s>
+	
+
+	<s id="51">
+		 We use simple nesting relations between terms to analyze structure of terms . 
+	</s>
+	
+
+	<s id="52">
+		 A term X is nested to term Y , when X is substring of Y 
+		<ref citStr="Frantzi , 2000" id="9" label="CERF" position="6237">
+			( Frantzi , 2000 )
+		</ref>
+		 as follows : Definition 1 If two terms X and Y are terms in same category and X is nested in Y as W1XW2 , then X is base term , and W1 and W2 are modifiers of X . 
+	</s>
+	
+
+	<s id="53">
+		 For example two terms , “diabetes mellitus” and “insulin dependent diabetes mellitus” , are all disease names , and the former is nested in the latter . 
+	</s>
+	
+
+	<s id="54">
+		 In this case , “diabetes mellitus” is base term and “insulin dependent” is modifier of “insulin dependent diabetes mellitus” by definition 1 . 
+	</s>
+	
+
+	<s id="55">
+		 If multiple terms are nested in a term , the longest term is selected as head term . 
+	</s>
+	
+
+	<s id="56">
+		 Specificity of Y is measured as equation ( 2 ) . 
+	</s>
+	
+
+	<s id="57">
+		 Spec(Y) = Spec(X)+^^ Spec(W1)+^^ Spec(W2)(2) where Spec(X) , Spec(W1) , and Spec(W2) are specificity values of X , W1 , W2 respectively . 
+	</s>
+	
+
+	<s id="58">
+		 ^ and ^ , real numbers between 0 and 1 , are weighting schemes for specificity of modifiers . 
+	</s>
+	
+
+	<s id="59">
+		 They are obtained experimentally . 
+	</s>
+	
+
+	<s id="60">
+		 2.2. Contextual Information There are some problems that are hard to address using compositional information alone . 
+	</s>
+	
+
+	<s id="61">
+		 Firstly , although features of “wolfram syndrome” share many common features with features of “insulin- dependent diabetes mellitus” in semantic level , they don’t share any common words in lexical level . 
+	</s>
+	
+
+	<s id="62">
+		 In this case , it is unreasonable to compare two specificity values measured based on compositional information alone . 
+	</s>
+	
+
+	<s id="63">
+		 Secondly , when several words are combined to a term , there are additional semantic components that are not predicted by unit words . 
+	</s>
+	
+
+	<s id="64">
+		 For example , “wolfram syndrome” is a kind of “diabetes mellitus” . 
+	</s>
+	
+
+	<s id="65">
+		 We can not predict “diabetes mellitus” from two separate words “wolfram” and “syndrome” . 
+	</s>
+	
+
+	<s id="66">
+		 Finally , modifier-head structure of some terms is ambiguous . 
+	</s>
+	
+
+	<s id="67">
+		 For instance , “vampire slayer” might be a slayer who is vampire or a slayer of vampires . 
+	</s>
+	
+
+	<s id="68">
+		 Therefore contextual is used to complement these problems . 
+	</s>
+	
+
+	<s id="69">
+		 Contextual information is distribution of surrounding words of target terms . 
+	</s>
+	
+
+	<s id="70">
+		 For example , the distribution of co-occurrence words of the terms , the distribution of predicates which have the terms as arguments , and the distribution of modifiers of the terms are contextual information . 
+	</s>
+	
+
+	<s id="71">
+		 General terms usually tend to be modified by other words . 
+	</s>
+	
+
+	<s id="72">
+		 Contrary , domain specific terms don’t tend to be modified by other words , because they have sufficient information in themselves ( Caraballo , 1999B ) . 
+	</s>
+	
+
+	<s id="73">
+		 Under this assumption , we use probabilistic distribution of modifiers as contextual information . 
+	</s>
+	
+
+	<s id="74">
+		 Because domain specific terms , unlike general words , are rarely modified in corpus , it is important to collect statistically sufficient modifiers from given corpus . 
+	</s>
+	
+
+	<s id="75">
+		 Therefore accurate text processing , such as syntactic parsing , is needed to extract modifiers . 
+	</s>
+	
+
+	<s id="76">
+		 As Caraballo’s work was for general words , they extracted only rightmost prenominals as context information . 
+	</s>
+	
+
+	<s id="77">
+		 We use Conexor functional dependency parser 
+		<ref citStr="Conexor , 2004" id="10" label="OEPF" position="9345">
+			( Conexor , 2004 )
+		</ref>
+		 to analyze the structure of sentences . 
+	</s>
+	
+
+	<s id="78">
+		 Among many dependency functions defined in Conexor parser , “attr” and “mod” functions are used to extract modifiers from analyzed structures . 
+	</s>
+	
+
+	<s id="79">
+		 If a term or modifiers of the term do not occur in corpus , specificity of the term can not be measured using contextual information 3. Specificity Measuring Methods In this section , we describe information theory like methods using compositional and contextual information . 
+	</s>
+	
+
+	<s id="80">
+		 Here , we call information theory like methods , because some probability values used in these methods are not real probability , rather they are relative weight of terms or words . 
+	</s>
+	
+
+	<s id="81">
+		 Because information theory is well known formalism describing information , we adopt the mechanism to measure information quantity of terms . 
+	</s>
+	
+
+	<s id="82">
+		 In information theory , when a message with low probability occurs on channel output , the amount of surprise is large , and the length of bits to represent this message becomes long . 
+	</s>
+	
+
+	<s id="83">
+		 Therefore the large quantity of information is gained by this message 
+		<ref citStr="Haykin , 1994" id="11" label="CEPF" position="10461">
+			( Haykin , 1994 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="84">
+		 If we consider the terms in a corpus as messages of a channel output , the information quantity of the terms can be measured using various statistics acquired from the corpus . 
+	</s>
+	
+
+	<s id="85">
+		 A set of terms is defined as equation ( 3 ) for further explanation . 
+	</s>
+	
+
+	<s id="86">
+		 T={tk|1^k^n} ( 3 ) where tk is a term and n is total number of terms . 
+	</s>
+	
+
+	<s id="87">
+		 In next step , a discrete random variable X is defined as equation ( 4 ) . 
+	</s>
+	
+
+	<s id="88">
+		 X={xk|1^k^n} p(xk) = Prob(X = xk ) where xk is an event of a term tk occurs in corpus , p(xk) is the probability of event xk . 
+	</s>
+	
+
+	<s id="89">
+		 The information quantity , I(xk) , gained after observing the event xk , is defined by the logarithmic function . 
+	</s>
+	
+
+	<s id="90">
+		 Finally I(xk) is used as specificity value of tk as equation ( 5 ) . 
+	</s>
+	
+
+	<s id="91">
+		 Spec(tk) ^ I(xk) = ^log p(xk) ( 5 ) In equation ( 5 ) , we can measure specificity of tk , by estimating p(xk) . 
+	</s>
+	
+
+	<s id="92">
+		 We describe three estimating methods of p(xk) in following sections . 
+	</s>
+	
+
+	<s id="93">
+		 3.1 . 
+	</s>
+	
+
+	<s id="94">
+		 Compositional Information based Method ( Method 1 ) In this section , we describe a method using compositional information introduced in section 2.1 . 
+	</s>
+	
+
+	<s id="95">
+		 This method is divided into two steps : In the first step , specificity values of all words are measured independently . 
+	</s>
+	
+
+	<s id="96">
+		 In the second step , the specificity values of words are summed up . 
+	</s>
+	
+
+	<s id="97">
+		 For detail description , we assume that a term tk consists of one or more words as equation ( 6 ) . 
+	</s>
+	
+
+	<s id="98">
+		 tk = w1w2 ... wm ( 6 ) where wi is i-th word in tk . 
+	</s>
+	
+
+	<s id="99">
+		 In next step , a discrete random variable Y is defined as equation ( 7 ) . 
+	</s>
+	
+
+	<s id="100">
+		 Y={yi |1^ i^ p(yi) = Prob(Y = yi ) where yi is an event of a word wi occurs in term tk , p(yi) is the probability of event yi . 
+	</s>
+	
+
+	<s id="101">
+		 Information quantity , I(xk) , in equation ( 5 ) is redefined as equation ( 8 ) based on previous assumption . 
+	</s>
+	
+
+	<s id="102">
+		 m I(xk) = ^^ p(yi) log p(yi ) ( 8 ) i=1 where I(xk) is average information quantity of all words in tk . 
+	</s>
+	
+
+	<s id="103">
+		 Two information sources , word frequency , tf.idf are used to estimate p(yi) . 
+	</s>
+	
+
+	<s id="104">
+		 In this ( 4 ) ( 7 ) mechanism , p(yi) for informative words should be smaller than that of non informative words . 
+	</s>
+	
+
+	<s id="105">
+		 When word frequency is used to quantify features of words , p(yi) in equation ( 8 ) is estimated as equation ( 9 ) . 
+	</s>
+	
+
+	<s id="106">
+		 where freq(w) is frequency of word w in corpus , PMLE(wi) is maximum likelihood estimation of P(wi) , and j is index of all words in corpus . 
+	</s>
+	
+
+	<s id="107">
+		 In this equation , as low frequency words are informative , P(yi) for the words becomes small . 
+	</s>
+	
+
+	<s id="108">
+		 When tf.idf is used to quantify features of words , p(yi) in equation ( 8 ) is estimated as equation ( 10 ) . 
+	</s>
+	
+
+	<s id="109">
+		 p(yi) ^ pMLE ( wO =1^ tf ^ idf ( wi ) ( 10 ) ^ tf^idf ( ) j where tf idf(w) is tf.idf value of word w . 
+	</s>
+	
+
+	<s id="110">
+		 In this equation , as words of large tf. idf values are informative , p(yi) of the words becomes small . 
+	</s>
+	
+
+	<s id="111">
+		 3.2. Contextual Information based Method ( Method 2 ) In this section , we describe a method using contextual information introduced in section 2.2 . 
+	</s>
+	
+
+	<s id="112">
+		 Entropy of probabilistic distribution of modifiers for a term is defined as equation ( 11 ) . 
+	</s>
+	
+
+	<s id="113">
+		 Hmod ( tk ) = ^^ p(modi , tk ) log p(modi , tk ) ( 11 ) i where p(modi tk ) is the probability of modi modifies tk and is estimated as equation ( 12 ) . 
+	</s>
+	
+
+	<s id="114">
+		 pMLE(modi , tk ) = freq(modi,tk) ( 12 ) ^ freq(modj,tk) j where freq(modi,tk) is number of frequencies that modi modifies tk in corpus , j is index of all modifiers of tk in corpus . 
+	</s>
+	
+
+	<s id="115">
+		 The entropy calculated by equation ( 11 ) is the average information quantity of all ( modi , tk ) pairs . 
+	</s>
+	
+
+	<s id="116">
+		 Specific terms have low entropy , because their modifier distributions are simple . 
+	</s>
+	
+
+	<s id="117">
+		 Therefore inversed entropy is assigned to I(xk) in equation ( 5 ) to make specific terms get large quantity of information as equation ( 13 ) . 
+	</s>
+	
+
+	<s id="118">
+		 I (xk)^max(Hmod ( ti ) ) ^ Hmod Qk ) 1 ^ ^ i n where the first term of approximation is the maximum value among modifier entropies of all terms . 
+	</s>
+	
+
+	<s id="119">
+		 3.3. Hybrid Method ( Method 3 ) In this section , we describe a hybrid method to overcome shortcomings of previous two methods . 
+	</s>
+	
+
+	<s id="120">
+		 This method measures term specificity as equation ( 14 ) . 
+	</s>
+	
+
+	<s id="121">
+		 I ( xk ) ^ 1 1 + 1 A ICmp ( xk /1 ) ) l ^^)( ICtx ( xk ) ) where ICmp(xk) and ICtx(xk) are normalized I(xk) values between 0 and 1 , which are measured by compositional and contextual information based methods respectively . 
+	</s>
+	
+
+	<s id="122">
+		 ^(0^ ^ ^ 1 ) is weight of two values . 
+	</s>
+	
+
+	<s id="123">
+		 If ^ = 0.5 , the equation is harmonic mean of two values . 
+	</s>
+	
+
+	<s id="124">
+		 Therefore I(xk) becomes large when two values are equally large . 
+	</s>
+	
+
+	<s id="125">
+		 4. Experiment and Evaluation In this section , we describe the experiments and evaluate proposed methods . 
+	</s>
+	
+
+	<s id="126">
+		 For convenience , we simply call compositional information based method , contextual information based method , hybrid method as method 1 , method 2 , method 3 respectively . 
+	</s>
+	
+
+	<s id="127">
+		 4.1. Evaluation A sub-tree of MeSH thesaurus is selected for experiment . 
+	</s>
+	
+
+	<s id="128">
+		 “metabolic diseases(C18.452)” node is root of the subtree , and the subtree consists of 436 disease names which are target terms of specificity measuring . 
+	</s>
+	
+
+	<s id="129">
+		 A set of journal abstracts was extracted from MEDLINE2 database using the disease names as quires . 
+	</s>
+	
+
+	<s id="130">
+		 Therefore , all the abstracts are related to some of the disease names . 
+	</s>
+	
+
+	<s id="131">
+		 The set consists of about 170,000 abstracts ( 20,000,000 words ) . 
+	</s>
+	
+
+	<s id="132">
+		 The abstracts are analyzed using Conexor parser , and various statistics are extracted : 1 ) frequency , tf.idf of the disease names , 2 ) distribution of modifiers of the disease names , 3 ) frequency , tf.idf of unit words of the disease names . 
+	</s>
+	
+
+	<s id="133">
+		 The system was evaluated by two criteria , coverage and precision . 
+	</s>
+	
+
+	<s id="134">
+		 Coverage is the fraction wj 2 MEDLINE is a database of biomedical articles serviced by National Library of Medicine , USA . 
+	</s>
+	
+
+	<s id="135">
+		 ( http://www.nlm.nih.gov ) = p(yi) ^ pMLE ( wi ) .freq(wi ) j ^ freq(wj) ( 9 ) ( 13 ) ( 14 ) Methods Precision Coverage Type I Type II Total Human subjects(Average) 96.6 86.4 87.4 Term frequency 100.0 53.5 60.6 89.5 Term tf· idf 52.6 59.2 58.2 89.5 Compositional Word Freq . 
+	</s>
+	
+
+	<s id="136">
+		 0.37 72.5 69.0 100.0 Information Method ( Method 1 ) Word Freq.+Structure ( ^=^=0.2 ) 100.0 72.8 75.5 100.0 Word tf· idf 44.2 75.3 72.2 100.0 Word tf· idf +Structure ( ^=^=0.2 ) 100.0 76.6 78.9 100.0 Contextual Information Method ( Method 2 ) ( mod cnt&gt;1 ) 90.0 66.4 70.0 70.2 Hybrid Method ( Method 3 ) ( tf· idf + Struct , ^=0.8 ) 95.0 79.6 82.0 70.2 Table 2 . 
+	</s>
+	
+
+	<s id="137">
+		 Experimental results ( % ) of the terms which have specificity values by given measuring method as equation ( 15 ) . 
+	</s>
+	
+
+	<s id="138">
+		 c # of terms with specificity ( 15 ) # of all terms Method 2 gets relatively lower coverage than method 1 , because method 2 can measure specificity when both the terms and their modifiers appear in corpus . 
+	</s>
+	
+
+	<s id="139">
+		 Contrary , method 1 can measure specificity of the terms , when parts of unit words appear in corpus . 
+	</s>
+	
+
+	<s id="140">
+		 Precision is the fraction of relations with correct specificity values as equation ( 16 ) . 
+	</s>
+	
+
+	<s id="141">
+		 p # of R(p,c) # of all R(p , c ) where R(p,c) is a parent-child relation in MeSH thesaurus , and this relation is valid only when specificity of two terms are measured by given method . 
+	</s>
+	
+
+	<s id="142">
+		 If child term c has larger specificity value than that of parent term p , then the relation is said to have correct specificity values . 
+	</s>
+	
+
+	<s id="143">
+		 We divided parent-child relations into two types . 
+	</s>
+	
+
+	<s id="144">
+		 Relations where parent term is nested in child term are categorized as type I . 
+	</s>
+	
+
+	<s id="145">
+		 Other relations are categorized as type II . 
+	</s>
+	
+
+	<s id="146">
+		 There are 43 relations in type I and 393 relations in type II . 
+	</s>
+	
+
+	<s id="147">
+		 The relations in type I always have correct specificity values provided structural information method described section 2.1 is applied . 
+	</s>
+	
+
+	<s id="148">
+		 We tested prior experiment for 10 human subjects to find out the upper bound of precision . 
+	</s>
+	
+
+	<s id="149">
+		 The subjects are all medical doctors of internal medicine , which is closely related division to “metabolic diseases” . 
+	</s>
+	
+
+	<s id="150">
+		 They were asked to identify parent-child relation of given two terms . 
+	</s>
+	
+
+	<s id="151">
+		 The average precisions of type I and type II were 96.6 % and 86.4 % respectively . 
+	</s>
+	
+
+	<s id="152">
+		 We set these val ues as upper bound of precision for suggested methods . 
+	</s>
+	
+
+	<s id="153">
+		 Specificity values of terms were measured with method 1 , method 2 , and method 3 as Table 2 . 
+	</s>
+	
+
+	<s id="154">
+		 In method 1 , word frequency based method , word tf.idf based method , and structure information added methods were separately experimented . 
+	</s>
+	
+
+	<s id="155">
+		 Two additional methods , based on term frequency and term tf.idf , were experimented to compare compositionality based method and whole term based method . 
+	</s>
+	
+
+	<s id="156">
+		 Two methods which showed the best performance in method 1 and method 2 were combined into method 3 . 
+	</s>
+	
+
+	<s id="157">
+		 Word frequency and tf.idf based method showed better performance than term based methods . 
+	</s>
+	
+
+	<s id="158">
+		 This result indicates that the information of terms is divided into unit words rather than into whole terms . 
+	</s>
+	
+
+	<s id="159">
+		 This result also illustrate basic assumption of this paper that specific concepts are created by adding information to existing concepts , and new concepts are expressed as new terms by adding modifiers to existing terms . 
+	</s>
+	
+
+	<s id="160">
+		 Word tf.idf based method showed better precision than word frequency based method . 
+	</s>
+	
+
+	<s id="161">
+		 This result illustrate that tf.idf of words is more informative than frequency of words . 
+	</s>
+	
+
+	<s id="162">
+		 Method 2 showed the best performance , precision 70.0 % and coverage 70.2 % , when we counted modifiers which modify the target terms two or more times . 
+	</s>
+	
+
+	<s id="163">
+		 However , method 2 showed worse performance than word tf.idf and structure based method . 
+	</s>
+	
+
+	<s id="164">
+		 It is assumed that sufficient contextual information for terms was not collected from corpus , because domain specific terms are rarely modified by other words . 
+	</s>
+	
+
+	<s id="165">
+		 Method 3 , hybrid method of method 1 ( tf.idf of words , structure information ) and method 2 , showed the best precision of 82.0 % of all , because the two methods interacted complementary . 
+	</s>
+	
+
+	<s id="166">
+		 with correct specificity ( 16 ) The coverage of this method was 70.2 % which equals to the coverage of method 2 , because the specificity value is measured only when the specificity of method 2 is valid . 
+	</s>
+	
+
+	<s id="167">
+		 In hybrid method , the weight value ^ = 0.8 indicates that compositional information is more informatives than contextual information when measuring the specificity of domain-specific terms . 
+	</s>
+	
+
+	<s id="168">
+		 The precision of 82.0 % is good performance compared to upper bound of 87.4 % . 
+	</s>
+	
+
+	<s id="169">
+		 4.2. Error Analysis One reason of the errors is that the names of some internal nodes in MeSH thesaurus are category names rather disease names . 
+	</s>
+	
+
+	<s id="170">
+		 For example , as “acid-base imbalance (C18.452.076)” is name of disease category , it does n't occur as frequently as other real disease names . 
+	</s>
+	
+
+	<s id="171">
+		 Other predictable reason is that we didn’t consider various surface forms of same term . 
+	</s>
+	
+
+	<s id="172">
+		 For example , although “NIDDM” is acronym of “non insulin dependent diabetes mellitus” , the system counted two terms independently . 
+	</s>
+	
+
+	<s id="173">
+		 Therefore the extracted statistics can’t properly reflect semantic level information . 
+	</s>
+	
+
+	<s id="174">
+		 If we analyze morphological structure of terms , some errors can be reduced by internal structure method described in section 2.1 . 
+	</s>
+	
+
+	<s id="175">
+		 For example , “nephrocalcinosis” have modifier-head structure in morpheme level ; “nephro” is modifier and “calcinosis” is head . 
+	</s>
+	
+
+	<s id="176">
+		 Because word formation rules are heavily dependent on the domain specific morphemes , additional information is needed to apply this approach to other domains . 
+	</s>
+	
+
+	<s id="177">
+		 5. Conclusions This paper proposed specificity measuring methods for terms based on information theory like measures using compositional and contextual information of terms . 
+	</s>
+	
+
+	<s id="178">
+		 The methods are experimented on the terms in MeSH thesaurus . 
+	</s>
+	
+
+	<s id="179">
+		 Hybrid method showed the best precision of 82.0 % , because two methods complemented each other . 
+	</s>
+	
+
+	<s id="180">
+		 As the proposed methods do n't use domain dependent information , the methods easily can be adapted to other domains . 
+	</s>
+	
+
+	<s id="181">
+		 In the future , the system will be modified to handle various term formations such as abbreviated form . 
+	</s>
+	
+
+	<s id="182">
+		 Morphological structure analysis of words is also needed to use the morpheme level information . 
+	</s>
+	
+
+	<s id="183">
+		 Finally we will apply the proposed methods to terms of other domains and terms in general domains such as WordNet . 
+	</s>
+	
+
+	<s id="184">
+		 Acknowledgements This work was supported in part by Ministry of Science &amp; Technology of Korean government and Korea Science &amp; Engineering Foundation . 
+	</s>
+	
+
+	<s id="185">
+		 References Caraballo , S. A. 1999A . 
+	</s>
+	
+
+	<s id="186">
+		 Automatic construction of a hypernym-labeled noun hierarchy from text Corpora . 
+	</s>
+	
+
+	<s id="187">
+		 In the proceedings of ACL Caraballo , S. A. and Charniak , E. 1999B . 
+	</s>
+	
+
+	<s id="188">
+		 Determining the Specificity of Nouns from Text . 
+	</s>
+	
+
+	<s id="189">
+		 In the proceedings of the Joint SIGDAT Conference on Empirical Methods in Natural Language Processing and Very Large Corpora Conexor . 
+	</s>
+	
+
+	<s id="190">
+		 2004. Conexor Functional Dependency Grammar Parser . 
+	</s>
+	
+
+	<s id="191">
+		 http://www.conexor.com Frantzi , K. , Anahiadou , S. and Mima , H. 2000 . 
+	</s>
+	
+
+	<s id="192">
+		 Automatic recognition of multi-word terms : the Cvalue/NC-value method . 
+	</s>
+	
+
+	<s id="193">
+		 Journal of Digital Libraries , vol. 3 , num . 
+	</s>
+	
+
+	<s id="194">
+		 2 Grefenstette , G. 1994 . 
+	</s>
+	
+
+	<s id="195">
+		 Explorations in Automatic The- saurus Discovery . 
+	</s>
+	
+
+	<s id="196">
+		 Kluwer Academic Publishers Haykin , S. 1994 . 
+	</s>
+	
+
+	<s id="197">
+		 Neural Network . 
+	</s>
+	
+
+	<s id="198">
+		 IEEE Press , pp. 444 Hearst , M. A. 1992 . 
+	</s>
+	
+
+	<s id="199">
+		 Automatic Acquisition of Hyponyms from Large Text Corpora . 
+	</s>
+	
+
+	<s id="200">
+		 In proceedings of ACL Manning , C. D. and Schutze , H. 1999 . 
+	</s>
+	
+
+	<s id="201">
+		 Foundations of Statistical Natural Language Processing . 
+	</s>
+	
+
+	<s id="202">
+		 The MIT Presss Pereira , F. , Tishby , N. , and Lee , L. 1993 . 
+	</s>
+	
+
+	<s id="203">
+		 Distributational clustering of English words . 
+	</s>
+	
+
+	<s id="204">
+		 In the proceedings of ACL Sanderson , M. 1999 . 
+	</s>
+	
+
+	<s id="205">
+		 Deriving concept hierarchies from text . 
+	</s>
+	
+
+	<s id="206">
+		 In the Proceedings of the 22th Annual ACM S1GIR Conference on Research and Development in Information Retrieval Wright , S. E. , Budin , G .. 1997 . 
+	</s>
+	
+
+	<s id="207">
+		 Handbook of Term Management : vol. 1 . 
+	</s>
+	
+
+	<s id="208">
+		 John Benjamins publishing company William Croft . 
+	</s>
+	
+
+	<s id="209">
+		 2004. Typology and Universals . 
+	</s>
+	
+
+	<s id="210">
+		 2nd ed . 
+	</s>
+	
+
+	<s id="211">
+		 Cambridge Textbooks in Linguistics , Cambridge Univ . 
+	</s>
+	
+
+	<s id="212">
+		 Press 
+	</s>
+	
+
+
+</acldoc>

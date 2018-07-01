@@ -1,0 +1,947 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1056">
+	
+
+	<s id="1">
+		 Collective Information Extraction with Relational Markov Networks Razvan Bunescu Department of Computer Sciences University of Texas at Austin 1 University Station U0500 Austin , TX 78712 razvan@cs.utexas.edu Raymond J. Mooney Department of Computer Sciences University of Texas at Austin 1 University Station U0500 Austin , TX 78712 mooney@cs.utexas.edu Abstract Most information extraction ( IE ) systems treat separate potential extractions as independent . 
+	</s>
+	
+
+	<s id="2">
+		 However , in many cases , considering influences between different potential extractions could improve overall accuracy . 
+	</s>
+	
+
+	<s id="3">
+		 Statistical methods based on undirected graphical models , such as conditional random fields ( CRFs ) , have been shown to be an effective approach to learning accurate IE systems . 
+	</s>
+	
+
+	<s id="4">
+		 We present a new IE method that employs Relational Markov Networks ( a generalization of CRFs ) , which can represent arbitrary dependencies between extractions . 
+	</s>
+	
+
+	<s id="5">
+		 This allows for &quot; collective information extraction &quot; that exploits the mutual influence between possible extractions . 
+	</s>
+	
+
+	<s id="6">
+		 Experiments on learning to extract protein names from biomedical text demonstrate the advantages of this approach . 
+	</s>
+	
+
+	<s id="7">
+		 1 Introduction Information extraction ( IE ) , locating references to specific types of items in natural-language documents , is an important task with many practical applications . 
+	</s>
+	
+
+	<s id="8">
+		 Since IE systems are difficult and time-consuming to construct , most recent research has focused on empirical techniques that automatically construct information extractors by training on supervised corpora 
+		<ref citStr="Cardie , 1997" id="1" label="CEPF" position="1622">
+			( Cardie , 1997 
+		</ref>
+		<ref citStr="Califf , 1999" id="2" label="CEPF" position="1638">
+			; Califf , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="9">
+		 One of the current best empirical approaches to IE is conditional random fields ( CRF 's ) 
+		<ref citStr="Lafferty et al. , 2001" id="3" label="CEPF" position="1784">
+			( Lafferty et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="10">
+		 CRF 's are a restricted class of undirected graphical models 
+		<ref citStr="Jordan , 1999" id="4" label="CEPF" position="1874">
+			( Jordan , 1999 )
+		</ref>
+		 designed for sequence segmentation tasks such as IE , part-of-speech ( POS ) tagging 
+		<ref citStr="Lafferty et al. , 2001" id="5" label="CEPF" position="1986">
+			( Lafferty et al. , 2001 )
+		</ref>
+		 , and shallow parsing 
+		<ref citStr="Sha and Pereira , 2003" id="6" label="CEPF" position="2035">
+			( Sha and Pereira , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="11">
+		 In a recent follow-up to previously published experiments comparing a large variety of IE-learning methods ( including HMM , SVM , MaxEnt , and rule-based methods ) on the task of tagging references to human proteins in Medline abstracts 
+		<ref citStr="Bunescu et al. , 2004" id="7" label="CEPF" position="2310">
+			( Bunescu et al. , 2004 )
+		</ref>
+		 , CRF 's were found to significantly out-perform competing techniques . 
+	</s>
+	
+
+	<s id="12">
+		 As typically applied , CRF 's , like almost all IE methods , assume separate extractions are independent and treat each potential extraction in isolation . 
+	</s>
+	
+
+	<s id="13">
+		 However , in many cases , considering influences between extractions can be very useful . 
+	</s>
+	
+
+	<s id="14">
+		 For example , in our protein-tagging task , repeated references to the same protein are common . 
+	</s>
+	
+
+	<s id="15">
+		 If the context surrounding one occurrence of a phrase is very indicative of it being a protein , then this should also influence the tagging of another occurrence of the same phrase in a different context which is not indicative of protein references . 
+	</s>
+	
+
+	<s id="16">
+		 Relational Markov Networks ( RMN 's ) 
+		<ref citStr="Taskar et al. , 2002" id="8" label="CEPF" position="3086">
+			( Taskar et al. , 2002 )
+		</ref>
+		 are a generalization of CRF 's that allow for collective classification of a set of related entities by integrating information from features of individual entities as well as the relations between them . 
+	</s>
+	
+
+	<s id="17">
+		 Results on classifying connected sets of web pages have verified the advantage of this approach 
+		<ref citStr="Taskar et al. , 2002" id="9" label="CEPF" position="3421">
+			( Taskar et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="18">
+		 In this paper , we present an approach to collective information extraction using RMN 's that simultaneously extracts all of the information from a document by exploiting the textual content and context of each relevant substring as well as the document relationships between them . 
+	</s>
+	
+
+	<s id="19">
+		 Experiments on human protein tagging demonstrate the advantages of collective extraction on several annotated corpora of Medline abstracts . 
+	</s>
+	
+
+	<s id="20">
+		 2 The RMN Framework for Entity Recognition Given a collection of documents D , we associate with each document d E D a set of candidate entities d.E , in our case a restricted set of token sequences from the document . 
+	</s>
+	
+
+	<s id="21">
+		 Each entity e E d.E is characterized by a predefined set of boolean features e.F. . 
+	</s>
+	
+
+	<s id="22">
+		 This set of features is the same for all candidate entities , and it can be assimilated with the relational database definition of a table . 
+	</s>
+	
+
+	<s id="23">
+		 One particular feature is e.label which is set to 1 if e is considered a valid extraction , and 0 otherwise . 
+	</s>
+	
+
+	<s id="24">
+		 In this document model , labels are the only hidden features , and the inference procedure will try to find a most probable assignment of values to labels , given the current model parameters . 
+	</s>
+	
+
+	<s id="25">
+		 Each document is associated with an undirected graphical model , with nodes corresponding directly to entity features , one node for each feature of each candidate entity in the docu- ment . 
+	</s>
+	
+
+	<s id="26">
+		 The set of edges is created by matching clique templates against the entire set of entities d.E. . 
+	</s>
+	
+
+	<s id="27">
+		 A clique template is a procedure that finds all subsets of entities satisfying a given constraint , after which , for each entity subset , it connects a selected set of feature nodes so that they form a clique . 
+	</s>
+	
+
+	<s id="28">
+		 Formally , there is a set of clique templates C , with each template c E C specified by : 1 . 
+	</s>
+	
+
+	<s id="29">
+		 A matching operator M , for selecting subsets of entities . 
+	</s>
+	
+
+	<s id="30">
+		 2. A selected set of features S , _ ~~,~ Y , ) for entities returned by the matching operator . 
+	</s>
+	
+
+	<s id="31">
+		 X , denotes the observed features , while Y , refers to the hidden labels . 
+	</s>
+	
+
+	<s id="32">
+		 3. A clique potential 0 , that gives the com- patibility of each possible configuration of values for the features in S , , s.t. 0,(s) &gt; 0 , Vs E S , . 
+	</s>
+	
+
+	<s id="33">
+		 Given a set , E , of nodes , M,(E) C_ 2E con- sists of subsets of entities whose feature nodes S , are to be connected in a clique . 
+	</s>
+	
+
+	<s id="34">
+		 In previous applications of RMNs , the selected subsets of entities for a given template have the same size ; however , our clique templates may match a variable number of entities . 
+	</s>
+	
+
+	<s id="35">
+		 The set S , may contain the same feature from different entities . 
+	</s>
+	
+
+	<s id="36">
+		 Usually , for each entity in the matching set , its label is included in S , . 
+	</s>
+	
+
+	<s id="37">
+		 All these will be illustrated with examples in Sections 4 and 5 where the clique templates used in our model are de- scribed in detail . 
+	</s>
+	
+
+	<s id="38">
+		 Depending on the number of hidden labels in Y , we define two categories of clique templates : • Local Templates are all templates c E C for which JY,I = ~ 1 . 
+	</s>
+	
+
+	<s id="39">
+		 They model the correlations between an entity 's observed features and its label . 
+	</s>
+	
+
+	<s id="40">
+		 • Global Templates are all templates c E C for which IY , &gt; 1 . 
+	</s>
+	
+
+	<s id="41">
+		 They capture influences between multiple entities from the same document . 
+	</s>
+	
+
+	<s id="42">
+		 After the graph model for a document d has been completed with cliques from all templates , the probability distribution over the random field of hidden entity labels d.Y given the ob- served features d.X is computed as : P(d.Yld.X) = ~(~~.~) H H Oc(G.X,7,G.Y,7) cGC GGM,(d.E) ( 1 ) where Z(d.X) is the normalizing partition func- tion : Z(d.X) _ Oc ( G.X , , G.Y , ) ( 2 ) Y CGCGEM,(d.E) The above distribution presents the RMN as a Markov random field ( MRF ) with the clique templates as a method for tying potential values across different cliques in the graphical model . 
+	</s>
+	
+
+	<s id="43">
+		 3 Candidate Entities and Entity Features Like most entity names , almost all proteins in our data are base noun phrases or parts of them . 
+	</s>
+	
+
+	<s id="44">
+		 Therefore , such substrings are used to determine candidate entities . 
+	</s>
+	
+
+	<s id="45">
+		 To avoid missing op- tions , we adopt a very broad definition of base noun phrase . 
+	</s>
+	
+
+	<s id="46">
+		 Definition 1 : A base noun phrase is a maximal contiguous sequence of tokens whose POS tags are from { &quot; JJ &quot; , &quot; VBN &quot; , &quot; VBG &quot; , &quot; POS &quot; , &quot; NN &quot; , &quot; NNS &quot; , &quot; NNP &quot; , &quot; NNPS &quot; , &quot; CD &quot; , &quot;-&quot;J , and whose last word ( the head ) is tagged either as a noun , or a number . 
+	</s>
+	
+
+	<s id="47">
+		 Candidate extractions consist of base NPs , augmented with all their contiguous subsequences headed by a noun or number . 
+	</s>
+	
+
+	<s id="48">
+		 The set of features associated with each candidate is based on the feature templates introduced in 
+		<ref citStr="Collins , 2002" id="10" label="CERF" position="8228">
+			( Collins , 2002 )
+		</ref>
+		 , used there for training a ranking algorithm on the extractions re- turned by a maximum-entropy tagger . 
+	</s>
+	
+
+	<s id="49">
+		 Many of these features use the concept of word type , which allows a different form of token generalization than POS tags . 
+	</s>
+	
+
+	<s id="50">
+		 The short type of a word is created by replacing any maximal contiguous sequences of capital letters with ' A ' , of lower- case letters with ' a ' , and of digits with '0 ' . 
+	</s>
+	
+
+	<s id="51">
+		 For example , the word TGF-1 would be mapped to type A-0 . 
+	</s>
+	
+
+	<s id="52">
+		 Consequently , each token position i in a candidate extraction provides three types of information : the word itself wi , its POS tag ti , and its short type si . 
+	</s>
+	
+
+	<s id="53">
+		 The full set of features types is listed in Table 1 , where we consider a generic e label ^HD=enzyme e label ^PF=A0_a ... ^SF=A0_a ... ^SF=a ^PF=A0 fCv ; ef2=v ; efh=v ; 1 2 h e Note that the factor graph above has an equivalent RMN graph consisting of a one-node clique only , on which it is hard to visualize the various potentials involved . 
+	</s>
+	
+
+	<s id="54">
+		 There are cases where different factor graphs may yield the same underlying RMN graph , which makes the factor graph representation preferable . 
+	</s>
+	
+
+	<s id="55">
+		 5 Global Clique Templates Global clique templates enable us to model hypothesized influences between entities from the same document . 
+	</s>
+	
+
+	<s id="56">
+		 They connect the label nodes of two or more entities , which , in the factor graph , translates into potential nodes connected to at least two label nodes . 
+	</s>
+	
+
+	<s id="57">
+		 In our experiments we use three global templates : Overlap Template ( OT ) : No two entity names overlap in the text i.e if the span of one entity is [ sl , el ] and the span of another entity is [ s2 , e2 ] , and sl &lt; s2 , then el &lt; s2 . 
+	</s>
+	
+
+	<s id="58">
+		 Repeat Template ( RT ) : If multiple entities in the same document are repetitions of the same name , their labels tend to have the same value ( i.e. most of them are protein names , or most of them are not protein names ) . 
+	</s>
+	
+
+	<s id="59">
+		 Later we discuss situations in which repetitions of the same protein name are not tagged as proteins , and design an approach to handle this . 
+	</s>
+	
+
+	<s id="60">
+		 Acronym Template ( AT ) : It is common convention that a protein is first introduced by its long name , immediately followed by its short-form ( acronym ) in parentheses . 
+	</s>
+	
+
+	<s id="61">
+		 5.1 The Overlap Template The definition of a candidate extraction from Section 3 leads to many overlapping entities . 
+	</s>
+	
+
+	<s id="62">
+		 For example , ' glutathione S - transferase ' is a base NP , and it generates five candidate extractions : ' glutathione ' , ' glutathione S ' , ' glutathione S - transferase ' , ' S - transferase ' , and ' transferase ' . 
+	</s>
+	
+
+	<s id="63">
+		 If ' glutathione S - transferase ' has label-value 1 , because the other four entities overlap with it , they should all have label-value 0 . 
+	</s>
+	
+
+	<s id="64">
+		 This type of constraint is enforced by the overlap template whose M operator matches any two overlapping candidate entities , and which connects their label nodes ( specified in S ) through a potential node with a potential function O that allows at most one of them to have label-value 1 , as illustrated in Table 2 . 
+	</s>
+	
+
+	<s id="65">
+		 Contin- uing with the previous example , because ' glutathione S ' and ' S - transferase ' are two overlap- ping entities , the factor graph model will contain an overlap potential node connected to the label nodes of these two entities . 
+	</s>
+	
+
+	<s id="66">
+		 An alternative solution for the overlap template is to create a potential node for each token position that is covered by at least two candidate entities in the document , and connect it to their label nodes . 
+	</s>
+	
+
+	<s id="67">
+		 The difference in this case is that the potential node will be connected to a variable number of entity label nodes . 
+	</s>
+	
+
+	<s id="68">
+		 However this second approach has the advantage of creating fewer potential nodes in the document factor graph , which results in faster inference . 
+	</s>
+	
+
+	<s id="69">
+		 OoT el.label = 0 el.label = 1 e2.label = 0 1 1 e2.label = 1 1 0 Table 2 : Overlap Potential . 
+	</s>
+	
+
+	<s id="70">
+		 5.2 The Repeat Template We could specify the potential for the repeat template in a similar 2-by-2 table , this time leaving the table entries to be learned , given that it is not a hard constraint . 
+	</s>
+	
+
+	<s id="71">
+		 However we can do better by noting that the vast majority of cases where a repeated protein name is not also tagged as a protein happens when it is part of a larger phrase that is tagged . 
+	</s>
+	
+
+	<s id="72">
+		 For example , ' HDAC1 enzyme ' is a protein name , there- fore ' HDAC1 ' is not tagged in this phrase , even though it may have been tagged previously in the abstract where it was not followed by ' enzyme ' . 
+	</s>
+	
+
+	<s id="73">
+		 We need a potential that allows two en- tities with the same text to have different labels if the entity with label-value 0 is inside another entity with label-value 1 . 
+	</s>
+	
+
+	<s id="74">
+		 But a candidate entity may be inside more than one &quot; including &quot; entity , and the number of including entities may vary from one candidate extraction to another . 
+	</s>
+	
+
+	<s id="75">
+		 Using the example from Section 5.1 , the candidate entity ' glutathione ' is included in two other entities : ' glutathione S ' and ' glutathione S - transferase ' . 
+	</s>
+	
+
+	<s id="76">
+		 In order to instantiate potentials over variable number of label nodes , we introduce a logical OR clique template that matches a vari- able number of entities . 
+	</s>
+	
+
+	<s id="77">
+		 When this template matches a subset of entities el , e2 , ... , en , it will create an auxiliary OR entity eor , with a single feature eor.label . 
+	</s>
+	
+
+	<s id="78">
+		 The potential function is set so that it assigns a non-zero potential only when eor.label = el.label V e2.label V ... 
+	</s>
+	
+
+	<s id="79">
+		 V en.label . 
+	</s>
+	
+
+	<s id="80">
+		 The cliques are only created as needed , e.g. when the auxiliary OR variable is required by repeat and acronym clique templates . 
+	</s>
+	
+
+	<s id="81">
+		 Figure 3 shows the factor graph for a sam- ~AT uor v ^or ~RT u uor v vor u ... un 1 u2 Cr Cr ... ... u1 u2 un v1 v2 vm verges , it gives a good approximation to the correct marginals . 
+	</s>
+	
+
+	<s id="82">
+		 The algorithm works by altering the belief at each label node by repeatedly passing messages between the node and all potential nodes connected to it 
+		<ref citStr="Kschischang et al. , 2001" id="11" label="CEPF" position="14372">
+			( Kschischang et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="83">
+		 As many of the label nodes are indirectly connected through potential nodes instantiated by global templates , their belief values will propagate in the graph and mutually influence each other , leading in the end to a collective labeling decision . 
+	</s>
+	
+
+	<s id="84">
+		 The time complexity of computing messages from a potential node to a label node is exponential in the number of label nodes attached to the potential . 
+	</s>
+	
+
+	<s id="85">
+		 Since this &quot; fan-in &quot; can be large for OR potential nodes , this step required optimization . 
+	</s>
+	
+
+	<s id="86">
+		 Fortunately , due to the special form of the OR potential , and the normalization be- fore each message-passing step , we were able to develop a linear-time algorithm for this special case . 
+	</s>
+	
+
+	<s id="87">
+		 Details are omitted due to limited space . 
+	</s>
+	
+
+	<s id="88">
+		 7 Learning Potentials in Factor Graphs Following a maximum likelihood estimation , we shall use the log-linear representation of poten- tials : Oc ( G.X7 , G.Y , , ) =exp{w.f~(G.X , G.Y , ) } ( 4 ) where f , is a vector of binary features , one for each configuration of values for X , and Y , . 
+	</s>
+	
+
+	<s id="89">
+		 Let w be the concatenated vector of all potential parameters w , . 
+	</s>
+	
+
+	<s id="90">
+		 One approach to finding the maximum-likelihood solution for w is to use a gradient-based method , which requires computing the gradient of the log-likelihood with respect to potential parameters w , . 
+	</s>
+	
+
+	<s id="91">
+		 It can be shown that this gradient is equal with the difference between the empirical counts of f , and their expectation under the current set of parameters w . 
+	</s>
+	
+
+	<s id="92">
+		 This expectation is expensive to compute , since it requires summing over all possible configurations of candidate entity labels from a given document . 
+	</s>
+	
+
+	<s id="93">
+		 To circumvent this complexity , we use Collins ' voted perceptron approach 
+		<ref citStr="Collins , 2002" id="12" label="CERF" position="16176">
+			( Collins , 2002 )
+		</ref>
+		 , which approximates the full expectation of f , with the f , counts for the most likely labeling under the current parameters , w . 
+	</s>
+	
+
+	<s id="94">
+		 In all our experiments , the perceptron was run for 50 epochs , with a learning rate set at 0.01 . 
+	</s>
+	
+
+	<s id="95">
+		 8 Experimental Results We have tested the RMN approach on two datasets that have been hand-tagged for hu- man protein names . 
+	</s>
+	
+
+	<s id="96">
+		 The first dataset is Yapexl which consists of 200 Medline abstracts . 
+	</s>
+	
+
+	<s id="97">
+		 Of these , 147 have been randomly selected by posing a query containing the ( Mesh ) terms protein binding , interaction , and molecular to Medline , while the rest of 53 have been extracted randomly from the GENIA corpus 
+		<ref citStr="Collier et al. , 1999" id="13" label="OEPF" position="16888">
+			( Collier et al. , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="98">
+		 It contains a total of 3713 protein references . 
+	</s>
+	
+
+	<s id="99">
+		 The second dataset is Aimed which has been previously used for training the protein interaction extraction systems in 
+		<ref citStr="Bunescu et al. , 2004" id="14" label="OEPF" position="17101">
+			( Bunescu et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="100">
+		 It consists of 225 Medline abstracts , of which 200 are known to describe interactions between human proteins , while the other 25 do not refer to any interaction . 
+	</s>
+	
+
+	<s id="101">
+		 There are 4084 pro- tein references in this dataset . 
+	</s>
+	
+
+	<s id="102">
+		 We compared the performance of three systems : LT-RMN is the RMN approach using local templates and the overlap template , GLT-RMN is the full RMN approach , using both local and global templates , and CRF , which uses a CRF for labeling token sequences . 
+	</s>
+	
+
+	<s id="103">
+		 We used the CRF implementation from 
+		<ref citStr="McCallum , 2002" id="15" label="CERF" position="17670">
+			( McCallum , 2002 )
+		</ref>
+		 with the set of tags and features used by the Maximum- Entropy tagger described in 
+		<ref citStr="Bunescu et al. , 2004" id="16" label="OEPF" position="17779">
+			( Bunescu et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="104">
+		 All Medline abstracts were tokenized and then POS tagged using Brill 's tagger 
+		<ref citStr="Brill , 1995" id="17" label="OEPF" position="17886">
+			( Brill , 1995 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="105">
+		 Each extracted protein name in the test data was compared to the human-tagged data , with the positions taken into account . 
+	</s>
+	
+
+	<s id="106">
+		 Two extractions are considered a match if they consist of the same character sequence in the same position in the text . 
+	</s>
+	
+
+	<s id="107">
+		 Results are shown in Tables 3 and 4 which give average precision , recall , and F-measure using 10-fold cross validation . 
+	</s>
+	
+
+	<s id="108">
+		 Method Precision Recall F-measure LT-RMN 70.79 53.81 61.14 GLT-RMN 69.71 65.76 67.68 CRF 72.45 58.64 64.81 Table 3 : Extraction Performance on Yapex . 
+	</s>
+	
+
+	<s id="109">
+		 Method Precision Recall F-measure LT-RMN 81.33 72.79 76.82 GLT-RMN 82.79 80.04 81.39 CRF 85.37 75.90 80.36 Table 4 : Extraction Performance on Aimed . 
+	</s>
+	
+
+	<s id="110">
+		 These tables show that , in terms of F- measure , the use of global templates for mod- IURL : www.sics.se/humle/projects/prothalt/ 2URL : ftp.cs.utexas.edu/mooney/bio-data/ 100 90 GLT-RMN LT-RMN 80 70 60 50 0 20 40 60 80 100 Recall ( % ) 100 90 80 70 GLT-RMN LT-RMN 60 50 0 20 40 60 80 100 Recall ( % ) to improve a Maximum-Entropy tagger ; however , these features do not fully capture the mutual influence between the labels of acronyms and their long forms , or between entity repetitions . 
+	</s>
+	
+
+	<s id="111">
+		 In particular , they only allow earlier extractions in a document to influence later ones and not vice-versa . 
+	</s>
+	
+
+	<s id="112">
+		 The RMN approach handles these and potentially other mutual influences between entities in a more complete , probabilistically sound manner . 
+	</s>
+	
+
+	<s id="113">
+		 10 ^onc^usions and Future ^ork We have presented an approach to collective information extraction that uses Relational Markov Networks to reason about the mutual influences between multiple extractions . 
+	</s>
+	
+
+	<s id="114">
+		 A new type of clique template — the logical OR template — was introduced , allowing a variable num- ber of relevant entities to be used by other clique templates . 
+	</s>
+	
+
+	<s id="115">
+		 Soft correlations between repetitions and acronyms and their long form in the same document have been captured by global clique templates , allowing for local extraction decisions to propagate and mutually influence each other . 
+	</s>
+	
+
+	<s id="116">
+		 Regarding future work , a richer set of features for the local templates would likely improve performance . 
+	</s>
+	
+
+	<s id="117">
+		 Currently , LT-RMN 's accuracy is still significantly less than CRF 's , which limits the performance of the full system . 
+	</s>
+	
+
+	<s id="118">
+		 Another limitation is the approximate inference used by both RMN methods . 
+	</s>
+	
+
+	<s id="119">
+		 The number of factor graphs for which the sum-product algorithm did not converge was non-negligible , and our approach stopped after a fix number of iterations . 
+	</s>
+	
+
+	<s id="120">
+		 Besides exploring improvements to loopy belief propagation that increase computational cost 
+		<ref citStr="Yedidia et al. , 2000" id="18" label="CEPF" position="20635">
+			( Yedidia et al. , 2000 )
+		</ref>
+		 , we intend to examine alternative approximate-inference methods . 
+	</s>
+	
+
+	<s id="121">
+		 11 Acknowledgements This work was partially supported by grants IIS-0117308 and IIS-0325116 from the NSF . 
+	</s>
+	
+
+	<s id="122">
+		 References Eric Brill . 
+	</s>
+	
+
+	<s id="123">
+		 1995. Transformation-based error-driven learning and natural language processing : A case study in part-of-speech tagging . 
+	</s>
+	
+
+	<s id="124">
+		 Computational Lin- guistics , 21(4):543-565 . 
+	</s>
+	
+
+	<s id="125">
+		 Razvan Bunescu , Ruifang Ge , Rohit J. Kate , Edward M. Marcotte , Raymond J. Mooney , Arun Kumar Ra- mani , and Yuk Wah Wong . 
+	</s>
+	
+
+	<s id="126">
+		 2004. Comparative exper- iments on learning information extractors for proteins and their interactions . 
+	</s>
+	
+
+	<s id="127">
+		 Special Issue in the Journal Artificial Intelligence in Medicine on Summarization and Information Extraction from Medical Documents . 
+	</s>
+	
+
+	<s id="128">
+		 To appear . 
+	</s>
+	
+
+	<s id="129">
+		 Mary Elaine Califf , editor . 
+	</s>
+	
+
+	<s id="130">
+		 1999. Papers from the AAAI1999 Workshop on Machine Learning for Information Extraction , Orlando , FL . 
+	</s>
+	
+
+	<s id="131">
+		 AAAI Press . 
+	</s>
+	
+
+	<s id="132">
+		 Claire Cardie . 
+	</s>
+	
+
+	<s id="133">
+		 1997. Empirical methods in information extraction . 
+	</s>
+	
+
+	<s id="134">
+		 AI Magazine , 18(4):65-79 . 
+	</s>
+	
+
+	<s id="135">
+		 Hai Leong Chieu and Hwee Tou Ng. 2003 . 
+	</s>
+	
+
+	<s id="136">
+		 Named entity recognition with a maximum entropy approach . 
+	</s>
+	
+
+	<s id="137">
+		 In Proceedings of the Seventh Conference on Natural Language Learning ( CoNLL-2003 ) , pages 160-163 , Edmonton , Canada . 
+	</s>
+	
+
+	<s id="138">
+		 N. Collier , H. Park , N. Ogata , Y. Tateisi , C. Nobata , T.Ohta , T. Sekimizu , H. Imai , K. Ibushi , and J. Tsu- jii . 
+	</s>
+	
+
+	<s id="139">
+		 1999. The GENIA project : Corpus-based knowledge acquisition and information extraction from genome research papers . 
+	</s>
+	
+
+	<s id="140">
+		 In Ninth Conference of the European Chapter of the Association for Computational Linguistics ( EACL-99 ) , pages 271-272 , Bergen . 
+	</s>
+	
+
+	<s id="141">
+		 Michael Collins . 
+	</s>
+	
+
+	<s id="142">
+		 2002. Ranking algorithms for named- entity extraction : Boosting and the voted perceptron . 
+	</s>
+	
+
+	<s id="143">
+		 In Proceedings of the Annual Meeting of the Association for Computational Linguistics ( A CL-02 ) , pages 489-496 , Philadelphia , PA . 
+	</s>
+	
+
+	<s id="144">
+		 Michael I. Jordan , editor . 
+	</s>
+	
+
+	<s id="145">
+		 1999. Learning in Graphical Models . 
+	</s>
+	
+
+	<s id="146">
+		 MIT Press , Cambridge , MA . 
+	</s>
+	
+
+	<s id="147">
+		 F. R. Kschischang , B. Frey , and H.-A. Loeliger . 
+	</s>
+	
+
+	<s id="148">
+		 2001. Factor graphs and the sum-product algorithm . 
+	</s>
+	
+
+	<s id="149">
+		 IEEE Transactions on Information Theory , 47(2):498-519 . 
+	</s>
+	
+
+	<s id="150">
+		 John Lafferty , Andrew McCallum , and Fernando Pereira . 
+	</s>
+	
+
+	<s id="151">
+		 2001. Conditional random fields : Probabilistic models for segmenting and labeling sequence data . 
+	</s>
+	
+
+	<s id="152">
+		 In Proceedings of 18th International Conference on Machine Learning ( ICML-2001 ) , pages 282-289 , Williams College , MA . 
+	</s>
+	
+
+	<s id="153">
+		 Andrew Kachites McCallum . 
+	</s>
+	
+
+	<s id="154">
+		 2002. Mallet : A machine learning for language toolkit . 
+	</s>
+	
+
+	<s id="155">
+		 http://mallet.cs.umass.edu . 
+	</s>
+	
+
+	<s id="156">
+		 Judea Pearl . 
+	</s>
+	
+
+	<s id="157">
+		 1988. Probabilistic Reasoning in Intelligent Systems : Networks of Plausible Inference . 
+	</s>
+	
+
+	<s id="158">
+		 Morgan Kaufmann , San Mateo,CA . 
+	</s>
+	
+
+	<s id="159">
+		 Ariel S. Schwartz and Marti A. Hearst . 
+	</s>
+	
+
+	<s id="160">
+		 2003. A sim- ple algorithm for identifying abbreviation definitions in biomedical text . 
+	</s>
+	
+
+	<s id="161">
+		 In Proceedings of the 8th Pacific Symposium on Biocomputing , pages 451-462 , Lihue , HI , January . 
+	</s>
+	
+
+	<s id="162">
+		 Fei Sha and Fernando Pereira . 
+	</s>
+	
+
+	<s id="163">
+		 2003. Shallow parsing with conditional random fields . 
+	</s>
+	
+
+	<s id="164">
+		 In Proceedings of Hu- man Language Technology and the Meeting of the North American Association for Computational Linguistics , pages 134-141 , Edmonton , Canada . 
+	</s>
+	
+
+	<s id="165">
+		 Benjamin Taskar , Pieter Abbeel , and D. Koller . 
+	</s>
+	
+
+	<s id="166">
+		 2002. Discriminative probabilistic models for relational data . 
+	</s>
+	
+
+	<s id="167">
+		 In Proceedings of 18th Conference on Uncer- tainty in Artificial Intelligence ( UAI-02 ) , pages 485- 492 , Edmonton , Canada . 
+	</s>
+	
+
+	<s id="168">
+		 Erik F. Tjong Kim Sang and Fien De Meulder . 
+	</s>
+	
+
+	<s id="169">
+		 2003. Introduction to the CoNLL-2003 shared task : Language-independent named entity recognition . 
+	</s>
+	
+
+	<s id="170">
+		 In Proceedings of CoNLL-2003 , pages 142-147 . 
+	</s>
+	
+
+	<s id="171">
+		 Edmonton , Canada . 
+	</s>
+	
+
+	<s id="172">
+		 Jonathan S. Yedidia , William T. Freeman , and Yair Weiss . 
+	</s>
+	
+
+	<s id="173">
+		 2000. Generalized belief propagation . 
+	</s>
+	
+
+	<s id="174">
+		 In Advances in Neural Information Processing Systems 12 , pages 689-695 , Denver , CO . 
+	</s>
+	
+
+
+</acldoc>

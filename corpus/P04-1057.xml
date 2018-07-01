@@ -1,0 +1,1556 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1057">
+	
+
+	<s id="1">
+		 Error Mining for Wide-Coverage Grammar Engineering Gertj an van Noord Alfa-informatica University of Groningen POBox 716 9700 AS Groningen The Netherlands vannoord@let.rug.nl Abstract Parsing systems which rely on hand-coded linguistic descriptions can only perform adequately in as far as these descriptions are correct and complete . 
+	</s>
+	
+
+	<s id="2">
+		 The paper describes an error mining technique to discover problems in hand-coded linguistic descriptions for parsing such as grammars and lexicons . 
+	</s>
+	
+
+	<s id="3">
+		 By analysing parse results for very large unannotated corpora , the technique discovers missing , incorrect or incomplete linguistic descriptions . 
+	</s>
+	
+
+	<s id="4">
+		 The technique uses the frequency of n-grams of words for arbitrary values of n . 
+	</s>
+	
+
+	<s id="5">
+		 It is shown how a new combination of suffix arrays and perfect hash finite automata allows an efficient implementation . 
+	</s>
+	
+
+	<s id="6">
+		 1 Introduction As we all know , hand-crafted linguistic descriptions such as wide-coverage grammars and large scale dictionaries contain mistakes , and are incomplete . 
+	</s>
+	
+
+	<s id="7">
+		 In the context of parsing , people often construct sets of example sentences that the system should be able to parse correctly . 
+	</s>
+	
+
+	<s id="8">
+		 If a sentence cannot be parsed , it is a clear sign that something is wrong . 
+	</s>
+	
+
+	<s id="9">
+		 This technique only works in as far as the problems that might occur have been anticipated . 
+	</s>
+	
+
+	<s id="10">
+		 More recently , tree-banks have become available , and we can apply the parser to the sentences of the tree-bank and compare the resulting parse trees with the gold standard . 
+	</s>
+	
+
+	<s id="11">
+		 Such techniques are limited , however , because tree- banks are relatively small . 
+	</s>
+	
+
+	<s id="12">
+		 This is a serious problem , because the distribution of words is Zipfian ( there are very many words that occur very infrequently ) , and the same appears to hold for syntactic constructions . 
+	</s>
+	
+
+	<s id="13">
+		 In this paper , an error mining technique is described which is very effective at automatically discovering systematic mistakes in a parser by using very large ( but unannotated ) corpora . 
+	</s>
+	
+
+	<s id="14">
+		 The idea is very simple . 
+	</s>
+	
+
+	<s id="15">
+		 We run the parser on a large set of sentences , and then analyze those sentences the parser cannot parse successfully . 
+	</s>
+	
+
+	<s id="16">
+		 Depending on the nature of the parser , we define the notion ‘success ful parse’ in different ways . 
+	</s>
+	
+
+	<s id="17">
+		 In the experiments described here , we use the Alpino wide-coverage parser for Dutch ( Bouma et al. , 2001 ; van der Beek et al. , 2002b ) . 
+	</s>
+	
+
+	<s id="18">
+		 This parser is based on a large constructionalist HPSG for Dutch as well as a very large electronic dictionary ( partly derived from CELEX , Parole , and CGN ) . 
+	</s>
+	
+
+	<s id="19">
+		 The parser is robust in the sense that it essentially always produces a parse . 
+	</s>
+	
+
+	<s id="20">
+		 If a full parse is not possible for a given sentence , then the parser returns a ( minimal ) number of parsed non- overlapping sentence parts . 
+	</s>
+	
+
+	<s id="21">
+		 In the context of the present paper , a parse is called successful only if the parser finds an analysis spanning the full sentence . 
+	</s>
+	
+
+	<s id="22">
+		 The basic idea is to compare the frequency of words and word sequences in sentences that cannot be parsed successfully with the frequency of the same words and word sequences in unproblematic sentences . 
+	</s>
+	
+
+	<s id="23">
+		 As we illustrate in section 3 , this technique obtains very good results if it is applied to large sets of sentences . 
+	</s>
+	
+
+	<s id="24">
+		 To compute the frequency of word sequences of arbitrary length for very large corpora , we use a new combination of suffix arrays and perfect hash finite automata . 
+	</s>
+	
+
+	<s id="25">
+		 This implementation is described in section 4 . 
+	</s>
+	
+
+	<s id="26">
+		 The error mining technique is able to discover systematic problems which lead to parsing failure . 
+	</s>
+	
+
+	<s id="27">
+		 This includes missing , incomplete and incorrect lexical entries and grammar rules . 
+	</s>
+	
+
+	<s id="28">
+		 Problems which cause the parser to assign complete but incorrect parses cannot be discovered . 
+	</s>
+	
+
+	<s id="29">
+		 Therefore , tree-banks and hand-crafted sets of example sentences remain important to discover problems of the latter type . 
+	</s>
+	
+
+	<s id="30">
+		 2 A parsability metric for word sequences The error mining technique assumes we have available a large corpus of sentences . 
+	</s>
+	
+
+	<s id="31">
+		 Each sentence is a sequence of words ( of course , words might include tokens such as punctuation marks , etc. ) . 
+	</s>
+	
+
+	<s id="32">
+		 We run the parser on all sentences , and we note for which sentences the parser is successful . 
+	</s>
+	
+
+	<s id="33">
+		 We define the parsability of a word R(w) as the ratio of the num- ber of times the word occurs in a sentence with a successful parse ( C(wIOK)) and the total number of sentences that this word occurs in ( C(w)) : R(w) = Qw ~ ) Thus , if a word only occurs in sentences that cannot be parsed successfully , the parsability of that word is 0 . 
+	</s>
+	
+
+	<s id="34">
+		 On the other hand , if a word only occurs in sentences with a successful parse , its parsability is 1 . 
+	</s>
+	
+
+	<s id="35">
+		 If we have no reason to believe that a word is particularly easy or difficult , then we expect its parsability to be equal to the coverage of the parser ( the proportion of sentences with a successful parse ) . 
+	</s>
+	
+
+	<s id="36">
+		 If its parsability is ( much ) lower , then this indicates that something is wrong . 
+	</s>
+	
+
+	<s id="37">
+		 For the experiments described below , the coverage of the parser lies between 91 % and 95 % . 
+	</s>
+	
+
+	<s id="38">
+		 Yet , for many words we found parsability values that were much lower than that , including quite a number of words with parsability 0 . 
+	</s>
+	
+
+	<s id="39">
+		 Below we show some typical examples , and discuss the types of problem that are discovered in this way . 
+	</s>
+	
+
+	<s id="40">
+		 If a word has a parsability of 0 , but its frequency is very low ( say 1 or 2 ) then this might easily be due to chance . 
+	</s>
+	
+
+	<s id="41">
+		 We therefore use a frequency cut-off ( e.g. 5 ) , and we ignore words which occur less often in sentences without a successful parse . 
+	</s>
+	
+
+	<s id="42">
+		 In many cases , the parsability of a word depends on its context . 
+	</s>
+	
+
+	<s id="43">
+		 For instance , the Dutch word via is a preposition . 
+	</s>
+	
+
+	<s id="44">
+		 Its parsability in a certain experiment was more than 90 % . 
+	</s>
+	
+
+	<s id="45">
+		 Yet , the parser was unable to parse sentences with the phrase via via which is an adverbial expression which means via some complicated route . 
+	</s>
+	
+
+	<s id="46">
+		 For this reason , we generalize the parsability of a word to word sequences in a straightforward way . 
+	</s>
+	
+
+	<s id="47">
+		 We write C(wz ... wj ) for the number of sentences in which the sequence wz ... wj occurs . 
+	</s>
+	
+
+	<s id="48">
+		 Furthermore , C(wz ... wj IOK ) , is the number of sentences with a successful parse which contain the sequence wz ... wj . 
+	</s>
+	
+
+	<s id="49">
+		 The parsability of a sequence is defined as : R(wz ... wj ) = Cc(wz . 
+	</s>
+	
+
+	<s id="50">
+		 wj I OK ) . 
+	</s>
+	
+
+	<s id="51">
+		 . 
+	</s>
+	
+
+	<s id="52">
+		 . 
+	</s>
+	
+
+	<s id="53">
+		 wj ) If a word sequence wz ... wj has a low parsability , then this might be because it is part of a difficult phrase . 
+	</s>
+	
+
+	<s id="54">
+		 It might also be that part of the sequence is the culprit . 
+	</s>
+	
+
+	<s id="55">
+		 In order that we focus on the relevant sequence , we consider a longer sequence wh ... wz ... wj ... wk only if its parsability is lower than the parsability of each of its sub- strings : R(wh ... wz ... wj ... wk ) &lt; R(wz ... wj ) This is computed efficiently by considering the parsability of sequences in order of length ( shorter sequences before longer ones ) . 
+	</s>
+	
+
+	<s id="56">
+		 We construct a parsability table , which is a list of n-grams sorted with respect to parsability . 
+	</s>
+	
+
+	<s id="57">
+		 An n- gram is included in the parsability table , provided : • its frequency in problematic parses is larger than the frequency cut-off • its parsability is lower than the parsability of all of its sub-strings The claim in this paper is that a parsability table provides a wealth of information about systematic problems in the grammar and lexicon , which is otherwise hard to obtain . 
+	</s>
+	
+
+	<s id="58">
+		 3 Experiments and results 3.1 First experiment Data . 
+	</s>
+	
+
+	<s id="59">
+		 For our experiments , we used the Twente Nieuws Corpus , version pre-release 0.1.1 This corpus contains among others a large collection of news articles from various Dutch newspapers in the period 1994-2001 . 
+	</s>
+	
+
+	<s id="60">
+		 In addition , we used all news articles from the Volkskrant 1997 ( available on CD- ROM ) . 
+	</s>
+	
+
+	<s id="61">
+		 In order that this material can be parsed relatively quickly , we discarded all sentences of more than 20 words . 
+	</s>
+	
+
+	<s id="62">
+		 Furthermore , a time-out per sentence of twenty CPU-seconds was enforced . 
+	</s>
+	
+
+	<s id="63">
+		 The Alpino parser normally exploits a part-of-speech tag filter for efficient parsing 
+		<ref citStr="Prins and van Noord , 2003" id="1" label="OEPF" position="8457">
+			( Prins and van Noord , 2003 )
+		</ref>
+		 which was switched off , to ensure that the results were not influenced by mistakes due to this filter . 
+	</s>
+	
+
+	<s id="64">
+		 In table 1 we list some basic quantitative facts about this material . 
+	</s>
+	
+
+	<s id="65">
+		 We exploited a cluster of Linux PCs for parsing . 
+	</s>
+	
+
+	<s id="66">
+		 If only a single PC had been available , it would have taken in the order of 100 CPU days , to construct the material described in table 1 . 
+	</s>
+	
+
+	<s id="67">
+		 These experiments were performed in the autumn of 2002 , with the Alpino parser available then . 
+	</s>
+	
+
+	<s id="68">
+		 Below , we report on more recent experiments with the latest version of the Alpino parser , which has been improved quite a lot on the basis of the results of the experiments described here . 
+	</s>
+	
+
+	<s id="69">
+		 Results . 
+	</s>
+	
+
+	<s id="70">
+		 For the data described above , we computed the parsability table , using a frequency cutoff of 5 . 
+	</s>
+	
+
+	<s id="71">
+		 In figure 1 the frequencies of parsability scores in the parsability table are presented . 
+	</s>
+	
+
+	<s id="72">
+		 From the figure , it is immediately clear that the relatively high number of word sequences with a parsability of ( almost ) zero cannot be due to chance . 
+	</s>
+	
+
+	<s id="73">
+		 Indeed , the 1http://wwwhome.cs.utwente.nl/˜druid/ TwNC/TwNC-main.html newspaper sents coverage % NRC 1994 582K 91.2 NRC 1995 588K 91.5 Volkskrant 1997 596K 91.6 AD 2000 631K 91.5 PAROOL 2001 529K 91.3 total 2,927K 91.4 Table 1 : Overview of corpus material ; first experiment 
+		<ref citStr="Autumn 2002" id="2" label="---F" position="9853">
+			( Autumn 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="74">
+		 0.0 0.2 0.4 0.6 0.8 1.0 Parsability Figure 1 : Histogram of the frequencies of parsability scores occurring in parsability table . 
+	</s>
+	
+
+	<s id="75">
+		 Frequency cut-off=5 ; first experiment 
+		<ref citStr="Autumn 2002" id="3" position="10059">
+			( Autumn 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="76">
+		 parsability table starts with word sequences which constitute systematic problems for the parser . 
+	</s>
+	
+
+	<s id="77">
+		 In quite a lot of cases , these word sequences originate from particular types of newspaper text with idiosyncratic syntax , such as announcements of new books , movies , events , television programs etc. ; as well as checkers , bridge and chess diagrams . 
+	</s>
+	
+
+	<s id="78">
+		 Another category consists of ( parts of ) English , French and German phrases . 
+	</s>
+	
+
+	<s id="79">
+		 We also find frequent spelling mistakes such as de de where only a single de ( the definite article ) is expected , and heben for hebben ( to have ) , indentiek for identiek ( identical ) , koninging for koningin ( queen ) , etc. . 
+	</s>
+	
+
+	<s id="80">
+		 Other examples include wordt ik ( becomes I ) , vindt ik ( finds I ) , vind hij ( find he ) etc. . 
+	</s>
+	
+
+	<s id="81">
+		 We now describe a number of categories of examples which have been used to improve the parser . 
+	</s>
+	
+
+	<s id="82">
+		 Tokenization . 
+	</s>
+	
+
+	<s id="83">
+		 A number of n-grams with low parsability scores point towards systematic mistakes during tokenization . 
+	</s>
+	
+
+	<s id="84">
+		 Here are a number of examples:2 2The @ symbol indicates a sentence boundary . 
+	</s>
+	
+
+	<s id="85">
+		 R C n-gram 0.00 1884 @ . 
+	</s>
+	
+
+	<s id="86">
+		 0.00 385 @ ! 
+	</s>
+	
+
+	<s id="87">
+		 0.00 22 ’s advocaat ’s lawyer 0.11 8 H. ’s H. ’s 0.00 98 @ , roept @ , yells 0.00 20 @ , schreeuwt @ , screams 0.00 469 @ , vraagt @ , asks The first and second n-gram indicate sentences which start with a full stop or an exclamation mark , due to a mistake in the tokenizer . 
+	</s>
+	
+
+	<s id="88">
+		 The third and fourth n-grams indicate a problem the tokenizer had with a sequence of a single capital letter with a dot , followed by the genitive marker . 
+	</s>
+	
+
+	<s id="89">
+		 The grammar assumes that the genitive marking is attached to the proper name . 
+	</s>
+	
+
+	<s id="90">
+		 Such phrases occur frequently in reports on criminals , which are indicated in news paper only with their initials . 
+	</s>
+	
+
+	<s id="91">
+		 Another systematic mistake is reflected by the last n-grams . 
+	</s>
+	
+
+	<s id="92">
+		 In reported speech such as ( 1 ) Je bent gek ! 
+	</s>
+	
+
+	<s id="93">
+		 , roept Franca . 
+	</s>
+	
+
+	<s id="94">
+		 You are crazy ! 
+	</s>
+	
+
+	<s id="95">
+		 , yells Franca . 
+	</s>
+	
+
+	<s id="96">
+		 Franca yells : You are crazy ! 
+	</s>
+	
+
+	<s id="97">
+		 the tokenizer mistakenly introduced a sentence boundary between the exclamation mark and the comma . 
+	</s>
+	
+
+	<s id="98">
+		 On the basis of examples such as these , the tokenizer has been improved . 
+	</s>
+	
+
+	<s id="99">
+		 Mistakes in the lexicon . 
+	</s>
+	
+
+	<s id="100">
+		 Another reason an n- gram receives a low parsability score is a mistake in the lexicon . 
+	</s>
+	
+
+	<s id="101">
+		 The following table lists two typical examples : R C n-gram 0.27 18 de kaft the cover 0.30 7 heeft opgetreden has performed In Dutch , there is a distinction between neuter and non-neuter common nouns . 
+	</s>
+	
+
+	<s id="102">
+		 The definite article de combines with non-neuter nouns , whereas neuter nouns select het . 
+	</s>
+	
+
+	<s id="103">
+		 The common noun kaft , for example , combines with the definite article de . 
+	</s>
+	
+
+	<s id="104">
+		 However , according to the dictionary , it is a neuter common noun ( and thus would be expected to combine only with the definite article het ) . 
+	</s>
+	
+
+	<s id="105">
+		 Many similar errors were discovered . 
+	</s>
+	
+
+	<s id="106">
+		 Another syntactic distinction that is listed in the dictionary is the distinction between verbs which take the auxiliary hebben ( to have ) to construct a perfect tense clause vs. those that take the auxiliary zijn ( to be ) . 
+	</s>
+	
+
+	<s id="107">
+		 Some verbs allow both possibilities . 
+	</s>
+	
+
+	<s id="108">
+		 The last example illustrates an error in the dictionary with respect to this syntactic feature . 
+	</s>
+	
+
+	<s id="109">
+		 Incomplete lexical descriptions . 
+	</s>
+	
+
+	<s id="110">
+		 The majority of problems that the parsability scores indicate reflect incomplete lexical entries . 
+	</s>
+	
+
+	<s id="111">
+		 A number of examples is provided in the following table : R C n-gram 0.00 11 begunstigden favoured ( N/V ) 0.23 10 zich eraan dat self there-on that 0.08 12 aan te klikken on to click 0.08 12 doodzonde dat mortal sin that 0.15 11 zwarts black’s 0.00 16 dupe van victim of 0.00 13 het Turks . 
+	</s>
+	
+
+	<s id="112">
+		 the Turkish The word begunstigden is ambiguous between on the one hand the past tense of the verb begunstigen ( to favour ) and on the other hand the plural nominalization begunstigden ( beneficiaries ) . 
+	</s>
+	
+
+	<s id="113">
+		 The dictionary contained only the first reading . 
+	</s>
+	
+
+	<s id="114">
+		 The sequence zich eraan dat illustrates a missing valency frame for verbs such as ergeren ( to irritate ) . 
+	</s>
+	
+
+	<s id="115">
+		 In Dutch , verbs which take a prepositional complement sometimes also allow the object of the prepositional complement to be realized by a subordinate ( finite or infinite ) clause . 
+	</s>
+	
+
+	<s id="116">
+		 In that case , the prepositional complement is R-pronominalized . 
+	</s>
+	
+
+	<s id="117">
+		 Examples : ( 2 ) a. Hij ergert zich aan zijn aanwezigheid He is-irritated self on his presence He is irritated by his presence b. Hij ergert zich er niet aan dat ... 
+	</s>
+	
+
+	<s id="118">
+		 He is-irritated self there not on that ... 
+	</s>
+	
+
+	<s id="119">
+		 He is not irritated by the fact that ... 
+	</s>
+	
+
+	<s id="120">
+		 The sequence aan te klikken is an example of a verb-particle combination which is not licensed in the dictionary . 
+	</s>
+	
+
+	<s id="121">
+		 This is a relatively new verb which is used for click in the context of buttons and hyper- links . 
+	</s>
+	
+
+	<s id="122">
+		 The sequence doodzonde dat illustrates a syntactic construction where a copula combines with a predicative complement and a sentential subject , if that predicative complement is of the appropriate type . 
+	</s>
+	
+
+	<s id="123">
+		 This type is specified in the dictionary , but was missing in the case of doodzonde . 
+	</s>
+	
+
+	<s id="124">
+		 Example : ( 3 ) Het is doodzonde dat hij slaapt It is mortal-sin that he sleeps That he is sleeping is a pity The word zwarts should have been analyzed as a genitive noun , as in ( typically sentences about chess or checkers ) : ( 4 ) Hij keek naar zwarts toren He looked at black’s rook whereas the dictionary only assigned the inflected adjectival reading . 
+	</s>
+	
+
+	<s id="125">
+		 The sequence dupe van illustrates an example of an R-pronominalization of a PP modifier . 
+	</s>
+	
+
+	<s id="126">
+		 This is generally not possible , except for ( quite a large ) number of contexts which are determined by the verb and the object : ( 5 ) a. Hij is de dupe van jouw vergissing He is the victim of your mistake He has to suffer for your mistake b. Hij is daar nu de dupe van He is there now the victim of He has to suffer for it The word Turks can be both an adjective ( Turkish ) or a noun the Turkish language . 
+	</s>
+	
+
+	<s id="127">
+		 The dictionary contained only the first reading . 
+	</s>
+	
+
+	<s id="128">
+		 Very many other examples of incomplete lexical entries were found . 
+	</s>
+	
+
+	<s id="129">
+		 Frozen expressions with idiosyncratic syntax . 
+	</s>
+	
+
+	<s id="130">
+		 Dutch has many frozen expressions and idioms with archaic inflection and/or word order which breaks the parser . 
+	</s>
+	
+
+	<s id="131">
+		 Examples include : R C n-gram 0.00 13 dan schaadt het then harms it 0.00 13 @ God zij @ God be[I] 0.22 25 God zij God be[I] 0.00 19 Het zij zo It be[I] so 0.45 12 goeden huize good house[I] 0.09 11 berge mountain[I] 0.00 10 hele gedwaald whole[I] dwelled 0.00 14 te weeg The sequence dan schaadt het is part of the idiom Baat het niet , dan schaadt het niet ( meaning : it might be unsure whether something is helpful , but in any case it won’t do any harm ) . 
+	</s>
+	
+
+	<s id="132">
+		 The sequence God zij is part of a number of archaic formulas such as God zij dank ( Thank God ) . 
+	</s>
+	
+
+	<s id="133">
+		 In such examples , the form zij is the ( archaic ) subjunctive form of the Dutch verb zijn ( to be ) . 
+	</s>
+	
+
+	<s id="134">
+		 The sequence Het zij zo is another fixed formula ( English : So be it ) , containing the same subjunctive . 
+	</s>
+	
+
+	<s id="135">
+		 The phrase van goeden huize ( of good family ) is a frozen expression with archaic inflection . 
+	</s>
+	
+
+	<s id="136">
+		 The word berge exhibits archaic inflection on the word berg ( mountain ) , which only occurs in the idiomatic expression de haren rijzen mij te berge ( my hair rises to the mountain ) which expresses a great deal of surprise . 
+	</s>
+	
+
+	<s id="137">
+		 The n-gram hele gedwaald only occurs in the idiom Beter ten halve gekeerd dan ten hele gedwaald : it is better to turn halfway , then to go all the way in the wrong direc- tion . 
+	</s>
+	
+
+	<s id="138">
+		 Many other ( parts of ) idiomatic expressions were found in the parsability table . 
+	</s>
+	
+
+	<s id="139">
+		 The sequence te weeg only occurs as part of the phrasal verb te weeg brengen ( to cause ) . 
+	</s>
+	
+
+	<s id="140">
+		 Incomplete grammatical descriptions . 
+	</s>
+	
+
+	<s id="141">
+		 Although the technique strictly operates at the level of words and word sequences , it is capable of indicating grammatical constructions that are not treated , or not properly treated , in the grammar . 
+	</s>
+	
+
+	<s id="142">
+		 R C n-gram 0.06 34 Wij Nederlanders We Dutch 0.08 23 Geeft niet Matters not 0.00 15 de alles the everything 0.10 17 Het laten The letting 0.00 10 tenzij . 
+	</s>
+	
+
+	<s id="143">
+		 unless . 
+	</s>
+	
+
+	<s id="144">
+		 The sequence Wij Nederlanders constitutes an example of a pronoun modified by means of an apposition ( not allowed in the grammar ) as in ( 6 ) Wij Nederlanders eten vaak aardappels We Dutch eat often potatoes We , the Dutch , often eat potatoes The sequence Geeft niet illustrates the syntactic phenomenon of topic-drop ( not treated in the grammar ) : verb initial sentences in which the topic ( typically the subject ) is not spelled out . 
+	</s>
+	
+
+	<s id="145">
+		 The sequence de alles occurs with present participles ( used as prenominal modifiers ) such as overheersende as in de alles overheersende paniek ( literally : the all dominating panic , i.e. , the panic that dominated everything ) . 
+	</s>
+	
+
+	<s id="146">
+		 The grammar did not allow prenominal modifiers to select an NP complement . 
+	</s>
+	
+
+	<s id="147">
+		 The sequence Het laten often occurs in nominalizations with multiple verbs . 
+	</s>
+	
+
+	<s id="148">
+		 These were not treated in the grammar . 
+	</s>
+	
+
+	<s id="149">
+		 Example : ( 7 ) Het laten zien van problemen The letting see of problems Showing problems The word sequence tenzij . 
+	</s>
+	
+
+	<s id="150">
+		 is due to sentences in which a subordinate coordinator occurs without a complement clause : ( 8 ) Gij zult niet doden , tenzij . 
+	</s>
+	
+
+	<s id="151">
+		 Thou shallt not kill , unless . 
+	</s>
+	
+
+	<s id="152">
+		 A large number of n-grams also indicate elliptical structures , not treated in that version of the grammar . 
+	</s>
+	
+
+	<s id="153">
+		 Another fairly large source of errors are irregular named entities ( Gil y Gil , Osama bin Laden . 
+	</s>
+	
+
+	<s id="154">
+		 . 
+	</s>
+	
+
+	<s id="155">
+		 . 
+	</s>
+	
+
+	<s id="156">
+		 newspaper # sentences coverage % NRC 1994 552,833 95.0 Volkskrant 1997 569,314 95,2 AD 2000 662,380 95,7 Trouw 1999 406,339 95,5 Volkskrant 2001 782,645 95,1 Table 2 : Overview of corpus material used for the experiments ; second experiment 
+		<ref citStr="January 2004" id="4" position="20324">
+			( January 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="157">
+		 3.2 Later experiment Many of the errors and omissions that were found on the basis of the parsability table have been corrected . 
+	</s>
+	
+
+	<s id="158">
+		 As can be seen in table 2 , the coverage obtained by the improved parser increased substantially . 
+	</s>
+	
+
+	<s id="159">
+		 In this experiment , we also measured the coverage on additional sets of sentences ( all sentences from the Trouw 1999 and Volkskrant 2001 newspaper , available in the TwNC corpus ) . 
+	</s>
+	
+
+	<s id="160">
+		 The results show that coverage is similar on these unseen test- sets . 
+	</s>
+	
+
+	<s id="161">
+		 Obviously , coverage only indicates how often the parser found a full parse , but it does not indicate whether that parse actually was the correct parse . 
+	</s>
+	
+
+	<s id="162">
+		 For this reason , we also closely monitored the performance of the parser on the Alpino tree-bank3 ( van der Beek et al. , 2002a ) , both in terms of parsing accuracy and in terms of average number of parses per sentence . 
+	</s>
+	
+
+	<s id="163">
+		 The average number of parses increased , which is to be expected if the grammar and lexicon are extended . 
+	</s>
+	
+
+	<s id="164">
+		 Accuracy has been steadily increasing on the Alpino tree-bank . 
+	</s>
+	
+
+	<s id="165">
+		 Accuracy is defined as the proportion of correct named dependency relations of the first parse returned by Alpino . 
+	</s>
+	
+
+	<s id="166">
+		 Alpino employs a maximum entropy disambiguation component ; the first parse is the most promising parse according to this statistical model . 
+	</s>
+	
+
+	<s id="167">
+		 The maximum entropy disambiguation component of Alpino assigns a score S(x) to each parse x : S(x) = X BZfZ(x) ( 1 ) Z where fZ ( x ) is the frequency of a particular feature i in parse x and BZ is the corresponding weight of that feature . 
+	</s>
+	
+
+	<s id="168">
+		 The probability of a parse x for sentence w is then defined as follows , where Y(w) are all the parses of w : exp ( S(x)) p(x| w ) = Py^Y(w) exp ( S(y)) ( 2 ) The disambiguation component is described in detail in Malouf and van 
+		<ref citStr="Noord ( 2004 )" id="5" label="CERF" position="22210">
+			Noord ( 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="169">
+		 3http://www.let.rug.nl/˜vannoord/trees/ Time ( days ) Figure 2 : Development of Accuracy of the Alpino parser on the Alpino Tree-bank Figure 2 displays the accuracy from May 2003- May 2004 . 
+	</s>
+	
+
+	<s id="170">
+		 During this period many of the problems described earlier were solved , but other parts of the system were improved too ( in particular , the disambiguation component was improved considerably ) . 
+	</s>
+	
+
+	<s id="171">
+		 The point of the graph is that apparently the increase in coverage has not been obtained at the cost of decreasing accuracy . 
+	</s>
+	
+
+	<s id="172">
+		 4 A note on the implementation The most demanding part of the implementation consists of the computation of the frequency of n- grams . 
+	</s>
+	
+
+	<s id="173">
+		 If the corpus is large , or n increases , simple techniques break down . 
+	</s>
+	
+
+	<s id="174">
+		 For example , an approach in which a hash data-structure is used to maintain the counts of each n-gram , and which increments the counts of each n-gram that is encountered , requires excessive amounts of memory for large n and/or for large corpora . 
+	</s>
+	
+
+	<s id="175">
+		 On the other hand , if a more compact data-structure is used , speed becomes an issue . 
+	</s>
+	
+
+	<s id="176">
+		 
+		<ref citStr="Church ( 1995 )" id="6" label="CEPF" position="23362">
+			Church ( 1995 )
+		</ref>
+		 shows that suffix arrays can be used for efficiently computing the frequency of n-grams , in particular for larger n . 
+	</s>
+	
+
+	<s id="177">
+		 If the corpus size increases , the memory required for the suffix array may become problematic . 
+	</s>
+	
+
+	<s id="178">
+		 We propose a new combination of suffix arrays with perfect hash finite automata , which reduces typical memory requirements by a factor of five , in combination with a modest increase in processing efficiency . 
+	</s>
+	
+
+	<s id="179">
+		 4.1 Suffix arrays Suffix arrays 
+		<ref citStr="Manber and Myers , 1990" id="7" label="CEPF" position="23849">
+			( Manber and Myers , 1990 
+		</ref>
+		<ref citStr="Yamamoto and Church , 2001" id="8" label="CEPF" position="23875">
+			; Yamamoto and Church , 2001 )
+		</ref>
+		 are a simple , but useful data- structure for various text-processing tasks . 
+	</s>
+	
+
+	<s id="180">
+		 A corpus is a sequence of characters . 
+	</s>
+	
+
+	<s id="181">
+		 A suffix array s is an array consisting of all suffixes of the corpus , sorted alphabetically . 
+	</s>
+	
+
+	<s id="182">
+		 For example , if the corpus is the string abba , the suffix array is ( a , abba , ba , bba ) . 
+	</s>
+	
+
+	<s id="183">
+		 Rather than writing out each suffix , we use integers i to refer to the suffix starting at position i in the corpus . 
+	</s>
+	
+
+	<s id="184">
+		 Thus , in this case the suffix array consists of the integers ( 3 , 0 , 2 , 1 ) . 
+	</s>
+	
+
+	<s id="185">
+		 It is straightforward to compute the suffix array . 
+	</s>
+	
+
+	<s id="186">
+		 For a corpus of k + 1 characters , we initialize the suffix array by the integers 0 ... k . 
+	</s>
+	
+
+	<s id="187">
+		 The suffix array is sorted , using a specialized comparison routine which takes integers i and j , and alphabetically compares the strings starting at i and j in the corpus.4 Once we have the suffix array , it is simple to compute the frequency of n-grams . 
+	</s>
+	
+
+	<s id="188">
+		 Suppose we are interested in the frequency of all n-grams for n = 10 . 
+	</s>
+	
+
+	<s id="189">
+		 We simply iterate over the elements of the suffix array : for each element , we print the first ten words of the corresponding suffix . 
+	</s>
+	
+
+	<s id="190">
+		 This gives us all occurrences of all 10-grams in the corpus , sorted alphabetically . 
+	</s>
+	
+
+	<s id="191">
+		 We now count each 10-gram , e.g. by piping the result to the Unix uniq -c command . 
+	</s>
+	
+
+	<s id="192">
+		 4.2 Perfect hash finite automata Suffix arrays can be used more efficiently to compute frequencies of n-grams for larger n , with the help of an additional data-structure , known as the perfect hash finite automaton 
+		<ref citStr="Lucchiesi and Kowaltowski , 1993" id="9" label="CEPF" position="25526">
+			( Lucchiesi and Kowaltowski , 1993 
+		</ref>
+		<ref citStr="Roche , 1995" id="10" label="CEPF" position="25561">
+			; Roche , 1995 
+		</ref>
+		<ref citStr="Revuz , 1991" id="11" label="CEPF" position="25576">
+			; Revuz , 1991 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="193">
+		 The perfect hash automaton for an alphabetically sorted finite set of words wo ... wn is a weighted minimal deterministic finite automaton which maps wi —* i for each w0&lt;i&lt;n . 
+	</s>
+	
+
+	<s id="194">
+		 We call i the word code of wi . 
+	</s>
+	
+
+	<s id="195">
+		 An example is given in figure 3 . 
+	</s>
+	
+
+	<s id="196">
+		 Note that perfect hash automata implement an order preserving , minimal perfect hash function . 
+	</s>
+	
+
+	<s id="197">
+		 The function is minimal , in the sense that n keys are mapped into the range 0 ... n — 1 , and the function is order preserving , in the sense that the alphabetic order of words is reflected in the numeric order of word codes . 
+	</s>
+	
+
+	<s id="198">
+		 4.3 Suffix arrays with words In the approach of 
+		<ref citStr="Church ( 1995 )" id="12" label="CEPF" position="26286">
+			Church ( 1995 )
+		</ref>
+		 , the corpus is a sequence of characters ( represented by integers reflecting the alphabetic order ) . 
+	</s>
+	
+
+	<s id="199">
+		 A more space- efficient approach takes the corpus as a sequence of words , represented by word codes reflecting the alphabetic order . 
+	</s>
+	
+
+	<s id="200">
+		 To compute frequencies of n-grams for larger n , we first compute the perfect hash finite automaton for all words which occur in the corpus,5 and map 4The suffix sort algorithm of Peter M. McIlroy and M. Douglas McIlroy is used , available as http : / /www. cs. dartmouth.edu/˜doug/ssort.c ; This algorithm is robust against long repeated substrings in the corpus . 
+	</s>
+	
+
+	<s id="201">
+		 5 We use an implementation by Jan Daciuk freely available from http://www.eti.pg.gda.pl/˜jandac/ fsa.html . 
+	</s>
+	
+
+	<s id="202">
+		 0 50 100 150 200 250 300 350 Figure 3 : Example of a perfect hash finite automaton for the words clock , dock , dog , duck , dust , rock , rocker , stock . 
+	</s>
+	
+
+	<s id="203">
+		 Summing the weights along an accepting path in the automaton yields the rank of the word in alphabetic ordering . 
+	</s>
+	
+
+	<s id="204">
+		 the corpus to a sequence of integers , by mapping each word to its word code . 
+	</s>
+	
+
+	<s id="205">
+		 Suffix array construction then proceeds on the basis of word codes , rather than character codes . 
+	</s>
+	
+
+	<s id="206">
+		 This approach has several advantages . 
+	</s>
+	
+
+	<s id="207">
+		 The representation of both the corpus and the suffix array is more compact . 
+	</s>
+	
+
+	<s id="208">
+		 If the average word length is k , then the corresponding arrays are k times smaller ( but we need some additional space for the perfect hash automaton ) . 
+	</s>
+	
+
+	<s id="209">
+		 In Dutch , the average word length k is about 5 , and we obtained space savings in that order . 
+	</s>
+	
+
+	<s id="210">
+		 If the suffix array is shorter , sorting should be faster too ( but we need some additional time to compute the perfect hash automaton ) . 
+	</s>
+	
+
+	<s id="211">
+		 In our experience , sorting is about twice as fast for word codes . 
+	</s>
+	
+
+	<s id="212">
+		 4.4 Computing parsability table To compute parsability scores , we assume there are two corpora cm and ca , where the first is a sub- corpus of the second . 
+	</s>
+	
+
+	<s id="213">
+		 cm contains all sentences for which parsing was not successful . 
+	</s>
+	
+
+	<s id="214">
+		 ca contains all sentences overall . 
+	</s>
+	
+
+	<s id="215">
+		 For both corpora , we compute the frequency of all n-grams for all n ; n-grams with a frequency below a specified frequency cutoff are ignored . 
+	</s>
+	
+
+	<s id="216">
+		 Note that we need not impose an a priori maximum value for n ; since there is a frequency cut-off , for some n there simply aren’t any sequences which occur more frequently than this cut-off . 
+	</s>
+	
+
+	<s id="217">
+		 The two n-gram frequency files are organized in such a way that shorter n-grams precede longer n-grams . 
+	</s>
+	
+
+	<s id="218">
+		 The two frequency files are then combined as follows . 
+	</s>
+	
+
+	<s id="219">
+		 Since the frequency file corresponding to cm is ( much ) smaller than the file corresponding to ca , we read the first file into memory ( into a hash data structure ) . 
+	</s>
+	
+
+	<s id="220">
+		 We then iteratively read an n-gram frequency from the second file , and com pute the parsability of that n-gram . 
+	</s>
+	
+
+	<s id="221">
+		 In doing so , we keep track of the parsability scores assigned to previous ( hence shorter ) n-grams , in order to ensure that larger n-grams are only reported in case the parsability scores decrease . 
+	</s>
+	
+
+	<s id="222">
+		 The final step consists in sorting all remaining n-grams with respect to their parsability . 
+	</s>
+	
+
+	<s id="223">
+		 To give an idea of the practicality of the approach , consider the following data for one of the experiments described above . 
+	</s>
+	
+
+	<s id="224">
+		 For a corpus of 2,927,016 sentences ( 38,846,604 words , 209Mb ) , it takes about 150 seconds to construct the perfect hash automaton ( mostly sorting ) . 
+	</s>
+	
+
+	<s id="225">
+		 The automaton is about 5Mb in size , to represent 677,488 distinct words . 
+	</s>
+	
+
+	<s id="226">
+		 To compute the suffix array and frequencies of all n-grams ( cut-off=5 ) , about 15 minutes of CPU-time are required . 
+	</s>
+	
+
+	<s id="227">
+		 Maximum runtime memory requirements are about 400Mb . 
+	</s>
+	
+
+	<s id="228">
+		 The result contains frequencies for 1,641,608 distinct n- grams . 
+	</s>
+	
+
+	<s id="229">
+		 Constructing the parsability scores on the basis of the n-gram files only takes 10 seconds CPU-time , resulting in parsability scores for 64,998 n-grams ( since there are much fewer n-grams which actually occur in problematic sentences ) . 
+	</s>
+	
+
+	<s id="230">
+		 The experiment was performed on a Intel Pentium III , 1266MHz machine running Linux . 
+	</s>
+	
+
+	<s id="231">
+		 The software is freely available from http : / /www. let . 
+	</s>
+	
+
+	<s id="232">
+		 rug . 
+	</s>
+	
+
+	<s id="233">
+		 nl/˜vannoord/software.html . 
+	</s>
+	
+
+	<s id="234">
+		 5 Discussion An error mining technique has been presented which is very helpful in identifying problems in hand-coded grammars and lexicons for parsing . 
+	</s>
+	
+
+	<s id="235">
+		 An important ingredient of the technique consists of the computation of the frequency of n-grams of words for arbitrary values of n . 
+	</s>
+	
+
+	<s id="236">
+		 It was shown how a new combination of suffix arrays and perfect hash finite automata allows an efficient implementation . 
+	</s>
+	
+
+	<s id="237">
+		 A number of potential improvements can be envisioned . 
+	</s>
+	
+
+	<s id="238">
+		 In the definition of R(w) , the absolute frequency of w is ignored . 
+	</s>
+	
+
+	<s id="239">
+		 Yet , if w is very frequent , R(w) is more reliable than if w is not frequent . 
+	</s>
+	
+
+	<s id="240">
+		 Therefore , as an alternative , we also experimented with a set-up in which an exact binomial test is applied to compute a confidence interval for R(w) . 
+	</s>
+	
+
+	<s id="241">
+		 Results can then be ordered with respect to the maximum of these confidence intervals . 
+	</s>
+	
+
+	<s id="242">
+		 This procedure seemed to improve results somewhat , but is computationally much more expensive . 
+	</s>
+	
+
+	<s id="243">
+		 For the first experiment described above , this alternative set-up results in a parsability table of 42K word tuples , whereas the original method produces a table of 65K word tuples . 
+	</s>
+	
+
+	<s id="244">
+		 r u::2 r::5 d::1 t o c s::1 c g::1 c e::1 k c o k l s::7 c o t R C n-gram 0.00 8 0.20 12 0.15 11 0.00 8 0.09 10 0.69 15 0.17 10 0.00 10 0.00 8 0.20 10 Table 3 : Multiple n-grams indicating same error The parsability table only contains longer n- grams if these have a lower parsability than the corresponding shorter n-grams . 
+	</s>
+	
+
+	<s id="245">
+		 Although this heuristic appears to be useful , it is still possible that a single problem is reflected multiple times in the parsability table . 
+	</s>
+	
+
+	<s id="246">
+		 For longer problematic sequences , the parsability table typically contains partially overlapping parts of that sequence . 
+	</s>
+	
+
+	<s id="247">
+		 This phenomenon is illustrated in table 3 for the idiom Beter ten halve gekeerd dan ten hele gedwaald discussed earlier . 
+	</s>
+	
+
+	<s id="248">
+		 This suggests that it would be useful to consider other heuristics to eliminate such redundancy , perhaps by considering statistical feature selection methods . 
+	</s>
+	
+
+	<s id="249">
+		 The definition used in this paper to identify a successful parse is a rather crude one . 
+	</s>
+	
+
+	<s id="250">
+		 Given that grammars of the type assumed here typically assign very many analyses to a given sentence , it is often the case that a specific problem in the grammar or lexicon rules out the intended parse for a given sentence , but alternative ( wrong ) parses are still possible . 
+	</s>
+	
+
+	<s id="251">
+		 What appears to be required is a ( statistical ) model which is capable of judging the plausibility of a parse . 
+	</s>
+	
+
+	<s id="252">
+		 We investigated whether the maximum entropy score S(x) ( equation 1 ) can be used to indi- cate parse plausibility . 
+	</s>
+	
+
+	<s id="253">
+		 In this set-up , we considered a parse successful only if S(x) of the best parse is above a certain threshold . 
+	</s>
+	
+
+	<s id="254">
+		 However , the resulting parsability table did not appear to indicate problematic word sequences , but rather word sequences typically found in elliptical sentences were returned . 
+	</s>
+	
+
+	<s id="255">
+		 Apparently , the grammatical rules used for ellipsis are heavily punished by the maximum entropy model in order that these rules are used only if other rules are not applicable . 
+	</s>
+	
+
+	<s id="256">
+		 Acknowledgments This research was supported by the PIONIER project Algorithms for Linguistic Processing funded by NWO . 
+	</s>
+	
+
+	<s id="257">
+		 References Gosse Bouma , Gertjan van Noord , and Robert Malouf . 
+	</s>
+	
+
+	<s id="258">
+		 2001. Wide coverage computational analysis of Dutch . 
+	</s>
+	
+
+	<s id="259">
+		 In W. Daelemans , K. Sima’an , J. Veenstra , and J. Zavrel , editors , Computational Linguistics in the Netherlands 2000 . 
+	</s>
+	
+
+	<s id="260">
+		 Kenneth Ward Church . 
+	</s>
+	
+
+	<s id="261">
+		 1995. Ngrams . 
+	</s>
+	
+
+	<s id="262">
+		 ACL 1995 , MIT Cambridge MA , June 16 . 
+	</s>
+	
+
+	<s id="263">
+		 ACL Tutorial . 
+	</s>
+	
+
+	<s id="264">
+		 Claudio Lucchiesi and Tomasz Kowaltowski . 
+	</s>
+	
+
+	<s id="265">
+		 1993. Applications of finite automata representing large vocabularies . 
+	</s>
+	
+
+	<s id="266">
+		 Software Practice and Experience , 23(1):15–30 , Jan. Robert Malouf and Gertjan van Noord . 
+	</s>
+	
+
+	<s id="267">
+		 2004. Wide coverage parsing with stochastic attribute value grammars . 
+	</s>
+	
+
+	<s id="268">
+		 In Beyond shallow analyses . 
+	</s>
+	
+
+	<s id="269">
+		 Formalisms and statistical modeling for deep analysis , Sanya City , Hainan , China . 
+	</s>
+	
+
+	<s id="270">
+		 IJCNLP-04 Workshop . 
+	</s>
+	
+
+	<s id="271">
+		 Udi Manber and Gene Myers . 
+	</s>
+	
+
+	<s id="272">
+		 1990. Suffix arrays : A new method for on-line string searching . 
+	</s>
+	
+
+	<s id="273">
+		 In Proceedings of the First Annual AC-SIAM Symposium on Discrete Algorithms , pages 319–327. http : / /manber . 
+	</s>
+	
+
+	<s id="274">
+		 com/publications.html . 
+	</s>
+	
+
+	<s id="275">
+		 Robbert Prins and Gertjan van Noord . 
+	</s>
+	
+
+	<s id="276">
+		 2003. Reinforcing parser preferences through tagging . 
+	</s>
+	
+
+	<s id="277">
+		 TraitementAutomatique des Langues , 44(3):121– 139. in press . 
+	</s>
+	
+
+	<s id="278">
+		 Dominique Revuz . 
+	</s>
+	
+
+	<s id="279">
+		 1991. Dictionnaires et lexiques : m´ethodes et algorithmes . 
+	</s>
+	
+
+	<s id="280">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="281">
+		 thesis , Institut Blaise Pascal , Paris , France . 
+	</s>
+	
+
+	<s id="282">
+		 LITP 91.44 . 
+	</s>
+	
+
+	<s id="283">
+		 Emmanuel Roche . 
+	</s>
+	
+
+	<s id="284">
+		 1995. Finite-state tools for language processing . 
+	</s>
+	
+
+	<s id="285">
+		 ACL 1995 , MIT Cambridge MA , June 16 . 
+	</s>
+	
+
+	<s id="286">
+		 ACL Tutorial . 
+	</s>
+	
+
+	<s id="287">
+		 Leonoor van der Beek , Gosse Bouma , Robert Malouf , and Gertjan van Noord . 
+	</s>
+	
+
+	<s id="288">
+		 2002a . 
+	</s>
+	
+
+	<s id="289">
+		 The Alpino dependency treebank . 
+	</s>
+	
+
+	<s id="290">
+		 In Mari¨et Theune , Anton Nijholt , and Hendri Hondorp , editors , Computational Linguistics in the Netherlands 2001 . 
+	</s>
+	
+
+	<s id="291">
+		 Selected Papers from the Twelfth CLIN Meeting , pages 8–22 . 
+	</s>
+	
+
+	<s id="292">
+		 Rodopi . 
+	</s>
+	
+
+	<s id="293">
+		 Leonoor van der Beek , Gosse Bouma , and Gertjan van Noord . 
+	</s>
+	
+
+	<s id="294">
+		 2002b . 
+	</s>
+	
+
+	<s id="295">
+		 Een brede computationele grammatica voor het Nederlands . 
+	</s>
+	
+
+	<s id="296">
+		 Nederlandse Taalkunde , 7(4):353–374. in Dutch . 
+	</s>
+	
+
+	<s id="297">
+		 Mikio Yamamoto and Kenneth W. Church . 
+	</s>
+	
+
+	<s id="298">
+		 2001. Using suffix arrays to compute term frequency and document frequency for all substrings in a corpus . 
+	</s>
+	
+
+	<s id="299">
+		 Computational Linguistics , 27(1):1–30 . 
+	</s>
+	
+
+	<s id="300">
+		 Beter ten ten halve halve gekeerd gekeerd dan dan ten hele dan ten ten hele hele gedwaald gedwaald . 
+	</s>
+	
+
+	<s id="301">
+		 gedwaald 
+	</s>
+	
+
+
+</acldoc>

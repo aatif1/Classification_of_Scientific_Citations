@@ -1,0 +1,1452 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1041">
+	
+
+	<s id="1">
+		 Long-Distance Dependency Resolution in Automatically Acquired Wide-Coverage PCFG-Based LFG Approximations Aoife Cahill , Michael Burke , Ruth O’Donovan , Josef van Genabith , Andy Way National Centre for Language Technology and School of Computing , Dublin City University , Dublin , Ireland {acahill,mburke,rodonovan,josef,away}@computing.dcu.ie Abstract This paper shows how finite approximations of long distance dependency ( LDD ) resolution can be obtained automatically for wide-coverage , robust , probabilistic Lexical-Functional Grammar ( LFG ) resources acquired from treebanks . 
+	</s>
+	
+
+	<s id="2">
+		 We extract LFG subcategorisation frames and paths linking LDD reentrancies from f-structures generated automatically for the Penn-II treebank trees and use them in an LDD resolution algorithm to parse new text . 
+	</s>
+	
+
+	<s id="3">
+		 Unlike 
+		<ref citStr="Collins , 1999" id="1" label="CJPN" position="833">
+			( Collins , 1999 
+		</ref>
+		<ref citStr="Johnson , 2002" id="2" label="CJPN" position="850">
+			; Johnson , 2002 )
+		</ref>
+		 , in our approach resolution of LDDs is done at f-structure ( attribute-value structure representations of basic predicate-argument or dependency structure ) without empty productions , traces and coindexation in CFG parse trees . 
+	</s>
+	
+
+	<s id="4">
+		 Currently our best automatically induced grammars achieve 80.97 % f-score for f- structures parsing section 23 of the WSJ part of the Penn-II treebank and evaluating against the DCU 1051 and 80.24 % against the PARC 700 Dependency Bank 
+		<ref citStr="King et al. , 2003" id="3" label="OEPF" position="1367">
+			( King et al. , 2003 )
+		</ref>
+		 , performing at the same or a slightly better level than state-of-the-art hand-crafted grammars 
+		<ref citStr="Kaplan et al. , 2004" id="4" label="CJPF" position="1488">
+			( Kaplan et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction The determination of syntactic structure is an important step in natural language processing as syntactic structure strongly determines semantic interpretation in the form of predicate-argument structure , dependency relations or logical form . 
+	</s>
+	
+
+	<s id="6">
+		 For a substantial number of linguistic phenomena such as topicalisation , wh-movement in relative clauses and interrogative sentences , however , there is an important difference between the location of the ( surface ) realisation of linguistic material and the location where this material should be interpreted semantically . 
+	</s>
+	
+
+	<s id="7">
+		 Resolution of such long-distance dependencies ( LDDs ) is therefore crucial in the determination of accurate predicate-argument struc- 1Manually constructed f-structures for 105 randomly selected trees from Section 23 of the WSJ section of the Penn-II Treebank ture , deep dependency relations and the construction of proper meaning representations such as logical forms 
+		<ref citStr="Johnson , 2002" id="5" label="CEPF" position="2495">
+			( Johnson , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="8">
+		 Modern unification/constraint-based grammars such as LFG or HPSG capture deep linguistic information including LDDs , predicate-argument structure , or logical form . 
+	</s>
+	
+
+	<s id="9">
+		 Manually scaling rich unification grammars to naturally occurring free text , however , is extremely time-consuming , expensive and requires considerable linguistic and computational expertise . 
+	</s>
+	
+
+	<s id="10">
+		 Few hand-crafted , deep unification grammars have in fact achieved the coverage and robustness required to parse a corpus of say the size and complexity of the Penn treebank : 
+		<ref citStr="Riezler et al. , 2002" id="6" label="CEPF" position="3088">
+			( Riezler et al. , 2002 )
+		</ref>
+		 show how a deep , carefully hand-crafted LFG is successfully scaled to parse the Penn-II tree- bank 
+		<ref citStr="Marcus et al. , 1994" id="7" label="OEPF" position="3213">
+			( Marcus et al. , 1994 )
+		</ref>
+		 with discriminative ( log- linear ) parameter estimation techniques . 
+	</s>
+	
+
+	<s id="11">
+		 The last 20 years have seen continuously increasing efforts in the construction of parse-annotated corpora . 
+	</s>
+	
+
+	<s id="12">
+		 Substantial treebanks2 are now available for many languages ( including English , Japanese , Chinese , German , French , Czech , Turkish ) , others are currently under construction ( Arabic , Bulgarian ) or near completion ( Spanish , Catalan ) . 
+	</s>
+	
+
+	<s id="13">
+		 Treebanks have been enormously influential in the development of robust , state-of-the-art parsing technology : grammars ( or grammatical information ) automatically extracted from treebank resources provide the backbone of many state-of-the-art probabilistic parsing approaches 
+		<ref citStr="Charniak , 1996" id="8" label="CEPF" position="3946">
+			( Charniak , 1996 
+		</ref>
+		<ref citStr="Collins , 1999" id="9" label="CEPF" position="3964">
+			; Collins , 1999 
+		</ref>
+		<ref citStr="Charniak , 1999" id="10" label="CEPF" position="3981">
+			; Charniak , 1999 
+		</ref>
+		<ref citStr="Hockenmaier , 2003" id="11" label="CEPF" position="3999">
+			; Hockenmaier , 2003 
+		</ref>
+		<ref citStr="Klein and Manning , 2003" id="12" label="CEPF" position="4020">
+			; Klein and Manning , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="14">
+		 Such approaches are attractive as they achieve robustness , coverage and performance while incurring very low grammar development cost . 
+	</s>
+	
+
+	<s id="15">
+		 However , with few notable exceptions ( e.g. Collins’ Model 3 , 
+		<ref citStr="Johnson , 2002" id="13" label="CEPF" position="4289">
+			( Johnson , 2002 )
+		</ref>
+		 , 
+		<ref citStr="Hockenmaier , 2003" id="14" label="CEPF" position="4314">
+			( Hockenmaier , 2003 )
+		</ref>
+		 ) , treebank-based probabilistic parsers return fairly simple “surfacey” CFG trees , without deep syntactic or semantic information . 
+	</s>
+	
+
+	<s id="16">
+		 The grammars used by such systems are sometimes re- 2 Or dependency banks . 
+	</s>
+	
+
+	<s id="17">
+		 ferred to as “half” ( or “shallow” ) grammars 
+		<ref citStr="Johnson , 2002" id="15" label="CEPF" position="4613">
+			( Johnson , 2002 )
+		</ref>
+		 , i.e. they do not resolve LDDs but interpret linguistic material purely locally where it occurs in the tree . 
+	</s>
+	
+
+	<s id="18">
+		 Recently 
+		<ref citStr="Cahill et al. , 2002" id="16" label="CEPF" position="4767">
+			( Cahill et al. , 2002 )
+		</ref>
+		 showed how wide-coverage , probabilistic unification grammar resources can be acquired automatically from fstructure-annotated treebanks . 
+	</s>
+	
+
+	<s id="19">
+		 Many second generation treebanks provide a certain amount of deep syntactic or dependency information ( e.g. in the form of Penn-II functional tags and traces ) supporting the computation of representations of deep linguistic information . 
+	</s>
+	
+
+	<s id="20">
+		 Exploiting this information 
+		<ref citStr="Cahill et al. , 2002" id="17" label="CEPF" position="5217">
+			( Cahill et al. , 2002 )
+		</ref>
+		 implement an automatic LFG f-structure annotation algorithm that associates nodes in treebank trees with f- structure annotations in the form of attribute-value structure equations representing abstract predicate- argument structure/dependency relations . 
+	</s>
+	
+
+	<s id="21">
+		 From the f-structure annotated treebank they automatically extract wide-coverage , robust , PCFG-based LFG approximations that parse new text into trees and f-structure representations . 
+	</s>
+	
+
+	<s id="22">
+		 The LFG approximations of 
+		<ref citStr="Cahill et al. , 2002" id="18" label="CJPN" position="5729">
+			( Cahill et al. , 2002 )
+		</ref>
+		 , however , are only “half” grammars , i.e. like most of their probabilistic CFG cousins 
+		<ref citStr="Charniak , 1996" id="19" label="CJPN" position="5821">
+			( Charniak , 1996 
+		</ref>
+		<ref citStr="Johnson , 1999" id="20" label="CJPN" position="5839">
+			; Johnson , 1999 
+		</ref>
+		<ref citStr="Klein and Manning , 2003" id="21" label="CJPN" position="5856">
+			; Klein and Manning , 2003 )
+		</ref>
+		 they do not resolve LDDs but interpret linguistic material purely locally where it occurs in the tree . 
+	</s>
+	
+
+	<s id="23">
+		 In this paper we show how finite approximations of long distance dependency resolution can be obtained automatically for wide-coverage , robust , probabilistic LFG resources automatically acquired from treebanks . 
+	</s>
+	
+
+	<s id="24">
+		 We extract LFG subcategorisation frames and paths linking LDD reentrancies from f-structures generated automatically for the Penn- II treebank trees and use them in an LDD resolution algorithm to parse new text . 
+	</s>
+	
+
+	<s id="25">
+		 Unlike 
+		<ref citStr="Collins , 1999" id="22" label="CJPF" position="6450">
+			( Collins , 1999 
+		</ref>
+		<ref citStr="Johnson , 2002" id="23" label="CJPF" position="6467">
+			; Johnson , 2002 )
+		</ref>
+		 , in our approach LDDs are resolved on the level of f-structure representation , rather than in terms of empty productions and co- indexation on parse trees . 
+	</s>
+	
+
+	<s id="26">
+		 Currently we achieve fstructure/dependency f-scores of 80.24 and 80.97 for parsing section 23 of the WSJ part of the Penn- II treebank , evaluating against the PARC 700 and DCU 105 respectively . 
+	</s>
+	
+
+	<s id="27">
+		 The paper is structured as follows : we give a brief introduction to LFG . 
+	</s>
+	
+
+	<s id="28">
+		 We outline the automatic f-structure annotation algorithm , PCFG-based LFG grammar approximations and parsing architectures of 
+		<ref citStr="Cahill et al. , 2002" id="24" label="CEPF" position="7094">
+			( Cahill et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="29">
+		 We present our subcategorisation frame extraction and introduce the treebankbased acquisition of finite approximations of LFG functional uncertainty equations in terms of LDD paths . 
+	</s>
+	
+
+	<s id="30">
+		 We present the f-structure LDD resolution algorithm , provide results and extensive evaluation . 
+	</s>
+	
+
+	<s id="31">
+		 We compare our method with previous work . 
+	</s>
+	
+
+	<s id="32">
+		 Finally , we conclude . 
+	</s>
+	
+
+	<s id="33">
+		 2 Lexical Functional Grammar ( LFG ) Lexical-Functional Grammar 
+		<ref citStr="Kaplan and Bresnan , 1982" id="25" label="CEPF" position="7553">
+			( Kaplan and Bresnan , 1982 
+		</ref>
+		<ref citStr="Dalrymple , 2001" id="26" label="CEPF" position="7581">
+			; Dalrymple , 2001 )
+		</ref>
+		 minimally involves two levels of syntactic representation:3 c-structure and f-structure . 
+	</s>
+	
+
+	<s id="34">
+		 C(onstituent)-structure represents the grouping of words and phrases into larger constituents and is realised in terms of a CF- PSG grammar . 
+	</s>
+	
+
+	<s id="35">
+		 F(unctional)-structure represents abstract syntactic functions such as SUBJ(ect) , OBJ(ect) , OBL(ique) , closed and open clausal COMP/XCOMP(lement) , ADJ(unct) , APP(osition) etc. and is implemented in terms of recursive feature structures ( attribute-value matrices ) . 
+	</s>
+	
+
+	<s id="36">
+		 C-structure captures surface grammatical configurations , f- structure encodes abstract syntactic information approximating to predicate-argument/dependency structure or simple logical form ( van Genabith and Crouch , 1996 ) . 
+	</s>
+	
+
+	<s id="37">
+		 C- and f-structures are related in terms of functional annotations ( constraints , attribute-value equations ) on c-structure rules ( cf. . 
+	</s>
+	
+
+	<s id="38">
+		 Figure 1 ) . 
+	</s>
+	
+
+	<s id="39">
+		 S — . 
+	</s>
+	
+
+	<s id="40">
+		 NP VP ?SUBJ=f . 
+	</s>
+	
+
+	<s id="41">
+		 ?=f . 
+	</s>
+	
+
+	<s id="42">
+		 VP — . 
+	</s>
+	
+
+	<s id="43">
+		 V NP ? 
+	</s>
+	
+
+	<s id="44">
+		 ?=f . 
+	</s>
+	
+
+	<s id="45">
+		 IOBJ=— NP — . 
+	</s>
+	
+
+	<s id="46">
+		 U.N V — . 
+	</s>
+	
+
+	<s id="47">
+		 signs ?PRED=U.N . 
+	</s>
+	
+
+	<s id="48">
+		 ?PRED=sign Figure 1 : Simple LFG C- and F-Structure Uparrows point to the f-structure associated with the mother node , downarrows to that of the local node . 
+	</s>
+	
+
+	<s id="49">
+		 The equations are collected with arrows instantiated to unique tree node identifiers , and a constraint solver generates an f-structure . 
+	</s>
+	
+
+	<s id="50">
+		 3 Automatic F-Structure Annotation The Penn-II treebank employs CFG trees with additional “functional” node annotations ( such as -LOC , -TMP , -SBJ , -LGS , ... ) as well as traces and coindexation ( to indicate LDDs ) as basic data structures . 
+	</s>
+	
+
+	<s id="51">
+		 The f-structure annotation algorithm of ( Cahill et 3LFGs may also involve morphological and semantic levels of representation . 
+	</s>
+	
+
+	<s id="52">
+		 S NP VP U.N. V NP signs treaty ~SUBJ LPRED U.N. ] PRED srrign J OBJ LPRED treaty ] al. , 2002 ) exploits configurational , categorial , Penn- II “functional” , local head and trace information to annotate nodes with LFG feature-structure equations . 
+	</s>
+	
+
+	<s id="53">
+		 A slightly adapted version of 
+		<ref citStr="Magerman , 1994" id="27" label="CEPF" position="9736">
+			( Magerman , 1994)
+		</ref>
+		’s scheme automatically head-lexicalises the Penn-II trees . 
+	</s>
+	
+
+	<s id="54">
+		 This partitions local subtrees of depth one ( corresponding to CFG rules ) into left and right contexts ( relative to head ) . 
+	</s>
+	
+
+	<s id="55">
+		 The annotation algorithm is modular with four components ( Figure 2 ) : left-right ( L-R ) annotation principles ( e.g. leftmost NP to right of V head of VP type rule is likely to be an object etc. ) ; coordination annotation principles ( separating these out simplifies other components of the algorithm ) ; traces ( translates traces and coindexation in trees into corresponding reentrancies in f-structure ( 1 in Figure 3 ) ) ; catch all and clean-up . 
+	</s>
+	
+
+	<s id="56">
+		 Lexical information is provided via macros for POS tag classes . 
+	</s>
+	
+
+	<s id="57">
+		 L/R Context ==&gt; Coordination ==&gt; Traces ==&gt; Catch-All Figure 2 : Annotation Algorithm The f-structure annotations are passed to a constraint solver to produce f-structures . 
+	</s>
+	
+
+	<s id="58">
+		 Annotation is evaluated in terms of coverage and quality , summarised in Table 1 . 
+	</s>
+	
+
+	<s id="59">
+		 Coverage is near complete with 99.82 % of the 48K Penn-II sentences receiving a single , connected f-structure . 
+	</s>
+	
+
+	<s id="60">
+		 Annotation quality is measured in terms of precision and recall ( P&amp;R ) against the DCU 105 . 
+	</s>
+	
+
+	<s id="61">
+		 The algorithm achieves an F-score of 96.57 % for full f-structures and 94.3 % for preds-only f-structures .4 ~~SUBJ [ PRED U.N.1 TOPIC PRED sign J ~r OBJ [ PRED treaty SUBJ ( SPEC the 1 LPRED headline J ~ PRED say COMP 1 Figure 3 : Penn-II style tree with LDD trace and corresponding reentrancy in f-structure 4Full f-structures measure all attribute-value pairs including“minor” features such as person , number etc. . 
+	</s>
+	
+
+	<s id="62">
+		 The stricter preds-only captures only paths ending in PRED:VALUE . 
+	</s>
+	
+
+	<s id="63">
+		 # frags # sent percent 0 85 0.176 1 48337 99.820 2 2 0.004 Table 1 : F-structure annotation results for DCU 105 4 PCFG-Based LFG Approximations Based on these resources 
+		<ref citStr="Cahill et al. , 2002" id="28" label="CEPF" position="11695">
+			( Cahill et al. , 2002 )
+		</ref>
+		 developed two parsing architectures . 
+	</s>
+	
+
+	<s id="64">
+		 Both generate PCFG-based approximations of LFG grammars . 
+	</s>
+	
+
+	<s id="65">
+		 In the pipeline architecture a standard PCFG is extracted from the “raw” treebank to parse unseen text . 
+	</s>
+	
+
+	<s id="66">
+		 The resulting parse-trees are then annotated by the automatic f-structure annotation algorithm and resolved into f-structures . 
+	</s>
+	
+
+	<s id="67">
+		 In the integrated architecture the treebank is first annotated with f-structure equations . 
+	</s>
+	
+
+	<s id="68">
+		 An annotated PCFG is then extracted where each non-terminal symbol in the grammar has been augmented with LFG f-equations : NP[TOBJ=~] --+ DT[TSPEC=1,] NN[T=~] . 
+	</s>
+	
+
+	<s id="69">
+		 Nodes followed by annotations are treated as a monadic category for grammar extraction and parsing . 
+	</s>
+	
+
+	<s id="70">
+		 Post-parsing , equations are collected from parse trees and resolved into f-structures . 
+	</s>
+	
+
+	<s id="71">
+		 Both architectures parse raw text into “proto” f- structures with LDDs unresolved resulting in incomplete argument structures as in Figure 4. ~~SUBJ [ PRED U.N.1 TOPIC PRED sign J ~ ~IS OBJ [ PRED treaty SUBJ PPEC the 1 FRED headline J PRED say Figure 4 : Shallow-Parser Output with Unresolved LDD and Incomplete Argument Structure ( cf. . 
+	</s>
+	
+
+	<s id="72">
+		 Figure 3 ) 5 LDDs and LFG FU-Equations Theoretically , LDDs can span unbounded amounts of intervening linguistic material as in [ U.N. signs treaty ] 1 the paper claimed ... a source said [ ] 1 . 
+	</s>
+	
+
+	<s id="73">
+		 In LFG , LDDs are resolved at the f-structure level , obviating the need for empty productions and traces S V N Det S-TPC- 1 NP VP signs treaty U.N. V NP NP VP the headline said T- 1 S NP VP NP V VP N Det U.N. said headline the NP V signs treaty 1 1 all preds P 96.52 94.45 R 96.63 94.16 in trees 
+		<ref citStr="Dalrymple , 2001" id="29" label="CEPF" position="13416">
+			( Dalrymple , 2001 )
+		</ref>
+		 , using functional uncertainty ( FU ) equations . 
+	</s>
+	
+
+	<s id="74">
+		 FUs are regular expressions specifying paths in f-structure between a source ( where linguistic material is encountered ) and a target ( where linguistic material is interpreted semantically ) . 
+	</s>
+	
+
+	<s id="75">
+		 To account for the fronted sentential constituents in Figures 3 and 4 , an FU equation of the form T TOPIC = T COMP* COMP would be required . 
+	</s>
+	
+
+	<s id="76">
+		 The equation states that the value of the TOPIC attribute is token identical with the value of the final COMP argument along a path through the immediately enclosing f-structure along zero or more COMP attributes . 
+	</s>
+	
+
+	<s id="77">
+		 This FU equation is annotated to the topicalised sentential constituent in the relevant CFG rules as follows S S NP VP TTOPIC=~ TSUBJ=J T=~ TTOPIC=TCOMP*COMP and generates the LDD-resolved proper f-structure in Figure 3 for the traceless tree in Figure 4 , as required . 
+	</s>
+	
+
+	<s id="78">
+		 In addition to FU equations , subcategorisation information is a crucial ingredient in LFG’s account of LDDs . 
+	</s>
+	
+
+	<s id="79">
+		 As an example , for a topicalised constituent to be resolved as the argument of a local predicate as specified by the FU equation , the local predicate must ( i ) subcategorise for the argument in question and ( ii ) the argument in question must not be already filled . 
+	</s>
+	
+
+	<s id="80">
+		 Subcategorisation requirements are provided lexically in terms of semantic forms ( subcat lists ) and coherence and completeness conditions ( all GFs specified must be present , and no others may be present ) on f-structure representations . 
+	</s>
+	
+
+	<s id="81">
+		 Semantic forms specify which grammatical functions ( GFs ) a predicate requires locally . 
+	</s>
+	
+
+	<s id="82">
+		 For our example in Figures 3 and 4 , the relevant lexical entries are : V said TPRED=say(T SUBJ , T COMP ) V signs TPRED=sign(T SUBJ , T OBJ ) FU equations and subcategorisation requirements together ensure that LDDs can only be resolved at suitable f-structure locations . 
+	</s>
+	
+
+	<s id="83">
+		 6 Acquiring Lexical and LDD Resources In order to model the LFG account of LDD resolution we require subcat frames ( i.e. semantic forms ) and LDD resolution paths through f-structure . 
+	</s>
+	
+
+	<s id="84">
+		 Traditionally , such resources were handcoded . 
+	</s>
+	
+
+	<s id="85">
+		 Here we show how they can be acquired from f-structure annotated treebank resources . 
+	</s>
+	
+
+	<s id="86">
+		 LFG distinguishes between governable ( arguments ) and nongovernable ( adjuncts ) grammatical functions ( GFs ) . 
+	</s>
+	
+
+	<s id="87">
+		 If the automatic f-structure annotation algorithm outlined in Section 3 generates high quality f-structures , reliable semantic forms can be extracted ( reverse-engineered ) : for each f-structure generated , for each level of embedding we determine the local PRED value and collect the governable , i.e. subcategorisable grammatical functions present at that level of embedding . 
+	</s>
+	
+
+	<s id="88">
+		 For the proper f-structure in Figure 3 we obtain sign( [ subj , obj ] ) and s a y ( [ s ub j , c omp ] ) . 
+	</s>
+	
+
+	<s id="89">
+		 We extract frames from the full WSJ section of the Penn-II Treebank with 48K trees . 
+	</s>
+	
+
+	<s id="90">
+		 Unlike many other approaches , our extraction process does not predefine frames , fully reflects LDDs in the source data-structures ( cf. . 
+	</s>
+	
+
+	<s id="91">
+		 Figure 3 ) , discriminates between active and passive frames , computes GF , GF:CFG category pair- as well as CFG category-based subcategorisation frames and associates conditional probabilities with frames . 
+	</s>
+	
+
+	<s id="92">
+		 Given a lemma l and an argument list s , the probability of s given l is estimated as : count(l , s ) P(s~l) := ~~ 1 count(l , si ) Table 2 summarises the results . 
+	</s>
+	
+
+	<s id="93">
+		 We extract 3586 verb lemmas and 10969 unique verbal semantic form types ( lemma followed by non-empty argument list ) . 
+	</s>
+	
+
+	<s id="94">
+		 Including prepositions associated with the subcategorised OBLs and particles , this number goes up to 14348 . 
+	</s>
+	
+
+	<s id="95">
+		 The number of unique frame types ( without lemma ) is 38 without specific prepositions and particles , 577 with . 
+	</s>
+	
+
+	<s id="96">
+		 F-structure annotations allow us to distinguish passive and active frames . 
+	</s>
+	
+
+	<s id="97">
+		 Table 3 shows the most frequent semantic forms for accept . 
+	</s>
+	
+
+	<s id="98">
+		 Passive frames are marked p . 
+	</s>
+	
+
+	<s id="99">
+		 We carried out a comprehensive evaluation of the automatically acquired verbal semantic forms against the COMLEX Resource 
+		<ref citStr="Macleod et al. , 1994" id="30" label="OEPF" position="17691">
+			( Macleod et al. , 1994 )
+		</ref>
+		 for the 2992 active verb lemmas that both resources have in common . 
+	</s>
+	
+
+	<s id="100">
+		 We report on the evaluation of GF-based frames for the full frames with complete prepositional and particle infomation . 
+	</s>
+	
+
+	<s id="101">
+		 We use relative conditional probability thresholds ( 1 % and 5 % ) to filter the selection of semantic forms ( Table 4 ) . 
+	</s>
+	
+
+	<s id="102">
+		 ( O’Donovan et al. , 2004 ) provide a more detailed description of the extraction and evaluation of semantic forms . 
+	</s>
+	
+
+	<s id="103">
+		 Without Prep/Part With Prep/Part Lemmas 3586 3586 Sem . 
+	</s>
+	
+
+	<s id="104">
+		 Forms 10969 14348 Frame Types 38 577 Active Frame Types 38 548 Passive Frame Types 21 177 Table 2 : Verb Results Semantic Form Occurrences Prob . 
+	</s>
+	
+
+	<s id="105">
+		 accept([obj,subj]) 122 0.813 accept([subj],p) 9 0.060 accept([comp,subj]) 5 0.033 accept([subj,obl:as],p) 3 0.020 accept([obj,subj,obl:as]) 3 0.020 accept([obj,subj,obl:from]) 3 0.020 accept ( [ subj ] ) 2 0.013 accept([obj,subj,obl:at]) 1 0.007 accept([obj,subj,obl:for]) 1 0.007 accept([obj,subj,xcomp]) 1 0.007 Table 3 : Semantic forms for the verb accept . 
+	</s>
+	
+
+	<s id="106">
+		 wh-less TOPIC-REL # wh-less TOPIC-REL # subj 5692 adjunct 1314 xcomp:adjunct 610 obj 364 xcomp:obj 291 xcomp:xcomp:adjunct 96 comp:subj 76 xcomp:subj 67 Table 5 : Most frequent wh-less TOPIC-REL paths 02–21 23 23/(02–21) TOPIC 26 7 2 FOCUS 13 4 0 TOPIC-REL 60 22 1 Table 6 : Number of path types extracted Threshold 1 % Threshold 5 % P R F-Score P R F-Score Exp . 
+	</s>
+	
+
+	<s id="107">
+		 73.7 % 22.1 % 34.0 % 78.0 % 18.3 % 29.6 % Table 4 : COMLEX Comparison We further acquire finite approximations of FU- equations . 
+	</s>
+	
+
+	<s id="108">
+		 by extracting paths between co-indexed material occurring in the automatically generated f- structures from sections 02-21 of the Penn-II tree- bank . 
+	</s>
+	
+
+	<s id="109">
+		 We extract 26 unique TOPIC , 60 TOPIC-REL and 13 FOCUS path types ( with a total of 14,911 token occurrences ) , each with an associated probability . 
+	</s>
+	
+
+	<s id="110">
+		 We distinguish between two types of TOPICREL paths , those that occur in wh-less constructions , and all other types ( c.f Table 5 ) . 
+	</s>
+	
+
+	<s id="111">
+		 Given a path p and an LDD type t ( either TOPIC , TOPIC-REL or FOCUS ) , the probability of p given t is estimated as : _ count(t , p ) P(p|t) : ~i= , count(t , pi ) In order to get a first measure of how well the approximation models the data , we compute the path types in section 23 not covered by those extracted from 02-21 : 23/(02-21) . 
+	</s>
+	
+
+	<s id="112">
+		 There are 3 such path types ( Table 6 ) , each occuring exactly once . 
+	</s>
+	
+
+	<s id="113">
+		 Given that the total number of path tokens in section 23 is 949 , the finite approximation extracted from 02-23 covers 99.69 % of all LDD paths in section 23 . 
+	</s>
+	
+
+	<s id="114">
+		 7 Resolving LDDs in F-Structure Given a set of semantic forms s with probabilities P(sll) ( where l is a lemma ) , a set of paths p with P(plt) ( where t is either TOPIC , TOPIC-REL or FOCUS ) and an f-structure f , the core of the algorithm to resolve LDDs recursively traverses f to : find TOPIC |TOPIC-REL|FOCUS:g pair ; retrieve TOPIC |TOPIC-REL|FOCUS paths ; for each path p with GF , : ... : GFn : GF , traverse f along GF , : ... : GFn to sub-f-structure h ; retrieve local PRED:l ; add GF:g to h iff ^ GF is not present at h ^ h together with GF is locally complete and coherent with respect to a semantic form s for l rank resolution by P(s|l) × P(p|t) The algorithm supports multiple , interacting TOPIC , TOPIC-REL and FOCUS LDDs . 
+	</s>
+	
+
+	<s id="115">
+		 We use P(sll) x P(pl t ) to rank a solution , depending on how likely the PRED takes semantic frame s , and how likely the TOPIC , FOCUS or TOPIC-REL is resolved using path p . 
+	</s>
+	
+
+	<s id="116">
+		 The algorithm also supports resolution of LDDs where no overt linguistic material introduces a source TOPIC-REL function ( e.g. in reduced relative clause constructions ) . 
+	</s>
+	
+
+	<s id="117">
+		 We distinguish between passive and active constructions , using the relevant semantic frame type when resolving LDDs . 
+	</s>
+	
+
+	<s id="118">
+		 8 Experiments and Evaluation We ran experiments with grammars in both the pipeline and the integrated parsing architectures . 
+	</s>
+	
+
+	<s id="119">
+		 The first grammar is a basic PCFG , while A-PCFG includes the f-structure annotations . 
+	</s>
+	
+
+	<s id="120">
+		 We apply a parent transformation to each grammar 
+		<ref citStr="Johnson , 1999" id="31" label="CEPF" position="21876">
+			( Johnson , 1999 )
+		</ref>
+		 to give P-PCFG and PA-PCFG . 
+	</s>
+	
+
+	<s id="121">
+		 We train on sections 02-21 ( grammar , lexical extraction and LDD paths ) of the Penn-II Treebank and test on section 23 . 
+	</s>
+	
+
+	<s id="122">
+		 The only pre-processing of the trees that we do is to remove empty nodes , and remove all Penn- II functional tags in the integrated model . 
+	</s>
+	
+
+	<s id="123">
+		 We evaluate the parse trees using evalb . 
+	</s>
+	
+
+	<s id="124">
+		 Following 
+		<ref citStr="Riezler et al. , 2002" id="32" label="CEPF" position="22283">
+			( Riezler et al. , 2002 )
+		</ref>
+		 , we convert f-structures into dependency triple format . 
+	</s>
+	
+
+	<s id="125">
+		 Using their software we evaluate the f-structure parser output against : 1 . 
+	</s>
+	
+
+	<s id="126">
+		 The DCU 105 
+		<ref citStr="Cahill et al. , 2002" id="33" label="OEPF" position="22473">
+			( Cahill et al. , 2002 )
+		</ref>
+		 2 . 
+	</s>
+	
+
+	<s id="127">
+		 The full 2,416 f-structures automatically generated by the f-structure annotation algorithm for the original Penn-II trees , in a CCG-style 
+		<ref citStr="Hockenmaier , 2003" id="34" label="OEPF" position="22649">
+			( Hockenmaier , 2003 )
+		</ref>
+		 evaluation experiment PCFG Pipeline A-PCFG Integrated P-PCFG PA-PCFG 2416 Section 23 trees # Parses 2416 2416 2416 2414 Lab . 
+	</s>
+	
+
+	<s id="128">
+		 F-Score 75.83 80.80 79.17 81.32 Unlab . 
+	</s>
+	
+
+	<s id="129">
+		 F-Score 78.28 82.70 81.49 83.28 DCU 105 F-Strs All GFs F-Score ( before LDD resolution ) 79.82 79.24 81.12 81.20 All GFs F-Score ( after LDD resolution ) 83.79 84.59 86.30 87.04 Preds only F-Score ( before LDD resolution ) 70.00 71.57 73.45 74.61 Preds only F-Score ( after LDD resolution ) 73.78 77.43 78.76 80.97 2416 F-Strs All GFs F-Score ( before LDD resolution ) 81.98 81.49 83.32 82.78 All GFs F-Score ( after LDD resolution ) 84.16 84.37 86.45 86.00 Preds only F-Score ( before LDD resolution ) 72.00 73.23 75.22 75.10 Preds only F-Score ( after LDD resolution ) 74.07 76.12 78.36 78.40 PARC 700 Dependency Bank Subset of GFs following 
+		<ref citStr="Kaplan et al. , 2004" id="35" label="CEPF" position="23502">
+			( Kaplan et al. , 2004 )
+		</ref>
+		 77.86 80.24 77.68 78.60 Table 7 : Parser Evaluation 3 . 
+	</s>
+	
+
+	<s id="130">
+		 A subset of 560 dependency structures of the PARC 700 Dependency Bank following 
+		<ref citStr="Kaplan et al. , 2004" id="36" label="CEPF" position="23672">
+			( Kaplan et al. , 2004 )
+		</ref>
+		 The results are given in Table 7 . 
+	</s>
+	
+
+	<s id="131">
+		 The parent- transformed grammars perform best in both architectures . 
+	</s>
+	
+
+	<s id="132">
+		 In all cases , there is a marked improvement ( 2.07-6.36 % ) in the f-structures after LDD resolution . 
+	</s>
+	
+
+	<s id="133">
+		 We achieve between 73.78 % and 80.97 % preds-only and 83.79 % to 87.04 % all GFs f-score , depending on gold-standard . 
+	</s>
+	
+
+	<s id="134">
+		 We achieve between 77.68 % and 80.24 % against the PARC 700 following the experiments in 
+		<ref citStr="Kaplan et al. , 2004" id="37" label="CEPF" position="24151">
+			( Kaplan et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="135">
+		 For details on how we map the f-structures produced by our parsers to a format similar to that of the PARC 700 Dependency Bank , see 
+		<ref citStr="Burke et al. , 2004" id="38" label="CEPF" position="24319">
+			( Burke et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="136">
+		 Table 8 shows the evaluation result broken down by individual GF ( preds-only ) for the integrated model PA-PCFG against the DCU 105 . 
+	</s>
+	
+
+	<s id="137">
+		 In order to measure how many of the LDD reentrancies in the gold-standard f-structures are captured correctly by our parsers , we developed evaluation software for f-structure LDD reentrancies ( similar to Johnson’s ( 2002 ) evaluation to capture traces and their antecedents in trees ) . 
+	</s>
+	
+
+	<s id="138">
+		 Table 9 shows the results with the integrated model achieving more than 76 % correct LDD reentrancies . 
+	</s>
+	
+
+	<s id="139">
+		 9 Related Work 
+		<ref citStr="Collins , 1999" id="39" label="CJPN" position="24919">
+			( Collins , 1999)
+		</ref>
+		’s Model 3 is limited to wh-traces in relative clauses ( it doesn’t treat topicalisation , focus etc. ) . 
+	</s>
+	
+
+	<s id="140">
+		 Johnson’s ( 2002 ) work is closest to ours in spirit . 
+	</s>
+	
+
+	<s id="141">
+		 Like our approach he provides a finite approximation of LDDs . 
+	</s>
+	
+
+	<s id="142">
+		 Unlike our approach , however , he works with tree fragments in a post- processing approach to add empty nodes and their DEP . 
+	</s>
+	
+
+	<s id="143">
+		 PRECISION RECALL F-SCORE adjunct 717/903 = 79 717/947 = 76 78 app 14/15 = 93 14/19 = 74 82 comp 35/43 = 81 35/65 = 54 65 coord 109/143 = 76 109/161 = 68 72 det 253/264 = 96 253/269 = 94 95 focus 1/1 = 100 1/1 = 100 100 obj 387/445 = 87 387/461= 84 85 obj2 0/1= 0 0/2 = 0 0 obl 27/56 = 48 27/61 = 44 46 obl2 1/3 = 33 1/2 = 50 40 obl ag 5/11 = 45 5/12 = 42 43 poss 69/73 = 95 69/81= 85 90 quant 40/55 = 73 40/52 = 77 75 relmod 26/38 = 68 26/50 = 52 59 subj 330/361 = 91 330/414 = 80 85 topic 12/12 = 100 12/13 = 92 96 topicrel 35/42 = 83 35/52 = 67 74 xcomp 139/160 = 87 139/146 = 95 91 OVERALL 83.78 78.35 80.97 Table 8 : Preds-only results of PA-PCFG against the DCU 105 antecedents to parse trees , while we present an approach to LDD resolution on the level of f-structure . 
+	</s>
+	
+
+	<s id="144">
+		 It seems that the f-structure-based approach is more abstract ( 99 LDD path types against approximately 9,000 tree-fragment types in 
+		<ref citStr="Johnson , 2002" id="40" label="CJPN" position="26246">
+			( Johnson , 2002 )
+		</ref>
+		 ) and fine-grained in its use of lexical information ( sub- cat frames ) . 
+	</s>
+	
+
+	<s id="145">
+		 In contrast to Johnson’s approach , our LDD resolution algorithm is not biased . 
+	</s>
+	
+
+	<s id="146">
+		 It computes all possible complete resolutions and order- ranks them using LDD path and subcat frame probabilities . 
+	</s>
+	
+
+	<s id="147">
+		 It is difficult to provide a satisfactory comparison between the two methods , but we have carried out an experiment that compares them at the f-structure level . 
+	</s>
+	
+
+	<s id="148">
+		 We take the output of Charniak’s PCFG Pipeline A-PCFG Integrated P-PCFG PA-PCFG TOPIC Precision ( 11/14 ) ( 12/13 ) ( 12/13 ) ( 12/12 ) Recall ( 11/13 ) ( 12/13 ) ( 12/13 ) ( 12/13 ) F-Score 0.81 0.92 0.92 0.96 FOCUS Precision ( 0/1 ) ( 0/1 ) ( 0/1 ) ( 0/1 ) Recall ( 0/1 ) ( 0/1 ) ( 0/1 ) ( 0/1 ) F-Score 0 0 0 0 TOPIC-REL Precision ( 20/34 ) ( 27/36 ) ( 34/42 ) ( 34/42 ) Recall ( 20/52 ) ( 27/52 ) ( 34/52 ) ( 34/52 ) F-Score 0.47 0.613 0.72 0.72 OVERALL 0.54 0.67 0.75 0.76 Table 9 : LDD Evaluation on the DCU 105 Charniak -LDD res . 
+	</s>
+	
+
+	<s id="149">
+		 +LDD res . 
+	</s>
+	
+
+	<s id="150">
+		 
+		<ref citStr="Johnson , 2002" id="41" label="CJPN" position="27305">
+			( Johnson , 2002 )
+		</ref>
+		 All GFs Preds Only 80.86 86.65 85.16 74.63 80.97 79.75 Table 10 : Comparison at f-structure level of LDD resolution to 
+		<ref citStr="Johnson , 2002" id="42" label="CJPN" position="27443">
+			( Johnson , 2002 )
+		</ref>
+		 on the DCU 105 parser 
+		<ref citStr="Charniak , 1999" id="43" label="OEPF" position="27485">
+			( Charniak , 1999 )
+		</ref>
+		 and , using the pipeline f-structure annotation model , evaluate against the DCU 105 , both before and after LDD resolution . 
+	</s>
+	
+
+	<s id="151">
+		 Using the software described in 
+		<ref citStr="Johnson , 2002" id="44" label="OEPF" position="27671">
+			( Johnson , 2002 )
+		</ref>
+		 we add empty nodes to the output of Charniak’s parser , pass these trees to our automatic annotation algorithm and evaluate against the DCU 105 . 
+	</s>
+	
+
+	<s id="152">
+		 The results are given in Table 10 . 
+	</s>
+	
+
+	<s id="153">
+		 Our method of resolving LDDs at f-structure level results in a preds-only f-score of 80.97 % . 
+	</s>
+	
+
+	<s id="154">
+		 Using 
+		<ref citStr="Johnson , 2002" id="45" label="CJPN" position="28000">
+			( Johnson , 2002)
+		</ref>
+		’s method of adding empty nodes to the parse-trees results in an f-score of 79.75 % . 
+	</s>
+	
+
+	<s id="155">
+		 
+		<ref citStr="Hockenmaier , 2003" id="46" label="CJPN" position="28118">
+			( Hockenmaier , 2003 )
+		</ref>
+		 provides CCG-based models of LDDs . 
+	</s>
+	
+
+	<s id="156">
+		 Some of these involve extensive cleanup of the underlying Penn-II treebank resource prior to grammar extraction . 
+	</s>
+	
+
+	<s id="157">
+		 In contrast , in our approach we leave the treebank as is and only add ( but never correct ) annotations . 
+	</s>
+	
+
+	<s id="158">
+		 Earlier HPSG work 
+		<ref citStr="Tateisi et al. , 1998" id="47" label="CJPN" position="28446">
+			( Tateisi et al. , 1998 )
+		</ref>
+		 is based on independently constructed hand-crafted XTAG resources . 
+	</s>
+	
+
+	<s id="159">
+		 In contrast , we acquire our resources from treebanks and achieve substantially wider coverage . 
+	</s>
+	
+
+	<s id="160">
+		 Our approach provides wide-coverage , robust , and – with the addition of LDD resolution – “deep” or “full” , PCFG-based LFG approximations . 
+	</s>
+	
+
+	<s id="161">
+		 Crucially , we do not claim to provide fully adequate statistical models . 
+	</s>
+	
+
+	<s id="162">
+		 It is well known 
+		<ref citStr="Abney , 1997" id="48" label="CEPF" position="28904">
+			( Abney , 1997 )
+		</ref>
+		 that PCFG-type approximations to unification grammars can yield inconsistent probability models due to loss of probability mass : the parser successfully returns the highest ranked parse tree but the constraint solver cannot resolve the f-equations ( generated in the pipeline or “hidden” in the integrated model ) and the probability mass associated with that tree is lost . 
+	</s>
+	
+
+	<s id="163">
+		 This case , however , is surprisingly rare for our grammars : only 0.0018 % ( 85 out of 48424 ) of the original Penn-II trees ( without FRAGs ) fail to produce an f-structure due to inconsistent annotations ( Table 1 ) , and for parsing section 23 with the integrated model ( A-PCFG ) , only 9 sentences do not receive a parse because no f-structure can be generated for the highest ranked tree ( 0.4 % ) . 
+	</s>
+	
+
+	<s id="164">
+		 Parsing with the pipeline model , all sentences receive one complete f-structure . 
+	</s>
+	
+
+	<s id="165">
+		 Research on adequate probability models for unification grammars is important . 
+	</s>
+	
+
+	<s id="166">
+		 
+		<ref citStr="Miyao et al. , 2003" id="49" label="CJPN" position="29912">
+			( Miyao et al. , 2003 )
+		</ref>
+		 present a Penn-II tree- bank based HPSG with log-linear probability models . 
+	</s>
+	
+
+	<s id="167">
+		 They achieve coverage of 50.2 % on section 23 , as against 99 % in our approach . 
+	</s>
+	
+
+	<s id="168">
+		 
+		<ref citStr="Riezler et al. , 2002" id="50" label="CJPN" position="30090">
+			( Riezler et al. , 2002 
+		</ref>
+		<ref citStr="Kaplan et al. , 2004" id="51" label="CJPN" position="30114">
+			; Kaplan et al. , 2004 )
+		</ref>
+		 describe how a carefully hand-crafted LFG is scaled to the full Penn-II treebank with log-linear based probability models . 
+	</s>
+	
+
+	<s id="169">
+		 They achieve 79 % coverage ( full parse ) and 21 % fragement/skimmed parses . 
+	</s>
+	
+
+	<s id="170">
+		 By the same measure , full parse coverage is around 99 % for our automatically acquired PCFG-based LFG approximations . 
+	</s>
+	
+
+	<s id="171">
+		 Against the PARC 700 , the hand-crafted LFG grammar reported in 
+		<ref citStr="Kaplan et al. , 2004" id="52" label="CJPN" position="30576">
+			( Kaplan et al. , 2004 )
+		</ref>
+		 achieves an f- score of 79.6 % . 
+	</s>
+	
+
+	<s id="172">
+		 For the same experiment , our best automatically-induced grammar achieves an f-score of 80.24 % . 
+	</s>
+	
+
+	<s id="173">
+		 10 Conclusions We presented and extensively evaluated a finite approximation of LDD resolution in automatically constructed , wide-coverage , robust , PCFGbased LFG approximations , effectively turning the “half ”(or “shallow”)-grammars presented in 
+		<ref citStr="Cahill et al. , 2002" id="53" label="CEPF" position="31004">
+			( Cahill et al. , 2002 )
+		</ref>
+		 into “full” or “deep” grammars . 
+	</s>
+	
+
+	<s id="174">
+		 In our approach , LDDs are resolved in f-structure , not trees . 
+	</s>
+	
+
+	<s id="175">
+		 The method achieves a preds-only f-score of 80.97 % for f-structures with the PA-PCFG in the integrated architecture against the DCU 105 and 78.4 % against the 2,416 automatically generated f-structures for the original Penn-II treebank trees . 
+	</s>
+	
+
+	<s id="176">
+		 Evaluating against the PARC 700 Dependency Bank , the P-PCFG achieves an f-score of 80.24 % , an overall improvement of approximately 0.6 % on the result reported for the best hand-crafted grammars in 
+		<ref citStr="Kaplan et al. , 2004" id="54" label="CJPN" position="31604">
+			( Kaplan et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="177">
+		 Acknowledgements This research was funded by Enterprise Ireland Basic Research Grant SC/2001/186 and IRCSET . 
+	</s>
+	
+
+	<s id="178">
+		 References S. Abney . 
+	</s>
+	
+
+	<s id="179">
+		 1997. Stochastic attribute-value grammars . 
+	</s>
+	
+
+	<s id="180">
+		 Computational Linguistics , 23(4):597– 618 . 
+	</s>
+	
+
+	<s id="181">
+		 M. Burke , A. Cahill , R. O’Donovan , J. van Genabith , and A. Way 2004 . 
+	</s>
+	
+
+	<s id="182">
+		 The Evaluation of an Automatic Annotation Algorithm against the PARC 700 Dependency Bank . 
+	</s>
+	
+
+	<s id="183">
+		 In Proceedings of the Ninth International Conference on LFG , Christchurch , New Zealand ( to appear ) . 
+	</s>
+	
+
+	<s id="184">
+		 A. Cahill , M. McCarthy , J. van Genabith , and A. Way . 
+	</s>
+	
+
+	<s id="185">
+		 2002. Parsing with PCFGs and Automatic F-Structure Annotation . 
+	</s>
+	
+
+	<s id="186">
+		 In Miriam Butt and Tracy Holloway King , editors , Proceedings of the Seventh International Conference on LFG , pages 76–95 . 
+	</s>
+	
+
+	<s id="187">
+		 CSLI Publications , Stanford , CA . 
+	</s>
+	
+
+	<s id="188">
+		 E. Charniak . 
+	</s>
+	
+
+	<s id="189">
+		 1996. Tree-Bank Grammars . 
+	</s>
+	
+
+	<s id="190">
+		 In AAAI/IAAI , Vol. 2 , pages 1031–1036 . 
+	</s>
+	
+
+	<s id="191">
+		 E. Charniak . 
+	</s>
+	
+
+	<s id="192">
+		 1999. A Maximum-Entropy-Inspired Parser . 
+	</s>
+	
+
+	<s id="193">
+		 Technical Report CS-99-12 , Brown University , Providence , RI . 
+	</s>
+	
+
+	<s id="194">
+		 M. Collins . 
+	</s>
+	
+
+	<s id="195">
+		 1999. Head-Driven Statistical Models for Natural Language Parsing . 
+	</s>
+	
+
+	<s id="196">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="197">
+		 thesis , University of Pennsylvania , Philadelphia , PA . 
+	</s>
+	
+
+	<s id="198">
+		 M. Dalrymple . 
+	</s>
+	
+
+	<s id="199">
+		 2001. Lexical-Functional Gram- mar . 
+	</s>
+	
+
+	<s id="200">
+		 San Diego , CA ; London Academic Press . 
+	</s>
+	
+
+	<s id="201">
+		 J. Hockenmaier . 
+	</s>
+	
+
+	<s id="202">
+		 2003. Parsing with Generative models of Predicate-Argument Structure . 
+	</s>
+	
+
+	<s id="203">
+		 In Proceedings of the 41st Annual Conference of the Association for Computational Linguistics , pages 359–366 , Sapporo , Japan . 
+	</s>
+	
+
+	<s id="204">
+		 M. Johnson . 
+	</s>
+	
+
+	<s id="205">
+		 1999. PCFG models of linguistic tree representations . 
+	</s>
+	
+
+	<s id="206">
+		 Computational Linguistics , 24(4):613–632 . 
+	</s>
+	
+
+	<s id="207">
+		 M. Johnson . 
+	</s>
+	
+
+	<s id="208">
+		 2002. A simple pattern-matching algorithm for recovering empty nodes and their antecedents . 
+	</s>
+	
+
+	<s id="209">
+		 In Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics , pages 136–143 , Philadelphia , PA . 
+	</s>
+	
+
+	<s id="210">
+		 R. Kaplan and J. Bresnan . 
+	</s>
+	
+
+	<s id="211">
+		 1982. Lexical Functional Grammar , a Formal System for Grammatical Representation . 
+	</s>
+	
+
+	<s id="212">
+		 In The Mental Representation of Grammatical Relations , pages 173–281 . 
+	</s>
+	
+
+	<s id="213">
+		 MIT Press , Cambridge , MA . 
+	</s>
+	
+
+	<s id="214">
+		 R. Kaplan , S. Riezler , T. H. King , J. T. Maxwell , A. Vasserman , and R. Crouch . 
+	</s>
+	
+
+	<s id="215">
+		 2004. Speed and accuracy in shallow and deep stochastic parsing . 
+	</s>
+	
+
+	<s id="216">
+		 In Proceedings of the Human Language Technology Conference and the 4th Annual Meeting of the North American Chapter of the Association for Computational Linguistics , pages 97– 104 , Boston , MA . 
+	</s>
+	
+
+	<s id="217">
+		 T.H. King , R. Crouch , S. Riezler , M. Dalrymple , and R. Kaplan . 
+	</s>
+	
+
+	<s id="218">
+		 2003. The PARC700 dependency bank . 
+	</s>
+	
+
+	<s id="219">
+		 In Proceedings of the EACL03 : 4th International Workshop on Linguistically Interpreted Corpora ( LINC-03 ) , pages 1–8 , Budapest . 
+	</s>
+	
+
+	<s id="220">
+		 D. Klein and C. Manning . 
+	</s>
+	
+
+	<s id="221">
+		 2003 . 
+	</s>
+	
+
+	<s id="222">
+		 Accurate Unlexicalized Parsing . 
+	</s>
+	
+
+	<s id="223">
+		 In Proceedings of the 41st Annual Meeting of the Association for Computational Linguistics ( ACL’02 ) , pages 423–430 , Sapporo , Japan . 
+	</s>
+	
+
+	<s id="224">
+		 C. Macleod , A. Meyers , and R. Grishman . 
+	</s>
+	
+
+	<s id="225">
+		 1994. The COMLEX Syntax Project : The First Year . 
+	</s>
+	
+
+	<s id="226">
+		 In Proceedings of the ARPA Workshop on Human Language Technology , pages 669-703 , Princeton , NJ . 
+	</s>
+	
+
+	<s id="227">
+		 D. Magerman . 
+	</s>
+	
+
+	<s id="228">
+		 1994. Natural Language Parsing as Statistical Pattern Recognition . 
+	</s>
+	
+
+	<s id="229">
+		 PhD thesis , Stanford University , CA . 
+	</s>
+	
+
+	<s id="230">
+		 M. Marcus , G. Kim , M.A. Marcinkiewicz , R. MacIntyre , A. Bies , M. Ferguson , K. Katz , and B. Schasberger . 
+	</s>
+	
+
+	<s id="231">
+		 1994. The Penn Treebank : Annotating Predicate Argument Structure . 
+	</s>
+	
+
+	<s id="232">
+		 In Proceedings of the ARPA Workshop on Human Language Technology , pages 110–115 , Princeton , NJ . 
+	</s>
+	
+
+	<s id="233">
+		 Y. Miyao , T. Ninomiya , and J. Tsujii . 
+	</s>
+	
+
+	<s id="234">
+		 2003. Probabilistic modeling of argument structures including non-local dependencies . 
+	</s>
+	
+
+	<s id="235">
+		 In Proceedings of the Conference on Recent Advances in Natural Language Processing ( RANLP ) , pages 285–291 , Borovets , Bulgaria . 
+	</s>
+	
+
+	<s id="236">
+		 R. O’Donovan , M. Burke , A. Cahill , J. van Genabith , and A. Way . 
+	</s>
+	
+
+	<s id="237">
+		 2004. Large-Scale Induction and Evaluation of Lexical Resources from the Penn-II Treebank . 
+	</s>
+	
+
+	<s id="238">
+		 In Proceedings of the 42nd Annual Conference of the Association for Computational Linguistics ( ACL-04 ) , Barcelona . 
+	</s>
+	
+
+	<s id="239">
+		 S. Riezler , T.H. King , R. Kaplan , R. Crouch , J. T. Maxwell III , and M. Johnson . 
+	</s>
+	
+
+	<s id="240">
+		 2002. Parsing the Wall Street Journal using a Lexical- Functional Grammar and Discriminative Estimation Techniques . 
+	</s>
+	
+
+	<s id="241">
+		 In Proceedings of the 40th Annual Conference of the Association for Computational Linguistics ( ACL-02 ) , pages 271–278 , Philadelphia , PA . 
+	</s>
+	
+
+	<s id="242">
+		 Y. Tateisi , K. Torisawa , Y. Miyao , and J. Tsujii . 
+	</s>
+	
+
+	<s id="243">
+		 1998 . 
+	</s>
+	
+
+	<s id="244">
+		 Translating the XTAG English Grammar to HPSG . 
+	</s>
+	
+
+	<s id="245">
+		 In 4th International Workshop on Tree Adjoining Grammars and Related Frameworks , Philadelphia , PA , pages 172–175 . 
+	</s>
+	
+
+	<s id="246">
+		 J. van Genabith and R. Crouch . 
+	</s>
+	
+
+	<s id="247">
+		 1996. Direct and Underspecified Interpretations of LFG f- Structures . 
+	</s>
+	
+
+	<s id="248">
+		 In Proceedings of the 16th International Conference on Computational Linguistics ( COLING ) , pages 262–267 , Copenhagen . 
+	</s>
+	
+
+
+</acldoc>

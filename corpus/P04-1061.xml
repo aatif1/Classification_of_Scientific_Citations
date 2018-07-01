@@ -1,0 +1,1614 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1061">
+	
+
+	<s id="1">
+		 Corpus-Based Induction of Syntactic Structure : Models of Dependency and Constituency Dan Klein Computer Science Department Stanford University Stanford , CA 94305-9040 klein@cs.stanford.edu Christopher D. Manning Computer Science Department Stanford University Stanford , CA 94305-9040 manning@cs.stanford.edu Abstract We present a generative model for the unsupervised learning of dependency structures . 
+	</s>
+	
+
+	<s id="2">
+		 We also describe the multiplicative combination of this dependency model with a model of linear constituency . 
+	</s>
+	
+
+	<s id="3">
+		 The product model outperforms both components on their respective evaluation metrics , giving the best published figures for unsupervised dependency parsing and unsupervised constituency parsing . 
+	</s>
+	
+
+	<s id="4">
+		 We also demonstrate that the combined model works and is robust cross-linguistically , being able to exploit either attachment or distributional regularities that are salient in the data . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction The task of statistically inducing hierarchical syntactic structure over unannotated sentences of natural language has received a great deal of attention 
+		<ref citStr="Carroll and Charniak , 1992" id="1" label="CEPF" position="1114">
+			( Carroll and Charniak , 1992 
+		</ref>
+		<ref citStr="Pereira and Schabes , 1992" id="2" label="CEPF" position="1144">
+			; Pereira and Schabes , 1992 
+		</ref>
+		<ref citStr="Brill , 1993" id="3" label="CEPF" position="1173">
+			; Brill , 1993 
+		</ref>
+		<ref citStr="Stolcke and Omohundro , 1994" id="4" label="CEPF" position="1188">
+			; Stolcke and Omohundro , 1994 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="6">
+		 Researchers have explored this problem for a variety of reasons : to argue empirically against the poverty of the stimulus 
+		<ref citStr="Clark , 2001" id="5" label="CEPF" position="1371">
+			( Clark , 2001 )
+		</ref>
+		 , to use induction systems as a first stage in constructing large treebanks ( van Zaanen , 2000 ) , to build better language models 
+		<ref citStr="Baker , 1979" id="6" label="CEPF" position="1504">
+			( Baker , 1979 
+		</ref>
+		<ref citStr="Chen , 1995" id="7" label="CEPF" position="1519">
+			; Chen , 1995 )
+		</ref>
+		 , and to examine cognitive issues in language learning 
+		<ref citStr="Solan et al. , 2003" id="8" label="CEPF" position="1613">
+			( Solan et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="7">
+		 An important distinction should be drawn between work primarily interested in the weak generative capacity of models , where modeling hierarchical structure is only useful insofar as it leads to improved models over observed structures 
+		<ref citStr="Baker , 1979" id="9" label="CJPF" position="1861">
+			( Baker , 1979 
+		</ref>
+		<ref citStr="Chen , 1995" id="10" label="CJPF" position="1876">
+			; Chen , 1995 )
+		</ref>
+		 , and work interested in the strong generative capacity of models , where the unobserved structure itself is evaluated ( van Zaanen , 2000 ; Clark , 2001 ; Klein and Manning , 2002 ) . 
+	</s>
+	
+
+	<s id="8">
+		 This paper falls into the latter category ; we will be inducing models of linguistic constituency and dependency with the goal of recovering linguistically plausible structures . 
+	</s>
+	
+
+	<s id="9">
+		 We make no claims as to the cognitive plausibility of the induction mechanisms we present here ; however , the ability of these systems to recover substantial linguistic patterns from surface yields alone does speak to the strength of support for these patterns in the data , and hence undermines arguments based on “the poverty of the stimulus” 
+		<ref citStr="Chomsky , 1965" id="11" label="CEPF" position="2640">
+			( Chomsky , 1965 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="10">
+		 2 Unsupervised Dependency Parsing Most recent progress in unsupervised parsing has come from tree or phrase-structure grammar based models 
+		<ref citStr="Clark , 2001" id="12" label="CJPN" position="2791">
+			( Clark , 2001 
+		</ref>
+		<ref citStr="Klein and Manning , 2002" id="13" label="CJPN" position="2806">
+			; Klein and Manning , 2002 )
+		</ref>
+		 , but there are compelling reasons to reconsider unsupervised dependency parsing . 
+	</s>
+	
+
+	<s id="11">
+		 First , most state-of- the-art supervised parsers make use of specific lexical information in addition to word-class level information –perhaps lexical information could be a useful source of information for unsupervised methods . 
+	</s>
+	
+
+	<s id="12">
+		 Second , a central motivation for using tree structures in computational linguistics is to enable the extraction of dependencies – function-argument and modification structures – and it might be more advantageous to induce such structures directly . 
+	</s>
+	
+
+	<s id="13">
+		 Third , as we show below , for languages such as Chinese , which have few function words , and for which the definition of lexical categories is much less clear , dependency structures may be easier to detect . 
+	</s>
+	
+
+	<s id="14">
+		 2.1 Representation and Evaluation An example dependency representation of a short sentence is shown in figure 1(a) , where , following the traditional dependency grammar notation , the regent or head of a dependency is marked with the tail of the dependency arrow , and the dependent is marked with the arrowhead ( Mel'^cuk , 1988 ) . 
+	</s>
+	
+
+	<s id="15">
+		 It will be important in what follows to see that such a representation is isomorphic ( in terms of strong generative capacity ) to a restricted form of phrase structure grammar , where the set of terminals and nonterminals is identical , and every rule is of the form X--* X Y or X--* Y X 
+		<ref citStr="Miller , 1999" id="14" label="CERF" position="4299">
+			( Miller , 1999 )
+		</ref>
+		 , giving the isomorphic representation of figure 1(a) shown in figure 1(b).1 Depending on the model , part-of- 1Strictly , such phrase structure trees are isomorphic not to flat dependency structures , but to specific derivations of those VBD S Factory payrolls fell in September in September in September ( a ) Classical Dependency Structure ( b ) Dependency Structure as CF Tree ( c ) CFG Structure Figure 1 : Three kinds of parse structures . 
+	</s>
+	
+
+	<s id="16">
+		 NN NNS VBD IN NN ROOT Factory NN NNS payrolls NNS VBD fell VBD IN IN NN Factory NN NP lls ell IN payro fell VP NNS VBD PP NN speech categories may be included in the dependency representation , as shown here , or dependencies may be directly between words . 
+	</s>
+	
+
+	<s id="17">
+		 Below , we will assume an additonal reserved nonterminal ROOT , whose sole dependent is the head of the sentence . 
+	</s>
+	
+
+	<s id="18">
+		 This simplifies the notation , math , and the evaluation metric . 
+	</s>
+	
+
+	<s id="19">
+		 A dependency analysis will always consist of exactly as many dependencies as there are words in the sentence . 
+	</s>
+	
+
+	<s id="20">
+		 For example , in the dependency structure of figure 1(b) , the dependencies are { ( ROOT , fell ) , ( fell , payrolls ) , ( fell , in ) , ( in , September ) , ( payrolls , Factory ) } . 
+	</s>
+	
+
+	<s id="21">
+		 The quality of a hypothesized depen- dency structure can hence be evaluated by accuracy as compared to a gold-standard dependency structure , by reporting the percentage of dependencies shared between the two analyses . 
+	</s>
+	
+
+	<s id="22">
+		 In the next section , we discuss several models of dependency structure , and throughout this paper we report the accuracy of various methods at recovering gold-standard dependency parses from various corpora , detailed here . 
+	</s>
+	
+
+	<s id="23">
+		 WSJ is the entire Penn English Treebank WSJ portion . 
+	</s>
+	
+
+	<s id="24">
+		 WSJ10 is the subset of sentences which contained 10 words or less after the removal of punctuation . 
+	</s>
+	
+
+	<s id="25">
+		 CTB 10 is the sentences of the same length from the Penn Chinese treebank ( v3 ) . 
+	</s>
+	
+
+	<s id="26">
+		 NEGRA10 is the same , for the German NEGRA corpus , based on the supplied conversion of the NEGRA corpus into Penn treebank format . 
+	</s>
+	
+
+	<s id="27">
+		 In most of the present experiments , the provided partsof-speech were used as the input alphabet , though we also present limited experimentation with synthetic parts-of-speech . 
+	</s>
+	
+
+	<s id="28">
+		 It is important to note that the Penn treebanks do not include dependency annotations ; however , the automatic dependency rules from 
+		<ref citStr="Collins , 1999" id="15" label="CEPF" position="6748">
+			( Collins , 1999 )
+		</ref>
+		 are sufficiently accurate to be a good benchmark for unsupervised systems for the time being ( though see below for specific issues ) . 
+	</s>
+	
+
+	<s id="29">
+		 Similar head-finding rules were used for Chinese experiments . 
+	</s>
+	
+
+	<s id="30">
+		 The NEGRA corpus , however , does supply hand-annotated dependency structures . 
+	</s>
+	
+
+	<s id="31">
+		 structures which specify orders of attachment among multiple dependents which share a common head . 
+	</s>
+	
+
+	<s id="32">
+		 • • • • •ROOT Figure 2 : Dependency graph with skeleton chosen , but words not populated . 
+	</s>
+	
+
+	<s id="33">
+		 Where possible , we report an accuracy figure for both directed and undirected dependencies . 
+	</s>
+	
+
+	<s id="34">
+		 Reporting undirected numbers has two advantages : first , it facilitates comparison with earlier work , and , more importantly , it allows one to partially obscure the effects of alternate analyses , such as the systematic choice between a modal and a main verb for the head of a sentence ( in either case , the two verbs would be linked , but the direction would vary ) . 
+	</s>
+	
+
+	<s id="35">
+		 2.2 Dependency Models The dependency induction task has received relatively little attention ; the best known work is 
+		<ref citStr="Carroll and Charniak ( 1992 )" id="16" label="CEPF" position="7901">
+			Carroll and Charniak ( 1992 )
+		</ref>
+		 , 
+		<ref citStr="Yuret ( 1998 )" id="17" label="CEPF" position="7918">
+			Yuret ( 1998 )
+		</ref>
+		 , and 
+		<ref citStr="Paskin ( 2002 )" id="18" label="CEPF" position="7940">
+			Paskin ( 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="36">
+		 All systems that we are aware of operate under the assumption that the probability of a dependency structure is the product of the scores of the dependencies ( attachments ) in that structure . 
+	</s>
+	
+
+	<s id="37">
+		 Dependencies are seen as ordered ( head , dependent ) pairs of words , but the score of a dependency can optionally condition on other characteristics of the structure , most often the direction of the dependency ( whether the arrow points left or right ) . 
+	</s>
+	
+
+	<s id="38">
+		 Some notation before we present specific mod- els : a dependency d is a pair ( h , a ) of a head and argument , which are words in a sentence s , in a cor- pus S . 
+	</s>
+	
+
+	<s id="39">
+		 For uniformity of notation with section 4 , words in s are specified as size-one spans of s : for example the first word would be 0s1 . 
+	</s>
+	
+
+	<s id="40">
+		 A dependency structure D over a sentence is a set of dependencies ( arcs ) which form a planar , acyclic graph rooted at the special symbol ROOT , and in which each word in s appears as an argument exactly once . 
+	</s>
+	
+
+	<s id="41">
+		 For a de- pendency structure D , there is an associated graph G which represents the number of words and arrows between them , without specifying the words them- selves ( see figure 2 ) . 
+	</s>
+	
+
+	<s id="42">
+		 A graph G and sentence s to- gether thus determine a dependency structure . 
+	</s>
+	
+
+	<s id="43">
+		 The Model Dir . 
+	</s>
+	
+
+	<s id="44">
+		 Undir . 
+	</s>
+	
+
+	<s id="45">
+		 English ( WSJ ) Paskin 01 39.7 RANDOM 41.7 Charniak and Carroll 92-inspired 44.7 ADJACENT 53.2 DMV 54.4 English ( WSJ10 ) RANDOM 30.1 45.6 ADJACENT 33.6 56.7 DMV 43.2 63.7 German ( NEGRA10 ) RANDOM 21.8 41.5 ADJACENT 32.6 51.2 DMV 36.3 55.8 Chinese ( CTB10 ) RANDOM 35.9 47.3 ADJACENT 30.2 47.3 DMV 42.5 54.2 Figure 3 : Parsing performance ( directed and undirected dependency accuracy ) of various dependency models on various treebanks , along with baselines . 
+	</s>
+	
+
+	<s id="46">
+		 dependency structure is the object generated by all of the models that follow ; the steps in the derivations vary from model to model . 
+	</s>
+	
+
+	<s id="47">
+		 Existing generative dependency models intended for unsupervised learning have chosen to first generate a word-free graph G , then populate the sentence s conditioned on G . 
+	</s>
+	
+
+	<s id="48">
+		 For instance , the model of 
+		<ref citStr="Paskin ( 2002 )" id="19" label="CJPN" position="10128">
+			Paskin ( 2002 )
+		</ref>
+		 , which is broadly similar to the semi- probabilistic model in 
+		<ref citStr="Yuret ( 1998 )" id="20" label="CJPN" position="10206">
+			Yuret ( 1998 )
+		</ref>
+		 , first chooses a graph G uniformly at random ( such as figure 2 ) , then fills in the words , starting with a fixed root symbol ( assumed to be at the rightmost end ) , and working down G until an entire dependency structure D is filled in ( figure 1a ) . 
+	</s>
+	
+
+	<s id="49">
+		 The corresponding probabilistic model is P(D) = P(s , G ) = P(G)P(sIG) = P(G) Y P(i—1si I j—1sj , dir ) . 
+	</s>
+	
+
+	<s id="50">
+		 ( i , j,dir)EG In 
+		<ref citStr="Paskin ( 2002 )" id="21" label="CJPN" position="10623">
+			Paskin ( 2002 )
+		</ref>
+		 , the distribution P(G) is fixed to be uniform , so the only model parameters are the con- ditional multinomial distributions P(aIh , dir ) that encode which head words take which other words as arguments . 
+	</s>
+	
+
+	<s id="51">
+		 The parameters for left and right arguments of a single head are completely independent , while the parameters for first and subsequent arguments in the same direction are identified . 
+	</s>
+	
+
+	<s id="52">
+		 In those experiments , the model above was trained on over 30M words of raw newswire , using EM in an entirely unsupervised fashion , and at great computational cost . 
+	</s>
+	
+
+	<s id="53">
+		 However , as shown in figure 3 , the resulting parser predicted dependencies at below chance level ( measured by choosing a random dependency structure ) . 
+	</s>
+	
+
+	<s id="54">
+		 This below-random performance seems to be because the model links word pairs which have high mutual information ( such as occurrences of congress and bill ) regardless of whether they are plausibly syntactically related . 
+	</s>
+	
+
+	<s id="55">
+		 In practice , high mutual information between words is often stronger between two topically similar nouns than between , say , a preposition and its object . 
+	</s>
+	
+
+	<s id="56">
+		 One might hope that the problem with this model is that the actual lexical items are too semantically charged to represent workable units of syntactic structure . 
+	</s>
+	
+
+	<s id="57">
+		 If one were to apply the 
+		<ref citStr="Paskin ( 2002 )" id="22" label="CJPF" position="11986">
+			Paskin ( 2002 )
+		</ref>
+		 model to dependency structures parameterized simply on the word-classes , the result would be isomorphic to the “dependency PCFG” models described in 
+		<ref citStr="Carroll and Charniak ( 1992 )" id="23" label="CJPF" position="12168">
+			Carroll and Charniak ( 1992 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="58">
+		 In these models , Carroll and Charniak considered PCFGs with precisely the productions ( discussed above ) that make them isomorphic to dependency grammars , with the terminal alphabet being simply partsof-speech . 
+	</s>
+	
+
+	<s id="59">
+		 Here , the rule probabilities are equiva- lent to P(YIX , right ) and P(YIX , left ) respectively.2 The actual experiments in 
+		<ref citStr="Carroll and Charniak ( 1992 )" id="24" label="CJPN" position="12559">
+			Carroll and Charniak ( 1992 )
+		</ref>
+		 do not report accuracies that we can compare to , but they suggest that the learned grammars were of extremely poor quality . 
+	</s>
+	
+
+	<s id="60">
+		 With hindsight , however , the main issue in their experiments appears to be not their model , but that they randomly initialized the production ( attachment ) probabilities . 
+	</s>
+	
+
+	<s id="61">
+		 As a result , their learned grammars were of very poor quality and had high variance . 
+	</s>
+	
+
+	<s id="62">
+		 However , one nice property of their structural constraint , which all dependency models share , is that the symbols in the grammar are not symmetric . 
+	</s>
+	
+
+	<s id="63">
+		 Even with a grammar in which the productions are initially uniform , a symbol X can only possibly have non-zero posterior likelihood over spans which contain a matching terminal X . 
+	</s>
+	
+
+	<s id="64">
+		 Therefore , one can start with uniform rewrites and let the interaction between the data and the model structure break the initial symmetry . 
+	</s>
+	
+
+	<s id="65">
+		 If one recasts their experiments in this way , they achieve an accuracy of 44.7 % on the Penn treebank , which is higher than choosing a random dependency structure , but lower than simply linking all adjacent words into a left-headed ( and right-branching ) structure ( 53.2 % ) . 
+	</s>
+	
+
+	<s id="66">
+		 A huge limitation of both of the above models is that they are incapable of encoding even first-order valence facts . 
+	</s>
+	
+
+	<s id="67">
+		 For example , the latter model learns that nouns to the left of the verb ( usually subjects ) 2There is another , subtle distinction : in the Paskin work , a canonical ordering of multiple attachments was fixed , while in the Carroll and Charniak work all attachment orders are considered , giving a numerical bias towards structures where heads take more than one argument . 
+	</s>
+	
+
+	<s id="68">
+		 h h fal j k i i fal hl j hl k i j hl h STOP STOP i fhl hl j ( a ) ( b ) ( c ) ( d ) Figure 4 : Dependency configurations in a lexicalized tree : ( a ) right attachment , ( b ) left attachment , ( c ) right stop , ( d ) left stop . 
+	</s>
+	
+
+	<s id="69">
+		 h and a are head and argument words , respectively , while i , j , and k are positions between words . 
+	</s>
+	
+
+	<s id="70">
+		 attach to the verb . 
+	</s>
+	
+
+	<s id="71">
+		 But then , given a NOUN NOUN VERB sequence , both nouns will attach to the verb – there is no way that the model can learn that verbs have exactly one subject . 
+	</s>
+	
+
+	<s id="72">
+		 We now turn to an improved dependency model that addresses this problem . 
+	</s>
+	
+
+	<s id="73">
+		 3 An Improved Dependency Model The dependency models discussed above are distinct from dependency models used inside high- performance supervised probabilistic parsers in several ways . 
+	</s>
+	
+
+	<s id="74">
+		 First , in supervised models , a head outward process is modeled 
+		<ref citStr="Eisner , 1996" id="25" label="CEPF" position="15178">
+			( Eisner , 1996 
+		</ref>
+		<ref citStr="Collins , 1999" id="26" label="CEPF" position="15194">
+			; Collins , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="75">
+		 In such processes , heads generate a sequence of arguments outward to the left or right , conditioning on not only the identity of the head and direction of the attachment , but also on some notion of distance or valence . 
+	</s>
+	
+
+	<s id="76">
+		 Moreover , in a head-outward model , it is natural to model stop steps , where the final argument on each side of a head is always the special symbol STOP . 
+	</s>
+	
+
+	<s id="77">
+		 Models like 
+		<ref citStr="Paskin ( 2002 )" id="27" label="CEPF" position="15649">
+			Paskin ( 2002 )
+		</ref>
+		 avoid modeling STOP by generating the graph skeleton G first , uniformly at random , then populating the words of s conditioned on G . 
+	</s>
+	
+
+	<s id="78">
+		 Previous work 
+		<ref citStr="Collins , 1999" id="28" label="CEPF" position="15826">
+			( Collins , 1999 )
+		</ref>
+		 has stressed the importance of including termination probabilities , which allows the graph structure to be generated jointly with the terminal words , precisely because it does allow the modeling of required dependents . 
+	</s>
+	
+
+	<s id="79">
+		 We propose a simple head-outward dependency model over word classes which includes a model of valence , which we call DMV ( for dependency model with valence ) . 
+	</s>
+	
+
+	<s id="80">
+		 We begin at the ROOT . 
+	</s>
+	
+
+	<s id="81">
+		 In the standard way , each head generates a series of non- STOP arguments to one side , then a STOP argument to that side , then non-STOP arguments to the other side , then a second STOP . 
+	</s>
+	
+
+	<s id="82">
+		 For example , in the dependency structure in figure 1 , we first generate a single child of ROOT , here fell . 
+	</s>
+	
+
+	<s id="83">
+		 Then we recurse to the subtree under fell . 
+	</s>
+	
+
+	<s id="84">
+		 This subtree begins with generating the right argument in . 
+	</s>
+	
+
+	<s id="85">
+		 We then recurse to the subtree under in ( generating September to the right , a right STOP , and a left STOP ) . 
+	</s>
+	
+
+	<s id="86">
+		 Since there are no more right arguments after in , its right STOP is generated , and the process moves on to the left arguments offell . 
+	</s>
+	
+
+	<s id="87">
+		 In this process , there are two kinds of derivation events , whose local probability factors constitute the model’s parameters . 
+	</s>
+	
+
+	<s id="88">
+		 First , there is the decision at any point whether to terminate ( generate STOP ) or not : PSTOP(STOP1h , dir , adj ) . 
+	</s>
+	
+
+	<s id="89">
+		 This is abi- nary decision conditioned on three things : the head h , the direction ( generating to the left or right of the head ) , and the adjacency ( whether or not an argument has been generated yet in the current direction , a binary variable ) . 
+	</s>
+	
+
+	<s id="90">
+		 The stopping decision is estimated directly , with no smoothing . 
+	</s>
+	
+
+	<s id="91">
+		 If a stop is generated , no more arguments are generated for the current head to the current side . 
+	</s>
+	
+
+	<s id="92">
+		 If the current head’s argument generation does not stop , another argument is chosen using : PCHOOSE(a~h , dir ) . 
+	</s>
+	
+
+	<s id="93">
+		 Here , the argument is picked conditionally on the identity of the head ( which , recall , is a word class ) and the direction . 
+	</s>
+	
+
+	<s id="94">
+		 This term , also , is not smoothed in any way . 
+	</s>
+	
+
+	<s id="95">
+		 Adjacency has no effect on the identity of the argument , only on the likelihood of termination . 
+	</s>
+	
+
+	<s id="96">
+		 After an argument is generated , its subtree in the dependency structure is recursively generated . 
+	</s>
+	
+
+	<s id="97">
+		 Formally , for a dependency structure D , let each word h have left dependents depsD(h,l) and right dependents depsD(h , r ) . 
+	</s>
+	
+
+	<s id="98">
+		 The follow- ing recursion defines the probability of the frag- ment D ( h ) of the dependency tree rooted at h : P(D(h)) = Y H PSTOP(—STOPIh , dir , adj ) dire~l,r } aedepsD(h,dir) PCHOOSE(a~h,dir)P(D(a)) PSTOP(STOPlh , dir , adj ) One can view a structure generated by this derivational process as a “lexicalized” tree composed of the local binary and unary context-free configurations shown in figure 4.3 Each configuration equivalently represents either a head-outward derivation step or a context-free rewrite rule . 
+	</s>
+	
+
+	<s id="99">
+		 There are four such configurations . 
+	</s>
+	
+
+	<s id="100">
+		 Figure 4(a) shows a head h 3It is lexicalized in the sense that the labels in the tree are derived from terminal symbols , but in our experiments the terminals were word classes , not individual lexical items . 
+	</s>
+	
+
+	<s id="101">
+		 taking a right argument a . 
+	</s>
+	
+
+	<s id="102">
+		 The tree headed by h contains h itself , possibly some right arguments of h , but no left arguments of h ( they attach after all the right arguments ) . 
+	</s>
+	
+
+	<s id="103">
+		 The tree headed by a contains a itself , along with all of its left and right children . 
+	</s>
+	
+
+	<s id="104">
+		 Figure 4(b) shows a head h taking a left argument a – the tree headed by h must have already generated its right stop to do so . 
+	</s>
+	
+
+	<s id="105">
+		 Figure 4(c) and figure 4(d) show the sealing operations , where STOP derivation steps are generated . 
+	</s>
+	
+
+	<s id="106">
+		 The left and right marks on node labels represent left and right STOPs that have been generated.4 The basic inside-outside algorithm 
+		<ref citStr="Baker , 1979" id="29" label="CERF" position="19850">
+			( Baker , 1979 )
+		</ref>
+		 can be used for re-estimation . 
+	</s>
+	
+
+	<s id="107">
+		 For each sentence s E S , it gives us cs ( x : i , j ) , the expected fraction of parses of s with a node labeled x extending from position i to position j . 
+	</s>
+	
+
+	<s id="108">
+		 The model can be re-estimated from these counts . 
+	</s>
+	
+
+	<s id="109">
+		 For example , to re-estimate an entry of PSTOP(STOP|h , left , non-adj ) according to a current model O , we calculate two quantities.5 The first is the ( expected ) number of trees headed by h ] whose rightmost edge i is strictly left of h . 
+	</s>
+	
+
+	<s id="110">
+		 The second is the number of trees headed by Fh ] with rightmost edge i strictly left of h . 
+	</s>
+	
+
+	<s id="111">
+		 The ratio is the MLE of that local probability factor : PSTOP(STOP|h , left , non-adj ) = EsES K&lt;loc(h) Ek c(h ] : i , k ) EsES K&lt;loc(h) Ekc(Fh ] : i , k ) This can be intuitively thought of as the relative number of times a tree headed by h had already taken at least one argument to the left , had an opportunity to take another , but didn’t.6 Initialization is important to the success of any local search procedure . 
+	</s>
+	
+
+	<s id="112">
+		 We chose to initialize EM not with an initial model , but with an initial guess at posterior distributions over dependency structures ( completions ) . 
+	</s>
+	
+
+	<s id="113">
+		 For the first-round , we constructed a somewhat ad-hoc “harmonic” completion where all non-ROOT words took the same number of arguments , and each took other words as arguments in inverse proportion to ( a constant plus ) the distance between them . 
+	</s>
+	
+
+	<s id="114">
+		 The ROOT always had a single 4Note that the asymmetry of the attachment rules enforces the right-before-left attachment convention . 
+	</s>
+	
+
+	<s id="115">
+		 This is harmless and arbitrary as far as dependency evaluations go , but imposes an x-bar-like structure on the constituency assertions made by this model . 
+	</s>
+	
+
+	<s id="116">
+		 This bias/constraint is dealt with in section 5 . 
+	</s>
+	
+
+	<s id="117">
+		 5To simplify notation , we assume each word h occurs at most one time in a given sentence , between indexes loc(h) and loc(h) + 1 ) . 
+	</s>
+	
+
+	<s id="118">
+		 6As a final note , in addition to enforcing the right-argumentfirst convention , we constrained ROOT to have at most a single dependent , by a similar device . 
+	</s>
+	
+
+	<s id="119">
+		 argument and took each word with equal probability . 
+	</s>
+	
+
+	<s id="120">
+		 This structure had two advantages : first , when testing multiple models , it is easier to start them all off in a common way by beginning with an M-step , and , second , it allowed us to point the model in the vague general direction of what linguistic dependency structures should look like . 
+	</s>
+	
+
+	<s id="121">
+		 On the WSJ10 corpus , the DMV model recovers a substantial fraction of the broad dependency trends : 43.2 % of guessed directed dependencies were correct ( 63.7 % ignoring direction ) . 
+	</s>
+	
+
+	<s id="122">
+		 To our knowledge , this is the first published result to break the adjacent-word heuristic ( at 33.6 % for this corpus ) . 
+	</s>
+	
+
+	<s id="123">
+		 Verbs are the sentence heads , prepositions take following noun phrases as arguments , adverbs attach to verbs , and so on . 
+	</s>
+	
+
+	<s id="124">
+		 The most common source of discrepancy between the test dependencies and the model’s guesses is a result of the model systematically choosing determiners as the heads of noun phrases , while the test trees have the rightmost noun as the head . 
+	</s>
+	
+
+	<s id="125">
+		 The model’s choice is supported by a good deal of linguistic research 
+		<ref citStr="Abney , 1987" id="30" label="CEPF" position="23176">
+			( Abney , 1987 )
+		</ref>
+		 , and is sufficiently systematic that we also report the scores where the NP headship rule is changed to percolate determiners when present . 
+	</s>
+	
+
+	<s id="126">
+		 On this adjusted metric , the score jumps hugely to 55.7 % directed ( and 67.9 % undirected ) . 
+	</s>
+	
+
+	<s id="127">
+		 This model also works on German and Chinese at above-baseline levels ( 55.8 % and 54.2 % undirected , respectively ) , with no modifications whatsoever . 
+	</s>
+	
+
+	<s id="128">
+		 In German , the largest source of errors is also the systematic postulation of determiner-headed noun- phrases . 
+	</s>
+	
+
+	<s id="129">
+		 In Chinese , the primary mismatch is that subjects are considered to be the heads of sentences rather than verbs . 
+	</s>
+	
+
+	<s id="130">
+		 This dependency induction model is reasonably successful . 
+	</s>
+	
+
+	<s id="131">
+		 However , our intuition is still that the model can be improved by paying more attention to syntactic constituency . 
+	</s>
+	
+
+	<s id="132">
+		 To this end , after briefly recapping the model of 
+		<ref citStr="Klein and Manning ( 2002 )" id="31" label="CERF" position="24113">
+			Klein and Manning ( 2002 )
+		</ref>
+		 , we present a combined model that exploits dependencies and constituencies . 
+	</s>
+	
+
+	<s id="133">
+		 As we will see , this combined model finds correct dependencies more successfully than the model above , and finds constituents more successfully than the model of 
+		<ref citStr="Klein and Manning ( 2002 )" id="32" label="CJPN" position="24391">
+			Klein and Manning ( 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="134">
+		 4 Distributional Constituency Induction In linear distributional clustering , items ( e.g. , words or word sequences ) are represented by characteristic distributions over their linear contexts ( e.g. , multinomial models over the preceding and following words , see figure 5 ) . 
+	</s>
+	
+
+	<s id="135">
+		 These context distributions are then clustered in some way , often using standard Span Label Constituent Context ( 0,5 ) S NN NNS VBD IN NN O–O ( 0,2 ) NP NNNNS O–VBD ( 2,5 ) VP VBD IN NN NNS–O ( 3,5 ) PP IN NN VBD–O ( 0,1 ) NN NN O–NNS ( 1,2 ) NNS NNS NN–VBD ( 2,3 ) VBD VBD NNS–IN ( 3,4 ) IN IN VBD – NN ( 4,5 ) NN NNS IN–O ( a ) ( b ) Figure 5 : The CCM model’s generative process for the sentence in figure 1. ( a ) A binary tree-equivalent bracketing is chosen at random . 
+	</s>
+	
+
+	<s id="136">
+		 ( b ) Each span generates its yield and context ( empty spans not shown here ) . 
+	</s>
+	
+
+	<s id="137">
+		 Derivations which are not coherent are given mass zero . 
+	</s>
+	
+
+	<s id="138">
+		 i-1si — jsj+1 ( see figure 5 ) . 
+	</s>
+	
+
+	<s id="139">
+		 The model generates all constituent-context pairs , span by span . 
+	</s>
+	
+
+	<s id="140">
+		 The first stage is to choose a bracketing B for the sentence , which is a maximal non-crossing subset of the spans ( equivalent to a binary tree ) . 
+	</s>
+	
+
+	<s id="141">
+		 In the basic model , P(B) is uniform over binary trees . 
+	</s>
+	
+
+	<s id="142">
+		 Then , for each ( i , j ) , the subspan and context pair ( isj , i-1si — jsj+1 ) is generated via a class- conditional independence model : P(s , B ) = P(B) F1 P(isj 1 bij)P(i-1si — jsj+11 bij ) ( i,j ) data clustering methods . 
+	</s>
+	
+
+	<s id="143">
+		 In the most common case , the items are words , and one uses distributions over adjacent words to induce word classes . 
+	</s>
+	
+
+	<s id="144">
+		 Previous work has shown that even this quite simple representation allows the induction of quite high quality word classes , largely corresponding to traditional parts of speech ( Finch , 1993 ; Sch¨utze , 1995 ; Clark , 2000 ) . 
+	</s>
+	
+
+	<s id="145">
+		 A typical pattern would be that stocks and treasuries both frequently occur before the words fell and rose , and might therefore be put into the same class . 
+	</s>
+	
+
+	<s id="146">
+		 
+		<ref citStr="Clark ( 2001 )" id="33" label="CJPN" position="26478">
+			Clark ( 2001 )
+		</ref>
+		 and 
+		<ref citStr="Klein and Manning ( 2002 )" id="34" label="CJPN" position="26509">
+			Klein and Manning ( 2002 )
+		</ref>
+		 show that this approach can be successfully used for discovering syntactic constituents as well . 
+	</s>
+	
+
+	<s id="147">
+		 However , as one might expect , it is easier to cluster word sequences ( or word class sequences ) than to tell how to put them together into trees . 
+	</s>
+	
+
+	<s id="148">
+		 In particular , if one is given all contiguous subsequences ( subspans ) from a corpus of sentences , most natural clusters will not represent valid constituents ( to the extent that constituency of a non-situated sequence is even a well-formed notion ) . 
+	</s>
+	
+
+	<s id="149">
+		 For example , it is easy enough to discover that DET N and DET ADJ N are similar and that V PREP DET and V PREP DET ADJ are similar , but it is much less clear how to discover that the former pair are generally constituents while the latter pair are generally not . 
+	</s>
+	
+
+	<s id="150">
+		 In 
+		<ref citStr="Klein and Manning ( 2002 )" id="35" label="CEPF" position="27345">
+			Klein and Manning ( 2002 )
+		</ref>
+		 , we proposed a constituent-context model ( CCM ) which solves this problem by building constituency decisions directly into the distributional model , by earmarking a single cluster d for non-constituents . 
+	</s>
+	
+
+	<s id="151">
+		 During the calculation of cluster assignments , only a non-crossing subset of the observed word sequences can be assigned to other , constituent clusters . 
+	</s>
+	
+
+	<s id="152">
+		 This integrated approach is empirically successful . 
+	</s>
+	
+
+	<s id="153">
+		 The CCM works as follows . 
+	</s>
+	
+
+	<s id="154">
+		 Sentences are given as sequences s of word classes ( parts-of-speech or otherwise ) . 
+	</s>
+	
+
+	<s id="155">
+		 One imagines each sentence as a list of the O(n2) index pairs ( i , j ) , each followed by the corresponding subspan isj and linear context That is , all spans guess their sequences and contexts given only a constituency decision b.7 This is a model P(s , B ) over hidden bracketings and observed sentences , and it is estimated via EM to maximize the sentence likelihoods P(s) over the training corpus . 
+	</s>
+	
+
+	<s id="156">
+		 Figure 6 shows the accuracy of the CCM model not only on English but for the Chinese and German corpora discussed above.8 Results are reported at convergence ; for the English case , F1 is monotonic during training , while for the others , there is an earlier peak . 
+	</s>
+	
+
+	<s id="157">
+		 Also shown is an upper bound ( the target trees are not all binary and so any all-binary system will over- propose constituents ) . 
+	</s>
+	
+
+	<s id="158">
+		 
+		<ref citStr="Klein and Manning ( 2002 )" id="36" label="CEPF" position="28778">
+			Klein and Manning ( 2002 )
+		</ref>
+		 gives comparative numbers showing that the basic CCM outperforms other recent systems on the ATIS corpus ( which many other constituency induction systems have reported on ) . 
+	</s>
+	
+
+	<s id="159">
+		 While absolute numbers are hard to compare across corpora , all the systems compared to in 
+		<ref citStr="Klein and Manning ( 2002 )" id="37" label="CEPF" position="29081">
+			Klein and Manning ( 2002 )
+		</ref>
+		 parsed below a right-branching baseline , while the CCM is substantially above it . 
+	</s>
+	
+
+	<s id="160">
+		 5 A Combined Model The two models described above have some common ground . 
+	</s>
+	
+
+	<s id="161">
+		 Both can be seen as models over lexicalized trees composed of the configurations in figure 4 . 
+	</s>
+	
+
+	<s id="162">
+		 For the DMV , it is already a model over these structures . 
+	</s>
+	
+
+	<s id="163">
+		 At the “attachment” rewrite for the CCM 7As is typical of distributional clustering , positions in the corpus can get generated multiple times . 
+	</s>
+	
+
+	<s id="164">
+		 Since derivations need not be consistent , the entire model is mass deficient when viewed as a model over sentences . 
+	</s>
+	
+
+	<s id="165">
+		 8In 
+		<ref citStr="Klein and Manning ( 2002 )" id="38" label="CJPN" position="29746">
+			Klein and Manning ( 2002 )
+		</ref>
+		 , we reported results using unlabeled bracketing statistics which gave no credit for brackets which spanned the entire sentence ( raising the scores ) but macro-averaged over sentences ( lowering the scores ) . 
+	</s>
+	
+
+	<s id="166">
+		 The numbers here hew more closely to the standard methods used for evaluating supervised parsers , by being micro-averaged and including full-span brackets . 
+	</s>
+	
+
+	<s id="167">
+		 However , the scores are , overall , approximately the same . 
+	</s>
+	
+
+	<s id="168">
+		 in ( a/b ) , we assign the quantity : P(isk1true)P(i_1si - ksk+11true ) P(isk1false)P(i_1si - ksk+11false ) which is the odds ratio of generating the subse- quence and context for span ( i , k ) as a constituent as opposed to a non-constituent . 
+	</s>
+	
+
+	<s id="169">
+		 If we multiply all trees’ attachment scores by Y(i,j) P(isj 1false)P(i_1si - jsj+1 1false ) the denominators of the odds ratios cancel , and we are left with each tree being assigned the probability it would have received under the CCM.9 In this way , both models can be seen as generating either constituency or dependency structures . 
+	</s>
+	
+
+	<s id="170">
+		 Of course , the CCM will generate fairly random dependency structures ( constrained only by bracketings ) . 
+	</s>
+	
+
+	<s id="171">
+		 Getting constituency structures from the DMV is also problematic , because the choice of which side to first attach arguments on has ramifications on constituency – it forces x-bar-like structures – even though it is an arbitrary convention as far as dependency evaluations are concerned . 
+	</s>
+	
+
+	<s id="172">
+		 For example , if we attach right arguments first , then a verb with a left subject and a right object will attach the object first , giving traditional VPs , while the other attachment order gives subject-verb groups . 
+	</s>
+	
+
+	<s id="173">
+		 To avoid this bias , we alter the DMV in the following ways . 
+	</s>
+	
+
+	<s id="174">
+		 When using the dependency model alone , we allow each word to have even probability for either generation order ( but in each actual head derivation , only one order occurs ) . 
+	</s>
+	
+
+	<s id="175">
+		 When using the models together , better performance was obtained by releasing the one-side-attaching-first requirement entirely . 
+	</s>
+	
+
+	<s id="176">
+		 In figure 6 , we give the behavior of the CCM constituency model and the DMV dependency model on both constituency and dependency induction . 
+	</s>
+	
+
+	<s id="177">
+		 Unsurprisingly , their strengths are complementary . 
+	</s>
+	
+
+	<s id="178">
+		 The CCM is better at recovering constituency , and the dependency model is better at recovering dependency structures . 
+	</s>
+	
+
+	<s id="179">
+		 It is reasonable to hope that a combination model might exhibit the best of both . 
+	</s>
+	
+
+	<s id="180">
+		 In the supervised parsing domain , for example , scoring a lexicalized tree with the product of a simple lexical dependency model and a PCFG model can outperform each factor on its respective metric 
+		<ref citStr="Klein and Manning , 2003" id="39" label="CEPF" position="32510">
+			( Klein and Manning , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="181">
+		 9This scoring function as described is not a generative model over lexicalized trees , because it has no generation step at which nodes’ lexical heads are chosen . 
+	</s>
+	
+
+	<s id="182">
+		 This can be corrected by multiplying in a “head choice” factor of 1 /(k _ j ) at each final “sealing” configuration ( d ) . 
+	</s>
+	
+
+	<s id="183">
+		 In practice , this correction factor was harmful for the model combination , since it duplicated a strength of the dependency model , badly . 
+	</s>
+	
+
+	<s id="184">
+		 Model UP UR UF1 Dir Undir English ( WSJ 10 – 7422 Sentences ) LBRANCH/RHEAD 25.6 32.6 28.7 33.6 56.7 RANDOM 31.0 39.4 34.7 30.1 45.6 RBRANCH/LHEAD 55.1 70.0 61.7 24.0 55.9 DMV 46.6 59.2 52.1 43.2 62.7 CCM 64.2 81.6 71.9 23.8 43.3 DMV+CCM ( POS ) 69.3 88.0 77.6 47.5 64.5 DMV+CCM ( DISTR . 
+	</s>
+	
+
+	<s id="185">
+		 ) 65.2 82.8 72.9 42.3 60.4 UBOUND 78.8 100.0 88.1 100.0 100.0 German ( NEGRA 10 – 2175 Sentences ) LBRANCH/RHEAD 27.4 48.8 35.1 32.6 51.2 RANDOM 27.9 49.6 35.7 21.8 41.5 RBRANCH/LHEAD 33.8 60.1 43.3 21.0 49.9 DMV 38.4 69.5 49.5 40.0 57.8 CCM 48.1 85.5 61.6 25.5 44.9 DMV+CCM 49.6 89.7 63.9 50.6 64.7 UBOUND 56.3 100.0 72.1 100.0 100.0 Chinese ( CTB 10 – 2437 Sentences ) LBRANCH/RHEAD 26.3 48.8 34.2 30.2 43.9 RANDOM 27.3 50.7 35.5 35.9 47.3 RBRANCH/LHEAD 29.0 53.9 37.8 14.2 41.5 DMV 35.9 66.7 46.7 42.5 54.2 CCM 34.6 64.3 45.0 23.8 40.5 DMV+CCM 33.3 62.0 43.3 55.2 60.3 UBOUND 53.9 100.0 70.1 100.0 100.0 Figure 6 : Parsing performance of the combined model on various treebanks , along with baselines . 
+	</s>
+	
+
+	<s id="186">
+		 In the combined model , we score each tree with the product of the probabilities from the individual models above . 
+	</s>
+	
+
+	<s id="187">
+		 We use the inside-outside algorithm to sum over all lexicalized trees , similar to the situation in section 3 . 
+	</s>
+	
+
+	<s id="188">
+		 The tree configurations are shown in figure 4 . 
+	</s>
+	
+
+	<s id="189">
+		 For each configuration , the relevant scores from each model are multiplied together . 
+	</s>
+	
+
+	<s id="190">
+		 For example , consider figure 4(a) . 
+	</s>
+	
+
+	<s id="191">
+		 From the CCM we must generate isk as a constituent and its corresponding context . 
+	</s>
+	
+
+	<s id="192">
+		 From the dependency model , we pay the cost of h taking a as a right argument ( P CHOOSE ) , as well as the cost of choosing not to stop ( PSTOP ) . 
+	</s>
+	
+
+	<s id="193">
+		 We then running the inside-outside algorithm over this product model . 
+	</s>
+	
+
+	<s id="194">
+		 For the results , we can extract the sufficient statistics needed to re- estimate both individual models . 
+	</s>
+	
+
+	<s id="195">
+		 10 The models in combination were intitialized in the same way as when they were run individually . 
+	</s>
+	
+
+	<s id="196">
+		 Sufficient statistics were separately taken off these individual completions . 
+	</s>
+	
+
+	<s id="197">
+		 From then on , the resulting models were used together during re-estimation . 
+	</s>
+	
+
+	<s id="198">
+		 Figure 6 summarizes the results . 
+	</s>
+	
+
+	<s id="199">
+		 The combined model beats the CCM on English F1 : 77.6 vs. 71.9 . 
+	</s>
+	
+
+	<s id="200">
+		 The figure also shows the combination model’s score when using word classes which were induced entirely automatically , using the simplest distributional clustering method of Sch¨utze ( 1995 ) . 
+	</s>
+	
+
+	<s id="201">
+		 These classes show some degradation , e.g. 72.9 F1 , but it 10 The product , like the CCM itself , is mass-deficient . 
+	</s>
+	
+
+	<s id="202">
+		 is worth noting that these totally unsupervised numbers are better than the performance of the CCM model of 
+		<ref citStr="Klein and Manning ( 2002 )" id="40" label="CJPN" position="35760">
+			Klein and Manning ( 2002 )
+		</ref>
+		 running off of Penn treebank word classes . 
+	</s>
+	
+
+	<s id="203">
+		 Again , if we modify the gold standard so as to make determiners the head of NPs , then this model with distributional tags scores 50.6 % on directed and 64.8 % on undirected dependency accuracy . 
+	</s>
+	
+
+	<s id="204">
+		 On the German data , the combination again outperforms each factor alone , though while the combination was most helpful at boosting constituency quality for English , for German it provided a larger boost to the dependency structures . 
+	</s>
+	
+
+	<s id="205">
+		 Finally , on the Chinese data , the combination did substantially boost dependency accuracy over either single factor , but actually suffered a small drop in constituency.1 1 Overall , the combination is able to combine the individual factors in an effective way . 
+	</s>
+	
+
+	<s id="206">
+		 6 Conclusion We have presented a successful new dependency- based model for the unsupervised induction of syntactic structure , which picks up the key ideas that have made dependency models successful in supervised statistical parsing work . 
+	</s>
+	
+
+	<s id="207">
+		 We proceeded to show that it works cross-linguistically . 
+	</s>
+	
+
+	<s id="208">
+		 We then demonstrated how this model could be combined with the previous best constituent-induction model to produce a combination which , in general , substantially outperforms either individual model , on either metric . 
+	</s>
+	
+
+	<s id="209">
+		 A key reason that these models are capable of recovering structure more accurately than previous work is that they minimize the amount of hidden structure that must be induced . 
+	</s>
+	
+
+	<s id="210">
+		 In particular , neither model attempts to learn intermediate , recursive categories with no direct connection to surface statistics . 
+	</s>
+	
+
+	<s id="211">
+		 Our results here are just on the ungrounded induction of syntactic structure . 
+	</s>
+	
+
+	<s id="212">
+		 Nonetheless , we see the investigation of what patterns can be recovered from corpora as important , both from a computational perspective and from a philosophical one . 
+	</s>
+	
+
+	<s id="213">
+		 It demonstrates that the broad constituent and dependency structure of a language can be recovered quite successfully ( individually or , more effectively , jointly ) from a very modest amount of training data . 
+	</s>
+	
+
+	<s id="214">
+		 7 Acknowledgements This work was supported by a Microsoft Graduate Research Fellowship to the first author and by 11 This seems to be partially due to the large number of unanalyzed fragments in the Chinese gold standard , which leave a very large fraction of the posited bracketings completely unjudged . 
+	</s>
+	
+
+	<s id="215">
+		 the Advanced Research and Development Activity (ARDA)’s Advanced Question Answering for Intelligence ( AQUAINT ) Program . 
+	</s>
+	
+
+	<s id="216">
+		 This work also benefited from an enormous amount of useful feedback , from many audiences and individuals . 
+	</s>
+	
+
+	<s id="217">
+		 References Stephen P. Abney . 
+	</s>
+	
+
+	<s id="218">
+		 1987. The English Noun Phrase in its Sentential Aspect . 
+	</s>
+	
+
+	<s id="219">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="220">
+		 thesis , MIT . 
+	</s>
+	
+
+	<s id="221">
+		 James K. Baker . 
+	</s>
+	
+
+	<s id="222">
+		 1979. Trainable grammars for speech recognition . 
+	</s>
+	
+
+	<s id="223">
+		 In D. H. Klatt and J. J. Wolf , editors , Speech Communication Papers for the 97th Meeting of the Acoustical Society of America , pages 547–550 . 
+	</s>
+	
+
+	<s id="224">
+		 Eric Brill . 
+	</s>
+	
+
+	<s id="225">
+		 1993. Automatic grammar induction and parsing free text : A transformation-based approach . 
+	</s>
+	
+
+	<s id="226">
+		 In ACL 31 , pages 259–265 . 
+	</s>
+	
+
+	<s id="227">
+		 Glenn Carroll and Eugene Charniak . 
+	</s>
+	
+
+	<s id="228">
+		 1992. Two experiments on learning probabilistic dependency grammars from corpora . 
+	</s>
+	
+
+	<s id="229">
+		 In Carl Weir , Stephen Abney , Ralph Grishman , and Ralph Weischedel , editors , Working Notes of the Workshop Statistically-Based NLP Techniques , pages 1–13 . 
+	</s>
+	
+
+	<s id="230">
+		 AAAI Press , Menlo Park , CA . 
+	</s>
+	
+
+	<s id="231">
+		 Stanley F. Chen . 
+	</s>
+	
+
+	<s id="232">
+		 1995. Bayesian grammar induction for language modeling . 
+	</s>
+	
+
+	<s id="233">
+		 In ACL 33 , pages 228–235 . 
+	</s>
+	
+
+	<s id="234">
+		 Noam Chomsky . 
+	</s>
+	
+
+	<s id="235">
+		 1965. Aspects of the Theory of Syntax . 
+	</s>
+	
+
+	<s id="236">
+		 MIT Press , Cambridge , MA . 
+	</s>
+	
+
+	<s id="237">
+		 Alexander Clark . 
+	</s>
+	
+
+	<s id="238">
+		 2000. Inducing syntactic categories by context distribution clustering . 
+	</s>
+	
+
+	<s id="239">
+		 In The Fourth Conference on Natural Language Learning . 
+	</s>
+	
+
+	<s id="240">
+		 Alexander Clark . 
+	</s>
+	
+
+	<s id="241">
+		 2001. Unsupervised induction of stochastic context- free grammars using distributional clustering . 
+	</s>
+	
+
+	<s id="242">
+		 In The Fifth Conference on Natural Language Learning . 
+	</s>
+	
+
+	<s id="243">
+		 Michael Collins . 
+	</s>
+	
+
+	<s id="244">
+		 1999. Head-Driven Statistical Models for Natural Language Parsing . 
+	</s>
+	
+
+	<s id="245">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="246">
+		 thesis , University of Pennsylvania . 
+	</s>
+	
+
+	<s id="247">
+		 Jason Eisner . 
+	</s>
+	
+
+	<s id="248">
+		 1996. Three new probabilistic models for dependency parsing : An exploration . 
+	</s>
+	
+
+	<s id="249">
+		 In COLING 16 , pages 340–345 . 
+	</s>
+	
+
+	<s id="250">
+		 Steven Paul Finch . 
+	</s>
+	
+
+	<s id="251">
+		 1993. Finding Structure in Language . 
+	</s>
+	
+
+	<s id="252">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="253">
+		 thesis , University of Edinburgh . 
+	</s>
+	
+
+	<s id="254">
+		 Dan Klein and Christopher D. Manning . 
+	</s>
+	
+
+	<s id="255">
+		 2002. A generative constituent-context model for improved grammar induction . 
+	</s>
+	
+
+	<s id="256">
+		 In ACL 40 , pages 128–135 . 
+	</s>
+	
+
+	<s id="257">
+		 Dan Klein and Christopher D. Manning . 
+	</s>
+	
+
+	<s id="258">
+		 2003. Fast exact inference with a factored model for natural language parsing . 
+	</s>
+	
+
+	<s id="259">
+		 In Suzanna Becker , Sebastian Thrun , and Klaus Obermayer , editors , Advances in Neural Information Processing Systems 15 , Cambridge , MA . 
+	</s>
+	
+
+	<s id="260">
+		 MIT Press . 
+	</s>
+	
+
+	<s id="261">
+		 Igor Aleksandrovich Mel~^cuk . 
+	</s>
+	
+
+	<s id="262">
+		 1988. Dependency Syntax : theory and practice . 
+	</s>
+	
+
+	<s id="263">
+		 State University of New York Press , Albany , NY . 
+	</s>
+	
+
+	<s id="264">
+		 Philip H. Miller . 
+	</s>
+	
+
+	<s id="265">
+		 1999. Strong Generative Capacity . 
+	</s>
+	
+
+	<s id="266">
+		 CSLI Publications , Stanford , CA . 
+	</s>
+	
+
+	<s id="267">
+		 Mark A. Paskin . 
+	</s>
+	
+
+	<s id="268">
+		 2002. Grammatical bigrams . 
+	</s>
+	
+
+	<s id="269">
+		 In T. G. Dietterich , S. Becker , and Z. Ghahramani , editors , Advances in Neural Information Processing Systems 14 , Cambridge , MA . 
+	</s>
+	
+
+	<s id="270">
+		 MIT Press . 
+	</s>
+	
+
+	<s id="271">
+		 Fernando Pereira and Yves Schabes . 
+	</s>
+	
+
+	<s id="272">
+		 1992. Inside-outside reestimation from partially bracketed corpora . 
+	</s>
+	
+
+	<s id="273">
+		 In ACL 30 , pages 128–135 . 
+	</s>
+	
+
+	<s id="274">
+		 Hinrich Sch¨utze . 
+	</s>
+	
+
+	<s id="275">
+		 1995. Distributional part-of-speech tagging . 
+	</s>
+	
+
+	<s id="276">
+		 In EACL 7 , pages 141–148 . 
+	</s>
+	
+
+	<s id="277">
+		 Zach Solan , Eytan Ruppin , David Horn , and Shimon Edelman . 
+	</s>
+	
+
+	<s id="278">
+		 2003. Automatic acquisition and efficient representation of syntactic structures . 
+	</s>
+	
+
+	<s id="279">
+		 In Suzanna Becker , Sebastian Thrun , and Klaus Obermayer , editors , Advances in Neural Information Processing Systems 15 , Cambridge , MA . 
+	</s>
+	
+
+	<s id="280">
+		 MIT Press . 
+	</s>
+	
+
+	<s id="281">
+		 Andreas Stolcke and Stephen M. Omohundro . 
+	</s>
+	
+
+	<s id="282">
+		 1994. Inducing probabilistic grammars by Bayesian model merging . 
+	</s>
+	
+
+	<s id="283">
+		 In Grammatical Inference and Applications : Proceedings of the Second International Colloquium on Grammatical Inference . 
+	</s>
+	
+
+	<s id="284">
+		 Springer Verlag . 
+	</s>
+	
+
+	<s id="285">
+		 Menno van Zaanen . 
+	</s>
+	
+
+	<s id="286">
+		 2000. ABL : Alignment-based learning . 
+	</s>
+	
+
+	<s id="287">
+		 In COLING 18 , pages 961–967 . 
+	</s>
+	
+
+	<s id="288">
+		 Deniz Yuret . 
+	</s>
+	
+
+	<s id="289">
+		 1998. Discovery of Linguistic Relations Using Lexical Attraction . 
+	</s>
+	
+
+	<s id="290">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="291">
+		 thesis , MIT . 
+	</s>
+	
+
+
+</acldoc>

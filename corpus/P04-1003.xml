@@ -1,0 +1,1132 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1003">
+	
+
+	<s id="1">
+		 A distributional model of semantic context effects in lexical processing Scott McDonald Department of Psychology and Institute for Adaptive and Neural Computation University of Edinburgh Edinburgh , Scotland , UK Chris Brew Department of Linguistics and Center for Cognitive Science The Ohio State University Columbus , Ohio USA Abstract One of the most robust findings of experimental psycholinguistics is that the context in which a word is presented influences the effort involved in processing that word . 
+	</s>
+	
+
+	<s id="2">
+		 We present a computational model of contextual facilitation based on word co-occurrence vectors , and empirically validate the model through simulation of three representative types of context manipulation : single word priming , multiple-priming and contextual constraint . 
+	</s>
+	
+
+	<s id="3">
+		 The aim of our study is to find out whether special-purpose mechanisms are necessary in order to capture the pattern of the experimental results . 
+	</s>
+	
+
+	<s id="4">
+		 1 Introduction In psycholinguistics , lexical access is the process of retrieving a word from the mental lexicon using perceptual and contextual information . 
+	</s>
+	
+
+	<s id="5">
+		 In everyday life , the point of this process is to facilitate communication . 
+	</s>
+	
+
+	<s id="6">
+		 Many different experimental methodologies have been brought to bear on the study of this process , including visual and auditory lexical decision tasks ( e.g. , Meyer &amp; Schvaneveldt , 1971 ; Moss , Ostrin , Tyler &amp; Marslen-Wilson , 1995 ) , event-related brain potentials ( e.g. , Brown , Hagoort &amp; Chwilla , 2000 ) , and the recording of eye movements during normal reading . 
+	</s>
+	
+
+	<s id="7">
+		 The extensive literature concerned with contextual influences on lexical processing divides into three main strands : ( 1 ) lexical priming ( single- word contexts , where the prime-target relation is semantic or associative in nature ) ; ( 2 ) multiple priming ( two or more individual lexical primes ) ; and ( 3 ) contextual constraint ( the set of primes is structured by linguistic relationships with one another ) . 
+	</s>
+	
+
+	<s id="8">
+		 Because these effects are robust and apparently automatic , researchers often seek explanations in terms of low-level mechanisms such as spreading activation , compound-cue models ( Ratcliff &amp; McKoon , 1988 ) , and distributed neural network models ( Cree , McRae &amp; McNorgan , 1999 ; Plaut , 1995 ) . 
+	</s>
+	
+
+	<s id="9">
+		 When these relatively simple models fail to cover every aspect of the behavioral data , one response has been to develop theories that meld several mechanisms ( Keefe &amp; Neely , 1990 ) . 
+	</s>
+	
+
+	<s id="10">
+		 Another response is to prefer simplicity over detailed explanatory power . 
+	</s>
+	
+
+	<s id="11">
+		 
+		<ref citStr="Plaut and Booth ( 2000 )" id="1" label="CEPF" position="2672">
+			Plaut and Booth ( 2000 )
+		</ref>
+		 , for example , make no claim about their network model 's ability to account for blocking and strategy effects , arguing that it would detract from the main point of their work to focus on these , which may in any case be due to other mechanisms . 
+	</s>
+	
+
+	<s id="12">
+		 We present a model even simpler than Plaut and Booth 's . 
+	</s>
+	
+
+	<s id="13">
+		 We demonstrate that distributional information available from the linguistic environment — information about word usage that is inherent in large language corpora — can capture salient aspects of a range of data from the literature . 
+	</s>
+	
+
+	<s id="14">
+		 It is not necessary to invoke distinct mechanisms for the different priming settings . 
+	</s>
+	
+
+	<s id="15">
+		 Furthermore , we did not need to vary the independently tunable parameters of our algorithm in order to obtain our results . 
+	</s>
+	
+
+	<s id="16">
+		 The same model has been used in simulations of eye movement behavior during reading 
+		<ref citStr="McDonald , 2000" id="2" label="CEPF" position="3576">
+			( McDonald , 2000 )
+		</ref>
+		 and event-related potentials re- corded from the brain ( McDonald &amp; Brew , 2001 ) . 
+	</s>
+	
+
+	<s id="17">
+		 2 Distributional models The normal setting for speech processing is an environment in which acoustic cues are unreliable or absent , so it makes sense for the hearer to draw upon available resources in order to maximize the chances of successful comprehension . 
+	</s>
+	
+
+	<s id="18">
+		 Such resources include any prior knowledge that the hearer might have about what the speaker will say next . 
+	</s>
+	
+
+	<s id="19">
+		 One way to encode prior knowledge is to construct probabilistically weighted hypotheses about the meaning of upcoming words . 
+	</s>
+	
+
+	<s id="20">
+		 Our model , which we call the ICE model ( for Incremental Construction of semantic Expectations ) , is of this type . 
+	</s>
+	
+
+	<s id="21">
+		 Specifically , it maintains a vector of probabilities as its representation of the current best guess about the likely location in semantic space of the upcoming word . 
+	</s>
+	
+
+	<s id="22">
+		 We use the semantic space defined by the 500 most frequent content words of the spoken portion of the British National Corpus ( BNCspoken ) . 
+	</s>
+	
+
+	<s id="23">
+		 When a word is observed , the system updates its meaning representation to reflect the newly arrived information . 
+	</s>
+	
+
+	<s id="24">
+		 The update mechanism , which uses standard multivariate distributions from Bayesian statistics , is designed to give greater weight to recent words than to those far in the past . 
+	</s>
+	
+
+	<s id="25">
+		 A number of studies have tried to uncover correlations between the similarity structure of word vectors and measurable indicators of human performance , such as lexical priming ( e.g. , Lund , Burgess &amp; Atchley , 1995 ; McDonald &amp; Lowe , 1998 ) and semantic similarity ratings 
+		<ref citStr="McDonald , 2000" id="3" label="CEPF" position="5271">
+			( McDonald , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="26">
+		 The same representations also play a role in simulations of children 's vocabulary acquisition and synonym choice tests ( Landauer &amp; Dumais , 1997 ) . 
+	</s>
+	
+
+	<s id="27">
+		 All of these studies rely on the basic assumption that word vectors can function as convenient proxies for more highly articulated semantic representations . 
+	</s>
+	
+
+	<s id="28">
+		 Our primary claim is that word vectors also provide a compact and perspicuous account of priming phenomena normally ascribed to a multitude of mechanisms . 
+	</s>
+	
+
+	<s id="29">
+		 2.1 The ICE model We use a vector-based representation of the &quot; best-guess &quot; hypothesis about context . 
+	</s>
+	
+
+	<s id="30">
+		 cy C x Figure 1. Distributional representations of &quot;sake&quot;,&quot;make&quot;,&quot;nin&quot; and the null context . 
+	</s>
+	
+
+	<s id="31">
+		 The vector representations in Figure 1 encode the number of times the window five words to either side of the target word is discovered to include each of two context words cx and ( Figure 1 shows the semantic space as having two dimensions , rather than the 500 actually used in our simulations . 
+	</s>
+	
+
+	<s id="32">
+		 ) The representations for the real words are formed by examining the distribution of context words in the neighborhood of these target words , while the representation of the null context is derived from the distribution of context words over the corpus as a whole . 
+	</s>
+	
+
+	<s id="33">
+		 &quot; Sake &quot; is shown as having a distributional representation far from that of the null context , while &quot; make &quot; and &quot; run &quot; are relatively close . 
+	</s>
+	
+
+	<s id="34">
+		 Therefore we predict that it will be harder to process &quot; sake &quot; in the null context than it is to process the other words . 
+	</s>
+	
+
+	<s id="35">
+		 The account of priming : in single word priming , we need two moves within the semantic space . 
+	</s>
+	
+
+	<s id="36">
+		 Consider the case of the word &quot; metal &quot; being primed by the word &quot; bronze &quot; , as shown in Figure 2 . 
+	</s>
+	
+
+	<s id="37">
+		 The first step moves the system 's hypothesis away from the null context . 
+	</s>
+	
+
+	<s id="38">
+		 The resulting intermediate position is shown as the diagonal of the quadrilateral linking &quot; metal &quot; to the origin and the null context . 
+	</s>
+	
+
+	<s id="39">
+		 c Figure 2 . 
+	</s>
+	
+
+	<s id="40">
+		 A distributional account of priming . 
+	</s>
+	
+
+	<s id="41">
+		 In the second step , the system needs to move from the intermediate position to the final position , which is the vector representation of the target word . 
+	</s>
+	
+
+	<s id="42">
+		 The relative entropy between the intermediate position and the target distribution is our simulation of the effort expended by the lexical processor in understanding the word . 
+	</s>
+	
+
+	<s id="43">
+		 The model : Our model is Bayesian ; the vectors shown in the diagrams are summaries of its ongoing estimates of the underlying high- dimensional probability distribution that gives rise to the observed distribution of co- occurring context words . 
+	</s>
+	
+
+	<s id="44">
+		 This licenses the use of relative entropy , which we employ as the primary dependent variable in our simulations of semantic context effects . 
+	</s>
+	
+
+	<s id="45">
+		 Because every distribution that we consider involves a contribution from a highly unspecific distribution associated with the null context , there are no zeroes in the distributions , and relative entropy can be used directly , with no need for smoothing . 
+	</s>
+	
+
+	<s id="46">
+		 The distributions : We can simulate meanings using multinomials — computing relative entropy by comparing entries in the 500- dimensional vectors associated with the context words — but to model the dynamic processes involved in semantic priming we need to represent more than just the maximum of the likelihood . 
+	</s>
+	
+
+	<s id="47">
+		 We also want to model the extent to which the lexical processor is committed to the hypothesis that the target will be found in the location that we expect . 
+	</s>
+	
+
+	<s id="48">
+		 For reasons of simplicity we prefer distributions that have convenient analytical properties and concise parametric representations . 
+	</s>
+	
+
+	<s id="49">
+		 One such is the Dirichlet distribution , which is widely used in Bayesian statistics ( Gelman , Carlin , Stern &amp; Rubin , 1995 ) . 
+	</s>
+	
+
+	<s id="50">
+		 We begin with prior information expressed in the form of a Dirichlet , then update it with data drawn from a multinomial . 
+	</s>
+	
+
+	<s id="51">
+		 The resulting posterior distribution is also a Dirichlet , albeit one whose parameters have been adjusted to better fit the recently observed data . 
+	</s>
+	
+
+	<s id="52">
+		 This closure property ( known in the statistical literature as conjugacy ) is crucial to our application , since it allows us to model both prior and posterior hypotheses in the same way . 
+	</s>
+	
+
+	<s id="53">
+		 The difference between the Dirichlet and the multinomial is that the latter is parameterized by a vector of probabilities , subject to the constraint that the sum must be zero , while the Dirichlet is specified by a vector of arbitrary real-valued weights , subject to no such constraint . 
+	</s>
+	
+
+	<s id="54">
+		 It represents both a direction in semantic space and the number of &quot; virtual samples &quot; on which the estimate of that direction is based . 
+	</s>
+	
+
+	<s id="55">
+		 It can therefore be used in priming simulations to represent both the current best guess about the upcoming word 's position in semantic space and the strength with which this belief is held . 
+	</s>
+	
+
+	<s id="56">
+		 We need to decide how the balance will be struck between the prior and the incoming new word , and we need to implement some discounting strategy to prevent the weight given to the prior from increasing without limit and overwhelming the incoming data . 
+	</s>
+	
+
+	<s id="57">
+		 Figure 3 : Discounting To avoid this , we first add together the vectors corresponding to the two words , then shrink the result , as shown in Figure 3 . 
+	</s>
+	
+
+	<s id="58">
+		 The sum of the two word vectors is the full diagonal of the quadrilateral , while the shrunken version is just the bold part of the diagonal . 
+	</s>
+	
+
+	<s id="59">
+		 Model parameters : The ICE model has two free parameters . 
+	</s>
+	
+
+	<s id="60">
+		 The first parameter determines how much weight should be given to prior information . 
+	</s>
+	
+
+	<s id="61">
+		 Recall that the ICE model forms its probabilistically weighted hypotheses by integrating prior knowledge ( derived from previous words in the context ) with new data ( the currently encountered word ) . 
+	</s>
+	
+
+	<s id="62">
+		 For example , if the sum of the prior weights is 1000 , and the results of 100 new &quot; multinomial trials &quot; are recorded , prior knowledge is deemed ten times more important to the outcome than the newly arrived evidence . 
+	</s>
+	
+
+	<s id="63">
+		 After every update we scale the total prior weight so that it is constant . 
+	</s>
+	
+
+	<s id="64">
+		 This produces a straightforward discounting of old information , and is the simplest approach that we could find that has this biologically plausible property . 
+	</s>
+	
+
+	<s id="65">
+		 We set the total prior weight parameter to 2000 by maximizing the predictive probability of a small corpus ( see McDonald , 2000 , for details ) . 
+	</s>
+	
+
+	<s id="66">
+		 The second parameter is the scheme for determining the weight to be given to the incoming word . 
+	</s>
+	
+
+	<s id="67">
+		 We could have given words weight in proportion to their frequency , but that would have given undue weight to frequent words . 
+	</s>
+	
+
+	<s id="68">
+		 We therefore used a fixed size sample , setting the sample size parameter to 500 . 
+	</s>
+	
+
+	<s id="69">
+		 Thus , our model weights prior context as four times more significant than the incoming word . 
+	</s>
+	
+
+	<s id="70">
+		 We have tested the sensitivity of our results to variations in this parameter , and the results are not significantly impacted by any but the largest changes . 
+	</s>
+	
+
+	<s id="71">
+		 Although there are certainly other conceivable discounting schemes , this one is simple , robust , and easy to apply . 
+	</s>
+	
+
+	<s id="72">
+		 This tells us how to generate the vectors for the intermediate stage of the priming process , producing new positions in the semantic space . 
+	</s>
+	
+
+	<s id="73">
+		 We compare this positions using relative entropy , just as if they were ordinary multinomials . 
+	</s>
+	
+
+	<s id="74">
+		 Although it is only an approximation , it works well , as the results below demonstrate . 
+	</s>
+	
+
+	<s id="75">
+		 The account of multiple priming : with the Dirichlet-based simulation of priming in hand , the simulation of multiple priming is easy . 
+	</s>
+	
+
+	<s id="76">
+		 We just need three steps instead of two . 
+	</s>
+	
+
+	<s id="77">
+		 Reaction time modeling : Our Bayesian measure is only one of the components that would be needed in a full mechanistic model of human reaction time ( RT ) behavior . 
+	</s>
+	
+
+	<s id="78">
+		 To do justice to the richness of RT data , one would need to model not only the effects of informational context but also those of time pressure and experimental setup . 
+	</s>
+	
+
+	<s id="79">
+		 Our model could be used , for example , to parameterize a diffusion model ( Ratcliff &amp; Smith , 2004 ) . 
+	</s>
+	
+
+	<s id="80">
+		 3 Simulations We used the same model settings for three experiments , of which two are reported here . 
+	</s>
+	
+
+	<s id="81">
+		 The third is simulation of a contextual constraint study by Altarriba , Kroll , 
+		<ref citStr="Sholl and Rayner ( 1996 )" id="4" label="CERF" position="13889">
+			Sholl and Rayner ( 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="82">
+		 This is described in a longer version of the present paper ( McDonald &amp; Brew , 2002 ) . 
+	</s>
+	
+
+	<s id="83">
+		 3.1 Simulation 1 : single-word priming The first test of the ICE model was to simulate the results of Hodgson 's ( 1991 ) single-word lexical priming study . 
+	</s>
+	
+
+	<s id="84">
+		 We tested the hypothesis that a minimal priming context — a single word — would have a reliable effect on the amount of information conveyed by the target word , and that this effect would pattern with the human behavioral data . 
+	</s>
+	
+
+	<s id="85">
+		 Specifically , we predicted that a related prime word ( such as value ) would reduce the relative entropy of a target word ( like worth ) , compared with an unrelated prime ( such as tolerate ) . 
+	</s>
+	
+
+	<s id="86">
+		 The difference in ICE values resulting from the divergent influence of the related and unrelated prime words on the form of the posterior distribution was expected to correspond to the difference in lexical decision response times reported by Hodgson ( 1991 , Experiment 1 ) . 
+	</s>
+	
+
+	<s id="87">
+		 
+		<ref citStr="Hodgson ( 1991 )" id="5" label="CEPF" position="14917">
+			Hodgson ( 1991 )
+		</ref>
+		 employed prime-target pairs representing a wide range of lexical relations : antonyms ( e.g. , enemy-friend ) , synonyms ( e.g. , dread-fear ) , conceptual associates ( e.g. , teacher-class ) , phrasal associates ( e.g. , mountain-range ) , category co-ordinates ( e.g. , coffee-milk ) and superordinate-subordinates ( e.g. , travel-drive ) . 
+	</s>
+	
+
+	<s id="88">
+		 Hodgson found equivalent priming effects for all six types of lexical relation , indicating that priming was not restricted to particular types of prime-target relation , such as the category member stimuli employed by the majority of semantic priming studies . 
+	</s>
+	
+
+	<s id="89">
+		 Method From the 144 original prime-target pairs listed in Hodgson ( 1991 , Appendix ) , 48 were removed because either the prime or the target word ( or both ) had a lexeme frequency of less than 25 occurrences in the BNC-spoken . 
+	</s>
+	
+
+	<s id="90">
+		 The reliability of co-occurrence vector representations decreases with word frequency ( McDonald &amp; Shillcock , 2001 ) , making it preferable to refrain from collecting statistics for low- frequency words . 
+	</s>
+	
+
+	<s id="91">
+		 The number of items remaining in each Lexical Relation condition after frequency thresholding is displayed in Table 1 . 
+	</s>
+	
+
+	<s id="92">
+		 The ICE value for each Related prime-target combination was calculated using the model parameter settings detailed earlier . 
+	</s>
+	
+
+	<s id="93">
+		 The corresponding value for each Unrelated item was computed as the mean of the ICE values for the target word paired with each of the other primes in the Lexical Relation condition . 
+	</s>
+	
+
+	<s id="94">
+		 ' For example , each Unrelated datapoint in the Antonym condition was computed as the mean of 15 ICE values . 
+	</s>
+	
+
+	<s id="95">
+		 Results and Discussion We conducted a two-way analysis of variance on the simulated priming data generated by the ICE model . 
+	</s>
+	
+
+	<s id="96">
+		 The factors were Lexical Relation ( antonyms , synonyms , conceptual associates , phrasal associates , category co-ordinates , superordinate-subordinates ) and Context ( related , unrelated ) . 
+	</s>
+	
+
+	<s id="97">
+		 ICE values for each cell of the design are presented in Table 1. ( ICE values can be considered analogous to reaction times , the smaller the value , the shorter the RT ) . 
+	</s>
+	
+
+	<s id="98">
+		 As expected , there was a main effect of Context : collapsing across all types of Lexical Relation , relative entropy was significantly less when the target is preceded by a related prime than when it is preceded by an unrelated prime : F(1,90)=71.63 , MSE=0.0037 , p&lt;0.001 . 
+	</s>
+	
+
+	<s id="99">
+		 There was no main effect of Lexical Relation : F(5,90)&lt;1 , and importantly , no evidence for a Lexical Relation x Context interaction : F(5,90)&lt;1 . 
+	</s>
+	
+
+	<s id="100">
+		 Separate ANOVAs conducted for each type of Relation showed consistent , reliable priming effects for all six relations As was the case for human subjects , Context did not interact with Lexical Relation . 
+	</s>
+	
+
+	<s id="101">
+		 There is no evidence here for different mechanisms for Because the unrelated primes corresponding to each target word were not supplied in 
+		<ref citStr="Hodgson ( 1991 )" id="6" label="CEPF" position="17915">
+			Hodgson ( 1991 )
+		</ref>
+		 , we used this technique to simulate the unrelated Context condition . 
+	</s>
+	
+
+	<s id="102">
+		 An alternative would be to select a prime word at random from the other items in the same condition to serve as the unrelated prime ; both methods give the same results . 
+	</s>
+	
+
+	<s id="103">
+		 the different types of word-to-word relations . 
+	</s>
+	
+
+	<s id="104">
+		 We know that ICE is using nothing but distributional information , and it could be that human subjects are doing the same . 
+	</s>
+	
+
+	<s id="105">
+		 3.2 Simulation 2 : multiple priming Simulation 1 demonstrated that single-word lexical priming can be modeled as the influence of the local linguistic context on the quantity of information conveyed by a word about its contextual behavior . 
+	</s>
+	
+
+	<s id="106">
+		 In Simulation 2 , we submit the ICE model to a more stringent test : the lexical priming situation where more than one prime word is presented before the target . 
+	</s>
+	
+
+	<s id="107">
+		 The multiple priming paradigm — the procedure by which two or more lexical primes precede the target word — is a natural extension of the single-word priming task . 
+	</s>
+	
+
+	<s id="108">
+		 Multiple priming can be seen as occupying the middle ground between the lexical priming and contextual constraint paradigms . 
+	</s>
+	
+
+	<s id="109">
+		 In multiple priming experiments , the prime words are presented as unstructured lists , but in contextual constraint studies , whole sentences are presented in their original order , and the usual cues to syntactic structure are present . 
+	</s>
+	
+
+	<s id="110">
+		 Despite the fact that multiple primes do not form a syntactically coherent unit , research by 
+		<ref citStr="Balota and Paul ( 1996 )" id="7" label="CEPF" position="19465">
+			Balota and Paul ( 1996 )
+		</ref>
+		 and others has shown that two ( or more ) primes are better than one . 
+	</s>
+	
+
+	<s id="111">
+		 Balota and Paul were interested in how multiple primes — construed as independent sources of spreading activation — influenced target word processing . 
+	</s>
+	
+
+	<s id="112">
+		 Using two-word contexts , they separately manipulated the relatedness of each prime to the target word ; this procedure allowed additive priming effects to be accurately measured . 
+	</s>
+	
+
+	<s id="113">
+		 In their first experiment , they demonstrated that the multiple- prime advantage was additive : the facilitation obtained in the two-related-primes condition ( RR ) was equivalent to the sum of the facilitation for the one-related-prime conditions ( UR and RU ) . 
+	</s>
+	
+
+	<s id="114">
+		 ( See Table 2 for sample stimuli ) . 
+	</s>
+	
+
+	<s id="115">
+		 Because they found evidence for simple additivity using a range of prime presentation durations and both lexical decision and naming as response tasks ( Balota &amp; Paul , 1996 , Experiments 1-5 ) , the authors state that &quot; ... we believe that contextual constraints can produce simple additive influences on target processing . 
+	</s>
+	
+
+	<s id="116">
+		 &quot; ( p. 839 ) . 
+	</s>
+	
+
+	<s id="117">
+		 In terms of the ICE model , two related prime words would need to constrain the processor 's expectations about the meaning of the target to a greater degree than a single related prime in order to simulate the multiple- prime advantage . 
+	</s>
+	
+
+	<s id="118">
+		 Table 1 : Mean ICE Values ( bits ) for Related and Unrelated Primes and Simulated Priming Effect ( Difference ) for Six Types of Lexical Relation Lexical Relation N Context Related Unrelated Effect Semantic Antonym 16 1.133 1.230 0.097 Synonym 11 0.673 0.736 0.063 Associate Conceptual 17 1.086 1.172 0.086 Phrasal 20 1.095 1.153 0.058 Category Coordinates 18 1.165 1.239 0.074 Super-subordinates 14 1.073 1.140 0.067 Table 2 . 
+	</s>
+	
+
+	<s id="119">
+		 Results of the Simulation of ( Balota and Paul 1996 , Experiment 1 ) , with Mean Lexical Deci- sion Response Times ( RT ) and Amount of Priming ( Priming ) Condition Prime-1 Prime-2 Target ICE ( bits ) RT Priming ( msec ) ( msec ) Homograph targets RR game drama play 0.895 601 34 UR lip drama play 0.970 618 17 RU game tuna play 0.932 630 5 UU lip tuna play 1.011 635 Category label targets RR hate rage emotion 1.095 606 34 UR author rage emotion 1.151 616 24 RU hate design emotion 1.114 627 13 UU author design emotion 1.193 640 Note : R=related prime , U=Imrelated prime . 
+	</s>
+	
+
+	<s id="120">
+		 Method The design was identical to that of Balota and Paul 's Experiment 1 . 
+	</s>
+	
+
+	<s id="121">
+		 This was a 2 x 4 mixed factors design , with Type of Target ( homograph , category label ) as the between-items factor , and Prime Type ( RR , UR , RU , UU ) as the within- items factor . 
+	</s>
+	
+
+	<s id="122">
+		 Preparation of the lexical stimuli was very similar to the procedure carried out in Simulation 1. Inflected stimuli were first converted to their canonical forms , and items containing target or related prime words that did not meet the 25- occurrence frequency threshold were removed . 
+	</s>
+	
+
+	<s id="123">
+		 Unrelated prime words that failed to meet the frequency threshold were replaced with unrelated primes randomly chosen from the set of discarded items . 
+	</s>
+	
+
+	<s id="124">
+		 From the 106 original homograph items , 69 could be used in the simulation . 
+	</s>
+	
+
+	<s id="125">
+		 Out of the 94 original category stimuli , 39 met the frequency criterion . 
+	</s>
+	
+
+	<s id="126">
+		 ( See Table 2 for sample materials ) . 
+	</s>
+	
+
+	<s id="127">
+		 We computed ICE values for each target word when preceded by each of the four Prime Types . 
+	</s>
+	
+
+	<s id="128">
+		 Model parameter settings were identical to those used in Simulation 1 . 
+	</s>
+	
+
+	<s id="129">
+		 Results and Discussion As in Simulation 1 , facilitation was simulated by a reduction in relative entropy in one of the Related prime conditions ( RR , RU and UR ) , compared with the UU ( two-unrelated-primes ) condition . 
+	</s>
+	
+
+	<s id="130">
+		 Facilitation was apparent for all three Related conditions . 
+	</s>
+	
+
+	<s id="131">
+		 The size of the context effect was 0.110 bits for the RR condition , 0.041 bits for the UR condition , and 0.079 bits for the RU condition . 
+	</s>
+	
+
+	<s id="132">
+		 These differences in mean ICE value were verified by an analysis of variance , which revealed a main effect of Prime Type , F(3,306)=40.53 , MSE=0.0058 , p&lt;0.001 . 
+	</s>
+	
+
+	<s id="133">
+		 There was no reliable effect of Target Type . 
+	</s>
+	
+
+	<s id="134">
+		 The pattern of results was closely comparable to the human data . 
+	</s>
+	
+
+	<s id="135">
+		 As expected , the strongest context effect was observed in the RR condition , which was larger than the effects in both the UR and RU conditions . 
+	</s>
+	
+
+	<s id="136">
+		 This result replicates the multiple-prime advantage reported by Balota and Paul . 
+	</s>
+	
+
+	<s id="137">
+		 The results of the ICE simulation did not match the human data completely ; specifically , the context effect for the RU targets was larger than for the HR targets , whereas the pattern observed in human subjects was the opposite . 
+	</s>
+	
+
+	<s id="138">
+		 This difference between the RU and HR conditions was statistically reliable : planned comparisons ( with suitable alpha corrections ) confirmed that all four conditions differed reliably from one other , at the a=0.05 level of significance . 
+	</s>
+	
+
+	<s id="139">
+		 We investigated further . 
+	</s>
+	
+
+	<s id="140">
+		 Briefly , it appears that the discrepancy may be an artifact of the particular choice of experimental materials . 
+	</s>
+	
+
+	<s id="141">
+		 The larger simulated priming effect for the RU condition was probably due to the differences between the Prime-1 words and the Prime-2 words . 
+	</s>
+	
+
+	<s id="142">
+		 4 Conclusions and future work Our approach is simple , and involves few tunable parameters , and so lends itself to exploratory work and to the generation of clear and testable hypotheses . 
+	</s>
+	
+
+	<s id="143">
+		 It is straightforward , given a large corpus and a sufficiently precise working hypothesis , to create sets of stimulus materials that should produce context effects , and to test them using human participants . 
+	</s>
+	
+
+	<s id="144">
+		 Because of the multiplicity of relevant linking relations evidenced by Hodgson , 1991 , this would be harder to do in a spreading activation framework . 
+	</s>
+	
+
+	<s id="145">
+		 Another avenue for exploration is to use the combination of ICE and the refined lexical relations encoded in WordNet to create materials that would allow a larger scale replication of the results of 
+		<ref citStr="Hodgson ( 1991 )" id="8" label="CEPF" position="25598">
+			Hodgson ( 1991 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="146">
+		 Such replication is independently desirable , since new reaction times would address the potential objection that we have unintentionally tuned our method to Hodgson 's data . 
+	</s>
+	
+
+	<s id="147">
+		 In the same vein , since our distributional methods provide a cheap and easy tool for exploratory studies , we intend to look more closely at the reasons for the discrepancies between our results and those of 
+		<ref citStr="Balota and Paul ( 1996 )" id="9" label="CJPF" position="26028">
+			Balota and Paul ( 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="148">
+		 The present simulations show that a range of contextual effects can be subsumed under the same distributional mechanism , and that no task specific tuning of the parameters is necessary . 
+	</s>
+	
+
+	<s id="149">
+		 Our model is computationally efficient and usable on a large scale to mine corpora for potentially interesting experimental materials . 
+	</s>
+	
+
+	<s id="150">
+		 Acknowledgements Financial support for the first author 's Ph.D studies came from the National Sciences and Engineering Research Council of Canada , the Overseas Research Student Awards Scheme , the Sir Ernest Cassels Education Trust , and the Institute for Adaptive and Neural Computation . 
+	</s>
+	
+
+	<s id="151">
+		 The work of preparing this paper was funded in part by NSF Career Grant 0347799 to the second author . 
+	</s>
+	
+
+	<s id="152">
+		 We are grateful to the Clippers discussion group at the Ohio State University for the opportunity to present and discuss this work from a computational perspective . 
+	</s>
+	
+
+	<s id="153">
+		 Gail McKoon provided particularly useful feedback . 
+	</s>
+	
+
+	<s id="154">
+		 References Altarriba , J. , Kroll , J. , Sholl , A. &amp; Rayner , K. 1996 . 
+	</s>
+	
+
+	<s id="155">
+		 The influence of lexical and conceptual constraints on reading mixed-language sentences : Evidence from eye fixations and naming times . 
+	</s>
+	
+
+	<s id="156">
+		 Memory &amp; Cognition , 24 , 477-492 . 
+	</s>
+	
+
+	<s id="157">
+		 Balota , D.A. , &amp; Paul , S.T. ( 1996 ) . 
+	</s>
+	
+
+	<s id="158">
+		 Summation of activation : Evidence from multiple primes that converge and diverge within semantic memory . 
+	</s>
+	
+
+	<s id="159">
+		 Journal of Experimental Psychology : Learning , Memory , and Cognition , 22 , 827-845 . 
+	</s>
+	
+
+	<s id="160">
+		 Brown , C. M. , Hagoort , P. &amp; Chwilla , D. J. ( 2000 ) . 
+	</s>
+	
+
+	<s id="161">
+		 An event-related brain potential analysis of visual word priming effects . 
+	</s>
+	
+
+	<s id="162">
+		 Brain and Language , 72 , 158-190 . 
+	</s>
+	
+
+	<s id="163">
+		 Cree , G. S. , McRae , K. &amp; McNorgan , C. ( 1999 ) . 
+	</s>
+	
+
+	<s id="164">
+		 An attractor model of lexical conceptual processing : Simulating semantic priming . 
+	</s>
+	
+
+	<s id="165">
+		 Cognitive Science , 23,371-414 . 
+	</s>
+	
+
+	<s id="166">
+		 Gelman , A. , Carlin , J. B. , Stern , H. S. &amp; Rubin , D. B. ( 1995 ) . 
+	</s>
+	
+
+	<s id="167">
+		 Bayesian data analysis . 
+	</s>
+	
+
+	<s id="168">
+		 London : Chapman &amp; Hall . 
+	</s>
+	
+
+	<s id="169">
+		 Hodgson , J. M. ( 1991 ) . 
+	</s>
+	
+
+	<s id="170">
+		 Informational constraints on pre-lexical priming . 
+	</s>
+	
+
+	<s id="171">
+		 Language and Cognitive Processes , 6 , 169-205 . 
+	</s>
+	
+
+	<s id="172">
+		 Keefe , D. E. &amp; Neely , J. H. ( 1990 ) . 
+	</s>
+	
+
+	<s id="173">
+		 Semantic priming in the pronunciation task : The role of prospective prime-generated expectancies . 
+	</s>
+	
+
+	<s id="174">
+		 Memory &amp; Cognition , 18 , 289-298 . 
+	</s>
+	
+
+	<s id="175">
+		 Landauer , T. K. &amp; Dumais , S. T. ( 1997 ) . 
+	</s>
+	
+
+	<s id="176">
+		 A solution to Plato 's problem : the Latent Semantic Analysis theory of acquisition , induction , and representation of knowledge . 
+	</s>
+	
+
+	<s id="177">
+		 Psychological Review , 104 , 211-240 . 
+	</s>
+	
+
+	<s id="178">
+		 Lund , K. &amp; Burgess , C. ( 1996 ) . 
+	</s>
+	
+
+	<s id="179">
+		 Producing high- dimensional semantic spaces from lexical co- occurrence . 
+	</s>
+	
+
+	<s id="180">
+		 Behavior Research Methods , Instruments , &amp; Computers , 28 , 203-208 McDonald , S. ( 2000 ) . 
+	</s>
+	
+
+	<s id="181">
+		 Environmental determinants of lexical processing effort . 
+	</s>
+	
+
+	<s id="182">
+		 PhD dissertation , University of Edinburgh . 
+	</s>
+	
+
+	<s id="183">
+		 McDonald , S. &amp; Brew , C. ( 2002 ) . 
+	</s>
+	
+
+	<s id="184">
+		 A distributional model of semantic context effects in lexical processing . 
+	</s>
+	
+
+	<s id="185">
+		 Cogprints . 
+	</s>
+	
+
+	<s id="186">
+		 McDonald , S. &amp; Brew , C. ( 2001 ) . 
+	</s>
+	
+
+	<s id="187">
+		 A rational analysis of semantic processing by the left cerebral hemisphere . 
+	</s>
+	
+
+	<s id="188">
+		 First Workshop on Cognitively Plausible Models of Semantic Processing ( SEMPRO-2001 ) Edinburgh . 
+	</s>
+	
+
+	<s id="189">
+		 July 31 , 2001 McDonald , S. &amp; Lowe , W. ( 1998 ) . 
+	</s>
+	
+
+	<s id="190">
+		 Modelling functional priming and the associative boost . 
+	</s>
+	
+
+	<s id="191">
+		 In Proceedings of the 20th Annual Conference of the Cognitive Science Society ( pp. 667-680 ) . 
+	</s>
+	
+
+	<s id="192">
+		 Mahwah , NJ : Erlbaum . 
+	</s>
+	
+
+	<s id="193">
+		 McDonald , S. A. &amp; Shillcock , R. C. ( 2001 ) . 
+	</s>
+	
+
+	<s id="194">
+		 Rethinking the word frequency effect : the neglected role of distributional information in lexical processing . 
+	</s>
+	
+
+	<s id="195">
+		 Language and Speech , 44 , 295-323 . 
+	</s>
+	
+
+	<s id="196">
+		 McKoon , G. &amp; Ratcliff , R. ( 1992 ) . 
+	</s>
+	
+
+	<s id="197">
+		 Spreading activation versus compound cue accounts of priming : Mediated priming revisited . 
+	</s>
+	
+
+	<s id="198">
+		 Journal of Experimental Psychology : Learning , Memory , and Cognition , 18 , 1155-1172 . 
+	</s>
+	
+
+	<s id="199">
+		 Meyer , D. &amp; Schvaneveldt , R. ( 1971 ) . 
+	</s>
+	
+
+	<s id="200">
+		 Facilitation in recognizing pairs of words : Evidence of a dependence between retrieval operations . 
+	</s>
+	
+
+	<s id="201">
+		 Journal of Experimental Psychology , 90 , 227-234 . 
+	</s>
+	
+
+	<s id="202">
+		 Moss , H. E. , Ostrin , R. K. , Tyler , L. K. &amp; MarslenWilson , W. D. ( 1995 ) . 
+	</s>
+	
+
+	<s id="203">
+		 Accessing different types of lexical semantic information : Evidence from priming . 
+	</s>
+	
+
+	<s id="204">
+		 Journal of Experimental Psychology : Learning , Memory , and Cognition , 21 , 863-883 . 
+	</s>
+	
+
+	<s id="205">
+		 Neely , J. H. ( 1991 ) . 
+	</s>
+	
+
+	<s id="206">
+		 Semantic priming effects in visual word recognition : a selective review of current findings and theories . 
+	</s>
+	
+
+	<s id="207">
+		 In D. Besner &amp; G. W. Humphrey ( Eds . 
+	</s>
+	
+
+	<s id="208">
+		 ) Basic processes in reading : Visual word recognition ( pp. 264-336 ) . 
+	</s>
+	
+
+	<s id="209">
+		 Hillsdale , NJ : Erlbaum . 
+	</s>
+	
+
+	<s id="210">
+		 Plaut , D. C. &amp; Booth , J. R. ( 2000 ) . 
+	</s>
+	
+
+	<s id="211">
+		 Individual and developmental differences in semantic priming : Empirical and computational support for a single mechanism account of lexical processing , Psychological Review , 107 , 786-823 Ratcliff , R. &amp; McKoon , G. ( 1988 ) . 
+	</s>
+	
+
+	<s id="212">
+		 A retrieval theory of priming in memory . 
+	</s>
+	
+
+	<s id="213">
+		 Psychological Review , 95 , 385-408 . 
+	</s>
+	
+
+	<s id="214">
+		 Ratcliff , R. &amp; Smith , P.L. ( 2004 ) . 
+	</s>
+	
+
+	<s id="215">
+		 A comparison of sequential sampling models for two-choice reaction time . 
+	</s>
+	
+
+	<s id="216">
+		 Psychological Review , 111 , 333-367 Redington , M. , Chater , N. &amp; Finch , S. ( 1998 ) . 
+	</s>
+	
+
+	<s id="217">
+		 Distributional information : a powerful cue for acquiring syntactic categories . 
+	</s>
+	
+
+	<s id="218">
+		 Cognitive Science , 22 , 425- 469. 
+	</s>
+	
+
+
+</acldoc>

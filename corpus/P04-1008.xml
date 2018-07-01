@@ -1,0 +1,1412 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1008">
+	
+
+	<s id="1">
+		 Statistical Modeling for Unit Selection in Speech Synthesis Cyril Allauzen and Mehryar Mohri and Michael Riley* AT&amp;T Labs – Research 180 Park Avenue , Florham Park , NJ 07932 , USA { allauzen , mohri , riley}@research.att.com Abstract Traditional concatenative speech synthesis systems use a number of heuristics to define the target and concatenation costs , essential for the design of the unit selection component . 
+	</s>
+	
+
+	<s id="2">
+		 In contrast to these approaches , we introduce a general statistical modeling framework for unit selection inspired by automatic speech recognition . 
+	</s>
+	
+
+	<s id="3">
+		 Given appropriate data , techniques based on that framework can result in a more accurate unit selection , thereby improving the general quality of a speech synthesizer . 
+	</s>
+	
+
+	<s id="4">
+		 They can also lead to a more modular and a substantially more efficient system . 
+	</s>
+	
+
+	<s id="5">
+		 We present a new unit selection system based on statistical modeling . 
+	</s>
+	
+
+	<s id="6">
+		 To overcome the original absence of data , we use an existing high-quality unit selection system to generate a corpus of unit sequences . 
+	</s>
+	
+
+	<s id="7">
+		 We show that the concatenation cost can be accurately estimated from this corpus using a statistical n-gram language model over units . 
+	</s>
+	
+
+	<s id="8">
+		 We used weighted automata and transducers for the representation of the components of the system and designed a new and more efficient composition algorithm making use of string potentials for their combination . 
+	</s>
+	
+
+	<s id="9">
+		 The resulting statistical unit selection is shown to be about 2.6 times faster than the last release of the AT&amp;T Natural Voices Product while preserving the same quality , and offers much flexibility for the use and integration of new and more complex components . 
+	</s>
+	
+
+	<s id="10">
+		 1 Motivation A concatenative speech synthesis system 
+		<ref citStr="Hunt and Black , 1996" id="1" label="CEPF" position="1792">
+			( Hunt and Black , 1996 
+		</ref>
+		<ref citStr="Beutnagel et al. , 1999a" id="2" label="CEPF" position="1816">
+			; Beutnagel et al. , 1999a )
+		</ref>
+		 consists of three components . 
+	</s>
+	
+
+	<s id="11">
+		 The first component , the text- analysis frontend , takes text as input and outputs a sequence of feature vectors that characterize the acoustic signal to synthesize . 
+	</s>
+	
+
+	<s id="12">
+		 The first element of each of these vectors is the predicted phone or half- phone ; other elements are features such as the phonetic context , acoustic features ( e.g. , pitch , duration ) , or prosodic features . 
+	</s>
+	
+
+	<s id="13">
+		 * This author’s new address is : Google , Inc , 1440 Broadway , New York , NY 10018 , riley@google . 
+	</s>
+	
+
+	<s id="14">
+		 com . 
+	</s>
+	
+
+	<s id="15">
+		 The second component , unit selection , determines in a set of recorded acoustic units corresponding to phones 
+		<ref citStr="Hunt and Black , 1996" id="3" label="CEPF" position="2546">
+			( Hunt and Black , 1996 )
+		</ref>
+		 or half- phones 
+		<ref citStr="Beutnagel et al. , 1999a" id="4" label="CEPF" position="2591">
+			( Beutnagel et al. , 1999a )
+		</ref>
+		 the sequence of units that is the closest to the sequence of feature vectors predicted by the text analysis frontend . 
+	</s>
+	
+
+	<s id="16">
+		 The final component produces an acoustic signal from the unit sequence chosen by unit selection using simple concatenation or other methods such as PSOLA 
+		<ref citStr="Moulines and Charpentier , 1990" id="5" label="CEPF" position="2909">
+			( Moulines and Charpentier , 1990 )
+		</ref>
+		 and HNM 
+		<ref citStr="Stylianou et al. , 1997" id="6" label="CEPF" position="2945">
+			( Stylianou et al. , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="17">
+		 Unit selection is performed by defining two cost functions : the target cost that estimates how the features of a recorded unit match the specified feature vector and the concatenation cost that estimates how well two units will be perceived to match when appended . 
+	</s>
+	
+
+	<s id="18">
+		 Unit selection then consists of finding , given a specified sequence of feature vectors , the unit sequence that minimizes the sum of these two costs . 
+	</s>
+	
+
+	<s id="19">
+		 The target and concatenation cost functions have traditionally been formed from a variety of heuristic or ad hoc quality measures based on features of the audio and text . 
+	</s>
+	
+
+	<s id="20">
+		 In this paper , we follow a different approach : our goal is a system based purely on statistical modeling . 
+	</s>
+	
+
+	<s id="21">
+		 The starting point is to assume that we have a training corpus of utterances labeled with the appropriate unit sequences . 
+	</s>
+	
+
+	<s id="22">
+		 Specifically , for each training utterance , we assume available a sequence of feature vectors f = f i ... f , , and the corresponding units u = ui ... u , , that should be used to synthesize this utterance . 
+	</s>
+	
+
+	<s id="23">
+		 We wish to estimate from this corpus two probability distributions , P(f Iu ) and P(u) . 
+	</s>
+	
+
+	<s id="24">
+		 Given these estimates , we can perform unit selection on a novel utterance using : P(uIf) ( 1 ) ( — log P(f I u ) — log P(u)) ( 2 ) Equation 1 states that the most likely unit sequence is selected given the probabilistic model used . 
+	</s>
+	
+
+	<s id="25">
+		 Equation 2 follows from the definition of conditional probability and that P(f ) is fixed for a given utterance . 
+	</s>
+	
+
+	<s id="26">
+		 The two terms appearing in Equation 2 can be viewed as the statistical counterparts u = argmax U = argmin U of the target and concatenation costs in traditional unit selection . 
+	</s>
+	
+
+	<s id="27">
+		 The statistical framework just outlined is similar to the one used in speech recognition 
+		<ref citStr="Jelinek , 1976" id="7" label="CEPF" position="4803">
+			( Jelinek , 1976 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="28">
+		 We also use several techniques that have been very successfully applied to speech recognition . 
+	</s>
+	
+
+	<s id="29">
+		 For instance , in this paper , we show how —log P(u) ( the concatenation cost ) can be accu- rately estimated using a statistical n-gram language model over units . 
+	</s>
+	
+
+	<s id="30">
+		 Two questions naturally arise . 
+	</s>
+	
+
+	<s id="31">
+		 ( a ) How can we collect a training corpus for building a statistical model ? 
+	</s>
+	
+
+	<s id="32">
+		 Ideally , the training corpus could be human-labeled , as in speech recognition and other natural language processing tasks . 
+	</s>
+	
+
+	<s id="33">
+		 But this seemed impractical given the size of the unit inventory , the number of utterances needed for good statistical estimates , and our limited resources . 
+	</s>
+	
+
+	<s id="34">
+		 Instead , we chose to use a training corpus generated by an existing high-quality unit selection system , that of the AT&amp;T Natural Voices Product . 
+	</s>
+	
+
+	<s id="35">
+		 Of course , building a statistical model on that output can , at best , only match the quality of the original . 
+	</s>
+	
+
+	<s id="36">
+		 But , it can serve as an exploratory trial to measure the quality of our statistical modeling . 
+	</s>
+	
+
+	<s id="37">
+		 As we will see , it can also result in a synthesis system that is significantly faster and modular than the original since there are well-established algorithms for representing and optimizing statistical models of the type we will employ . 
+	</s>
+	
+
+	<s id="38">
+		 To further simplify the problem , we will use the existing traditional target costs , providing statistical estimates only of the concate- nation costs ( — log P(u)) . 
+	</s>
+	
+
+	<s id="39">
+		 ( b ) What are the benefits of a statistical modeling approach ? 
+	</s>
+	
+
+	<s id="40">
+		 ( 1 ) High-quality cost functions . 
+	</s>
+	
+
+	<s id="41">
+		 One issue with traditional unit selection systems is that their cost functions are the result of the following compromise : they need to be complex enough to have a perceptual meaning but simple enough to be computed efficiently . 
+	</s>
+	
+
+	<s id="42">
+		 With our statistical modeling approach , the labeling phase could be performed offline by a highly accurate unit selection system , potentially slow and complex , while the run-time statistical system could still be fast . 
+	</s>
+	
+
+	<s id="43">
+		 Moreover , if we had audio available for our training corpus , we could exploit that in the initial labeling phase for the design of the unit selection system . 
+	</s>
+	
+
+	<s id="44">
+		 ( 2 ) Weighted finite-state transducer representation . 
+	</s>
+	
+
+	<s id="45">
+		 In addition to the already mentioned synthesis speed and the opportunity of high-quality measures in the initial offline labeling phase , another benefit of this approach is that it leads to a natural represen- tation by weighted transducers , and hence enables us to build a unit selection system using general and flexible representations and methods already in use for speech recognition , e.g. , those found in the FSM 
+		<ref citStr="Mohri et al. , 2000" id="8" label="CEPF" position="7615">
+			( Mohri et al. , 2000 )
+		</ref>
+		 , GRM 
+		<ref citStr="Allauzen et al. , 2004" id="9" label="CEPF" position="7648">
+			( Allauzen et al. , 2004 )
+		</ref>
+		 and DCD 
+		<ref citStr="Allauzen et al. , 2003" id="10" label="CEPF" position="7683">
+			( Allauzen et al. , 2003 )
+		</ref>
+		 libraries . 
+	</s>
+	
+
+	<s id="46">
+		 Other unit selection systems based on weighted transducers were also proposed in 
+		<ref citStr="Yi et al. , 2000" id="11" label="CEPF" position="7786">
+			( Yi et al. , 2000 
+		</ref>
+		<ref citStr="Bulyko and Ostendorf , 2001" id="12" label="CEPF" position="7805">
+			; Bulyko and Ostendorf , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="47">
+		 ( 3 ) Unit selection algorithms and speed-up . 
+	</s>
+	
+
+	<s id="48">
+		 We present a new unit selection system based on statistical modeling . 
+	</s>
+	
+
+	<s id="49">
+		 We used weighted automata and transducers for the representation of the components of the system and designed a new and efficient composition algorithm making use of string potentials for their combination . 
+	</s>
+	
+
+	<s id="50">
+		 The resulting statistical unit selection is shown to be about 2.6 times faster than the last release of the AT&amp;T Natural Voices Product while preserving the same quality , and offers much flexibility for the use and integration of new and more complex components . 
+	</s>
+	
+
+	<s id="51">
+		 2 Unit Selection Methods 2.1 Overview of a Traditional Unit Selection System This section describes in detail the cost functions used in the AT&amp;T Natural Voices Product that we will use as the baseline in our experimental results , see 
+		<ref citStr="Beutnagel et al. , 1999a" id="13" label="CEPF" position="8747">
+			( Beutnagel et al. , 1999a )
+		</ref>
+		 for more details about this system . 
+	</s>
+	
+
+	<s id="52">
+		 In this system , unit selection is based on 
+		<ref citStr="Hunt and Black , 1996" id="14" label="CEPF" position="8863">
+			( Hunt and Black , 1996 )
+		</ref>
+		 but using units corresponding to halfphones instead of phones . 
+	</s>
+	
+
+	<s id="53">
+		 Let U be the set of recorded units . 
+	</s>
+	
+
+	<s id="54">
+		 Two cost functions are defined : the target cost Ct(fi , ui ) is used to estimate the mismatch between the features of the feature vector fi and the unit ui ; the concatenation cost Cc(ui , uj ) is used to estimate the smoothness of the acoustic signal when concatenating the units ui and uj . 
+	</s>
+	
+
+	<s id="55">
+		 Given a sequence f = f1 ... fn of feature vectors , unit selection can then be formulated as the problem of finding the sequence of units u = u1 ... un that minimizes these two costs : u = argmin uEUn In practice , not all unit sequences of a given length are considered . 
+	</s>
+	
+
+	<s id="56">
+		 A preselection method such as the one proposed by 
+		<ref citStr="Conkie et al. , 2000" id="15" label="CEPF" position="9642">
+			( Conkie et al. , 2000 )
+		</ref>
+		 is used . 
+	</s>
+	
+
+	<s id="57">
+		 The computation of the target cost can be split in two parts : the context cost Cp that is the component of the target cost corresponding to the phonetic context , and the feature cost Cf that corresponds the ( ~n Ct(fi , ui ) + ~n Cc(ui-1 , ui ) ) i=1 i=2 other components of the target cost : Ct(fi , ui ) = Cp(fi , ui ) + Cf ( fi , ui ) ( 3 ) For each phonetic context ^ of length 5 , a list L(^) of the units that are the most frequently used in the phonetic context ^ is computed . 
+	</s>
+	
+
+	<s id="58">
+		 For each feature vector fi in f , the candidate units for fi are computed in the following way . 
+	</s>
+	
+
+	<s id="59">
+		 Let ^i be the 5-phone context of fi in f . 
+	</s>
+	
+
+	<s id="60">
+		 The context costs between fi and all the units in the preselection list of the phonetic context ^i are computed and the M units with the best context cost are selected : Ui = M-best(Cp(fi,ui)) uiEL(^i) The feature costs between fi and the units in Ui are then computed and the N units with the best target cost are selected : U'i = N-best(Cp(fi , ui ) + Cf ( fi , ui ) ) uiEUi The unit sequence u verifying : u = argmin uEU~1...U~n is determined using a classical Viterbi search . 
+	</s>
+	
+
+	<s id="61">
+		 Thus , for each position i , the N2 concatenation costs between the units in U'i and U'i+1 need to be computed . 
+	</s>
+	
+
+	<s id="62">
+		 The caching method for concatenation costs proposed in 
+		<ref citStr="Beutnagel et al. , 1999b" id="16" label="CEPF" position="11011">
+			( Beutnagel et al. , 1999b )
+		</ref>
+		 can be used to improve the efficiency of the system . 
+	</s>
+	
+
+	<s id="63">
+		 2.2 Statistical Modeling Approach Our statistical modeling approach was described in Section 1 . 
+	</s>
+	
+
+	<s id="64">
+		 As already mentioned , our general approach would consists of deriving both the target cost — log P(f I u ) and the concatenation cost — log P(u) from appropriate training data using general statistical methods . 
+	</s>
+	
+
+	<s id="65">
+		 To simplify the problem , we will use the existing target cost provided by the traditional unit selection system and concentrate on the problem of estimating the concatenation cost . 
+	</s>
+	
+
+	<s id="66">
+		 We used the unit selection system presented in the previous section to generate a large corpus of more than 8M unit sequences , each unit corresponding to a unique recorded halfphone . 
+	</s>
+	
+
+	<s id="67">
+		 This corpus was used to build an n-gram statistical language model using Katz backoff smoothing technique 
+		<ref citStr="Katz , 1987" id="17" label="CEPF" position="11912">
+			( Katz , 1987 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="68">
+		 This model provides us with a new cost function , the grammar cost Cg , defined by : Cg(ukIu1 ... uk-1 ) = —log(P(ukIu1 ... uk-1 ) ) where P is the probability distribution estimated by our model . 
+	</s>
+	
+
+	<s id="69">
+		 We used this new cost function to replace both the concatenation and context costs used in the traditional approach . 
+	</s>
+	
+
+	<s id="70">
+		 Unit selection then consists of finding the unit sequence u such that : ( Cf(fi , ui)+Cg(uiI ui-k ... ui-1 ) ) In this approach , rather than using a preselection method such as that of 
+		<ref citStr="Conkie et al. , 2000" id="18" label="CJPF" position="12469">
+			( Conkie et al. , 2000 )
+		</ref>
+		 , we are using the statistical language model to restrict the candidate space ( see Section 4.2 ) . 
+	</s>
+	
+
+	<s id="71">
+		 3 Representation by Weighted Finite-State Transducers An important advantage of the statistical framework we introduced for unit selection is that the resulting components can be naturally represented by weighted finite-state transducers . 
+	</s>
+	
+
+	<s id="72">
+		 This casts unit selection into a familiar schema , that of a Viterbi decoder applied to a weighted transducer . 
+	</s>
+	
+
+	<s id="73">
+		 3.1 Weighted Finite-State Transducers We give a brief introduction to weighted finite-state transducers . 
+	</s>
+	
+
+	<s id="74">
+		 We refer the reader to 
+		<ref citStr="Mohri , 2004" id="19" label="CEPF" position="13087">
+			( Mohri , 2004 
+		</ref>
+		<ref citStr="Mohri et al. , 2000" id="20" label="CEPF" position="13102">
+			; Mohri et al. , 2000 )
+		</ref>
+		 for an extensive presentation of these devices and will use the definitions and notation introduced by these authors . 
+	</s>
+	
+
+	<s id="75">
+		 A weightedfinite-state transducer T is an 8-tuple T = ( E , A , Q , I , F , E , ^ , ^ ) where E is the finite input alphabet of the transducer , A is the finite output alphabet , Q is a finite set of states , I C_ Q the set of initial states , F C_ Q the set of final states , E C_ Q x ( E U { E } ) x ( A U { E } ) x R x Q a fi- nite set of transitions , ^ : I —* R the initial weight function , and ^ : F —* R the final weight function mapping F to R . 
+	</s>
+	
+
+	<s id="76">
+		 In our statistical framework , the weights can be interpreted as log-likelihoods , thus there are added along a path . 
+	</s>
+	
+
+	<s id="77">
+		 Since we use the standard Viterbi approximation , the weight associated by T to a pair of strings ( x , y ) E E* x A* is given by : [T](x , y ) = ^ER(Ii~y,F) ^[p[7r]] + w[7r] + ^[n[7r]] where R(I , x , y , F ) denotes the set of paths from an initial state p E I to a final state q E F with input label x and output label y , w [ 7r ] the weight of the path 7r , ^ [ p [ 7r ] ] the initial weight of the origin state of 7r , and ^ [ n [ 7r ] ] the final weight of its destination . 
+	</s>
+	
+
+	<s id="78">
+		 A Weighted automaton A = ( E , Q , I , F , E , ^ , ^ ) is defined in a similar way by simply omitting the output ( or input ) labels . 
+	</s>
+	
+
+	<s id="79">
+		 We denote by ^2(T) the ( ~n Ct(fi , ui ) + ~n Cc(ui-1 , ui ) ) i=1 i=2 u = argmin uE Un ~n i=1 Figure 1 : ( a ) Weighted automaton T1 . 
+	</s>
+	
+
+	<s id="80">
+		 ( b ) Weighted transducer T2 . 
+	</s>
+	
+
+	<s id="81">
+		 ( c ) T1 o T2 , the result of the composition of T1 and T2 . 
+	</s>
+	
+
+	<s id="82">
+		 weighted automaton obtained from T by removing its input labels . 
+	</s>
+	
+
+	<s id="83">
+		 A general composition operation similar to the composition of relations can be defined for weighted finite-state transducers 
+		<ref citStr="Eilenberg , 1974" id="21" label="CEPF" position="14938">
+			( Eilenberg , 1974 
+		</ref>
+		<ref citStr="Berstel , 1979" id="22" label="CEPF" position="14957">
+			; Berstel , 1979 
+		</ref>
+		<ref citStr="Salomaa and Soittola , 1978" id="23" label="CEPF" position="14974">
+			; Salomaa and Soittola , 1978 
+		</ref>
+		<ref citStr="Kuich and Salomaa , 1986" id="24" label="CEPF" position="15004">
+			; Kuich and Salomaa , 1986 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="84">
+		 The composition of two transducers T1 and T2 is a weighted transducer denoted by T1 o T2 and defined by : QT1 o T2](x , y ) = min { QT1](x , z ) + QT2](z , y ) } There exists a simple algorithm for constructing T = T1 o T2 from T1 and T2 
+		<ref citStr="Pereira and Riley , 1997" id="25" label="CEPF" position="15282">
+			( Pereira and Riley , 1997 
+		</ref>
+		<ref citStr="Mohri et al. , 1996" id="26" label="CEPF" position="15309">
+			; Mohri et al. , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="85">
+		 The states of T are identified as pairs of a state of T1 and a state of T2 . 
+	</s>
+	
+
+	<s id="86">
+		 A state ( q1 , q2 ) in T1 oT2 is an initial ( final ) state if and only if q1 is an initial ( resp . 
+	</s>
+	
+
+	<s id="87">
+		 final ) state of T1 and q2 is an initial ( resp . 
+	</s>
+	
+
+	<s id="88">
+		 final ) state of T2 . 
+	</s>
+	
+
+	<s id="89">
+		 The transitions of T are the result of matching a transition of T1 and a transition of T2 as follows : ( q1 , a , b , w1 , q~1 ) and ( q2 , b , c , w2 , q~2 ) produce the transition ((q1,q2),a,c,w1+w2,(q~1,q~2)) ( 4 ) in T . 
+	</s>
+	
+
+	<s id="90">
+		 The efficiency of this algorithm was critical to that of our unit selection system . 
+	</s>
+	
+
+	<s id="91">
+		 Thus , we designed an improved composition that we will describe later . 
+	</s>
+	
+
+	<s id="92">
+		 Figure 1(c) gives the resulting of the composition of the weighted transducers given figure 2(a) and ( b ) . 
+	</s>
+	
+
+	<s id="93">
+		 3.2 Language Model Weighted Transducer The n-gram statistical language model we construct for unit sequences can be represented by a weighted automaton G which assigns to each sequence u its log-likelihood : QG](u) = —log(P(u)) . 
+	</s>
+	
+
+	<s id="94">
+		 ( 5 ) according to our probability estimate P . 
+	</s>
+	
+
+	<s id="95">
+		 Since a unit sequence u uniquely determines the corresponding halfphone sequence x , the n-gram statistical model equivalently defines a model of the joint distribution of P(x , u ) . 
+	</s>
+	
+
+	<s id="96">
+		 G can be augmented to define a weighted transducer Gˆ assigning to pairs ( x , u ) their log-likelihoods . 
+	</s>
+	
+
+	<s id="97">
+		 For any halfphone sequence x and unit sequence u , we define Gˆ by : Q ˆG ] ( x , u ) = —log P(u) ( 6 ) The weighted transducer Gˆ can be used to generate all the unit sequences corresponding to a specific halfphone sequence given by a finite automaton p , using composition : p o ˆG . 
+	</s>
+	
+
+	<s id="98">
+		 In our case , we also wish to use the language model transducer Gˆ to limit the number of candidate unit sequences considered . 
+	</s>
+	
+
+	<s id="99">
+		 We will do that by giving a strong precedence to n- grams of units that occurred in the training corpus ( see Section 4.2 ) . 
+	</s>
+	
+
+	<s id="100">
+		 Example Figure 2(a) shows the bigram model G estimated from the following corpus : &lt;s&gt; u1 u2 u1 u2 &lt;/s&gt; &lt;s&gt; u1 u3 &lt;/s&gt; &lt;s&gt; u1 u3 u1 u2 &lt;/s&gt; where ( s ) and ~/s~ are the symbols marking the start and the end of an utterance . 
+	</s>
+	
+
+	<s id="101">
+		 When the unit u1 is associated to the halfphone p1 and both units u1 and u2 are associated to the halfphone p2 , the corresponding weighted halfphone-to-unit transducer Gˆ is the one shown in Figure 2(b) . 
+	</s>
+	
+
+	<s id="102">
+		 3.3 Unit Selection with Weighted Finite-State Transducers From each sequence f = f1 ... fn of feature vectors specified by the text analysis frontend , we can straightforwardly derive the halfphone sequence to be synthesized and represent it by a finite automaton p , since the first component of each feature vector fi is the corresponding halfphone . 
+	</s>
+	
+
+	<s id="103">
+		 Let W be the weighted automaton obtained by composition of p with Gˆ and projection on the output : W = ^2(p o ˆG ) ( 7 ) W represents the set of candidate unit sequences with their respective grammar costs . 
+	</s>
+	
+
+	<s id="104">
+		 We can then use a speech recognition decoder to search for the best sequence u since W can be thought of as the 0 a 1 b 2 c 3 d 4 ( a ) b:y 1 a:x 2 c:z 3 d:t 4 0 a:u b:v 5 6 c:w 7 a:s 8 ( b ) a:x 1 b:y 3 c:z 5 d:t 7 0 a:u 2 b:v 4 c:w 6 ( c ) &lt;s&gt; u3 ^/3.647 u1/0.955 u1 u3/1.871 ^/5.216. &lt;/s&gt;/1.466 &lt;/s&gt;/0.703 u1/0.003 u1/0.703 u3/0.921 u2/1.466 ^/4.053 ^/5.034 u2 u2/0.514 &lt;/s&gt;/0.410 u1/1.108 &lt;/s&gt; &lt;s&gt; u3 ^:^/3.647 p1:u1/0.955 u1 p2:u3/1.871 ^:^/5.21 6 . 
+	</s>
+	
+
+	<s id="105">
+		 ^ : &lt;/s&gt;/0.703^ : &lt;/s&gt;/1.466 p1:u1/0.003 p1:u1/0.703 p2:u3/0.921 p2:u2/1.466 ^ : ^/4.053 ^ : ^/5.034 u2 p2:u2/0.514 ^ : &lt;/s&gt;/0.410 p1:u1/1.108 &lt;/s&gt; ( a ) ( b ) Figure 2 : ( a ) n-gram language model G for unit sequences . 
+	</s>
+	
+
+	<s id="106">
+		 ( b ) Corresponding halfphone-to-unit weighted transducer ˆG . 
+	</s>
+	
+
+	<s id="107">
+		 counterpart of a speech recognition transducer , f the equivalent of the acoustic features and Cf the analogue of the acoustic cost . 
+	</s>
+	
+
+	<s id="108">
+		 Our decoder uses a standard beam search of W to determine the best path by computing on-the-fly the feature cost between each unit and its corresponding feature vector . 
+	</s>
+	
+
+	<s id="109">
+		 Composition constitutes the most costly operation in this framework . 
+	</s>
+	
+
+	<s id="110">
+		 Section 4 presents several of the techniques that we used to speed up that algorithm in the context of unit selection . 
+	</s>
+	
+
+	<s id="111">
+		 4 Algorithms 4.1 Composition with String Potentials In general , composition may create noncoaccessible states , i.e. , states that do not admit a path to a final state . 
+	</s>
+	
+
+	<s id="112">
+		 These states can be removed after composition using a standard connection ( or trimming ) algorithm that removes unnecessary states . 
+	</s>
+	
+
+	<s id="113">
+		 However , our purpose here is to avoid the creation of such states to save computational time . 
+	</s>
+	
+
+	<s id="114">
+		 To that end , we introduce the notion of string potential at each state . 
+	</s>
+	
+
+	<s id="115">
+		 Let i[7r] ( o[7r] ) be the input ( resp . 
+	</s>
+	
+
+	<s id="116">
+		 output ) label of a path 7r , and denote by x n y the longest common prefix of two strings x and y . 
+	</s>
+	
+
+	<s id="117">
+		 Let q be a state in a weighted transducer . 
+	</s>
+	
+
+	<s id="118">
+		 The input ( output ) string potential of q is defined as the longest common prefix of the input ( resp . 
+	</s>
+	
+
+	<s id="119">
+		 output ) labels of all the paths in T from q to a final state : pi(q) = / \ i [ 7r ] 7r^^(q,F) po(q) = n o[7r] 7r^^(q,F) The string potentials of the states of T can be computed using the generic shortest-distance algorithm of 
+		<ref citStr="Mohri , 2002" id="27" label="CEPF" position="20846">
+			( Mohri , 2002 )
+		</ref>
+		 over the string semiring . 
+	</s>
+	
+
+	<s id="120">
+		 They can be used in composition in the following way . 
+	</s>
+	
+
+	<s id="121">
+		 We will say that two strings x and y are comparable if x is a prefix of y or y is a prefix of x . 
+	</s>
+	
+
+	<s id="122">
+		 Let ( q1 , q2 ) be a state in T = T1 o T2 . 
+	</s>
+	
+
+	<s id="123">
+		 Note that ( q1 , q2 ) is a coaccessible state only if the output string potential of q1 in T1 and the input string potential of q2 in T2 are comparable , i.e. , po(q1) is a prefix of pi(q2) or pi(q2) is a prefix of po(q1) . 
+	</s>
+	
+
+	<s id="124">
+		 Hence , composition can be modified to create only those states for which the string potentials are compatible . 
+	</s>
+	
+
+	<s id="125">
+		 As an example , state 2 = ( 1 , 5 ) of the transducer T = T1 o T2 in Figure 1 needs not be created since po(1) = bcd and pi ( 5 ) = bca are not comparable strings . 
+	</s>
+	
+
+	<s id="126">
+		 The notion of string potentials can be extended to further reduce the number of non-coaccessible states created by composition . 
+	</s>
+	
+
+	<s id="127">
+		 The extended input string potential of q in T , is denoted by ¯pi ( q ) and is the set of strings defined by : ¯pi(q) = pi ( q ) - ^i ( q ) ( 8 ) where ( i(q) C E and is such that for every ^ E ( i ( q ) , there exist a path 7r from q to a final state such that pi (q)^ is a prefix of the input label of 7r . 
+	</s>
+	
+
+	<s id="128">
+		 The extended output string potential of q , ¯po ( q ) , is defined similarly . 
+	</s>
+	
+
+	<s id="129">
+		 A state ( q1 , q2 ) in T1 o T2 is coaccessible only if ( ¯po(q1) • E* ) n ( ¯pi(q2) • E* ) =~ 0 ( 9 ) Using string potentials helped us substantially improve the efficiency of composition in unit selection . 
+	</s>
+	
+
+	<s id="130">
+		 4.2 Language Model Transducer – Backoff As mentioned before , the transducer Gˆ represents an n-gram backoff model for the joint probability distribution P(x , u ) . 
+	</s>
+	
+
+	<s id="131">
+		 Thus , backoff transitions are used in a standard fashion when Gˆ is viewed as an automaton over paired sequences ( x , u ) . 
+	</s>
+	
+
+	<s id="132">
+		 Since we use Gˆ as a transducer mapping halfphone sequences to unit sequences to determine the most likely unit sequence u given a halfphone sequence x 1we need to clarify the use of the backoff transitions in the composition p o ˆG . 
+	</s>
+	
+
+	<s id="133">
+		 Denote by O(V) the set of output labels of a set of transitions V . 
+	</s>
+	
+
+	<s id="134">
+		 Then , the correct use derived from the definition of the backoff transitions in the joint model is as follows . 
+	</s>
+	
+
+	<s id="135">
+		 At a given state s of Gˆ and for a given input halfphone a , the outgoing transitions with input a are the transitions V of s with input label a , and for each b E~ O ( V ) , the transition of the first backoff state of s with input label a and output b . 
+	</s>
+	
+
+	<s id="136">
+		 For the purpose of our unit selection system , we had to resort to an approximation . 
+	</s>
+	
+
+	<s id="137">
+		 This is because in general , the backoff use just outlined leads to examining , for a given halfphone , the set of all units possible at each state , which is typically quite large.2 Instead , we restricted the inspection of the backoff states in the following way within the composition po ˆG . 
+	</s>
+	
+
+	<s id="138">
+		 A state s1 in p corresponds in the composed transducer p o Gˆ to a set of states ( s1 , s2 ) , s2 E S2 , where S2 is a subset of the states of ˆG . 
+	</s>
+	
+
+	<s id="139">
+		 When computing the outgoing transitions of the states in ( s1 , s2 ) with input label a , the backoff transitions of a state s2 are inspected if and only if none of the states in S2 has an outgoing transition with input label a. 1This corresponds to the conditional probability P(uIx) = P(x , u)/P(x) . 
+	</s>
+	
+
+	<s id="140">
+		 2Note that more generally the vocabulary size of our statistical language models , about 400,000 , is quite large compared to the usual word-based models . 
+	</s>
+	
+
+	<s id="141">
+		 4.3 Language Model Transducer – Shrinking A classical algorithm for reducing the size of an n-gram language model is shrinking using the entropy-based method of 
+		<ref citStr="Stolcke , 1998" id="28" label="CEPF" position="24645">
+			( Stolcke , 1998 )
+		</ref>
+		 or the weighted difference method 
+		<ref citStr="Seymore and Rosenfeld , 1996" id="29" label="CEPF" position="24712">
+			( Seymore and Rosenfeld , 1996 )
+		</ref>
+		 , both quite similar in practice . 
+	</s>
+	
+
+	<s id="142">
+		 In our experiments , we used a modified version of the weighted difference method . 
+	</s>
+	
+
+	<s id="143">
+		 Let w be a unit and let h be its conditioning history within the n-gram model . 
+	</s>
+	
+
+	<s id="144">
+		 For a given shrink factor ^ , the transition corresponding to the n-gram hw is removed from the weighted automaton if:^ log(P(wlh)) — log(^hP(wlh')) &lt; c(hw) ( 10 ) where h ' is the backoff sequence associated with h . 
+	</s>
+	
+
+	<s id="145">
+		 Thus , a higher-order n-gram hw is pruned when it does not provide a probability estimate significantly different from the corresponding lower-order n-gram sequence h'w . 
+	</s>
+	
+
+	<s id="146">
+		 This standard shrinking method needs to be modified to be used in the case of our halfphone-to-unit weighted transducer model with the restriction on the traversal of the backoff transitions described in the previous section . 
+	</s>
+	
+
+	<s id="147">
+		 The shrinking methods must take into account all the transitions sharing the same input label at the state identified with h and its back- off state h ' . 
+	</s>
+	
+
+	<s id="148">
+		 Thus , at each state identified with h in ˆG , a transition with input label x is pruned when the following condition holds : ^ P(wl h ' ) ) &lt; c(hw) where h ' is the backoff sequence associate with h and Xxk is the set of output labels of all the outgoing transitions with input label x of the state identified with k. 5 Experimental results We used the AT&amp;T Natural Voices Product speech synthesis system to synthesize 107,987 AP news articles , generating a large corpus of 8,731,662 unit sequences representing a total of 415,227,388 units . 
+	</s>
+	
+
+	<s id="149">
+		 We used this corpus to build several n-gram Katz backoff language models with n = 2 or 3 . 
+	</s>
+	
+
+	<s id="150">
+		 Table 1 gives the size of the resulting language model weighted automata . 
+	</s>
+	
+
+	<s id="151">
+		 These language models were built using the GRM Library 
+		<ref citStr="Allauzen et al. , 2004" id="30" label="OEPF" position="26577">
+			( Allauzen et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="152">
+		 We evaluated these models by using them to synthesize an AP news article of 1,000 words , corresponding to 8250 units or 6 minutes of synthesized speech . 
+	</s>
+	
+
+	<s id="153">
+		 Table 2 gives the unit selection time ( in seconds ) taken by our new system to synthesize this AP wE log( P(wlh)) — X log(^h w^Xx h~ Model No . 
+	</s>
+	
+
+	<s id="154">
+		 of states No . 
+	</s>
+	
+
+	<s id="155">
+		 of transitions 2-gram , unshrunken 293,935 5,003,336 3-gram , unshrunken 4,709,404 19,027,244 3-gram , y = -4 2,967,472 14,223,284 3-gram , y = -1 2,060,031 12,133,965 3-gram , y = 0 1,681,233 10,217,164 3-gram , y = 1 1,370,220 9,146,797 3-gram , y = 4 934,914 7,844,250 Table 1 : Size of the stochastic language models for different n-gram order and shrinking factor . 
+	</s>
+	
+
+	<s id="156">
+		 Model composition search total time baseline system - - 4.5s 2-gram , unshrunken 2.9s 1.0s 3.9s 3-gram , unshrunken 1.2s 0.5s 1.7s 3-gram , y = -4 1.3s 0.5s 1.8s 3-gram , y = -1 1.5s 0.5s 2.0s 3-gram , y = 0 1.7s 0.5s 2.2s 3-gram , y = 1 2.1s 0.6s 2.7s 3-gram , y = 4 2.7s 0.9s 3.6s Table 2 : Computation time for each unit selection system when used to synthesize the same AP news article . 
+	</s>
+	
+
+	<s id="157">
+		 news article . 
+	</s>
+	
+
+	<s id="158">
+		 Experiments were run on a 1GHz Pentium III processor with 256KB of cache and 2GB of memory . 
+	</s>
+	
+
+	<s id="159">
+		 The baseline system mentioned in this table is the AT&amp;T Natural Voices Product which was also used to generate our training corpus using the concatenation cost caching method from 
+		<ref citStr="Beutnagel et al. , 1999b" id="31" label="CEPF" position="28051">
+			( Beutnagel et al. , 1999b )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="160">
+		 For the new system , both the computation times due to composition and to the search are displayed . 
+	</s>
+	
+
+	<s id="161">
+		 Note that the AT&amp;T Natural Voices Product system was highly optimized for speed . 
+	</s>
+	
+
+	<s id="162">
+		 In our new systems , the standard research software libraries already mentioned were used . 
+	</s>
+	
+
+	<s id="163">
+		 The search was performed using the standard speech recognition Viterbi decoder from the DCD library 
+		<ref citStr="Allauzen et al. , 2003" id="32" label="OEPF" position="28495">
+			( Allauzen et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="164">
+		 With a trigram language model , our new statistical unit selection system was about 2.6 times faster than the baseline system . 
+	</s>
+	
+
+	<s id="165">
+		 A formal test using the standard mean of opinion score ( MOS ) was used to compare the quality of the high-quality AT&amp;T Natural Voices Product synthesizer and that of the synthesizers based on our new unit selection system with shrunken and unshrunken trigram language models . 
+	</s>
+	
+
+	<s id="166">
+		 In such tests , several listeners are asked to rank the quality of each utterance from 1(worst score ) to 5 ( best ) . 
+	</s>
+	
+
+	<s id="167">
+		 The MOS results of the three systems with 60 utterances tested by 21 listeners are reported in Table 3 with their correspond- Model raw score normalized score baseline system 3.54 f.20 3.09 f .22 3-gram , unshrunken 3.45 f.20 2.98 f .21 3-gram , y = -1 3.40 f.20 2.93 f .22 Table 3 : Quality testing results : we report for each system , the mean and standard error of the raw and the listener-normalized scores . 
+	</s>
+	
+
+	<s id="168">
+		 ing standard error . 
+	</s>
+	
+
+	<s id="169">
+		 The difference of scores between the three systems is not statistically significant ( first column ) , in particular , the absolute difference between the two best systems is less than .1 . 
+	</s>
+	
+
+	<s id="170">
+		 Different listeners may rank utterances in different ways . 
+	</s>
+	
+
+	<s id="171">
+		 Some may choose the full range of scores ( 1–5 ) to rank each utterance , others may select a smaller range near 5 , near 3 , or some other range . 
+	</s>
+	
+
+	<s id="172">
+		 To factor out such possible discrepancies in ranking , we also computed the listener-normalized scores ( second column of the table ) . 
+	</s>
+	
+
+	<s id="173">
+		 This was done for each listener by removing the average score over the full set of utterances , dividing it by the standard deviation , and by centering it around 3 . 
+	</s>
+	
+
+	<s id="174">
+		 The results show that the difference between the normalized scores of the three systems is not significantly different . 
+	</s>
+	
+
+	<s id="175">
+		 Thus , the MOS results show that the three systems have the same quality . 
+	</s>
+	
+
+	<s id="176">
+		 We also measured the similarity of the two best systems by comparing the number of common units they produce for each utterance . 
+	</s>
+	
+
+	<s id="177">
+		 On the AP news article already mentioned , more than 75 % of the units were common . 
+	</s>
+	
+
+	<s id="178">
+		 6 Conclusion We introduced a statistical modeling approach to unit selection in speech synthesis . 
+	</s>
+	
+
+	<s id="179">
+		 This approach is likely to lead to more accurate unit selection systems based on principled learning algorithms and techniques that radically depart from the heuristic methods used in the traditional systems . 
+	</s>
+	
+
+	<s id="180">
+		 Our preliminary experiments using a training corpus generated by the AT&amp;T Natural Voices Product demonstrates that statistical modeling techniques can be used to build a high-quality unit selection system . 
+	</s>
+	
+
+	<s id="181">
+		 It also shows other important benefits of this approach : a substantial increase of efficiency and a greater modularity and flexibility . 
+	</s>
+	
+
+	<s id="182">
+		 Acknowledgments We thank Mark Beutnagel for helping us clarify some of the details of the unit selection system in the AT&amp;T Natural Voices Product speech synthesizer . 
+	</s>
+	
+
+	<s id="183">
+		 Mark also generated the training corpora and set up the listening test used in our experiments . 
+	</s>
+	
+
+	<s id="184">
+		 We also acknowledge discussions with Brian Roark about various statistical language modeling topics in the context of unit selection . 
+	</s>
+	
+
+	<s id="185">
+		 References Cyril Allauzen , Mehryar Mohri , and Michael Riley . 
+	</s>
+	
+
+	<s id="186">
+		 2003. DCD Library - Decoder Library , software collection for decoding and related functions . 
+	</s>
+	
+
+	<s id="187">
+		 In AT&amp;T Labs - Research . 
+	</s>
+	
+
+	<s id="188">
+		 http://www.research.att.com/sw/tools/dcd. Cyril Allauzen , Mehryar Mohri , and Brian Roark . 
+	</s>
+	
+
+	<s id="189">
+		 2004. A General Weighted Grammar Library . 
+	</s>
+	
+
+	<s id="190">
+		 In Proceedings of the Ninth International Conference on Automata ( CIAA 2004 ) , Kingston , Ontario , Canada , July . 
+	</s>
+	
+
+	<s id="191">
+		 http://www.research.att.com/sw/tools/grm. Jean Berstel . 
+	</s>
+	
+
+	<s id="192">
+		 1979. Transductions and Context- Free Languages . 
+	</s>
+	
+
+	<s id="193">
+		 Teubner Studienbucher : Stuttgart . 
+	</s>
+	
+
+	<s id="194">
+		 Mark Beutnagel , Alistair Conkie , Juergen Schroeter , and Yannis Stylianou . 
+	</s>
+	
+
+	<s id="195">
+		 1999a . 
+	</s>
+	
+
+	<s id="196">
+		 The AT&amp;T Next-Gen system . 
+	</s>
+	
+
+	<s id="197">
+		 In Proceedings of the Joint Meeting ofASA , EAA and DAGA , pages 18–24 , Berlin , Germany . 
+	</s>
+	
+
+	<s id="198">
+		 Mark Beutnagel , Mehryar Mohri , and Michael Riley . 
+	</s>
+	
+
+	<s id="199">
+		 1999b . 
+	</s>
+	
+
+	<s id="200">
+		 Rapid unit selection from a large speech corpus for concatenative speech synthesis . 
+	</s>
+	
+
+	<s id="201">
+		 In Proceedings of Eurospeech , volume 2 , pages 607–610 . 
+	</s>
+	
+
+	<s id="202">
+		 Ivan Bulyko and Mari Ostendorf . 
+	</s>
+	
+
+	<s id="203">
+		 2001. Unit selection for speech synthesis using splicing costs with weighted finite-state trasnducers . 
+	</s>
+	
+
+	<s id="204">
+		 In Proceedings ofEurospeech , volume 2 , pages 987–990 . 
+	</s>
+	
+
+	<s id="205">
+		 Alistair Conkie , Mark Beutnagel , Ann Syrdal , and Philip Brown . 
+	</s>
+	
+
+	<s id="206">
+		 2000. Preselection of candidate units in a unit selection-based text-to-speech synthesis system . 
+	</s>
+	
+
+	<s id="207">
+		 In Proceedings of ICSLP , volume 3 , pages 314–317 . 
+	</s>
+	
+
+	<s id="208">
+		 Samuel Eilenberg . 
+	</s>
+	
+
+	<s id="209">
+		 1974. Automata , Languages and Machines , volume A. Academic Press . 
+	</s>
+	
+
+	<s id="210">
+		 Andrew Hunt and Alan Black . 
+	</s>
+	
+
+	<s id="211">
+		 1996. Unit selection in a concatenative speech synthesis system . 
+	</s>
+	
+
+	<s id="212">
+		 In Proceedings of ICASSP’96 , volume 1 , pages 373–376 , Atlanta , GA . 
+	</s>
+	
+
+	<s id="213">
+		 Frederick Jelinek . 
+	</s>
+	
+
+	<s id="214">
+		 1976. Continuous speech recognition by statistical methods . 
+	</s>
+	
+
+	<s id="215">
+		 IEEE Proceedings , 64(4):532–556 . 
+	</s>
+	
+
+	<s id="216">
+		 Slava M. Katz . 
+	</s>
+	
+
+	<s id="217">
+		 1987. Estimation of probabilities from sparse data for the language model component of a speech recogniser . 
+	</s>
+	
+
+	<s id="218">
+		 IEEE Transactions on Acoustic , Speech , and Signal Processing , 35(3):400–401 . 
+	</s>
+	
+
+	<s id="219">
+		 Werner Kuich and Arto Salomaa . 
+	</s>
+	
+
+	<s id="220">
+		 1986. Semirings , Automata , Languages . 
+	</s>
+	
+
+	<s id="221">
+		 Number 5 in EATCS Monographs on Theoretical Computer Science . 
+	</s>
+	
+
+	<s id="222">
+		 Springer-Verlag , Berlin , Germany . 
+	</s>
+	
+
+	<s id="223">
+		 Mehryar Mohri , Fernando C. N. Pereira , and Michael Riley . 
+	</s>
+	
+
+	<s id="224">
+		 1996. Weighted automata in text and speech processing . 
+	</s>
+	
+
+	<s id="225">
+		 In Proceedings of the 12th European Conference on Artificial Intelligence ( ECAI 1996 ) , Workshop on Extended finite state models of language , Budapest , Hungary . 
+	</s>
+	
+
+	<s id="226">
+		 John Wiley and Sons , Chichester . 
+	</s>
+	
+
+	<s id="227">
+		 Mehryar Mohri , Fernando C. N. Pereira , and Michael Riley . 
+	</s>
+	
+
+	<s id="228">
+		 2000. The Design Principles of a Weighted Finite-State Transducer Library . 
+	</s>
+	
+
+	<s id="229">
+		 Theoretical Computer Science , 231(1):17–32. http://www.research.att.com/sw/tools/fsm. Mehryar Mohri . 
+	</s>
+	
+
+	<s id="230">
+		 2002. Semiring Frameworks and Algorithms for Shortest-Distance Problems . 
+	</s>
+	
+
+	<s id="231">
+		 Journal of Automata , Languages and Combinatorics , 7(3):321–350 . 
+	</s>
+	
+
+	<s id="232">
+		 Mehryar Mohri . 
+	</s>
+	
+
+	<s id="233">
+		 2004. Weighted Finite-State Transducer Algorithms : An Overview . 
+	</s>
+	
+
+	<s id="234">
+		 In Carlos Martin-Vide , Victor Mitrana , and Gheorghe Paun , editors , Formal Languages and Applications , volume 148 , VIII , 620 p. Springer , Berlin . 
+	</s>
+	
+
+	<s id="235">
+		 Eric Moulines and Francis Charpentier . 
+	</s>
+	
+
+	<s id="236">
+		 1990. Pitch-synchronous waveform processing techniques for text-to-speech synthesis using di- phones . 
+	</s>
+	
+
+	<s id="237">
+		 Speech Communication , 9(5-6):453– 467 . 
+	</s>
+	
+
+	<s id="238">
+		 Fernando C. N. Pereira and Michael D. Riley . 
+	</s>
+	
+
+	<s id="239">
+		 1997. Speech Recognition by Composition of Weighted Finite Automata . 
+	</s>
+	
+
+	<s id="240">
+		 In Finite-State Language Processing , pages 431–453 . 
+	</s>
+	
+
+	<s id="241">
+		 MIT Press . 
+	</s>
+	
+
+	<s id="242">
+		 Arto Salomaa and Matti Soittola. 1978 . 
+	</s>
+	
+
+	<s id="243">
+		 Automata- Theoretic Aspects of Formal Power Series . 
+	</s>
+	
+
+	<s id="244">
+		 Springer-Verlag : New York . 
+	</s>
+	
+
+	<s id="245">
+		 Kristie Seymore and Ronald Rosenfeld . 
+	</s>
+	
+
+	<s id="246">
+		 1996. Scalable backoff language models . 
+	</s>
+	
+
+	<s id="247">
+		 In Proceedings of ICSLP , volume 1 , pages 232–235 , Philadelphia , Pennsylvania . 
+	</s>
+	
+
+	<s id="248">
+		 Andreas Stolcke . 
+	</s>
+	
+
+	<s id="249">
+		 1998. Entropy-based pruning of backoff language models . 
+	</s>
+	
+
+	<s id="250">
+		 In Proc . 
+	</s>
+	
+
+	<s id="251">
+		 DARPA Broadcast News Transcription and Understanding Workshop , pages 270–274 . 
+	</s>
+	
+
+	<s id="252">
+		 Yannis Stylianou , Thierry Dutoit , and Juergen Schroeter . 
+	</s>
+	
+
+	<s id="253">
+		 1997. Diphone conactenation using a harmonic plus noise model of speech . 
+	</s>
+	
+
+	<s id="254">
+		 In Proceedings ofEurospeech . 
+	</s>
+	
+
+	<s id="255">
+		 Jon Yi , James Glass , and Lee Hetherington . 
+	</s>
+	
+
+	<s id="256">
+		 2000. A flexible scalable finite-state transducer architecture for corpus-based concatenative speech synthesis . 
+	</s>
+	
+
+	<s id="257">
+		 In Proceedings of ICSLP , volume 3 , pages 322–325 . 
+	</s>
+	
+
+
+</acldoc>

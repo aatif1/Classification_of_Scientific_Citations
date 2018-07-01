@@ -1,0 +1,1816 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1019">
+	
+
+	<s id="1">
+		 LEARNING TO RESOLVE BRIDGING REFERENCES Massimo Poesio,4 Rahul Mehta,4 Axel Maroudas,4 and Janet Hitzeman* 4Dept . 
+	</s>
+	
+
+	<s id="2">
+		 of Comp . 
+	</s>
+	
+
+	<s id="3">
+		 Science , University of Essex , UK p o e s i o at e s s e x dot ac dot u k *MITRE Corporation , USA hitz at mitre dot org Abstract We use machine learning techniques to find the best combination of local focus and lexical distance features for identifying the anchor of mereological bridging references . 
+	</s>
+	
+
+	<s id="4">
+		 We find that using first mention , utterance distance , and lexical distance computed using either Google or WordNet results in an accuracy significantly higher than obtained in previous experiments . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction BRIDGING REFERENCES ( BR ) 
+		<ref citStr="Clark , 1977" id="1" label="CEPF" position="729">
+			( Clark , 1977)
+		</ref>
+		– anaphoric expressions that cannot be resolved purely on the basis of string matching and thus require the reader to ’bridge’ the gap using commonsense inferences–are arguably the most interesting and , at the same time , the most challenging problem in anaphora resolution . 
+	</s>
+	
+
+	<s id="6">
+		 Work such as 
+		<ref citStr="Poesio et al. , 1998" id="2" label="CEPF" position="1032">
+			( Poesio et al. , 1998 
+		</ref>
+		<ref citStr="Poesio et al. , 2002" id="3" label="CEPF" position="1055">
+			; Poesio et al. , 2002 
+		</ref>
+		<ref citStr="Poesio , 2003" id="4" label="CEPF" position="1078">
+			; Poesio , 2003 )
+		</ref>
+		 provided an experimental confirmation of the hypothesis first put forward by 
+		<ref citStr="Sidner ( 1979 )" id="5" label="CEPF" position="1188">
+			Sidner ( 1979 )
+		</ref>
+		 that BRIDGING DESCRIPTIONS (BD)1 are more similar to pronouns than to other types of definite descriptions , in that they are sensitive to the local rather than the global focus 
+		<ref citStr="Grosz and Sidner , 1986" id="6" label="CEPF" position="1394">
+			( Grosz and Sidner , 1986 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="7">
+		 This previuous work also suggested that simply choosing the entity whose description is lexically closest to that of the bridging description among those in the current focus space gives poor results ; in fact , better results are obtained by always choosing as ANCHOR of the bridging reference2 the first-mentioned entity of the previous sentence 
+		<ref citStr="Poesio , 2003" id="7" label="CEPF" position="1771">
+			( Poesio , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="8">
+		 But neither source of information in isolation resulted in an accuracy over 40 % . 
+	</s>
+	
+
+	<s id="9">
+		 In short , this earlier work suggested that a combination of salience and lexical / 1We will use the term bridging descriptions to indicate bridging references realized by definite descriptions , equated here with noun phrases with determiner the , like the top . 
+	</s>
+	
+
+	<s id="10">
+		 2Following 
+		<ref citStr="Poesio and Vieira , 1998" id="8" label="CERF" position="2187">
+			( Poesio and Vieira , 1998 )
+		</ref>
+		 , we use the term ‘anchor’ as as a generalization of the term ANTECEDENT , to indicate the discourse entity which an anaphoric expression either realizes , or is related to by an associative relation ; reserving ‘antecedent’ for the cases of identity . 
+	</s>
+	
+
+	<s id="11">
+		 commonsense information is needed to choose the most likely anchor ; the problem remained of how to combine this information . 
+	</s>
+	
+
+	<s id="12">
+		 In the work described in this paper , we used machine learning techniques to find the best combination of local focus features and lexical distance features , focusing on MEREOLOGICAL bridging refer- ences:3 references referring to parts of an object al- ready introduced ( the cabinet ) , such as the panels or the top ( underlined ) in the following example from the GNOME corpus 
+		<ref citStr="Poesio et al. , 2004" id="9" label="OEPF" position="2996">
+			( Poesio et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="13">
+		 ( 1 ) The combination of rare and expensive ma- terials used on [ this cabinet]i indicates that it was a particularly expensive commission . 
+	</s>
+	
+
+	<s id="14">
+		 The four Japanese lacquer panels date from the mid- to late 1600s and were created with a technique known as kijimaki-e . 
+	</s>
+	
+
+	<s id="15">
+		 For this type of lacquer , artisans sanded plain wood to heighten its strong grain and used it as the background of each panel . 
+	</s>
+	
+
+	<s id="16">
+		 They then added the scenic elements of landscape , plants , and animals in raised lacquer . 
+	</s>
+	
+
+	<s id="17">
+		 Although this technique was common in Japan , such large panels were rarely incorporated into French eighteenth-century furniture . 
+	</s>
+	
+
+	<s id="18">
+		 Heavy Ionic pilasters , whose copper-filled flutes give an added rich color and contrast to the gilt- bronze mounts , flank the panels . 
+	</s>
+	
+
+	<s id="19">
+		 Yellow jasper , a semiprecious stone , rather than the usual marble , forms the top . 
+	</s>
+	
+
+	<s id="20">
+		 2 Two sources of information for bridging reference resolution 2.1 Lexical information The use of different sources of lexical knowledge for resolving bridging references has been investigated in a series of papers by Poesio et al . 
+	</s>
+	
+
+	<s id="21">
+		 all using as dataset the Bridging Descriptions ( BDs ) contained in the corpus used by Vieira and Poesio 3 We make use of the classification of bridging references proposed by 
+		<ref citStr="Vieira and Poesio ( 2000 )" id="10" label="CERF" position="4354">
+			Vieira and Poesio ( 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="22">
+		 ‘Mereological’ bridging references are one of the the ‘WordNet’ bridging classes , which cover cases where the information required to bridge the gap may be found in a resource such as WordNet 
+		<ref citStr="Fellbaum , 1998" id="11" label="OEPF" position="4582">
+			( Fellbaum , 1998 )
+		</ref>
+		 : synonymy , hyponymy , and meronymy . 
+	</s>
+	
+
+	<s id="23">
+		 ( 2000 ) . 
+	</s>
+	
+
+	<s id="24">
+		 In these studies , the lexical distance between a BD and its antecedent was used to choose the anchor for the BD among the antecedents in the previous five sentences . 
+	</s>
+	
+
+	<s id="25">
+		 In 
+		<ref citStr="Poesio et al. , 1997" id="12" label="CEPF" position="4831">
+			( Poesio et al. , 1997 
+		</ref>
+		<ref citStr="Vieira and Poesio , 2000" id="13" label="CEPF" position="4854">
+			; Vieira and Poesio , 2000 )
+		</ref>
+		 WordNet 1.6 was used as a lexical resource , with poor or mediocre results . 
+	</s>
+	
+
+	<s id="26">
+		 These results were due in part to missing entries and / or relations ; in part to the fact that because of the monotonic organization of information in Word- Net , complex searches are required even to find apparently close associations ( like that between wheel and car ) . 
+	</s>
+	
+
+	<s id="27">
+		 Similar results using WordNet 1.6 were reported at around the same time by other groups - e.g. , 
+		<ref citStr="Humphreys et al. , 1997" id="14" label="CEPF" position="5350">
+			( Humphreys et al. , 1997 
+		</ref>
+		<ref citStr="Harabagiu and Moldovan , 1998" id="15" label="CEPF" position="5376">
+			; Harabagiu and Moldovan , 1998 )
+		</ref>
+		 and have been confirmed by more recent studies studying both hyponymy 
+		<ref citStr="Markert et al. , 2003" id="16" label="CEPF" position="5505">
+			( Markert et al. , 2003 )
+		</ref>
+		 and more specifically mereological BDs . 
+	</s>
+	
+
+	<s id="28">
+		 
+		<ref citStr="Poesio ( 2003 )" id="17" label="CEPF" position="5571">
+			Poesio ( 2003 )
+		</ref>
+		 found that none of the 58 mereological references in the GNOME corpus ( discussed below ) had a direct mereological link to their anchor : for example , table is not listed as a possible holonym of drawer , nor is house listed as a possible holonym for furniture . 
+	</s>
+	
+
+	<s id="29">
+		 
+		<ref citStr="Garcia-Almanza ( 2003 )" id="18" label="CEPF" position="5869">
+			Garcia-Almanza ( 2003 )
+		</ref>
+		 found that only 16 of these 58 mereological references could be resolved by means of more complex searches in WordNet , including following the hypernymy hierarchy for both the anchor and the bridging reference , and a ’spreading activation’ search . 
+	</s>
+	
+
+	<s id="30">
+		 
+		<ref citStr="Poesio et al . ( 1998 )" id="19" label="CEPF" position="6155">
+			Poesio et al . ( 1998 )
+		</ref>
+		 explored the usefulness of vector-space representations of lexical meaning for BDs that depended on lexical knowledge about hyponymy and synonymy . 
+	</s>
+	
+
+	<s id="31">
+		 The HAL model discussed in 
+		<ref citStr="Lund et al . ( 1995 )" id="20" label="CEPF" position="6361">
+			Lund et al . ( 1995 )
+		</ref>
+		 was used to find the anchor of the BDs in the dataset already used by 
+		<ref citStr="Poesio et al . ( 1997 )" id="21" label="CEPF" position="6455">
+			Poesio et al . ( 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="32">
+		 However , using vectorial representations did not improve the results for the ‘Word- Net’ BDs : for the synonymy cases the results were comparable to those obtained with WordNet ( 4/12 , 33 % ) , but for the hyponymy BDs ( 2/14 , as opposed to 8/14 with WordNet ) and especially for mereological references ( 2/12 ) they were clearly worse . 
+	</s>
+	
+
+	<s id="33">
+		 On the other hand , the post-hoc analysis of results suggested that the poor results were in part due to the lack of mechanisms for choosing the most salient ( or most recent ) BDs . 
+	</s>
+	
+
+	<s id="34">
+		 The poor results for mereological BDs with both WordNet and vectorial representations indicated that a different approach was needed to acquire information about part-of relations . 
+	</s>
+	
+
+	<s id="35">
+		 Grefenstette’s work on semantic similarity 
+		<ref citStr="Grefenstette , 1993" id="22" label="CEPF" position="7270">
+			( Grefenstette , 1993 )
+		</ref>
+		 and Hearst’s work on acquiring taxonomic information 
+		<ref citStr="Hearst , 1998" id="23" label="CEPF" position="7342">
+			( Hearst , 1998 )
+		</ref>
+		 suggested that certain syntactic constructions could be usefully viewed as reflect ing underlying semantic relations . 
+	</s>
+	
+
+	<s id="36">
+		 In 
+		<ref citStr="Ishikawa , 1998" id="24" label="CEPF" position="7474">
+			( Ishikawa , 1998 
+		</ref>
+		<ref citStr="Poesio et al. , 2002" id="25" label="CEPF" position="7492">
+			; Poesio et al. , 2002 )
+		</ref>
+		 it was proposed that syntactic patterns ( henceforth : CONSTRUCTIONS ) such as the wheel of the car could indicate that wheel and car stood in a part-of relation.4 Vector- based lexical representations whose elements encoded the strength of associations identified by means of constructions like the one discussed were constructed from the British National Corpus , using Abney’s CASS chunker . 
+	</s>
+	
+
+	<s id="37">
+		 These representations were then used to choose the anchor of BDs , using again the same dataset and the same methods as in the previous two attempts , and using mutual information to determine the strength of association . 
+	</s>
+	
+
+	<s id="38">
+		 The results on mereological BDs–recall .67 , precision=.73–were drastically better than those obtained with WordNet or with simple vectorial representations . 
+	</s>
+	
+
+	<s id="39">
+		 The results with the three types of lexical resources and the different types of BDs in the Vieira / Poesio dataset are summarized in Table 1 . 
+	</s>
+	
+
+	<s id="40">
+		 Finally , a number of researchers recently argued for using the Web as a way of addressing data sparseness 
+		<ref citStr="Keller and Lapata , 2003" id="26" label="CEPF" position="8612">
+			( Keller and Lapata , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="41">
+		 The Web has proven a useful resource for work in anaphora resolution as well . 
+	</s>
+	
+
+	<s id="42">
+		 
+		<ref citStr="Uryupina ( 2003 )" id="27" label="CEPF" position="8729">
+			Uryupina ( 2003 )
+		</ref>
+		 used the Web to estimate ‘Definiteness probabilities’ used as a feature to identify discourse-new definites . 
+	</s>
+	
+
+	<s id="43">
+		 
+		<ref citStr="Markert et al . ( 2003 )" id="28" label="CEPF" position="8875">
+			Markert et al . ( 2003 )
+		</ref>
+		 used the Web and the construction method to extract information about hyponymy used to resolve other-anaphora ( achieving an f value of around 67 % ) as well as the BDs in the Vieira-Poesio dataset ( their results for these cases were not better than those obtained by 
+		<ref citStr="Vieira and Poesio , 2000" id="29" label="CEPF" position="9173">
+			( Vieira and Poesio , 2000 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="44">
+		 Markert et al . 
+	</s>
+	
+
+	<s id="45">
+		 also found a sharp difference between using the Web as a a corpus and using the BNC , the results in the latter case being significantly worse than when using WordNet . 
+	</s>
+	
+
+	<s id="46">
+		 
+		<ref citStr="Poesio ( 2003 )" id="30" label="CEPF" position="9405">
+			Poesio ( 2003 )
+		</ref>
+		 used the Web to choose between the hypotheses concerning the anchors of mereological BDs in the GNOME corpus generated on the basis of Centering information ( see below ) . 
+	</s>
+	
+
+	<s id="47">
+		 2.2 Salience One of the motivations behind Grosz and Sidner’s ( 1986 ) distinction between two aspects of the attentional state - the LOCAL FOCUS and the GLOBAL FOCUS–is the difference between the interpretive preferences of pronouns and definite descriptions . 
+	</s>
+	
+
+	<s id="48">
+		 According to Grosz and Sidner , the interpretation for pronouns is preferentially found in the local focus , whereas that of definite descriptions is preferentially found in the global focus . 
+	</s>
+	
+
+	<s id="49">
+		 4A similar approach was pursued in parallel by 
+		<ref citStr="Berland and Charniak ( 1999 )" id="31" label="CEPF" position="10139">
+			Berland and Charniak ( 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="50">
+		 Synonymy Hyponymy Meronymy Total WN Total BDs BDs in Vieira / Poesio corpus 12 14 12 38 204 Using WordNet 4(33.3%) 8(57.1%) 3(33.3%) 15 ( 39 % ) 34 ( 16.7 % ) Using HAL Lexicon 4(33.3%) 2(14.3%) 2(16.7%) 8 ( 22.2 % ) 46(22.7%) Using Construction Lexicon 1(8.3%) 0 8(66.7%) 9 ( 23.7 % ) 34(16.7%) Table 1 : BD resolution results using only lexical distance with WordNet , HAL-style vectorial lexicon , and construction-based lexicon . 
+	</s>
+	
+
+	<s id="51">
+		 However , already 
+		<ref citStr="Sidner ( 1979 )" id="32" label="CEPF" position="10627">
+			Sidner ( 1979 )
+		</ref>
+		 hypothesized that BDs are different from other definite descriptions , in that the local focus is preferred for their interpretation . 
+	</s>
+	
+
+	<s id="52">
+		 As already mentioned , the error analysis of 
+		<ref citStr="Poesio et al . ( 1998 )" id="33" label="CEPF" position="10840">
+			Poesio et al . ( 1998 )
+		</ref>
+		 supported this finding : the study found that the strategy found to be optimal for anaphoric definite descriptions by 
+		<ref citStr="Vieira and Poesio ( 2000 )" id="34" label="CERF" position="10985">
+			Vieira and Poesio ( 2000 )
+		</ref>
+		 , considering as equally likely all antecedents in the previous five-sentence window ( as opposed to preferring closer antecedents ) , gave poor results for bridging references ; entities introduced in the last two sentences and ‘main entities’ were clearly preferred . 
+	</s>
+	
+
+	<s id="53">
+		 The following example illustrates how the local focus affects the interpretation of a mereological BD , the sides , in the third sentence . 
+	</s>
+	
+
+	<s id="54">
+		 ( 2 ) [ Cartonnier ( Filing Cabinet)]i with Clock [ This piece of mid-eighteenth-century furniture]i was meant to be used like a modern filing cabinet ; papers were placed in [ leather- fronted cardboard boxes]j ( now missing ) that were fitted into the open shelves . 
+	</s>
+	
+
+	<s id="55">
+		 [ A large table]k decorated in the same manner would have been placed in front for working with those papers . 
+	</s>
+	
+
+	<s id="56">
+		 Access to [ the cartonnier]i’s lower half can only be gained by the doors at the sides , because the table would have blocked the front . 
+	</s>
+	
+
+	<s id="57">
+		 The three main candidate anchors in this example– the cabinet , the boxes , and the table–all have sides . 
+	</s>
+	
+
+	<s id="58">
+		 However , the actual anchor , the cabinet , is clearly the Backward-Looking Center ( CB ) 
+		<ref citStr="Grosz et al. , 1995" id="35" label="CEPF" position="12193">
+			( Grosz et al. , 1995 )
+		</ref>
+		 of the first sentence after the title;5 and if we assume that entities can be indirectly realized– see 
+		<ref citStr="Poesio et al. , 2004" id="36" label="CERF" position="12321">
+			( Poesio et al. , 2004)
+		</ref>
+		–the cabinet is the CB of all three sentences , including the one containing the BR , and therefore a preferred candidate . 
+	</s>
+	
+
+	<s id="59">
+		 In 
+		<ref citStr="Poesio , 2003" id="37" label="CEPF" position="12475">
+			( Poesio , 2003 )
+		</ref>
+		 , the impact on associative BD resolution of both relatively simple salience features ( such as distance and order or mention ) and of more complex ones ( such as whether the anchor was a CB or not ) was studied using the GNOME corpus ( discussed below ) and the CB-tracking techniques developed to compare alternative ways of instantiating 5The CB is Centering theory’s 
+		<ref citStr="Grosz et al. , 1995" id="38" label="CEPF" position="12871">
+			( Grosz et al. , 1995 )
+		</ref>
+		 implementation of the notion of ‘topic’ or ‘main entity’ . 
+	</s>
+	
+
+	<s id="60">
+		 the parameters of Centering by 
+		<ref citStr="Poesio et al . ( 2004 )" id="39" label="CEPF" position="12998">
+			Poesio et al . ( 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="61">
+		 
+		<ref citStr="Poesio ( 2003 )" id="40" label="CEPF" position="13025">
+			Poesio ( 2003 )
+		</ref>
+		 analyzed , first of all , the distance between the BD and the closest mention of the anchor , finding that of the 169 associative BDs , 77.5 % had an anchor occurring either in the same sentence ( 59 ) or the previous one ( 72 ) ; and that only 4.2 % of anchors were realized more than 5 sentences back . 
+	</s>
+	
+
+	<s id="62">
+		 These percentages are very similar to those found with pronouns 
+		<ref citStr="Hobbs , 1978" id="41" label="CEPF" position="13420">
+			( Hobbs , 1978 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="63">
+		 Next , Poesio analyzed the order of mention of the anchors of the 72 associative BD whose anchor was in the previous sentence , finding that 49/72 , 68 % , were realized in first position . 
+	</s>
+	
+
+	<s id="64">
+		 This finding is consistent with the preference for first-mentioned entities ( as opposed to the most recent ones ) repeatedly observed in the psychological literature on anaphora 
+		<ref citStr="Gernsbacher and Hargreaves , 1988" id="42" label="CEPF" position="13810">
+			( Gernsbacher and Hargreaves , 1988 
+		</ref>
+		<ref citStr="Gordon et al. , 1993" id="43" label="CEPF" position="13846">
+			; Gordon et al. , 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="65">
+		 Finally , Poesio examined the hypothesis that finding the anchor of a BD involves knowing which entities are the CB and the CP in the sense of Centering 
+		<ref citStr="Grosz et al. , 1995" id="44" label="CEPF" position="14058">
+			( Grosz et al. , 1995 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="66">
+		 He found that CB(U-1) is the anchor of 37/72 of the BDs whose anchor is in the previous utterance ( 51.3 % ) , and only 33.6 % overall . 
+	</s>
+	
+
+	<s id="67">
+		 ( CP(U-1) was the anchor for 38.2 % associative BDs . 
+	</s>
+	
+
+	<s id="68">
+		 ) Clearly , simply choosing the CB ( or the CP ) of the previous sentence as the anchor doesn’t work very well . 
+	</s>
+	
+
+	<s id="69">
+		 However , Poesio also found that 89 % of the anchors of associative BDs had been CBs or CPs . 
+	</s>
+	
+
+	<s id="70">
+		 This suggested that while knowing the local focus isn’t sufficient to determine the anchor of a BD , restricting the search for anchors to CBs and CPs only might increase the precision of the BD resolution process . 
+	</s>
+	
+
+	<s id="71">
+		 This hypothesis was supported by a preliminary test with 20 associative BDs . 
+	</s>
+	
+
+	<s id="72">
+		 The anchor for a BD with head noun NBD was chosen among the subset of all potential antecedents ( PA ) in the previous five sentences that had been CBs or CPs by calling Google ( by hand ) with the query “the NBD of the NPA” , where NPA is the head noun of the potential antecedent , and choosing the PA with the highest hit count . 
+	</s>
+	
+
+	<s id="73">
+		 14 mereological BDs ( 70 % ) were resolved correctly this way . 
+	</s>
+	
+
+	<s id="74">
+		 3 Methods The results just discussed suggest that lexical information and salience information combine to deter- mine the anchor of associative BRs . 
+	</s>
+	
+
+	<s id="75">
+		 The goal of the experiments discussed in this paper was to test more thoroughly this hypothesis using machine learning techniques to combine the two types of information , using a larger dataset than used in this previous work , and using completely automatic techniques . 
+	</s>
+	
+
+	<s id="76">
+		 We concentrated on mereological BDs , but our methods could be used to study other types of bridging references , using , e.g. , the constructions used by Markert et al . 
+	</s>
+	
+
+	<s id="77">
+		 (2003).6 3.1 The corpus We used for these experiments the GNOME corpus , already used in 
+		<ref citStr="Poesio , 2003" id="45" label="OEPF" position="15962">
+			( Poesio , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="78">
+		 An important property of this corpus for the purpose of studying BR resolution is that fewer types of BDs are annotated than in the original Vieira / Poesio dataset , but the annotation is reliable 
+		<ref citStr="Poesio et al. , 2004" id="46" label="CEPF" position="16195">
+			( Poesio et al. , 2004)
+		</ref>
+		.7 The corpus also contains more mereological BDs and BRs than the original dataset used by Poesio and Vieira . 
+	</s>
+	
+
+	<s id="79">
+		 The GNOME corpus contains about 500 sentences and 3000 NPs . 
+	</s>
+	
+
+	<s id="80">
+		 A variety of semantic and discourse information has been annotated ( the manual is available from the GNOME project’s home page at http://www.hcrc.ed.ac.uk/ ˜gnome ) . 
+	</s>
+	
+
+	<s id="81">
+		 Four types of anaphoric relations were annotated : identity ( IDENT ) , set membership ( ELEMENT ) , subset ( SUBSET ) , and ‘generalized possession’ ( POSS ) , which also includes part-of relations . 
+	</s>
+	
+
+	<s id="82">
+		 A total of 2073 anaphoric relations were annotated ; these include 1164 identity relations ( including those realized with synonyms and hyponyms ) and 153 POSS relations . 
+	</s>
+	
+
+	<s id="83">
+		 Bridging references are realized by noun phrases of different types , including indefinites ( as in I bought a book and a page fell out 
+		<ref citStr="Prince , 1981" id="47" label="CEPF" position="17111">
+			( Prince , 1981 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="84">
+		 Of the 153 mereological references , 58 mereological references are realized by definite descriptions . 
+	</s>
+	
+
+	<s id="85">
+		 6In 
+		<ref citStr="Poesio , 2003" id="48" label="CJPN" position="17259">
+			( Poesio , 2003 )
+		</ref>
+		 , bridging descriptions based on set relations ( element , subset ) were also considered , but we found that this class of BDs required completely different methods . 
+	</s>
+	
+
+	<s id="86">
+		 7A serious problem when working with bridging references is the fact that subjects , when asked for judgments about bridging references in general , have a great deal of difficulty in agreeing on which expressions in the corpus are bridging references , and what their anchors are 
+		<ref citStr="Poesio and Vi eira , 1998" id="49" label="CEPF" position="17746">
+			( Poesio and Vi eira , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="87">
+		 This finding raises a number of interesting theoretical questions concerning the extent of agreement on semantic judgments , but also the practical question of whether it is possible to evaluate the performance of a system on this task . 
+	</s>
+	
+
+	<s id="88">
+		 Subsequent work found , however , that restricting the type of bridging inferences required does make it possible for annotators to agree among themselves 
+		<ref citStr="Poesio et al. , 2004" id="50" label="CEPF" position="18184">
+			( Poesio et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="89">
+		 In the GNOME corpus only a few types of associative relations are marked , but these can be marked reliably , and do include part-of relations like that between the top and the cabinet that we are concerned with . 
+	</s>
+	
+
+	<s id="90">
+		 3.2 Features Our classifiers use two types of input features . 
+	</s>
+	
+
+	<s id="91">
+		 Lexical features Only one lexical feature was used : lexical distance , but extracted from two different lexical sources . 
+	</s>
+	
+
+	<s id="92">
+		 Google distance was computed as in 
+		<ref citStr="Poesio , 2003" id="51" label="CEPF" position="18675">
+			( Poesio , 2003 )
+		</ref>
+		 ( see also 
+		<ref citStr="Markert et al . ( 2003 )" id="52" label="CEPF" position="18711">
+			Markert et al . ( 2003 )
+		</ref>
+		 ) : given head nouns NBD of the BD and NPA of a potential antecedent , Google is called ( via the Google API ) with a query of the form “the NBD of the NPA” ( e.g. , the sides of the table ) and the number of hits NHits is computed . 
+	</s>
+	
+
+	<s id="93">
+		 Then ~ 1 if NHits = 0 Google distance = 1 NHits otherwise The query “the NBD of NPA” ( e.g. , the amount of cream ) is used when NPA is used as a mass noun ( information about mass vs count is annotated in the GNOME corpus ) . 
+	</s>
+	
+
+	<s id="94">
+		 If the potential antecedent is a pronoun , the head of the closest realization of the same discourse entity is used . 
+	</s>
+	
+
+	<s id="95">
+		 We also reconsidered WordNet ( 1.7.1 ) as an alternative way of establishing lexical distance , but made a crucial change from the studies reported above . 
+	</s>
+	
+
+	<s id="96">
+		 Both earlier studies such as 
+		<ref citStr="Poesio et al. , 1997" id="53" label="CEPF" position="19540">
+			( Poesio et al. , 1997 )
+		</ref>
+		 and more recent ones 
+		<ref citStr="Poesio , 2003" id="54" label="CEPF" position="19562">
+			( Poesio , 2003 
+		</ref>
+		<ref citStr="GarciaAlmanza , 2003" id="55" label="CEPF" position="19578">
+			; GarciaAlmanza , 2003 )
+		</ref>
+		 had shown that mereological information in WordNet is extremely sparse . 
+	</s>
+	
+
+	<s id="97">
+		 However , these studies also showed that information about hypernyms is much more extensive . 
+	</s>
+	
+
+	<s id="98">
+		 This suggested trading precision for recall with an alternative way of using WordNet to compute lexical distance : instead of requiring the path between the head predicate of the associative BD and the head predicate of the potential antecedent to contain at least one mereological link ( various strategies for performing a search of this type were considered in 
+		<ref citStr="GarciaAlmanza , 2003" id="56" label="CEPF" position="20176">
+			( GarciaAlmanza , 2003 )
+		</ref>
+		 ) , consider only hypernymy and hyponymy links . 
+	</s>
+	
+
+	<s id="99">
+		 To compute our second measure of lexical distance between NBD and NPA defined as above , WordNet distance , the following algorithm was used . 
+	</s>
+	
+
+	<s id="100">
+		 Let distance(s , s ' ) be the number of hyper- nim links between concepts s and s ' . 
+	</s>
+	
+
+	<s id="101">
+		 Then 1 . 
+	</s>
+	
+
+	<s id="102">
+		 Get from WordNet all the senses of both NBD and NPA ; 2 . 
+	</s>
+	
+
+	<s id="103">
+		 Get the hypernym tree of each of these senses ; 3 . 
+	</s>
+	
+
+	<s id="104">
+		 For each pair of senses sNBDi and sNPAj , find the Most Specific Common Subsumer Z?mm ( this is the closest concept which is an hypernym of both senses ) . 
+	</s>
+	
+
+	<s id="105">
+		 4. The ShortestWNDistance between NBD and NPA is then computed as the shortest distance between any of the senses of NBD and any of the senses of NPA : ShtstWNDist(NBD , NPA ) = minz,j ( distance(sNBD , , 3z~ m ) + distance(ssom zj , sNPAj ) ) 5 . 
+	</s>
+	
+
+	<s id="106">
+		 Finally , a normalized WordNet distance in the range 0..1 is then obtained by dividing ShtstWNDist by a Max WNDist factor ( 30 in our experiments ) . 
+	</s>
+	
+
+	<s id="107">
+		 WordNet distance = 1 if no path between the concepts was found . 
+	</s>
+	
+
+	<s id="108">
+		 1 if no path WN distance = S ShtstWNDist MaxWNDistotherwise therwise Salience features In choosing the salience features we took into account the results in 
+		<ref citStr="Poesio , 2003" id="57" label="CERF" position="21457">
+			( Poesio , 2003 )
+		</ref>
+		 , but we only used features that were easy to compute , hoping that they would approximate the more complex features used in 
+		<ref citStr="Poesio , 2003" id="58" label="CERF" position="21600">
+			( Poesio , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="109">
+		 The first of these features was utterance distance , the distance between the utterance in which the BR occurs and the utterance containing the potential antecedent . 
+	</s>
+	
+
+	<s id="110">
+		 ( Sentences are used as utterances , as suggested by the results of 
+		<ref citStr="Poesio et al. , 2004" id="59" label="CERF" position="21880">
+			( Poesio et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="111">
+		 ) As discussed above , studies such as 
+		<ref citStr="Poesio , 2003" id="60" label="CEPF" position="21948">
+			( Poesio , 2003 )
+		</ref>
+		 suggested that bridging references were sensitive to distance , in the same way as pronouns 
+		<ref citStr="Hobbs , 1978" id="61" label="CEPF" position="22041">
+			( Hobbs , 1978 
+		</ref>
+		<ref citStr="Clark and Sengul , 1979" id="62" label="CEPF" position="22056">
+			; Clark and Sengul , 1979 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="112">
+		 This finding was confirmed in our study ; all anchors of the 58 mereological BDs occurred within the previous five sentences , and 47/58 ( 81 % ) in the previous two . 
+	</s>
+	
+
+	<s id="113">
+		 ( It is interesting to note that no anchor occurred in the same sentence as the BD . 
+	</s>
+	
+
+	<s id="114">
+		 ) The second salience feature was boolean : whether the potential antecedent had been realized in first mention position in a sentence 
+		<ref citStr="Poesio , 2003" id="63" label="CEPF" position="22501">
+			( Poesio , 2003 
+		</ref>
+		<ref citStr="Gernsbacher and Hargreaves , 1988" id="64" label="CEPF" position="22517">
+			; Gernsbacher and Hargreaves , 1988 
+		</ref>
+		<ref citStr="Gordon et al. , 1993" id="65" label="CEPF" position="22553">
+			; Gordon et al. , 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="115">
+		 Two forms of this feature were tried : local first mention ( whether the entity had been realized in first position within the previous five sentences ) and global first mention ( whether it had been realized in first position anywhere ) . 
+	</s>
+	
+
+	<s id="116">
+		 269 entities are realized in first position in the five sentences preceding one of the 58 BDs ; 298 entities are realized in first position anywhere in the preceding text . 
+	</s>
+	
+
+	<s id="117">
+		 For 31/58 of the anchors of mereological BDs , 53.5 % , local first mention = 1 ; global first mention = 1 for 33/58 of anchors , 56.9 % . 
+	</s>
+	
+
+	<s id="118">
+		 3.3 Training Methods Constructing the data set The data set used to train and test BR resolution consisted of a set of positive instances ( the actual anchors of the mereological BRs ) and a set of negative instances ( other entities mentioned in the previous five sentences of the text ) . 
+	</s>
+	
+
+	<s id="119">
+		 However , preliminary tests showed that simply including all potential antecedents as negative instances would make the data set too unbalanced , particularly when only bridging descriptions were considered : in this case we would have had 58 positive instances vs. 1672 negative ones . 
+	</s>
+	
+
+	<s id="120">
+		 We therefore developed a parametric script that could create datasets with different positive / negative ratios - 1:1 , 1:2 , 1:3 - by including , with each positive instance , a varying number of negative instances ( 1 , 2 , 3 , ... ) randomly chosen among the other potential antecedents , the number of negative instances to be included for each positive one being a parameter chosen by the experimenter . 
+	</s>
+	
+
+	<s id="121">
+		 We report the results obtained with 1:1 and 1:3 ratios . 
+	</s>
+	
+
+	<s id="122">
+		 The dataset thus constructed was used for both training and testing , by means of a 10-fold cross- validation . 
+	</s>
+	
+
+	<s id="123">
+		 Types of Classifiers Used Multi-layer perceptrons ( MLPs ) have been claimed to work well with small datasets ; we tested both our own implementation of an MLP with back-propagation in Mat- Lab 6.5 , experimenting with different configurations , and an off-the-shelf MLP included in the Weka Machine Learning Library8 , Weka-NN. . 
+	</s>
+	
+
+	<s id="124">
+		 The best configuration for our own MLP proved to be one with a sigle hidden layer and 10 hidden nodes . 
+	</s>
+	
+
+	<s id="125">
+		 We also used the implementation of a Naive Bayes classifier included in the Weka MLL , as 
+		<ref citStr="Modjeska et al . ( 2003 )" id="66" label="CEPF" position="24937">
+			Modjeska et al . ( 2003 )
+		</ref>
+		 reported good results . 
+	</s>
+	
+
+	<s id="126">
+		 4 Experimental Results In the first series of experiments only mereological Bridging Descriptions were considered ( i.e. , only bridging references realized by the-NPs ) . 
+	</s>
+	
+
+	<s id="127">
+		 In a second series of experiments we considered all 153 mereological BRs , including ones realized with indefinites . 
+	</s>
+	
+
+	<s id="128">
+		 Finally , we tested a classifier trained on balanced data ( 1:1 and 1:3 ) to find the anchors of BDs among all possible anchors . 
+	</s>
+	
+
+	<s id="129">
+		 4.1 Experiment 1 : Mereological descriptions The GNOME corpus contains 58 mereological BDs . 
+	</s>
+	
+
+	<s id="130">
+		 The five sentences preceding these 58 BDs contain a total of 1511 distinct entities for which a head could be recovered , possibly by examining their antecedents . 
+	</s>
+	
+
+	<s id="131">
+		 This means an average of 26 distinct potential antecedents per BD , and 5.2 entities per sentence . 
+	</s>
+	
+
+	<s id="132">
+		 The simplest baselines for the task of finding 8The library is available from http://www.cs.waikato.ac.nz/ml/weka/ . 
+	</s>
+	
+
+	<s id="133">
+		 the anchor are therefore 4 % ( by randomly choosing one antecedent among those in the previous five sentences ) and 19.2 % ( by randomly choosing one antecedent among those in the previous sentence only ) . 
+	</s>
+	
+
+	<s id="134">
+		 As 4.6 entities on average were realized in first mention position in the five sentences preceding a BD ( 269/58 ) , choosing randomly among the first-mentioned entities gives a slighly higher accuracy of 21.3 % . 
+	</s>
+	
+
+	<s id="135">
+		 A few further baselines can be established by examining each feature separately . 
+	</s>
+	
+
+	<s id="136">
+		 Google didn’t return any hits for 1089 out of 1511 distinct PAs , and no hit for 24/58 anchors ; in 8/58 of cases ( 13.8 % ) the entity with the minimum Google distance is the correct anchor . 
+	</s>
+	
+
+	<s id="137">
+		 We saw before that the method for computing WordNet distance used in 
+		<ref citStr="Poesio , 2003" id="67" label="CJPN" position="26747">
+			( Poesio , 2003 )
+		</ref>
+		 didn’t find a path for any of the mereological BDs ; however , not trying to follow mereological links worked much better , achieving the same accuracy as Google distance ( 8/58 , 13.8 % ) and finding connections for much higher percentages of concepts : no path could be found for only 10/58 of actual anchors , and for 503/1511 potential antecedents . 
+	</s>
+	
+
+	<s id="138">
+		 Pairwise combinations of these features were also considered . 
+	</s>
+	
+
+	<s id="139">
+		 The best such combination , choosing the first mentioned entity in the previous sentence , achieves an accuracy of 18/58 , 31 % . 
+	</s>
+	
+
+	<s id="140">
+		 These baseline results are summarized in the following table . 
+	</s>
+	
+
+	<s id="141">
+		 Notice how even the best baselines achieve pretty low accuracy , and how even simple ’salience’ measures work better than lexical distance measures . 
+	</s>
+	
+
+	<s id="142">
+		 Baseline Accuracy Random choice between entities in previous 5 4 % Random choice between entities in previous 1 19 % Random choice between First Ment . 
+	</s>
+	
+
+	<s id="143">
+		 21.3 % entities in previous 5 Entity with min Google distance 13.8 % Entity with min WordNet distance 13.8 % FM entity in previous sentence 31 % Min Google distance in previous sentence 17.2 % Min WN distance in previous sentence 25.9 % FM and Min Google distance 12 % FM and Min WN distance 24.1 % Table 2 : Baselines for the BD task The features utterance distance , local first mention , and global f.m. were used in all machine learning experiments . 
+	</s>
+	
+
+	<s id="144">
+		 But since one of our goals was to compare different lexical resources , only one lexical distance feature was used in the first two experiment . 
+	</s>
+	
+
+	<s id="145">
+		 The three classifiers were trained to classify a potential antecedent as either ‘anchor’ or ‘not anchor’ . 
+	</s>
+	
+
+	<s id="146">
+		 The classification results with Google distance and WN distance for all three classifiers and the 1:1 data set ( 116 instances in total , 58 real anchor , 58 negative instances ) , for all elements of the data set , and averaging across the 10 cross-validations , are shown in Table 3 . 
+	</s>
+	
+
+	<s id="147">
+		 WN Distance Google Distance ( Correct ) ( Correct ) Our own MLP 92(79.3%) 89(76.7%) Weka NN 91(78.4%) 86(74.1%) Weka Naive Bayes 88(75.9%) 85(73.3%) Table 3 : Classification results for BDs These results are clearly better than those obtained with any of the baseline methods discussed above . 
+	</s>
+	
+
+	<s id="148">
+		 The differences between WN distance and Google distance , and that between our own MLP and the Weka implementation of Naive Bayes , are also significant ( by a sign test , p &lt; .05 ) , whereas the pairwise differences between our own MLP and Weka’s NN , and between this and the Naive Bayes classifier , aren’t . 
+	</s>
+	
+
+	<s id="149">
+		 In other words , although we find little difference between using WordNet and Google to compute lexical distance , using WordNet leads to slightly better results for BDs . 
+	</s>
+	
+
+	<s id="150">
+		 The next table shows precision , recall and f-values for the positive data points , for the feature sets using WN distance and Google distance , respectively : Precision Recall F-value WN features 75.4 % 84.5 % 79.6 % Google features 70.6 % 86.2 % 77.6 % Table 4 : Precision and recall for positive instances Using a 1:3 dataset ( 3 negative data points for each anchor ) , overall accuracy increases ( to 82 % using Google distance ) and accuracy with Google distance is better than with Wordnet distance ( 80.6 % ) ; however , the precision and recall figures for the positive data points get much worse : 56.7 % with Google , 55.7 % with Wordnet . 
+	</s>
+	
+
+	<s id="151">
+		 4.2 All mereological references Clearly , 58 positive instances is a fairly small dataset . 
+	</s>
+	
+
+	<s id="152">
+		 In order to have a larger dataset , we included every bridging reference in the corpus , including those realized with indefinite NPs , thus bringing the total to 153 positive instances . 
+	</s>
+	
+
+	<s id="153">
+		 We then ran a second series of experiments using the same methods as before . 
+	</s>
+	
+
+	<s id="154">
+		 The results were slightly lower than those for BDs only , but in this case there was no difference between using Google and using WN . 
+	</s>
+	
+
+	<s id="155">
+		 F- measure on positive instances was 76.3 % with WN , 4.375.8%AwithharderGoogle . 
+	</s>
+	
+
+	<s id="156">
+		 test In a last experiment , we used classifiers trained on balanced and moderately unbalanced data to determine the anchor of 6 randomly chosen BDs among WN Distance Google Distance ( Correct ) ( Correct ) Weka NN 227(74.2%) 230(75.2%) Table 5 : Classification results for all BDs all of their 346 possible antecedents in context . 
+	</s>
+	
+
+	<s id="157">
+		 For these experiments , we also tried to use both Google and WordNet simultaneously . 
+	</s>
+	
+
+	<s id="158">
+		 The results for BDs are shown in Table 6 . 
+	</s>
+	
+
+	<s id="159">
+		 The first column of the table specifies the lexical resource used ; the second the degree of balance ; the next two columns percentage correct and F value on a testing set with the same balance as the training set ; the final two columns perc . 
+	</s>
+	
+
+	<s id="160">
+		 correct and F value on the harder test set . 
+	</s>
+	
+
+	<s id="161">
+		 The best results,F=.5 , are obtained using both Google and WN distance , and using a larger ( if unbalanced ) training corpus . 
+	</s>
+	
+
+	<s id="162">
+		 These results are not as good as those obtained ( by hand ) by Poesio ( which , however , used a complete focus tracking mechanism ) , but the F measure is still 66 % higher than that obtained with the highest baseline ( FM only ) , and not far off from the results obtained with direct anaphoric definite descriptions ( e.g. , by 
+		<ref citStr="Poesio and Alexandrov-Kabadjov , 2004" id="68" label="CEPF" position="32146">
+			( Poesio and Alexandrov-Kabadjov , 2004 )
+		</ref>
+		 ) . 
+	</s>
+	
+
+	<s id="163">
+		 It’s also conforting to note that results with the harder test improve the more data are used , which suggests that better results could be obtained with a larger corpus . 
+	</s>
+	
+
+	<s id="164">
+		 5 Related work In recent years there has been a lot of work to develop anaphora resolution algorithms using both symbolic and statistical methods that could be quantitatively evaluated 
+		<ref citStr="Humphreys et al. , 1997" id="69" label="CEPF" position="32527">
+			( Humphreys et al. , 1997 
+		</ref>
+		<ref citStr="Ng and Cardie , 2002" id="70" label="CEPF" position="32553">
+			; Ng and Cardie , 2002 )
+		</ref>
+		 but this work focused on identity relations ; bridging references were explicitly excluded from the MUC coreference task because of the problems with reliability discussed earlier . 
+	</s>
+	
+
+	<s id="165">
+		 Thus , most work on bridging has been theoretical , like the work by 
+		<ref citStr="Asher and Lascarides ( 1998 )" id="71" label="CEPF" position="32867">
+			Asher and Lascarides ( 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="166">
+		 Apart from the work by Poesio et al. , the main other studies attempting quantitative evaluations of bridging reference resolution are 
+		<ref citStr="Markert et al. , 1996" id="72" label="CEPF" position="33014">
+			( Markert et al. , 1996 
+		</ref>
+		<ref citStr="Markert et al. , 2003" id="73" label="CEPF" position="33038">
+			; Markert et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="167">
+		 
+		<ref citStr="Markert et al . ( 1996 )" id="74" label="CEPF" position="33099">
+			Markert et al . ( 1996 )
+		</ref>
+		 also argue for the need to use both Centering information and conceptual knowledge , and attempt to characterize the ‘best’ paths on the basis of an analysis of part-of relations , but use a hand-coded , domain-dependent knowledge base . 
+	</s>
+	
+
+	<s id="168">
+		 
+		<ref citStr="Markert et al . ( 2003 )" id="75" label="CEPF" position="33373">
+			Markert et al . ( 2003 )
+		</ref>
+		 focus on other anaphora , using Hearst’ patterns to mine information about hyponymy from the Web , but do not use focusing knowledge . 
+	</s>
+	
+
+	<s id="169">
+		 6 Discussion and Conclusions The two main results of this study are , first of all , that combining ’salience’ features with ’lexical’ features leads to much better results than using either method in isolation ; and that these results are an improvement over those previously reported in the literature . 
+	</s>
+	
+
+	<s id="170">
+		 A secondary , but still interesting , result is that using WordNet in a different way –taking advantage of its extensive information about hypernyms to obviate its lack of information about meronymy–obviates the problems previously reported in the literature on using WordNet for resolving mereological bridging references , leading to results comparable to those obtained using Google . 
+	</s>
+	
+
+	<s id="171">
+		 ( Of course , from a practical perspective Google may still be preferrable , particularly for languages for which no WordNet exists . 
+	</s>
+	
+
+	<s id="172">
+		 ) The main limitation of the present work is that the number of BDs and BRs considered , while larger than in our previous studies , is still fairly small . 
+	</s>
+	
+
+	<s id="173">
+		 Unfortunately , creating a reasonably accurate gold standard for this type of semantic interpretation process is slow work . 
+	</s>
+	
+
+	<s id="174">
+		 Our first priority will be therefore to extend the data set , including also the original cases studied by Poesio and Vieira . 
+	</s>
+	
+
+	<s id="175">
+		 Current and future work will also include incorporating the methods tested here in an actual anaphora resolution system , the GUITAR system 
+		<ref citStr="Poesio and Alexandrov-Kabadjov , 2004" id="76" label="CEPF" position="34997">
+			( Poesio and Alexandrov-Kabadjov , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="176">
+		 We are also working on methods for automatically recognizing bridging descriptions , and dealing with other types of ( non-associative ) bridging references based on synonymy and hyponymy . 
+	</s>
+	
+
+	<s id="177">
+		 Acknowledgments The creation of the GNOME corpus was supported by the EPSRC project GNOME , GR/L51126/01 . 
+	</s>
+	
+
+	<s id="178">
+		 References N. Asher and A. Lascarides . 
+	</s>
+	
+
+	<s id="179">
+		 1998. Bridging . 
+	</s>
+	
+
+	<s id="180">
+		 Journal of Semantics , 15(1):83–13 . 
+	</s>
+	
+
+	<s id="181">
+		 M. Berland and E. Charniak . 
+	</s>
+	
+
+	<s id="182">
+		 1999. Finding parts in very large corpora . 
+	</s>
+	
+
+	<s id="183">
+		 In Proc . 
+	</s>
+	
+
+	<s id="184">
+		 of the 37th ACL . 
+	</s>
+	
+
+	<s id="185">
+		 H. H. Clark and C. J. Sengul . 
+	</s>
+	
+
+	<s id="186">
+		 1979. In search of referents for nouns and pronouns . 
+	</s>
+	
+
+	<s id="187">
+		 Memory and Cognition , 7(1):35–41 . 
+	</s>
+	
+
+	<s id="188">
+		 H. H. Clark . 
+	</s>
+	
+
+	<s id="189">
+		 1977. Bridging . 
+	</s>
+	
+
+	<s id="190">
+		 In P. N. Johnson- Laird and P.C. Wason , editors , Thinking : Readings in Cognitive Science . 
+	</s>
+	
+
+	<s id="191">
+		 Cambridge . 
+	</s>
+	
+
+	<s id="192">
+		 C. Fellbaum , editor . 
+	</s>
+	
+
+	<s id="193">
+		 1998. WordNet : An electronic lexical database . 
+	</s>
+	
+
+	<s id="194">
+		 The MIT Press . 
+	</s>
+	
+
+	<s id="195">
+		 A. Garcia-Almanza . 
+	</s>
+	
+
+	<s id="196">
+		 2003. Using WordNet for mereological anaphora resolution . 
+	</s>
+	
+
+	<s id="197">
+		 Master’s thesis , University of Essex . 
+	</s>
+	
+
+	<s id="198">
+		 Lex Res Balance Perc on bal F on bal Perc on Hard F on Hard WN 1:1 70.2 % .7 80.2 % .2 1:3 75.9 % .4 91.7 % 0 Google 1:1 64.4 % .7 63.6 % .1 1.3 79.8 % .5 88.4 % .3 WN + 1:1 66.3 % .6 65.3 % .2 Google 1.3 77.9 % .4 92.5 % .5 Table 6 : Results using a classifier trained on balanced data on unbalanced ones . 
+	</s>
+	
+
+	<s id="199">
+		 M. A. Gernsbacher and D. Hargreaves . 
+	</s>
+	
+
+	<s id="200">
+		 1988. Accessing sentence participants . 
+	</s>
+	
+
+	<s id="201">
+		 Journal of Memory and Language , 27:699–717 . 
+	</s>
+	
+
+	<s id="202">
+		 P. C. Gordon , B. J. Grosz , and L. A. Gillion . 
+	</s>
+	
+
+	<s id="203">
+		 1993 . 
+	</s>
+	
+
+	<s id="204">
+		 Pronouns , names , and the centering of attention in discourse . 
+	</s>
+	
+
+	<s id="205">
+		 Cognitive Science , 17:311–348 . 
+	</s>
+	
+
+	<s id="206">
+		 G. Grefenstette . 
+	</s>
+	
+
+	<s id="207">
+		 1993. SEXTANT : extracting semantics from raw text . 
+	</s>
+	
+
+	<s id="208">
+		 Heuristics . 
+	</s>
+	
+
+	<s id="209">
+		 B. J. Grosz and C. L. Sidner . 
+	</s>
+	
+
+	<s id="210">
+		 1986. Attention , intention , and the structure of discourse . 
+	</s>
+	
+
+	<s id="211">
+		 Computational Linguistics , 12(3):175–204 . 
+	</s>
+	
+
+	<s id="212">
+		 B. J. Grosz , A. K. Joshi , and S. Weinstein . 
+	</s>
+	
+
+	<s id="213">
+		 1995 . 
+	</s>
+	
+
+	<s id="214">
+		 Centering . 
+	</s>
+	
+
+	<s id="215">
+		 Computational Linguistics , 21(2):202–225 . 
+	</s>
+	
+
+	<s id="216">
+		 S. Harabagiu and D. Moldovan . 
+	</s>
+	
+
+	<s id="217">
+		 1998. Knowledge processing on extended WordNet . 
+	</s>
+	
+
+	<s id="218">
+		 In 
+		<ref citStr="Fellbaum , 1998" id="77" position="37371">
+			( Fellbaum , 1998 )
+		</ref>
+		 , pages 379–405 . 
+	</s>
+	
+
+	<s id="219">
+		 M. A. Hearst . 
+	</s>
+	
+
+	<s id="220">
+		 1998. Automated discovery of Word- net relations . 
+	</s>
+	
+
+	<s id="221">
+		 In 
+		<ref citStr="Fellbaum , 1998" id="78" position="37506">
+			( Fellbaum , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="222">
+		 J. R. Hobbs . 
+	</s>
+	
+
+	<s id="223">
+		 1978. Resolving pronoun references . 
+	</s>
+	
+
+	<s id="224">
+		 Lingua , 44:311–338 . 
+	</s>
+	
+
+	<s id="225">
+		 K. Humphreys , R. Gaizauskas , S. Azzam , C. Huyck , B. Mitchell , and H. Cunningham Y. Wilks . 
+	</s>
+	
+
+	<s id="226">
+		 1997. Description of the LaSIE-II System as used for MUC-7 . 
+	</s>
+	
+
+	<s id="227">
+		 In Proc . 
+	</s>
+	
+
+	<s id="228">
+		 of the 7th Message Understanding Conference ( MUC-7 ) . 
+	</s>
+	
+
+	<s id="229">
+		 T. Ishikawa . 
+	</s>
+	
+
+	<s id="230">
+		 1998. Acquisition of associative information and resolution of bridging descriptions . 
+	</s>
+	
+
+	<s id="231">
+		 Master’s thesis , University of Edinburgh . 
+	</s>
+	
+
+	<s id="232">
+		 F. Keller and M. Lapata . 
+	</s>
+	
+
+	<s id="233">
+		 2003. Using the Web to obtain frequencies for unseen bigrams . 
+	</s>
+	
+
+	<s id="234">
+		 Computational Linguistics , 29(3) . 
+	</s>
+	
+
+	<s id="235">
+		 K. Lund , C. Burgess , and R. A. Atchley . 
+	</s>
+	
+
+	<s id="236">
+		 1995. Semantic and associative priming in high- dimensional semantic space . 
+	</s>
+	
+
+	<s id="237">
+		 In Proc . 
+	</s>
+	
+
+	<s id="238">
+		 of the 17th Conf . 
+	</s>
+	
+
+	<s id="239">
+		 of the Cogn . 
+	</s>
+	
+
+	<s id="240">
+		 Science Soc. , pages 660–665 . 
+	</s>
+	
+
+	<s id="241">
+		 K. Markert , M. Strube , and U. Hahn . 
+	</s>
+	
+
+	<s id="242">
+		 1996. Inferential realization constraints on functional anaphora in the centering model . 
+	</s>
+	
+
+	<s id="243">
+		 In Proc . 
+	</s>
+	
+
+	<s id="244">
+		 of 18th Conf . 
+	</s>
+	
+
+	<s id="245">
+		 of the Cog . 
+	</s>
+	
+
+	<s id="246">
+		 Science Soc. , pages 609–614 . 
+	</s>
+	
+
+	<s id="247">
+		 K. Markert , M. Nissim , and N .. Modjeska . 
+	</s>
+	
+
+	<s id="248">
+		 2003. Using the Web for nominal anaphora resolution . 
+	</s>
+	
+
+	<s id="249">
+		 In Proc . 
+	</s>
+	
+
+	<s id="250">
+		 of the EACL Workshop on the Computational Treatment ofAnaphora , pages 39–46 . 
+	</s>
+	
+
+	<s id="251">
+		 N. Modjeska , K. Markert , and M. Nissim . 
+	</s>
+	
+
+	<s id="252">
+		 2003. Using the Web in ML for anaphora resolution . 
+	</s>
+	
+
+	<s id="253">
+		 In Proc . 
+	</s>
+	
+
+	<s id="254">
+		 ofEMNLP-03 , pages 176–183 . 
+	</s>
+	
+
+	<s id="255">
+		 V. Ng and C. Cardie . 
+	</s>
+	
+
+	<s id="256">
+		 2002. Improving machine learning approaches to coreference resolution . 
+	</s>
+	
+
+	<s id="257">
+		 In Proceedings of the 40th Meeting of the ACL . 
+	</s>
+	
+
+	<s id="258">
+		 M. Poesio and R. Vieira . 
+	</s>
+	
+
+	<s id="259">
+		 1998. A corpus-based investigation of definite description use . 
+	</s>
+	
+
+	<s id="260">
+		 Computational Linguistics , 24(2):183–216 , June . 
+	</s>
+	
+
+	<s id="261">
+		 M. Poesio , R. Vieira , and S. Teufel . 
+	</s>
+	
+
+	<s id="262">
+		 1997. Resolving bridging references in unrestricted text . 
+	</s>
+	
+
+	<s id="263">
+		 In R. Mitkov , editor , Proc . 
+	</s>
+	
+
+	<s id="264">
+		 of the ACL Workshop on Robust Anaphora Resolution , pages 1–6 , Madrid . 
+	</s>
+	
+
+	<s id="265">
+		 M. Poesio , S. Schulte im Walde , and C. Brew . 
+	</s>
+	
+
+	<s id="266">
+		 1998. Lexical clustering and definite description interpretation . 
+	</s>
+	
+
+	<s id="267">
+		 In Proc . 
+	</s>
+	
+
+	<s id="268">
+		 of the AAAI Spring Symposium on Learning for Discourse , pages 82–89 . 
+	</s>
+	
+
+	<s id="269">
+		 M. Poesio , T. Ishikawa , S. Schulte im Walde , and R. Vieira . 
+	</s>
+	
+
+	<s id="270">
+		 2002 . 
+	</s>
+	
+
+	<s id="271">
+		 Acquiring lexical knowledge for anaphora resolution . 
+	</s>
+	
+
+	<s id="272">
+		 In Proc . 
+	</s>
+	
+
+	<s id="273">
+		 of the 3rd LREC . 
+	</s>
+	
+
+	<s id="274">
+		 M. Poesio and M. Alexandrov-Kabadjov . 
+	</s>
+	
+
+	<s id="275">
+		 2004. A general-purpose , off the shelf anaphoric resolver . 
+	</s>
+	
+
+	<s id="276">
+		 In Proc . 
+	</s>
+	
+
+	<s id="277">
+		 of the 4th LREC , Lisbon . 
+	</s>
+	
+
+	<s id="278">
+		 M. Poesio , R. Stevenson , B. Di Eugenio , and J. M. Hitzeman . 
+	</s>
+	
+
+	<s id="279">
+		 2004 . 
+	</s>
+	
+
+	<s id="280">
+		 Centering : A parametric theory and its instantiations . 
+	</s>
+	
+
+	<s id="281">
+		 Comp . 
+	</s>
+	
+
+	<s id="282">
+		 Linguistics . 
+	</s>
+	
+
+	<s id="283">
+		 30(3). M. Poesio . 
+	</s>
+	
+
+	<s id="284">
+		 2003. Associative descriptions and salience . 
+	</s>
+	
+
+	<s id="285">
+		 In Proc . 
+	</s>
+	
+
+	<s id="286">
+		 of the EACL Workshop on Computational Treatments ofAnaphora . 
+	</s>
+	
+
+	<s id="287">
+		 E. F. Prince . 
+	</s>
+	
+
+	<s id="288">
+		 1981. Toward a taxonomy of given- new information . 
+	</s>
+	
+
+	<s id="289">
+		 In P. Cole , editor , Radical Pragmatics , pages 223–256 . 
+	</s>
+	
+
+	<s id="290">
+		 Academic Press . 
+	</s>
+	
+
+	<s id="291">
+		 C. L. Sidner . 
+	</s>
+	
+
+	<s id="292">
+		 1979. Towards a computational theory of definite anaphora comprehension in English discourse . 
+	</s>
+	
+
+	<s id="293">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="294">
+		 thesis , MIT . 
+	</s>
+	
+
+	<s id="295">
+		 O. Uryupina . 
+	</s>
+	
+
+	<s id="296">
+		 2003. High-precision identification of discourse-new and unique noun phrases . 
+	</s>
+	
+
+	<s id="297">
+		 In Proc . 
+	</s>
+	
+
+	<s id="298">
+		 ofACL 2003 Stud . 
+	</s>
+	
+
+	<s id="299">
+		 Workshop , pages 80–86 . 
+	</s>
+	
+
+	<s id="300">
+		 R. Vieira and M. Poesio . 
+	</s>
+	
+
+	<s id="301">
+		 2000. An empirically- based system for processing definite descriptions . 
+	</s>
+	
+
+	<s id="302">
+		 Computational Linguistics , 26(4) , December . 
+	</s>
+	
+
+
+</acldoc>

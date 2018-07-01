@@ -1,0 +1,1199 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1066">
+	
+
+	<s id="1">
+		 Improving IBM Word-Alignment Model 1 Robert C. MOORE Microsoft Research One Microsoft Way Redmond , WA 90052 USA bobmoore@microsoft.com Abstract We investigate a number of simple methods for improving the word-alignment accuracy of IBM Model 1 . 
+	</s>
+	
+
+	<s id="2">
+		 We demonstrate reduction in alignment error rate of approximately 30 % resulting from ( 1 ) giving extra weight to the probability of alignment to the null word , ( 2 ) smoothing probability estimates for rare words , and ( 3 ) using a simple heuristic estimation method to initialize , or replace , EM training of model parameters . 
+	</s>
+	
+
+	<s id="3">
+		 1 Introduction IBM Model 1 
+		<ref citStr="Brown et al. , 1993a" id="1" label="CEPF" position="654">
+			( Brown et al. , 1993a )
+		</ref>
+		 is a word- alignment model that is widely used in working with parallel bilingual corpora . 
+	</s>
+	
+
+	<s id="4">
+		 It was originally developed to provide reasonable initial parameter estimates for more complex word-alignment models , but it has subsequently found a host of additional uses . 
+	</s>
+	
+
+	<s id="5">
+		 Among the applications of Model 1 are segmenting long sentences into subsentental units for improved word alignment 
+		<ref citStr="Nevado et al. , 2003" id="2" label="CEPF" position="1082">
+			( Nevado et al. , 2003 )
+		</ref>
+		 , extracting parallel sentences from comparable corpora 
+		<ref citStr="Munteanu et al. , 2004" id="3" label="CEPF" position="1165">
+			( Munteanu et al. , 2004 )
+		</ref>
+		 , bilingual sentence alignment 
+		<ref citStr="Moore , 2002" id="4" label="CEPF" position="1213">
+			( Moore , 2002 )
+		</ref>
+		 , aligning syntactic- tree fragments 
+		<ref citStr="Ding et al. , 2003" id="5" label="CEPF" position="1273">
+			( Ding et al. , 2003 )
+		</ref>
+		 , and estimating phrase translation probabilities 
+		<ref citStr="Venugopal et al. , 2003" id="6" label="CEPF" position="1351">
+			( Venugopal et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="6">
+		 Furthermore , at the 2003 Johns Hopkins summer workshop on statistical machine translation , a large number of features were tested to discover which ones could improve a state-of-the-art translation system , and the only feature that produced a “truly significant improvement” was the Model 1 score 
+		<ref citStr="Och et al. , 2004" id="7" label="CEPF" position="1686">
+			( Och et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="7">
+		 Despite the fact that IBM Model 1 is so widely used , essentially no attention seems to have been paid to whether it is possible to improve on the standard Expectation-Maximization ( EM ) procedure for estimating its parameters . 
+	</s>
+	
+
+	<s id="8">
+		 This may be due in part to the fact that 
+		<ref citStr="Brown et al . ( 1993a )" id="8" label="CEPF" position="2001">
+			Brown et al . ( 1993a )
+		</ref>
+		 proved that the log-likelihood objective function for Model 1 is a strictly concave function of the model parameters , so that it has a unique local maximum . 
+	</s>
+	
+
+	<s id="9">
+		 This , in turn , means that EM training will converge to that maximum from any starting point in which none of the initial parameter values is zero . 
+	</s>
+	
+
+	<s id="10">
+		 If one equates optimum parameter estimation with finding the global maximum for the likelihood of the training data , then this result would seem to show no improvement is possible . 
+	</s>
+	
+
+	<s id="11">
+		 However , in virtually every application of statistical techniques in natural-language processing , maximizing the likelihood of the training data causes overfitting , resulting in lower task performance than some other estimates for the model parameters . 
+	</s>
+	
+
+	<s id="12">
+		 This is implicitly recognized in the widespread adoption of early stopping in estimating the parameters of Model 1 . 
+	</s>
+	
+
+	<s id="13">
+		 
+		<ref citStr="Brown et al . ( 1993a )" id="9" label="CEPF" position="2936">
+			Brown et al . ( 1993a )
+		</ref>
+		 stopped after only one iteration of EM in using Model 1 to initialize their Model 2 , and 
+		<ref citStr="Och and Ney ( 2003 )" id="10" label="CEPF" position="3047">
+			Och and Ney ( 2003 )
+		</ref>
+		 stop after five iterations in using Model 1 to initialize the HMM word-alignment model . 
+	</s>
+	
+
+	<s id="14">
+		 Both of these are far short of convergence to the maximum likelihood estimates for the model parameters . 
+	</s>
+	
+
+	<s id="15">
+		 We have identified at least two ways in which the standard EM training method for Model 1 leads to suboptimal performance in terms of word- alignment accuracy . 
+	</s>
+	
+
+	<s id="16">
+		 In this paper we show that by addressing these issues , substantial improvements in word-alignment accuracy can be achieved . 
+	</s>
+	
+
+	<s id="17">
+		 2 Definition of Model 1 Model 1 is a probabilistic generative model within a framework that assumes a source sentence S of length l translates as a target sentence T , according to the following stochastic process : • A length m for sentence T is generated . 
+	</s>
+	
+
+	<s id="18">
+		 • For each target sentence position j ^ { 1 , . 
+	</s>
+	
+
+	<s id="19">
+		 .. , m } : – A generating word si in S ( including a null word so ) is selected , and – The target word tj at position j is gener- ated depending on si . 
+	</s>
+	
+
+	<s id="20">
+		 Model 1 is defined as a particularly simple instance of this framework , by assuming all possible lengths for T ( less than some arbitrary upper bound ) have a uniform probability E , all possible choices of source sentence generating words are equally likely , and the translation probability tr(tj | sz ) of the generated target language word depends only on the generating source language word—which 
+		<ref citStr="Brown et al . ( 1993a )" id="11" label="CEPF" position="4485">
+			Brown et al . ( 1993a )
+		</ref>
+		 show yields the following equation : p(T | S ) = (l+61)M Equation 1 gives the Model 1 estimate for the probability of a target sentence , given a source sentence . 
+	</s>
+	
+
+	<s id="21">
+		 We may also be interested in the question of what is the most likely alignment of a source sentence and a target sentence , given an instance of Model 1 ; where , by an alignment , we mean a specification of which source words generated which target words according to the generative model . 
+	</s>
+	
+
+	<s id="22">
+		 Since Model 1 , like many other word-alignment models , requires each target word to be generated by exactly one source word ( including the null word ) , an alignment a can be represented by a vector a1 , ... , aM , where each aj is the sentence position of the source word generating tj according to the alignment . 
+	</s>
+	
+
+	<s id="23">
+		 It is easy to show that for Model 1 , the most likely alignment aˆ of S and T is given by this equation : M aˆ = argmaxa H tr(tj|sa ; ) ( 2 ) j=1 Since in applying Model 1 , there are no dependencies between any of the aj s , we can find the most likely aligment simply by choosing , for each j , the value for aj that leads to the highest value for tr(tj|sa ; ) . 
+	</s>
+	
+
+	<s id="24">
+		 The parameters of Model 1 for a given pair of languages are normally estimated using EM , taking as training data a corpus of paired sentences of the two languages , such that each pair consists of sentence in one language and a possible translation in the other language . 
+	</s>
+	
+
+	<s id="25">
+		 The training is normally initialized by setting all translation probability distributions to the uniform distribution over the target language vocabulary . 
+	</s>
+	
+
+	<s id="26">
+		 3 Problems with Model 1 Model 1 clearly has many shortcomings as a model of translation . 
+	</s>
+	
+
+	<s id="27">
+		 Some of these are structural limitations , and cannot be remedied without making the model significantly more complicated . 
+	</s>
+	
+
+	<s id="28">
+		 Some of the major structural limitations include : • ( Many-to-one ) Each word in the target sentence can be generated by at most one word in the source sentence . 
+	</s>
+	
+
+	<s id="29">
+		 Situations in which a phrase in the source sentence translates as a single word in the target sentence are not well- modeled . 
+	</s>
+	
+
+	<s id="30">
+		 • ( Distortion ) The position of any word in the target sentence is independent of the position of the corresponding word in the source sentence , or the positions of any other source language words or their translations . 
+	</s>
+	
+
+	<s id="31">
+		 The tendency for a contiguous phrase in one language to be translated as a contiguous phrase in another language is not modeled at all . 
+	</s>
+	
+
+	<s id="32">
+		 • ( Fertility ) Whether a particular source word is selected to generate the target word for a given position is independent of which or how many other target words the same source word is selected to generate . 
+	</s>
+	
+
+	<s id="33">
+		 These limitations of Model 1 are all well known , they have been addressed in other word-alignment models , and we will not discuss them further here . 
+	</s>
+	
+
+	<s id="34">
+		 Our concern in this paper is with two other problems with Model 1 that are not deeply structural , and can be addressed merely by changing how the parameters of Model 1 are estimated . 
+	</s>
+	
+
+	<s id="35">
+		 The first of these nonstructural problems with Model 1 , as standardly trained , is that rare words in the source language tend to act as “garbage collectors” 
+		<ref citStr="Brown et al. , 1993b" id="12" label="CEPF" position="7770">
+			( Brown et al. , 1993b 
+		</ref>
+		<ref citStr="Och and Ney , 2004" id="13" label="CEPF" position="7793">
+			; Och and Ney , 2004 )
+		</ref>
+		 , aligning to too many words in the target language . 
+	</s>
+	
+
+	<s id="36">
+		 This problem is not unique to Model 1 , but anecdotal examination of Model 1 alignments suggests that it may be worse for Model 1 , perhaps because Model 1 lacks the fertility and distortion parameters that may tend to mitigate the problem in more complex models . 
+	</s>
+	
+
+	<s id="37">
+		 The cause of the problem can be easily understood if we consider a situation in which the source sentence contains a rare word that only occurs once in our training data , plus a frequent word that has an infrequent translation in the target sentence . 
+	</s>
+	
+
+	<s id="38">
+		 Suppose the frequent source word has the translation present in the target sentence only 10 % of the time in our training data , and thus has an estimated translation probability of around 0.1 for this target word . 
+	</s>
+	
+
+	<s id="39">
+		 Since the rare source word has no other occurrences in the data , EM training is free to assign whatever probability distribution is required to maximize the joint probability of this sentence pair . 
+	</s>
+	
+
+	<s id="40">
+		 Even if the rare word also needs to be used to generate its actual translation in the sentence pair , a relatively high joint probability will be obtained by giving the rare M l H E tr(tj | sz ) ( 1 ) j=1 z=0 word a probability of 0.5 of generating its true translation and 0.5 of spuriously generating the translation of the frequent source word . 
+	</s>
+	
+
+	<s id="41">
+		 The probability of this incorrect alignment will be higher than that obtained by assigning a probability of 1.0 to the rare word generating its true translation , and generating the true translation of the frequent source word with a probability of 0.1 . 
+	</s>
+	
+
+	<s id="42">
+		 The usual fix for over-fitting problems of this type in statistical NLP is to smooth the probability estimates involved in some way . 
+	</s>
+	
+
+	<s id="43">
+		 The second nonstructural problem with Model 1 is that it seems to align too few target words to the null source word . 
+	</s>
+	
+
+	<s id="44">
+		 Anecdotal examination of Model 1 alignments of English source sentences with French target sentences reveals that null word alignments rarely occur in the highest probability alignment , despite the fact that French sentences often contain function words that do not correspond directly to anything in their English translation . 
+	</s>
+	
+
+	<s id="45">
+		 For example , English phrases of the form ( nouns ) ( noun~ ) are often expressed in French by a phrase of the form ( noun~ ) de ( nouns ) , which may also be expressed in English ( but less often ) by a phrase of the form ( noun~ ) of ( nouns ) . 
+	</s>
+	
+
+	<s id="46">
+		 The structure of Model 1 again suggests why we should not be surprised by this problem . 
+	</s>
+	
+
+	<s id="47">
+		 As normally defined , Model 1 hypothesizes only one null word per sentence . 
+	</s>
+	
+
+	<s id="48">
+		 A target sentence may contain many words that ideally should be aligned to null , plus some other instances of the same word that should be aligned to an actual source language word . 
+	</s>
+	
+
+	<s id="49">
+		 For example , we may have an English/French sentence pair that contains two instances of of in the English sentence , and five instances of de in the French sentence . 
+	</s>
+	
+
+	<s id="50">
+		 Even if the null word and of have the same initial probabilty of generating de , in iterating EM , this sentence is going to push the model towards estimating a higher probabilty that of generates de and a lower estimate that the null word generates de . 
+	</s>
+	
+
+	<s id="51">
+		 This happens because there are are two instances of of in the source sentence and only one hypothetical null word , and Model 1 gives equal weight to each occurrence of each source word . 
+	</s>
+	
+
+	<s id="52">
+		 In effect , of gets two votes , but the null word gets only one . 
+	</s>
+	
+
+	<s id="53">
+		 We seem to need more instances of the null word for Model 1 to assign reasonable probabilities to target words aligning to the null word . 
+	</s>
+	
+
+	<s id="54">
+		 4 Smoothing Translation Counts We address the nonstructural problems of Model 1 discussed above by three methods . 
+	</s>
+	
+
+	<s id="55">
+		 First , to address the problem of rare words aligning to too many words , at each interation of EM we smooth all the translation probability estimates by adding virtual counts according to a uniform probability distribution over all target words . 
+	</s>
+	
+
+	<s id="56">
+		 This prevents the model from becoming too confident about the translation probabilities for rare source words on the basis of very little evidence . 
+	</s>
+	
+
+	<s id="57">
+		 To estimate the smoothed probabilties we use the following formula : tr(tIs) = C(t , s ) + n ( 3 ) C(s) + n • IV where C(t , s ) is the expected count of s generating t , C(s) is the corresponding marginal count for s , IV I is the hypothesized size of the target vocabulary V , and n is the added count for each target word in V. IV I and n are both free parameters in this equation . 
+	</s>
+	
+
+	<s id="58">
+		 We could take IV I simply to be the total number of distinct words observed in the target language training , but we know that the target language will have many words that we have never observed . 
+	</s>
+	
+
+	<s id="59">
+		 We arbitrarily chose IV I to be 100,000 , which is somewhat more than the total number of distinct words in our target language training data . 
+	</s>
+	
+
+	<s id="60">
+		 The value of n is empirically optimized on annotated development test data . 
+	</s>
+	
+
+	<s id="61">
+		 This sort of “add-n” smoothing has a poor reputation in statistical NLP , because it has repeatedly been shown to perform badly compared to other methods of smoothing higher-order n-gram models for statistical language modeling ( e.g. , Chen and Goodman , 1996 ) . 
+	</s>
+	
+
+	<s id="62">
+		 In those studies , however , add-n smoothing was used to smooth bigram or trigram models . 
+	</s>
+	
+
+	<s id="63">
+		 Add-n smoothing is a way of smoothing with a uniform distribution , so it is not surprising that it performs poorly in language modeling when it is compared to smoothing with higher order models ; e.g , smoothing trigrams with bigrams or smoothing bigrams with unigrams . 
+	</s>
+	
+
+	<s id="64">
+		 In situations where smoothing with a uniform distribution is appropriate , it is not clear that add-n is a bad way to do it . 
+	</s>
+	
+
+	<s id="65">
+		 Furthermore , we would argue that the word translation probabilities of Model 1 are a case where there is no clearly better alternative to a uniform distribution as the smoothing distribution . 
+	</s>
+	
+
+	<s id="66">
+		 It should certainly be better than smoothing with a unigram distribution , since we especially want to benefit from smoothing the translation probabilities for the rarest words , and smoothing with a unigram distribution would assume that rare words are more likely to translate to frequent words than to other rare words , which seems counterintuitive . 
+	</s>
+	
+
+	<s id="67">
+		 5 Adding Null Words to the Source Sentence We address the lack of sufficient alignments of target words to the null source word by adding extra null words to each source sentence . 
+	</s>
+	
+
+	<s id="68">
+		 Mathematically , there is no reason we have to add an integral number of null words , so in fact we let the number of null words in a sentence be any positive number . 
+	</s>
+	
+
+	<s id="69">
+		 One can make arguments in favor of adding the same number of null words to every sentence , or in favor of letting the number of null words be proportional to the length of the sentence . 
+	</s>
+	
+
+	<s id="70">
+		 We have chosen to add a fixed number of null words to each source sentence regardless of length , and will leave for another time the question of whether this works better or worse than adding a number of null words proportional to the sentence length . 
+	</s>
+	
+
+	<s id="71">
+		 Conceptually , adding extra null words to source sentences is a slight modification to the structure of Model 1 , but in fact , we can implement it without any additional model parameters by the simple expedient of multiplying all the translation probabilities for the null word by the number of null words per sentence . 
+	</s>
+	
+
+	<s id="72">
+		 This multiplication is performed during every iteration of EM , as the translation probabilities for the null word are re-estimated from the corresponding expected counts . 
+	</s>
+	
+
+	<s id="73">
+		 This makes these probabilities look like they are not normalized , but Model 1 can be applied in such a way that the translation probabilities for the null word are only ever used when multiplied by the number of null words in the sentence , so we are simply using the null word translation parameters to keep track of this product pre-computed . 
+	</s>
+	
+
+	<s id="74">
+		 In training a version of Model 1 with only one null word per sentence , the parameters have their normal interpretation , since we are multiplying the standard probability estimates by 1 . 
+	</s>
+	
+
+	<s id="75">
+		 6 Initializing Model 1 with Heuristic Parameter Estimates Normally , the translation probabilities of Model 1 are initialized to a uniform distribution over the target language vocabulary to start iterating EM . 
+	</s>
+	
+
+	<s id="76">
+		 The unspoken justification for this is that EM training of Model 1 will always converge to the same set of parameter values from any set of initial values , so the intial values should not matter . 
+	</s>
+	
+
+	<s id="77">
+		 But this is only the case if we want to obtain the parameter values at convergence , and we have strong reasons to believe that these values do not produce the most accurate sentence alignments . 
+	</s>
+	
+
+	<s id="78">
+		 Even though EM will head towards those values from any initial position in the parameter space , there may be some starting points we can systematically find that will take us closer to the optimal parameter values for alignment accuracy along the way . 
+	</s>
+	
+
+	<s id="79">
+		 To test whether a better set of initial parameter estimates can improve Model 1 alignment ac curacy , we use a heuristic model based on the loglikelihood-ratio ( LLR ) statistic recommended by 
+		<ref citStr="Dunning ( 1993 )" id="14" label="CERF" position="17315">
+			Dunning ( 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="80">
+		 We chose this statistic because it has previously been found to be effective for automatically constructing translation lexicons ( e.g. , Melamed , 2000 ; Moore , 2001 ) . 
+	</s>
+	
+
+	<s id="81">
+		 In our application , the statistic can be defined by the following formula : C(t ? 
+	</s>
+	
+
+	<s id="82">
+		 , s ? 
+	</s>
+	
+
+	<s id="83">
+		 ) log p(t?| s ? 
+	</s>
+	
+
+	<s id="84">
+		 ) ( 4 ) p(t?) In this formula t and s mean that the corresponding words occur in the respective target and source sentences of an aligned sentence pair , -,t and -,s mean that the corresponding words do not occur in the respective sentences , t ? 
+	</s>
+	
+
+	<s id="85">
+		 and s ? 
+	</s>
+	
+
+	<s id="86">
+		 are variables ranging over these values , and C(t ? 
+	</s>
+	
+
+	<s id="87">
+		 , s ? 
+	</s>
+	
+
+	<s id="88">
+		 ) is the observed joint count for the values of t ? 
+	</s>
+	
+
+	<s id="89">
+		 and s ? 
+	</s>
+	
+
+	<s id="90">
+		 . 
+	</s>
+	
+
+	<s id="91">
+		 All the probabilities in the formula refer to maximum likelihood estimates.1 These LLR scores can range in value from 0 to N · log ( 2 ) , where N is the number of sentence pairs in the training data . 
+	</s>
+	
+
+	<s id="92">
+		 The LLR score for a pair of words is high if the words have either a strong positive association or a strong negative association . 
+	</s>
+	
+
+	<s id="93">
+		 Since we expect translation pairs to be positively associated , we discard any negatively associated word pairs by requiring that p(t , s ) &gt; p(t) • p(s) . 
+	</s>
+	
+
+	<s id="94">
+		 To use LLR scores to obtain initial estimates for the translation probabilities of Model 1 , we have to somehow transform them into numbers that range from 0 to 1 , and sum to no more than 1 for all the target words associated with each source word . 
+	</s>
+	
+
+	<s id="95">
+		 We know that words with high LLR scores tend to be translations , so we want high LLR scores to correspond to high probabilities , and low LLR scores to correspond to low probabilities . 
+	</s>
+	
+
+	<s id="96">
+		 The simplest approach would be to divide each LLR score by the sum of the scores for the source word of the pair , which would produce a normalized conditional probability distribution for each source word . 
+	</s>
+	
+
+	<s id="97">
+		 Doing this , however , would discard one of the major advantages of using LLR scores as a measure of word association . 
+	</s>
+	
+
+	<s id="98">
+		 All the LLR scores for rare words tend to be small ; thus we do not put too much confidence in any of the hypothesized word associations for such words . 
+	</s>
+	
+
+	<s id="99">
+		 This is exactly the property needed to prevent rare source words from becoming garbage collectors . 
+	</s>
+	
+
+	<s id="100">
+		 To maintain this property , for each source word we compute the sum of the 1 This is not the form in which the LLR statistic is usually presented , but it can easily be shown by basic algebra to be equivalent to —A in Dunning’s paper . 
+	</s>
+	
+
+	<s id="101">
+		 See 
+		<ref citStr="Moore ( 2004 )" id="15" label="CEPF" position="19939">
+			Moore ( 2004 )
+		</ref>
+		 for details . 
+	</s>
+	
+
+	<s id="102">
+		 t?^~ t } s?^~ s } LLR scores over all target words , but we then divide every LLR score by the single largest of these sums . 
+	</s>
+	
+
+	<s id="103">
+		 Thus the source word with the highest LLR score sum receives a conditional probability distribution over target words summing to 1 , but the corresponding distribution for every other source word sums to less than 1 , reserving some probability mass for target words not seen with that word , with more probability mass being reserved the rarer the word . 
+	</s>
+	
+
+	<s id="104">
+		 There is no guarantee , of course , that this is the optimal way of discounting the probabilities assigned to less frequent words . 
+	</s>
+	
+
+	<s id="105">
+		 To allow a wider range of possibilities , we add one more parameter to the model by raising each LLR score to an empirically optimized exponent before summing the resulting scores and scaling them from 0 to 1 as described above . 
+	</s>
+	
+
+	<s id="106">
+		 Choosing an exponent less than 1.0 decreases the degree to which low scores are discounted , and choosing an exponent greater than 1.0 increases degree of discounting . 
+	</s>
+	
+
+	<s id="107">
+		 We still have to define an initialization of the translation probabilities for the null word . 
+	</s>
+	
+
+	<s id="108">
+		 We cannot make use of LLR scores because the null word occurs in every source sentence , and any word occuring in every source sentence will have an LLR score of 0 with every target word , since p(t|s) = p(t) in that case . 
+	</s>
+	
+
+	<s id="109">
+		 We could leave the distribution for the null word as the uniform distribution , but we know that a high proportion of the words that should align to the null word are frequently occuring function words . 
+	</s>
+	
+
+	<s id="110">
+		 Hence we initialize the distribution for the null word to be the unigram distribution of target words , so that frequent function words will receive a higher probability of aligning to the null word than rare words , which tend to be content words that do have a translation . 
+	</s>
+	
+
+	<s id="111">
+		 Finally , we also effectively add extra null words to every sentence in this heuristic model , by multiplying the null word probabilities by a constant , as described in Section 5 . 
+	</s>
+	
+
+	<s id="112">
+		 7 Training and Evaluation We trained and evaluated our various modifications to Model 1 on data from the bilingual word alignment workshop held at HLT-NAACL 2003 
+		<ref citStr="Mihalcea and Pedersen , 2003" id="16" label="OEPF" position="22242">
+			( Mihalcea and Pedersen , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="113">
+		 We used a subset of the Canadian Hansards bilingual corpus supplied for the workshop , comprising 500,000 English-French sentences pairs , including 37 sentence pairs designated as “trial” data , and 447 sentence pairs designated as test data . 
+	</s>
+	
+
+	<s id="114">
+		 The trial and test data had been manually aligned at the word level , noting particular pairs of words either as “sure” or “possible” alignments , as described by 
+		<ref citStr="Och and Ney ( 2003 )" id="17" label="CEPF" position="22697">
+			Och and Ney ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="115">
+		 To limit the number of translation probabilities that we had to store , we first computed LLR association scores for all bilingual word pairs with a positive association ( p(t , s ) &gt; p(t) ·p(s)) , and discarded from further consideration those with an LLR score of less that 0.9 , which was chosen to be just low enough to retain all the “sure” word alignments in the trial data . 
+	</s>
+	
+
+	<s id="116">
+		 This resulted in 13,285,942 possible word-to-word translation pairs ( plus 66,406 possible null-word-to-word pairs ) . 
+	</s>
+	
+
+	<s id="117">
+		 For most models , the word translation parameters are set automatically by EM . 
+	</s>
+	
+
+	<s id="118">
+		 We trained each variation of each model for 20 iterations , which was enough in almost all cases to discern a clear minimum error on the 37 sentence pairs of trial data , and we chose as the preferred iteration the one with the lowest alignment error rate on the trial data . 
+	</s>
+	
+
+	<s id="119">
+		 The other parameters of the various versions of Model 1 described in Sections 4–6 were optimized with respect to alignment error rate on the trial data using simple hill climbing . 
+	</s>
+	
+
+	<s id="120">
+		 All the results we report for the 447 sentence pairs of test data use the parameter values set to their optimal values for the trial data . 
+	</s>
+	
+
+	<s id="121">
+		 We report results for four principal versions of Model 1 , trained using English as the source language and French as the target language : • The standard model is initialized using uniform distributions , and trained without smoothing using EM , for a number of iterations optimized on the trial data . 
+	</s>
+	
+
+	<s id="122">
+		 • The smoothed model is like the standard model , but with optimized values of the null- word weight and add-n parameter . 
+	</s>
+	
+
+	<s id="123">
+		 • The heuristic model simply uses the initial heuristic estimates of the translation parameter values , with an optimized LLR exponent and null-word weight , but no EM re-estimation . 
+	</s>
+	
+
+	<s id="124">
+		 • The combined model initializes the translation parameter values with the heuristic estimates , using the LLR exponent and null-word weight from the optimal heuristic model , and applies EM using optimized values of the null-word weight and add-n parameters . 
+	</s>
+	
+
+	<s id="125">
+		 The null-word weight used during EM is optimized separately from the null-word weight used in the initial heuristic parameter estimates . 
+	</s>
+	
+
+	<s id="126">
+		 We also performed ablation experiments in which we ommitted each applicable modification in turn from each principal version of Model 1 , to observe the effect on alignment error . 
+	</s>
+	
+
+	<s id="127">
+		 All non-EM-trained parameters were re-optimized on the trial data for each version of Model 1 tested , with the exception Model Trial AER Test AER Test Test LLR Exp Init NW EM NW Add EM Iter ( Ablation ) Recall Precision n Standard 0.311 0.298 0.810 0.646 NA NA 1.0 0.0000 17 Smoothed 0.261 0.271 0.646 0.798 NA NA 10.0 0.0100 15 ( EM NW ) 0.285 0.273 0.833 0.671 NA NA 1.0 0.0100 20 ( Add n ) 0.302 0.300 0.638 0.751 NA NA 13.0 0.0000 14 Heuristic 0.234 0.255 0.655 0.844 1.3 2.4 NA NA NA ( LLR Exp ) 0.257 0.259 0.655 0.844 1.0 2.4 NA NA NA ( Init NW ) 0.300 0.308 0.740 0.657 1.5 1.0 NA NA NA Combined 0.203 0.215 0.724 0.839 1.3 2.4 7.0 0.005 1 ( LLR Exp ) 0.258 0.272 0.636 0.809 1.0 2.4 10.0 0.0035 3 ( Init NW ) 0.197 0.209 0.722 0.854 1.5 1.0 10.0 0.0005 1 ( EM NW ) 0.281 0.267 0.833 0.680 1.3 2.4 1.0 0.0080 8 ( Add n ) 0.208 0.221 0.724 0.826 1.3 2.4 8.0 0.0000 1 Table 1 : Evaluation Results . 
+	</s>
+	
+
+	<s id="128">
+		 that the value of the LLR exponent and initial null- word weight in the combined model were carried over from the heuristic model . 
+	</s>
+	
+
+	<s id="129">
+		 8 Results We report the performance of our different versions of Model 1 in terms of precision , recall , and alignment error rate ( AER ) as defined by 
+		<ref citStr="Och and Ney ( 2003 )" id="18" label="CEPF" position="26426">
+			Och and Ney ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="130">
+		 These three performance statistics are defined as recall = |A|S|SJ ( 5 ) precision = JAI^|PJ ( 6 ) AER =1^ |A^S|+|A^P| ( 7 ) |A| + |S| where S denotes the annotated set of sure alignments , P denotes the annotated set of possible alignments , and A denotes the set of alignments produced by the model under test.2 We take AER , which is derived from F-measure , as our primary evaluation metric . 
+	</s>
+	
+
+	<s id="131">
+		 The results of our evaluation are presented in Table 1 . 
+	</s>
+	
+
+	<s id="132">
+		 The columns of the table present ( in order ) a description of the model being tested , the AER on the trial data , the AER on the test data , test data recall , and test data precision , followed by the optimal values on the trial data for the LLR exponent , the initial ( heuristic model ) null-word weight , the null- word weight used in EM re-estimation , the add-n parameter value used in EM re-estimation , and the number of iterations of EM . 
+	</s>
+	
+
+	<s id="133">
+		 “NA” means a parameter is not applicable in a particular model . 
+	</s>
+	
+
+	<s id="134">
+		 2As is customary , alignments to the null word are not explicitly counted . 
+	</s>
+	
+
+	<s id="135">
+		 Results for the four principal versions of Model 1 are presented in bold . 
+	</s>
+	
+
+	<s id="136">
+		 For each principal version , results of the corresponding ablation experiments are presented in standard type , giving the name of each omitted modification in parentheses.3 Probably the most striking result is that the heuristic model substantially reduces the AER compared to the standard or smoothed model , even without EM re-estimation . 
+	</s>
+	
+
+	<s id="137">
+		 The combined model produces an additional substantial reduction in alignment error , using a single iteration of EM . 
+	</s>
+	
+
+	<s id="138">
+		 The ablation experiments show how important the different modifications are to the various models . 
+	</s>
+	
+
+	<s id="139">
+		 It is interesting to note that the importance of a given modification varies from model to model . 
+	</s>
+	
+
+	<s id="140">
+		 For example , the re-estimation null-word weight makes essentially no contribution to the smoothed model . 
+	</s>
+	
+
+	<s id="141">
+		 It can be tuned to reduce the error on the trial data , but the improvement does not carry over to the test data . 
+	</s>
+	
+
+	<s id="142">
+		 The smoothed model with only the null- word weight and no add-n smoothing has essentially the same error as the standard model ; and the smoothed model with add-n smoothing alone has essentially the same error as the smoothed model with both the null-word weight and add-n smoothing . 
+	</s>
+	
+
+	<s id="143">
+		 On the other hand , the re-estimation null-word weight is crucial to the combined model . 
+	</s>
+	
+
+	<s id="144">
+		 With it , the combined model has substantially lower error than the heuristic model without re-estimation ; without it , for any number of EM iterations , the combined model has higher error than the heuristic model . 
+	</s>
+	
+
+	<s id="145">
+		 A similar analysis shows that add-n smoothing is much less important in the combined model than 3Modificiations are “omitted” by setting the corresponding parameter to a value that is equivalent to removing the modification from the model . 
+	</s>
+	
+
+	<s id="146">
+		 the smoothed model . 
+	</s>
+	
+
+	<s id="147">
+		 The probable explanation for this is that add-n smoothing is designed to address over-fitting from many iterations of EM . 
+	</s>
+	
+
+	<s id="148">
+		 While the smoothed model does require many EM iterations to reach its minimum AER , the combined model , with or without add-n smoothing , is at its minimum AER with only one EM iteration . 
+	</s>
+	
+
+	<s id="149">
+		 Finally , we note that , while the initial null-word weight is crucial to the heuristic model without re- estimation , the combined model actually performs better without it . 
+	</s>
+	
+
+	<s id="150">
+		 Presumably , the re-estimation null-word weight makes the inital null-word weight redundant . 
+	</s>
+	
+
+	<s id="151">
+		 In fact , the combined model without the initial null word-weight has the lowest AER on both the trial and test data of any variation tested ( note AERs in italics in Figure 1 ) . 
+	</s>
+	
+
+	<s id="152">
+		 The relative reduction in AER for this model is 29.9 % compared to the standard model . 
+	</s>
+	
+
+	<s id="153">
+		 We tested the significance of the differences in alignment error between each pair of our principal versions of Model 1 by looking at the AER for each sentence pair in the test set using a 2-tailed paired t test . 
+	</s>
+	
+
+	<s id="154">
+		 The differences between all these models were significant at a level of 10-7 or better , except for the difference between the standard model and the smoothed model , which was “significant” at the 0.61 level—that is , not at all significant . 
+	</s>
+	
+
+	<s id="155">
+		 The reason for this is probably the very different balance between precision and recall with the standard and smoothed models , which indicates that the models make quite different sorts of errors , making statistical significance hard to establish . 
+	</s>
+	
+
+	<s id="156">
+		 This conjecture is supported by considering the smoothed model omitting the re-estimation null-word weight , which has substantially the same AER as the full smoothed model , but with a precision/recall balance much closer to the standard model . 
+	</s>
+	
+
+	<s id="157">
+		 The 2-tailed paired t test comparing this model to the standard model showed significance at a level of better than 10^10 . 
+	</s>
+	
+
+	<s id="158">
+		 We also compared the combined model with and without the initial null-word weight , and found that the improvement without the weight was significant at the 0.008 level . 
+	</s>
+	
+
+	<s id="159">
+		 9 Conclusions We have demonstrated that it is possible to improve the performance of Model 1 in terms of alignment error by about 30 % , simply by changing the way its parameters are estimated . 
+	</s>
+	
+
+	<s id="160">
+		 Almost half this improvement is obtained with a simple heuristic model that does not require EM re-estimation . 
+	</s>
+	
+
+	<s id="161">
+		 It is interesting to contrast our heuristic model with the heuristic models used by 
+		<ref citStr="Och and Ney ( 2003 )" id="19" label="CJPF" position="32094">
+			Och and Ney ( 2003 )
+		</ref>
+		 as baselines in their comparative study of alignment models . 
+	</s>
+	
+
+	<s id="162">
+		 The major difference between our model and theirs is that they base theirs on the Dice coefficient , which is computed by the formula4 C(t) + C(s) ( 8 ) while we use the log-likelihood-ratio statistic defined in Section 6 . 
+	</s>
+	
+
+	<s id="163">
+		 Och and Ney find that the standard version of Model 1 produces more accurate alignments after only one iteration of EM than either of the heuristic models they consider , while we find that our heuristic model outperforms the standard version of Model 1 , even with an optimal number of iterations of EM . 
+	</s>
+	
+
+	<s id="164">
+		 While the Dice coefficient is simple and intuitive—the value is 0 for words never found together , and 1 for words always found together—it lacks the important property of the LLR statistic that scores for rare words are discounted ; thus it does not address the over-fitting problem for rare words . 
+	</s>
+	
+
+	<s id="165">
+		 The list of applications of IBM word-alignment Model 1 given in Section 1 should be sufficient to convince anyone of the relevance of improving the model . 
+	</s>
+	
+
+	<s id="166">
+		 However , it is not clear that AER as defined by 
+		<ref citStr="Och and Ney ( 2003 )" id="20" label="CEPN" position="33260">
+			Och and Ney ( 2003 )
+		</ref>
+		 is always the appropriate way to evaluate the quality of the model , since the Viterbi word alignment that AER is based on is seldom used in applications of Model 1.5 Moreover , it is notable that while the versions of Model 1 having the lowest AER have dramatically higher precision than the standard version , they also have quite a bit lower recall . 
+	</s>
+	
+
+	<s id="167">
+		 If AER does not reflect the optimal balance between precision and recall for a particular application , then optimizing AER may not produce the best task-based performance for that application . 
+	</s>
+	
+
+	<s id="168">
+		 Thus the next step in this research must be to test whether the improvements in AER we have demonstrated for Model 1 lead to improvements on task-based performance measures . 
+	</s>
+	
+
+	<s id="169">
+		 References Peter F. Brown , Stephen A. Della Pietra , Vincent J. Della Pietra , and Robert L. Mercer . 
+	</s>
+	
+
+	<s id="170">
+		 1993a . 
+	</s>
+	
+
+	<s id="171">
+		 4Och and Ney give a different formula in their paper , in which the addition in the denominator is replaced by a multiplication . 
+	</s>
+	
+
+	<s id="172">
+		 According to Och ( personal communication ) , however , this is merely a typographical error in the publication , and the results reported are for the standard definition of the Dice coefficient . 
+	</s>
+	
+
+	<s id="173">
+		 5A possible exception is suggested by the results of 
+		<ref citStr="Koehn et al . ( 2003 )" id="21" label="CEPF" position="34561">
+			Koehn et al . ( 2003 )
+		</ref>
+		 , which show that phrase translations extracted from Model 1 alignments can perform almost as well in a phrase-based statistical translation system as those extracted from more sophisticated alignment models , provided enough training data is used . 
+	</s>
+	
+
+	<s id="174">
+		 2 • C(t , s ) The mathematics of statistical machine translation : parameter estimation . 
+	</s>
+	
+
+	<s id="175">
+		 Computational Linguistics , 19(2):263–311 . 
+	</s>
+	
+
+	<s id="176">
+		 Peter F. Brown , Stephen A. Della Pietra , Vincent J. Della Pietra , Meredith J. Goldsmith , Jan Hajic , Robert L. Mercer , and Surya Mohanty . 
+	</s>
+	
+
+	<s id="177">
+		 1993b . 
+	</s>
+	
+
+	<s id="178">
+		 But dictionaries are data too . 
+	</s>
+	
+
+	<s id="179">
+		 In Proceedings of the ARPA Workshop on Human Language Technology , pp. 202–205 , Plainsboro , New Jersey , USA . 
+	</s>
+	
+
+	<s id="180">
+		 Stanley F. Chen and Joshua Goodman . 
+	</s>
+	
+
+	<s id="181">
+		 1996. An empirical study of smoothing techniques for language modeling . 
+	</s>
+	
+
+	<s id="182">
+		 In Proceedings of the 34th Annual Meeting of the Association for Computational Linguistics , pp. 310–318 , Santa Cruz , California , USA . 
+	</s>
+	
+
+	<s id="183">
+		 Yuan Ding , Daniel Gildea , and Martha Palmer . 
+	</s>
+	
+
+	<s id="184">
+		 2003. An algorithm for word-level alignment of parallel dependency trees . 
+	</s>
+	
+
+	<s id="185">
+		 In Proceedings of the Ninth Machine Translation Summit , pp. 95–101 , New Orleans , Louisiana , USA . 
+	</s>
+	
+
+	<s id="186">
+		 Ted Dunning . 
+	</s>
+	
+
+	<s id="187">
+		 1993 . 
+	</s>
+	
+
+	<s id="188">
+		 Accurate methods for the statistics of surprise and coincidence . 
+	</s>
+	
+
+	<s id="189">
+		 Computational Linguistics , 19(1):61–74 . 
+	</s>
+	
+
+	<s id="190">
+		 Philipp Koehn , Franz Joseph Och , and Daniel Marcu . 
+	</s>
+	
+
+	<s id="191">
+		 2003. Statistical phrase-based translation . 
+	</s>
+	
+
+	<s id="192">
+		 In Proceedings of the Human Language Technology Conference of the North American Chapter of the Association for Computational Linguistics ( HLT-NAACL 2003 ) , pp. 127–133 , Edmonton , Alberta , Canada . 
+	</s>
+	
+
+	<s id="193">
+		 I. Dan Melamed . 
+	</s>
+	
+
+	<s id="194">
+		 2000. Models of Translational Equivalence . 
+	</s>
+	
+
+	<s id="195">
+		 Computational Linguistics , 26(2):221–249 . 
+	</s>
+	
+
+	<s id="196">
+		 Rada Mihalcea and Ted Pedersen . 
+	</s>
+	
+
+	<s id="197">
+		 2003. An evaluation exercise for word alignment . 
+	</s>
+	
+
+	<s id="198">
+		 In Proceedings ofthe HLT-NAACL 2003 Workshop , Building and Using Parallel Texts : Data Driven Machine Translation and Beyond , pp. 1–6 , Edmonton , Alberta , Canada . 
+	</s>
+	
+
+	<s id="199">
+		 Robert C. Moore . 
+	</s>
+	
+
+	<s id="200">
+		 2001. Towards a simple and accurate statistical approach to learning translation relationships among words . 
+	</s>
+	
+
+	<s id="201">
+		 In Proceedings of the Workshop Data-driven Machine Translation at the 39th Annual Meeting of the Association for Computational Linguistics , pp. 79–86 , Toulouse , France . 
+	</s>
+	
+
+	<s id="202">
+		 Robert C. Moore . 
+	</s>
+	
+
+	<s id="203">
+		 2002. Fast and accurate sentence alignment of bilingual corpora . 
+	</s>
+	
+
+	<s id="204">
+		 In S. Richardson ( ed . 
+	</s>
+	
+
+	<s id="205">
+		 ) , Machine Translation : From Research to Real Users ( Proceedings , 5th Conference of the Association for Machine Translation in the Americas , Tiburon , California ) , pp. 135–244 , Springer-Verlag , Heidelberg , Germany . 
+	</s>
+	
+
+	<s id="206">
+		 Robert C. Moore . 
+	</s>
+	
+
+	<s id="207">
+		 2004. On log-likelihood-ratios and the significance of rare events . 
+	</s>
+	
+
+	<s id="208">
+		 In Proceedings of the 2004 Conference on Empirical Methods in Natural Language Processing , Barcelona , Spain . 
+	</s>
+	
+
+	<s id="209">
+		 Dragos S. Munteanu , Alexander Fraser , and Daniel Marcu . 
+	</s>
+	
+
+	<s id="210">
+		 2004. Improved machine translation performance via parallel sentence extraction from comparable corpora . 
+	</s>
+	
+
+	<s id="211">
+		 In Proceedings of the Human Language Technology Conference of the North American Chapter of the Association for Computational Linguistics ( HLT-NAACL 2004 ) , pp. 265–272 , Boston , Massachusetts , USA . 
+	</s>
+	
+
+	<s id="212">
+		 Francisco Nevado , Francisco Casacuberta , and Enrique Vidal . 
+	</s>
+	
+
+	<s id="213">
+		 2003. Parallel corpora segmentation using anchor words . 
+	</s>
+	
+
+	<s id="214">
+		 In Proceedings of the 7th International EAMT workshop on MT and other language technology tools , Improving MT through other language technology tools , Resources and tools for building MT , pp. 33–40 , Budapest , Hungary . 
+	</s>
+	
+
+	<s id="215">
+		 Franz Joseph Och and Hermann Ney . 
+	</s>
+	
+
+	<s id="216">
+		 2003. A systematic comparison of various statistical alignment models . 
+	</s>
+	
+
+	<s id="217">
+		 Computational Linguistics , 29(1):19–51 . 
+	</s>
+	
+
+	<s id="218">
+		 Franz Josef Och et al . 2004. A smorgasbord of features for statistical machine translation . 
+	</s>
+	
+
+	<s id="219">
+		 In Proceedings of the Human Language Technology Conference of the North American Chapter of the Association for Computational Linguistics ( HLT-NAACL 2004 ) , pp. 161–168 , Boston , Massachusetts , USA . 
+	</s>
+	
+
+	<s id="220">
+		 Ashish Venugopal , Stephan Vogel , and Alex Waibel . 
+	</s>
+	
+
+	<s id="221">
+		 2003. Effective phrase translation extraction from alignment models . 
+	</s>
+	
+
+	<s id="222">
+		 In Proceedings of the 41st Annual Meeting of the Association for Computational Linguistics , pp. 319–326 , Sapporo , Japan . 
+	</s>
+	
+
+
+</acldoc>

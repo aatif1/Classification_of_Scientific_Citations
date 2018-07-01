@@ -1,0 +1,1486 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1088">
+	
+
+	<s id="1">
+		 FLSA : Extending Latent Semantic Analysis with features for dialogue act classification Riccardo Serafin CEFRIEL Via Fucini 2 20133 Milano , Italy Riccardo.Serafin@students.cefriel.it Barbara Di Eugenio Computer Science University of Illinois Chicago , IL 60607 USA bdieugen@cs.uic.edu Abstract We discuss Feature Latent Semantic Analysis ( FLSA ) , an extension to Latent Semantic Analysis ( LSA ) . 
+	</s>
+	
+
+	<s id="2">
+		 LSA is a statistical method that is ordinarily trained on words only ; FLSA adds to LSA the richness of the many other linguistic features that a corpus may be labeled with . 
+	</s>
+	
+
+	<s id="3">
+		 We applied FLSA to dialogue act classification with excellent results . 
+	</s>
+	
+
+	<s id="4">
+		 We report results on three corpora : CallHome Spanish , MapTask , and our own corpus of tutoring dialogues . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction In this paper , we propose Feature Latent Semantic Analysis ( FLSA ) as an extension to Latent Semantic Analysis ( LSA ) . 
+	</s>
+	
+
+	<s id="6">
+		 LSA can be thought as representing the meaning of a word as a kind of average of the meanings of all the passages in which it appears , and the meaning of a passage as a kind of average of the meaning of all the words it contains 
+		<ref citStr="Landauer and Dumais , 1997" id="1" label="CEPF" position="1205">
+			( Landauer and Dumais , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="7">
+		 It builds a semantic space where words and passages are represented as vectors . 
+	</s>
+	
+
+	<s id="8">
+		 LSA is based on Single Value Decomposition ( SVD ) , a mathematical technique that causes the semantic space to be arranged so as to reflect the major associative patterns in the data . 
+	</s>
+	
+
+	<s id="9">
+		 LSA has been successfully applied to many tasks , such as assessing the quality of student essays 
+		<ref citStr="Foltz et al. , 1999" id="2" label="CEPF" position="1623">
+			( Foltz et al. , 1999 )
+		</ref>
+		 or interpreting the student’s input in an Intelligent Tutoring system 
+		<ref citStr="Wiemer-Hastings , 2001" id="3" label="CEPF" position="1721">
+			( Wiemer-Hastings , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="10">
+		 A common criticism of LSA is that it uses only words and ignores anything else , e.g. syntactic information : to LSA , man bites dog is identical to dog bites man . 
+	</s>
+	
+
+	<s id="11">
+		 We suggest that an LSA semantic space can be built from the co-occurrence of arbitrary textual features , not just words . 
+	</s>
+	
+
+	<s id="12">
+		 We are calling LSA augmented with features FLSA , for Feature LSA . 
+	</s>
+	
+
+	<s id="13">
+		 Relevant prior work on LSA only includes Structured Latent Semantic Analysis 
+		<ref citStr="Wiemer-Hastings , 2001" id="4" label="CJPN" position="2219">
+			( Wiemer-Hastings , 2001 )
+		</ref>
+		 , and the predication algorithm of 
+		<ref citStr="Kintsch , 2001" id="5" label="CEPF" position="2273">
+			( Kintsch , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="14">
+		 We will show that for our task , dialogue act classification , syntactic features do not help , but most dialogue related features do . 
+	</s>
+	
+
+	<s id="15">
+		 Surprisingly , one dialogue related feature that does not help is the dialogue act history . 
+	</s>
+	
+
+	<s id="16">
+		 We applied LSA / FLSA to dialogue act classification . 
+	</s>
+	
+
+	<s id="17">
+		 Dialogue systems need to perform dialogue act classification , in order to understand the role the user’s utterance plays in the dialogue ( e.g. , a question for information or a request to perform an action ) . 
+	</s>
+	
+
+	<s id="18">
+		 In recent years , a variety of empirical techniques have been used to train the dialogue act classifier 
+		<ref citStr="Samuel et al. , 1998" id="6" label="CEPF" position="2922">
+			( Samuel et al. , 1998 
+		</ref>
+		<ref citStr="Stolcke et al. , 2000" id="7" label="CEPF" position="2945">
+			; Stolcke et al. , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="19">
+		 A second contribution of our work is to show that FLSA is successful at dialogue act classification , reaching comparable or better results than other published methods . 
+	</s>
+	
+
+	<s id="20">
+		 With respect to a baseline of choosing the most frequent dialogue act ( DA ) , LSA reduces error rates between 33 % and 52 % , and FLSA reduces error rates between 60 % and 78 % . 
+	</s>
+	
+
+	<s id="21">
+		 LSA is an attractive method for this task because it is straightforward to train and use . 
+	</s>
+	
+
+	<s id="22">
+		 More importantly , although it is a statistical theory , it has been shown to mimic many aspects of human competence / performance 
+		<ref citStr="Landauer and Dumais , 1997" id="8" label="CEPF" position="3612">
+			( Landauer and Dumais , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="23">
+		 Thus , it appears to capture important components of meaning . 
+	</s>
+	
+
+	<s id="24">
+		 Our results suggest that LSA / FLSA do so also as concerns DA classification . 
+	</s>
+	
+
+	<s id="25">
+		 On Map- Task , our FLSA classifier agrees with human coders to a satisfactory degree , and makes most of the same mistakes . 
+	</s>
+	
+
+	<s id="26">
+		 2 Feature Latent Semantic Analysis We will start by discussing LSA . 
+	</s>
+	
+
+	<s id="27">
+		 The input to LSA is a Word-Document matrix W with a row for each word , and a column for each document ( for us , a document is a unit , e.g. an utterance , tagged with a DA ) . 
+	</s>
+	
+
+	<s id="28">
+		 Cell c(i , j ) contains the frequency with which wordi appears in documentj.1 Clearly , this w x d matrix W will be very sparse . 
+	</s>
+	
+
+	<s id="29">
+		 Next , LSA applies 1Word frequencies are normally weighted according to specific functions , but we used raw frequencies because we wanted to assess our extensions to LSA independently from any bias introduced by the specific weighting technique . 
+	</s>
+	
+
+	<s id="30">
+		 to W Singular Value Decomposition ( SVD ) , to decompose it into the product of three other matrices , W = T050DT0 , so that T0 and D0 have orthonormal columns and 50 is diagonal . 
+	</s>
+	
+
+	<s id="31">
+		 SVD then provides a simple strategy for optimal approximate fit using smaller matrices . 
+	</s>
+	
+
+	<s id="32">
+		 If the singular values in 50 are ordered by size , the first k largest may be kept and the remaining smaller ones set to zero . 
+	</s>
+	
+
+	<s id="33">
+		 The product of the resulting matrices is a matrix Wˆ of rank k which is approximately equal to W ; it is the matrix of rank k with the best possible least-squares-fit to W . 
+	</s>
+	
+
+	<s id="34">
+		 The number of dimensions k retained by LSA is an empirical question . 
+	</s>
+	
+
+	<s id="35">
+		 However , crucially k is much smaller than the dimension of the original space . 
+	</s>
+	
+
+	<s id="36">
+		 The results we will report later are for the best k we experimented with . 
+	</s>
+	
+
+	<s id="37">
+		 Figure 1 shows a hypothetical dialogue annotated with MapTask style DAs . 
+	</s>
+	
+
+	<s id="38">
+		 Table 1 shows the Word- Document matrix W that LSA starts with – note that as usual stop words such as a , the , you have been eliminated . 
+	</s>
+	
+
+	<s id="39">
+		 2 Table 2 shows the approximate representation of W in a much smaller space . 
+	</s>
+	
+
+	<s id="40">
+		 To choose the best tag for a document in the test set , we first compute its vector representation in the semantic space LSA computed , then we compare the vector representing the new document with the vector of each document in the training set . 
+	</s>
+	
+
+	<s id="41">
+		 The tag of the document which has the highest similarity with our test vector is assigned to the new document – it is customary to use the cosine between the two vectors as a measure of similarity . 
+	</s>
+	
+
+	<s id="42">
+		 In our case , the new document is a unit ( utterance ) to be tagged with a DA , and we assign to it the DA of the document in the training set to which the new document is most similar . 
+	</s>
+	
+
+	<s id="43">
+		 Feature LSA . 
+	</s>
+	
+
+	<s id="44">
+		 In general , in FLSA we add extra features to LSA by adding a new “word” for each value that the feature of interest can take ( in some cases , e.g. when adding POS tags , we extend the matrix in a different way — see Sec . 
+	</s>
+	
+
+	<s id="45">
+		 4 ) . 
+	</s>
+	
+
+	<s id="46">
+		 The only assumption is that there are one or more non word related features associated with each document that can take a finite number of values . 
+	</s>
+	
+
+	<s id="47">
+		 In the Word– Document matrix , the word index is increased to include a new place holder for each possible value the feature may take . 
+	</s>
+	
+
+	<s id="48">
+		 When creating the matrix , a count of one is placed in the rows related to the new indexes if a particular feature applies to the document under analysis . 
+	</s>
+	
+
+	<s id="49">
+		 For instance , if we wish to include the speaker identity as a new feature for the dialogue 2We use a very short list of stop words ( &lt; 50 ) , as our experiments revealed that for dialogue act annotation LSA is sensitive to the most common words too . 
+	</s>
+	
+
+	<s id="50">
+		 This is why to is included in Table 1. in Figure 1 , the initial Word–Document matrix will be modified as in Table 3 ( its first 14 rows are as in Table 1 ) . 
+	</s>
+	
+
+	<s id="51">
+		 This process is easily extended if more than one non-word feature is desired per document , if more than one feature value applies to a single document or if a single feature appears more than once in a document 
+		<ref citStr="Serafin , 2003" id="9" label="CEPF" position="7828">
+			( Serafin , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="52">
+		 3 Corpora We report experiments on three corpora , Spanish CallHome , MapTask , and DIAG-NLP . 
+	</s>
+	
+
+	<s id="53">
+		 The Spanish CallHome corpus 
+		<ref citStr="Levin et al. , 1998" id="10" label="OEPF" position="7972">
+			( Levin et al. , 1998 
+		</ref>
+		<ref citStr="Ries , 1999" id="11" label="OEPF" position="7994">
+			; Ries , 1999 )
+		</ref>
+		 comprises 120 unrestricted phone calls in Spanish between family members and friends , for a total of 12066 unique words and 44628 DAs . 
+	</s>
+	
+
+	<s id="54">
+		 The Spanish CallHome corpus is annotated at three levels : DAs , dialogue games and dialogue activities . 
+	</s>
+	
+
+	<s id="55">
+		 The DA annotation augments a basic tag such as statement along several dimensions , such as whether the statement describes a psychological state of the speaker . 
+	</s>
+	
+
+	<s id="56">
+		 This results in 232 different DA tags , many with very low frequencies . 
+	</s>
+	
+
+	<s id="57">
+		 In this sort of situations , tag categories are often collapsed when running experiments so as to get meaningful frequencies 
+		<ref citStr="Stolcke et al. , 2000" id="12" label="CEPF" position="8675">
+			( Stolcke et al. , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="58">
+		 In CallHome37 , we collapsed different types of statements and backchannels , obtaining 37 different tags . 
+	</s>
+	
+
+	<s id="59">
+		 CallHome37 maintains some subcategorizations , e.g. whether a question is yes/no or rhetorical . 
+	</s>
+	
+
+	<s id="60">
+		 In Call- Home 10 , we further collapse these categories . 
+	</s>
+	
+
+	<s id="61">
+		 CallHome10 is reduced to 8 DAs proper ( e.g. , statement , question , answer ) plus the two tags ‘ ‘ %’ ’ for abandoned sentences and ‘ ‘x’ ’ for noise . 
+	</s>
+	
+
+	<s id="62">
+		 CallHome Spanish is further annotated for dialogue games and activities . 
+	</s>
+	
+
+	<s id="63">
+		 Dialogue game annotation is based on the MapTask notion of a dialogue game , a set of utterances starting with an initiation and encompassing all utterances up until the purpose of the game has been fulfilled ( e.g. , the requested information has been transferred ) or abandoned 
+		<ref citStr="Carletta et al. , 1997" id="13" label="CEPF" position="9537">
+			( Carletta et al. , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="64">
+		 Moves are the components of games , they correspond to a single or more DAs , and each is tagged as Initiative , Response or Feedback . 
+	</s>
+	
+
+	<s id="65">
+		 Each game is also given a label , such as Info(rmation) or Direct(ive) . 
+	</s>
+	
+
+	<s id="66">
+		 Finally , activities pertain to the main goal of a certain discourse stretch , such as gossip or argue . 
+	</s>
+	
+
+	<s id="67">
+		 The HCRC MapTask corpus is a collection of dialogues regarding a “Map Task” experiment . 
+	</s>
+	
+
+	<s id="68">
+		 Two participants sit opposite one another and each of them receives a map , but the two maps differ . 
+	</s>
+	
+
+	<s id="69">
+		 The instruction giver (G)’s map has a route indicated while instruction follower (F)’s map does not in- ( Doc 1 ) G : Do you see the lake with the black swan ? 
+	</s>
+	
+
+	<s id="70">
+		 Query–yn ( Doc 2 ) F : Yes , I do Reply–y ( Doc 3 ) G : Ok , Ready ( Doc 4 ) G : draw a line straight to it Instruct ( Doc 5 ) F : straight to the lake ? 
+	</s>
+	
+
+	<s id="71">
+		 Check ( Doc 6 ) G : yes , that’s right Reply–y ( Doc 7 ) F : Ok , I’ll do it Acknowledge Figure 1 : A hypothetical dialogue annotated with MapTask tags ( Doc 1 ) ( Doc 2 ) ( Doc 3 ) ( Doc 4 ) ( Doc 5 ) ( Doc 6 ) ( Doc 7 ) do 1 1 0 0 0 0 1 see 1 0 0 0 0 0 0 lake 1 0 0 0 1 0 0 black 1 0 0 0 0 0 0 swan 1 0 0 0 0 0 0 yes 0 1 0 0 0 1 0 ok 0 0 1 0 0 0 1 draw 0 0 0 1 0 0 0 line 0 0 0 1 0 0 0 straight 0 0 0 1 1 0 0 to 0 0 0 1 1 0 0 it 0 0 0 1 0 0 1 that 0 0 0 0 0 1 0 right 0 0 0 0 0 1 0 Table 1 : The 14-dimensional word-document matrix W clude the drawing of the route . 
+	</s>
+	
+
+	<s id="72">
+		 The task is for G to give directions to F , so that , at the end , F is able to reproduce G’s route on her map . 
+	</s>
+	
+
+	<s id="73">
+		 The MapTask corpus is composed of 128 dialogues , for a total of 1,835 unique words and 27,084 DAs . 
+	</s>
+	
+
+	<s id="74">
+		 It has been tagged at various levels , from POS to disfluencies , from syntax to DAs . 
+	</s>
+	
+
+	<s id="75">
+		 The MapTask coding scheme uses 13 DAs ( called moves ) , that include : Instruct ( a request that the partner carry out an action ) , Explain ( one of the partners states some information that was not explicitly elicited by the other ) , Queryyn/-w , Acknowledge , Reply -y/-n/-w and others . 
+	</s>
+	
+
+	<s id="76">
+		 The MapTask corpus is also tagged for games as defined above , but differently from CallHome , 6 DAs are identified as potential initiators of games ( of course not every initiator DA initiates a game ) . 
+	</s>
+	
+
+	<s id="77">
+		 Finally , transactions provide the subdialogue structure of a dialogue ; each is built of several dialogue games and corresponds to one step of the task . 
+	</s>
+	
+
+	<s id="78">
+		 DIAG-NLP is a corpus of computer mediated tutoring dialogues between a tutor and a student who is diagnosing a fault in a mechanical system with a tutoring system built with the DIAG authoring tool 
+		<ref citStr="Towne , 1997" id="14" label="OEPF" position="12241">
+			( Towne , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="79">
+		 The student’s input is via menu , the tutor is in a different room and answers via a text window . 
+	</s>
+	
+
+	<s id="80">
+		 The DIAG-NLP corpus comprises 23 ’dialogues’ for a total of 607 unique words and 660 DAs ( it is thus much smaller than the other two ) . 
+	</s>
+	
+
+	<s id="81">
+		 It has been annotated for a variety of features , including four DAs3 
+		<ref citStr="Glass et al. , 2002" id="15" label="CEPF" position="12604">
+			( Glass et al. , 2002 )
+		</ref>
+		 : problem solving , the tutor gives problem solving directions ; judgment , the tutor evaluates the student’s actions or diagnosis ; domain knowledge , the tutor imparts domain knowledge ; and other , when none of the previous three applies . 
+	</s>
+	
+
+	<s id="82">
+		 Other features encode domain objects and their properties , and Consult Type , the type of student query . 
+	</s>
+	
+
+	<s id="83">
+		 4 Results Table 4 reports the results we obtained for each corpus and method ( to train and evaluate each method , we used 5-fold cross-validation ) . 
+	</s>
+	
+
+	<s id="84">
+		 We include the baseline , computed as picking the most frequent DA 3 They should be more appropriately termed tutor moves . 
+	</s>
+	
+
+	<s id="85">
+		 ( Doc 1 ) ( Doc 2 ) ( Doc 3 ) ( Doc 4 ) ( Doc 5 ) ( Doc 6 ) ( Doc 7 ) Dim . 
+	</s>
+	
+
+	<s id="86">
+		 1 1.3076 0.4717 0.1529 1.6668 1.1737 0.1193 0.9101 Dim . 
+	</s>
+	
+
+	<s id="87">
+		 2 1.5991 0.6797 0.0958 -1.3697 -0.4771 0.2844 0.4205 Table 2 : The reduced 2-dimensional matrix Wˆ ( Doc 1 ) ( Doc 2 ) ( Doc 3 ) ( Doc 4 ) ( Doc 5 ) ( Doc 6 ) ( Doc 7 ) do 1 1 0 0 0 0 1 ... ... ... ... ... ... ... ... right 0 0 0 0 0 1 0 &lt;Giver&gt; 1 0 1 1 0 1 0 &lt;Follower&gt; 0 1 0 0 1 0 1 Table 3 : Word-document matrix W augmented with speaker identity in each corpus;4 the accuracy for LSA ; the best accuracy for FLSA , and with what combination of features it was obtained ; the best published result , taken from 
+		<ref citStr="Ries , 1999" id="16" label="CEPF" position="13960">
+			( Ries , 1999 )
+		</ref>
+		 and from 
+		<ref citStr="Lager and Zinovjeva , 1999" id="17" label="CEPF" position="14000">
+			( Lager and Zinovjeva , 1999 )
+		</ref>
+		 respectively for CallHome and for MapTask . 
+	</s>
+	
+
+	<s id="88">
+		 Finally , for both LSA and FLSA , Table 4 includes , in parenthesis , the dimension k of the reduced semantic space . 
+	</s>
+	
+
+	<s id="89">
+		 For each LSA method and corpus , we experimented with values of k between 25 and 350 . 
+	</s>
+	
+
+	<s id="90">
+		 The values of k that give us the best resuls for each method were thus selected empirically . 
+	</s>
+	
+
+	<s id="91">
+		 In all cases , we can see that LSA performs much better than baseline . 
+	</s>
+	
+
+	<s id="92">
+		 Moreover , we can see that FLSA further improves performance , dramatically in the case of MapTask . 
+	</s>
+	
+
+	<s id="93">
+		 FLSA reduces error rates between 60 % and 78 % , for all corpora other than DIAG-NLP ( all differences in performance between LSA and FLSA are significant , other than for DIAG-NLP ) . 
+	</s>
+	
+
+	<s id="94">
+		 DIAG-NLP may be too small a corpus to train FLSA ; or Consult Type may not be effective , but it was the only feature appropriate for FLSA ( Sec . 
+	</s>
+	
+
+	<s id="95">
+		 5 discusses how we chose appropriate features ) . 
+	</s>
+	
+
+	<s id="96">
+		 Another extension to LSA we developed , Clustered LSA , did give an improvement in performance for DIAG ( 79.24 % ) — please see 
+		<ref citStr="Serafin , 2003" id="18" label="CEPF" position="15128">
+			( Serafin , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="97">
+		 As regards comparable approaches , the performance of FLSA is as good or better . 
+	</s>
+	
+
+	<s id="98">
+		 For Spanish CallHome , 
+		<ref citStr="Ries , 1999" id="19" label="CEPF" position="15269">
+			( Ries , 1999 )
+		</ref>
+		 reports 76.2 % accuracy with a hybrid approach that couples Neural Networks and ngram backoff modeling ; the former uses prosodic features and POS tags , and interestingly works best with unigram backoff modeling , i.e. , without taking into account the DA history – see our discussion of the ineffectiveness of the DA history below . 
+	</s>
+	
+
+	<s id="99">
+		 However , 
+		<ref citStr="Ries , 1999" id="20" label="CJPF" position="15640">
+			( Ries , 1999 )
+		</ref>
+		 does not mention his target classification , and the reported baseline of picking the most frequent DA appears compatible with both CallHome37 and CallHome10.5 Thus , our results with FLSA are slightly worse ( - 1.33 % ) or better ( + 2.68 % ) than Ries’ , depending on the target classification . 
+	</s>
+	
+
+	<s id="100">
+		 On MapTask , 
+		<ref citStr="Lager and Zinovjeva , 1999" id="21" label="CEPN" position="15992">
+			( Lager and Zinovjeva , 1999 )
+		</ref>
+		 achieves 62.1 % with Transformation Based Learning using single words , bigrams , word position within the utterance , previous DA , speaker and change of speaker . 
+	</s>
+	
+
+	<s id="101">
+		 We achieve much better performance on MapTask with a number of our FLSA models . 
+	</s>
+	
+
+	<s id="102">
+		 As regards results on DA classification for other corpora , the best performances obtained are up to 75 % for task-oriented dialogues such as Verbmobil 
+		<ref citStr="Samuel et al. , 1998" id="22" label="CEPF" position="16433">
+			( Samuel et al. , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="103">
+		 
+		<ref citStr="Stolcke et al. , 2000" id="23" label="CEPF" position="16470">
+			( Stolcke et al. , 2000 )
+		</ref>
+		 reports an impressive 71 % accuracy on transcribed Switchboard dialogues , using a tag set of 42 DAs . 
+	</s>
+	
+
+	<s id="104">
+		 These are unrestricted English telephone conversations between two strangers that discuss a general interest topic . 
+	</s>
+	
+
+	<s id="105">
+		 The DA classification task appears more difficult for corpora such as Switchboard and CallHome Spanish , that cannot benefit from the regularities imposed on the dialogue by a specific task . 
+	</s>
+	
+
+	<s id="106">
+		 
+		<ref citStr="Stolcke et al. , 2000" id="24" label="CEPF" position="16935">
+			( Stolcke et al. , 2000 )
+		</ref>
+		 employs a combination of HMM , neural networks and decision trees trained on all available features ( words , prosody , sequence of DAs and speaker identity ) . 
+	</s>
+	
+
+	<s id="107">
+		 Table 5 reports a breakdown of the experimental results obtained with FLSA for the three tasks for which it was successful ( Table 5 does not include k , which is always 25 for CallHome37 and Call- Home 10 , and varies between 25 and 75 for Map- Task ) . 
+	</s>
+	
+
+	<s id="108">
+		 For each corpus , under the line we find results that are significantly better than those obtained with LSA . 
+	</s>
+	
+
+	<s id="109">
+		 For MapTask , the first 4 results that are 4The baselines for CallHome37 and CallHome10 are the same because in both statement is the most frequent DA . 
+	</s>
+	
+
+	<s id="110">
+		 5An inquiry to clarify this issue went unanswered . 
+	</s>
+	
+
+	<s id="111">
+		 Corpus Baseline LSA FLSA Features Best known result CallHome37 42.68 % 65.36 % ( k = 50 ) 74.87 % ( k = 25 ) Game + Initiative 76.20 % CallHome10 42.68 % 68.91 % ( k = 25 ) 78.88 % ( k = 25 ) Game + Initiative 76.20 % MapTask 20.69 % 42.77 % ( k = 75 ) 73.91 % ( k = 25 ) Game + Speaker 62.10 % DIAG-NLP 43.64 % 75.73 % ( k = 50 ) 74.81 % ( k = 50 ) Consult Type n.a. . 
+	</s>
+	
+
+	<s id="112">
+		 Table 4 : Accuracy for LSA and FLSA Corpus accuracy Features CallHome37 62.58 % Previous DA CallHome37 71.08 % Initiative CallHome37 72.69 % Game CallHome37 74.87 % Game+Initiative CallHome10 68.32 % Previous DA CallHome10 73.97 % Initiative CallHome10 76.52 % Game CallHome10 78.88 % Game+Initiative MapTask 41.84 % SRule MapTask 43.28 % POS MapTask 43.59 % Duration MapTask 46.91 % Speaker MapTask 47.09 % Previous DA MapTask 66.00 % Game MapTask 69.37 % Game+Prev . 
+	</s>
+	
+
+	<s id="113">
+		 DA MapTask 73.25 % Game+Speaker+Prev . 
+	</s>
+	
+
+	<s id="114">
+		 DA MapTask 73.91 % Game+Speaker Table 5 : FLSA Accuracy better than LSA ( from POS to Previous DA ) are still pretty low ; there is a difference of 19 % in performance for FLSA when Previous DA is added and when Game is added . 
+	</s>
+	
+
+	<s id="115">
+		 Analysis . 
+	</s>
+	
+
+	<s id="116">
+		 A few general conclusions can be drawn from Table 5 , as they apply in all three cases . 
+	</s>
+	
+
+	<s id="117">
+		 First , using the previous DA does not help , either at all ( CallHome37 and CallHome10 ) , or very little ( MapTask ) . 
+	</s>
+	
+
+	<s id="118">
+		 Increasing the length of the dialogue history does not improve performance . 
+	</s>
+	
+
+	<s id="119">
+		 In other experiments , we increased the length up to n = 4 : we found that the higher n , the worse the performance . 
+	</s>
+	
+
+	<s id="120">
+		 As we will see in Section 5 , introducing any new feature results in a larger and sparser initial matrix , which makes the task harder for FLSA ; to be effective , the amount of information provided by the new feature must be sufficient to overcome this handicap . 
+	</s>
+	
+
+	<s id="121">
+		 It is clear that , the longer the dialogue history , the sparser the initial matrix becomes , which explains why performance decreases . 
+	</s>
+	
+
+	<s id="122">
+		 However , this does not explain why using even only the previous DA does not help . 
+	</s>
+	
+
+	<s id="123">
+		 This implies that the previous DA does not provide a lot of information , as in fact is shown numerically in Section 5 . 
+	</s>
+	
+
+	<s id="124">
+		 This is surprising because the DA history is usually considered an important determinant of the current DA ( but 
+		<ref citStr="Ries , 1999" id="25" label="CEPF" position="20086">
+			( Ries , 1999 )
+		</ref>
+		 observed the same ) . 
+	</s>
+	
+
+	<s id="125">
+		 Second , the notion of Game appears to be really powerful , as it vastly improves performance on two very different corpora such as CallHome and MapTask.6 We will come back to discussing the usage of Game in a real dialogue system in Section 6 . 
+	</s>
+	
+
+	<s id="126">
+		 Third , the syntactic features we had access to do not seem to improve performance ( they were available only for MapTask ) . 
+	</s>
+	
+
+	<s id="127">
+		 In MapTask SRule indicates the main structure of the utterance , such as Declarative or Wh-question . 
+	</s>
+	
+
+	<s id="128">
+		 It is not surprising that SRule did not help , since it is well known that syntactic form is not predictive of DAs , especially those of indirect speech act flavor 
+		<ref citStr="Searle , 1975" id="26" label="CEPF" position="20800">
+			( Searle , 1975 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="129">
+		 POS tags don’t help LSA either , as has already been observed by 
+		<ref citStr="Wiemer-Hastings , 2001" id="27" label="CEPF" position="20878">
+			( Wiemer-Hastings , 2001 
+		</ref>
+		<ref citStr="Kanejiya et al. , 2003" id="28" label="CEPF" position="20903">
+			; Kanejiya et al. , 2003 )
+		</ref>
+		 for other tasks . 
+	</s>
+	
+
+	<s id="130">
+		 The likely reason is that it is necessary to add a different ’word’ for each distinct pair word-POS , e.g. , route becomes split as route- NN and route-VB . 
+	</s>
+	
+
+	<s id="131">
+		 This makes the Word-Document matrix much sparser : for MapTask , the number of rows increases from 1,835 for plain LSA to 2,324 for FLSA . 
+	</s>
+	
+
+	<s id="132">
+		 These negative results on adding syntactic information to LSA may just reinforce one of the claims of the LSA proponents , that structural information is irrelevant for determining meaning 
+		<ref citStr="Landauer and Dumais , 1997" id="29" label="CEPF" position="21492">
+			( Landauer and Dumais , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="133">
+		 Alternatively , syntactic information may need to be added to LSA in different ways . 
+	</s>
+	
+
+	<s id="134">
+		 
+		<ref citStr="Wiemer-Hastings , 2001" id="30" label="CEPF" position="21625">
+			( Wiemer-Hastings , 2001 )
+		</ref>
+		 discusses applying LSA to each syntactic component of the sentence ( subject , verb , rest of sentence ) , and averaging out those three measures to obtain a final similarity measure . 
+	</s>
+	
+
+	<s id="135">
+		 The results are better than with plain LSA . 
+	</s>
+	
+
+	<s id="136">
+		 
+		<ref citStr="Kintsch , 2001" id="31" label="CEPF" position="21892">
+			( Kintsch , 2001 )
+		</ref>
+		 proposes an algorithm that successfully differentiates the senses of predicates on the basis on their arguments , in which items of the semantic neighborhood of a predicate that are relevant to an argument are combined with the [ LSA ] predicate vector ... through a spreading activation process . 
+	</s>
+	
+
+	<s id="137">
+		 6Using Game in MapTask does not introduce circularity , even if a game is identified by its initiating DA . 
+	</s>
+	
+
+	<s id="138">
+		 We checked the matching rates for initiating and non initiating DAs with the FLSA model which employs Game + Speaker : they are 78.12 % and 71.67 % respectively . 
+	</s>
+	
+
+	<s id="139">
+		 Hence , even if Game makes initiating moves easier to classify , it is highly beneficial for the classification of non initiating moves as well . 
+	</s>
+	
+
+	<s id="140">
+		 5 How to select features for FLSA An important issue is how to select features for FLSA . 
+	</s>
+	
+
+	<s id="141">
+		 One possible answer is to exhaustively train every FLSA model that corresponds to one possible feature combination . 
+	</s>
+	
+
+	<s id="142">
+		 The problem is that training LSA models is in general time consuming . 
+	</s>
+	
+
+	<s id="143">
+		 For example , training each FLSA model on CallHome37 takes about 35 minutes of CPU time , and on Map- Task 17 minutes , on computers with one Pentium 1.7Ghz processor and 1Gb of memory . 
+	</s>
+	
+
+	<s id="144">
+		 Thus , it would be better to focus only on the most promising models , especially when the number of features is high , because of the exponential number of combinations . 
+	</s>
+	
+
+	<s id="145">
+		 In this work , we trained FLSA on each individual feature . 
+	</s>
+	
+
+	<s id="146">
+		 Then , we trained FLSA on each feature combinations that we expected to be effective , either because of the good performances of each individual feature , or because they include features that are deemed predictive of DAs , such as the previous DA(s) , even if they did not perform well individually . 
+	</s>
+	
+
+	<s id="147">
+		 After we ran our experiments , we performed a post hoc analysis based on the notion of Information Gain ( IG ) from decision tree learning 
+		<ref citStr="Quinlan , 1993" id="32" label="CEPF" position="23864">
+			( Quinlan , 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="148">
+		 One approach to choosing the next feature to add to the tree at each iteration is to pick the one with the highest IG . 
+	</s>
+	
+
+	<s id="149">
+		 Suppose the data set S is classified using n categories v1 ... vn , each with probability pi . 
+	</s>
+	
+
+	<s id="150">
+		 S’s entropy H can be seen as an indicator of how uncertain the outcome of the classification is , and is given by : H(S) = — ~n pilog2(pi) ( 1 ) i=1 If feature F divides S into k subsets S1 ... 
+	</s>
+	
+
+	<s id="151">
+		 Sk , then IG is the expected reduction in entropy caused by partitioning the data according to the values of F : llSill H(Si) ( 2 ) In our case , we first computed the entropy of the corpora with respect to the classification induced by the DA tags ( see Table 6 , which also includes the LSA accuracy for convenience ) . 
+	</s>
+	
+
+	<s id="152">
+		 Then , we computed the IG of the features or feature combinations we used in the FLSA experiments . 
+	</s>
+	
+
+	<s id="153">
+		 Table 7 reports the IG for most of the features from Table 5 ; it is ordered by FLSA performance . 
+	</s>
+	
+
+	<s id="154">
+		 On the whole , IG appears to be a reasonably accurate predictor of performance . 
+	</s>
+	
+
+	<s id="155">
+		 When a feature or feature combination has a high IG , e.g. over 1 , there Corpus Entropy LSA CallHome37 3.004 65.36 % CallHome10 2.51 68.91 % MapTask 3.38 42.77 % Table 7 : Information gain for FLSA is also a high performance improvement . 
+	</s>
+	
+
+	<s id="156">
+		 Occasionally , if the IG is small this does not hold . 
+	</s>
+	
+
+	<s id="157">
+		 For example , using the previous DA reduces the entropy by 0.21 for CallHome37 , but performance actually decreases . 
+	</s>
+	
+
+	<s id="158">
+		 Most likely , the amount of new information introduced is rather low and it is overcome by having a larger and sparser initial matrix , which makes the task harder for FLSA . 
+	</s>
+	
+
+	<s id="159">
+		 Also , when performance improves it does not necessarily increase linearly with IG ( see e.g. . 
+	</s>
+	
+
+	<s id="160">
+		 Game + Speaker + Previous DA and Game + Speaker for MapTask ) . 
+	</s>
+	
+
+	<s id="161">
+		 Nevertheless , IG can be effectively used to weed out unpromising features , or to rank feature combinations so that the most promising FLSA models can be trained first . 
+	</s>
+	
+
+	<s id="162">
+		 6 Discussion and future work In this paper , we have presented a novel extension to LSA , that we have called Feature LSA . 
+	</s>
+	
+
+	<s id="163">
+		 Our work is the first to show that FLSA is more effective than LSA , at least for the specific task we worked on , DA classification . 
+	</s>
+	
+
+	<s id="164">
+		 In parallel , we have shown that FLSA can be effectively used to train a DA classifier . 
+	</s>
+	
+
+	<s id="165">
+		 We have reached performances comparable to or better than published results on DA classification , and we have used an easily trainable method . 
+	</s>
+	
+
+	<s id="166">
+		 FLSA also highlights the effectiveness of other dialogue related features , such as Game , to classify DAs . 
+	</s>
+	
+
+	<s id="167">
+		 The drawback of features such as Game is that IG(S , A ) = H(S) — ~k i=1 Table 6 : Entropy measures Corpus Features IG FLSA CallHome37 Previous DA 0.21 62.58 % CallHome37 Initiative 0.69 71.08 % CallHome37 Game 0.59 72.69 % CallHome37 Game+Initiative 1.09 74.87 % CallHome1 0 Previous DA 0.13 68.32 % CallHome1 0 Initiative 0.53 73.97 % CallHome1 0 Game 0.53 76.52 % CallHome1 0 Game+Initiative 1.01 78.88 % MapTask Duration 0.54 43.59 % MapTask Speaker 0.31 46.91 % MapTask Prev. DA 0.58 47.09 % MapTask Game 1.21 66.00 % MapTask Game+Speaker+Prev . 
+	</s>
+	
+
+	<s id="168">
+		 DA 2.04 73.25 % MapTask Game+Speaker 1.62 73.91 % Corpus FLSA CallHome37 0.676 CallHome10 0.721 MapTask 0.740 Table 8 : r. measures of agreement a dialogue system may not have them at its disposal when doing DA classification in real time . 
+	</s>
+	
+
+	<s id="169">
+		 However , this problem may be circumvented . 
+	</s>
+	
+
+	<s id="170">
+		 The number of different games is in general rather low ( 8 in CallHome Spanish , 6 in MapTask ) , and the game label is constant across DAs belonging to the same game . 
+	</s>
+	
+
+	<s id="171">
+		 Each DA can be classified by augmenting it with each possible game label , and by choosing the most accurate match among those returned by each of these classification attempts . 
+	</s>
+	
+
+	<s id="172">
+		 Further , if the system can reliably recognize the end of a game , the method just described needs to be used only for the first DA of each game . 
+	</s>
+	
+
+	<s id="173">
+		 Then , the game label that gives the best result becomes the game label used for the next few DAs , until the end of the current game is detected . 
+	</s>
+	
+
+	<s id="174">
+		 Another reason why we advocate FLSA over other approaches is that it appears to be close to human performance for DA classification , in the same way that LSA approximates well many aspects of human competence / performance 
+		<ref citStr="Landauer and Dumais , 1997" id="33" label="CEPF" position="28379">
+			( Landauer and Dumais , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="175">
+		 To support this claim , first , we used the r. coefficient 
+		<ref citStr="Krippendorff , 1980" id="34" label="CEPF" position="28450">
+			( Krippendorff , 1980 
+		</ref>
+		<ref citStr="Carletta , 1996" id="35" label="CEPF" position="28472">
+			; Carletta , 1996 )
+		</ref>
+		 to assess the agreement between the classification made by FLSA and the classification from the corpora — see Table 8 . 
+	</s>
+	
+
+	<s id="176">
+		 A general rule of thumb on how to interpret the values of r. 
+		<ref citStr="Krippendorff , 1980" id="36" label="CEPF" position="28706">
+			( Krippendorff , 1980 )
+		</ref>
+		 is to require a value of r. &gt; 0.8 , with 0.67 &lt; r. &lt; 0.8 allowing tentative conclusions to be drawn . 
+	</s>
+	
+
+	<s id="177">
+		 As a whole , Table 8 shows that FLSA achieves a satisfying level of agreement with human coders . 
+	</s>
+	
+
+	<s id="178">
+		 To put Table 8 in perspective , note that expert human coders achieved r. = 0.83 on DA classification for MapTask , but also had available the speech source 
+		<ref citStr="Carletta et al. , 1997" id="37" label="CEPF" position="29117">
+			( Carletta et al. , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="179">
+		 We also compared the confusion matrix from 
+		<ref citStr="Carletta et al. , 1997" id="38" label="OJPF" position="29198">
+			( Carletta et al. , 1997 )
+		</ref>
+		 with the confusion matrix we obtained for our best result on MapTask ( FLSA using Game + Speaker ) . 
+	</s>
+	
+
+	<s id="180">
+		 For humans , the largest sources of confusion are between : check and queryyn ; instruct and clarify ; and acknowledge , reply -y and ready . 
+	</s>
+	
+
+	<s id="181">
+		 Likewise , our FLSA method makes the most mistakes when distinguishing between instruct and clarify ; and acknowledge , reply-y , and ready . 
+	</s>
+	
+
+	<s id="182">
+		 Instead it performs better than humans on distinguishing check and query -yn . 
+	</s>
+	
+
+	<s id="183">
+		 Thus , most of the sources of confusion for humans are the same as for FLSA . 
+	</s>
+	
+
+	<s id="184">
+		 Future work includes further investigating how to select promising feature combinations , e.g. by using logical regression . 
+	</s>
+	
+
+	<s id="185">
+		 We are also exploring whether FLSA can be used as the basis for semi-automatic annotation of dialogue acts , to be incorporated into MUP , an annotation tool we have developed 
+		<ref citStr="Glass and Di Eugenio , 2002" id="39" label="OEPF" position="30127">
+			( Glass and Di Eugenio , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="186">
+		 The problem is that large corpora are necessary to train methods based on LSA . 
+	</s>
+	
+
+	<s id="187">
+		 This would seem to defeat the purpose of using FLSA as the basis for semi-automatic dialogue annotation , since , to train FLSA in a new domain , we would need a large hand annotated corpus to start with . 
+	</s>
+	
+
+	<s id="188">
+		 Co-training 
+		<ref citStr="Blum and Mitchell , 1998" id="40" label="CEPF" position="30483">
+			( Blum and Mitchell , 1998 )
+		</ref>
+		 may offer a solution to this problem . 
+	</s>
+	
+
+	<s id="189">
+		 In co-training , two different classifiers are initially trained on a small set of annotated data , by using different features . 
+	</s>
+	
+
+	<s id="190">
+		 Afterwards , each classifier is allowed to label some unlabelled data , and picks its most confidently predicted positive and negative examples ; this data is added to the annotated data . 
+	</s>
+	
+
+	<s id="191">
+		 The process repeats until the desired perfomance is achieved . 
+	</s>
+	
+
+	<s id="192">
+		 In our scenario , we will experiment with training two different FLSA models , or one FLSA model and a different classifier , such as a naive Bayes classifier , on a small portion of annotated data that includes features like DAs , Game , etc. . 
+	</s>
+	
+
+	<s id="193">
+		 We will then proceed as described on the unlabelled data . 
+	</s>
+	
+
+	<s id="194">
+		 Finally , we have started applying FLSA to a different problem , that of judging the coherence of texts . 
+	</s>
+	
+
+	<s id="195">
+		 Whereas LSA has been already successfully applied to this task 
+		<ref citStr="Foltz et al. , 1998" id="41" label="CEPF" position="31465">
+			( Foltz et al. , 1998 )
+		</ref>
+		 , the issue is whether FLSA could perform better by also taking into account those features of a text that enhance its coherence for humans , such as appropriate cue words . 
+	</s>
+	
+
+	<s id="196">
+		 Acknowledgments This work is supported by grant N00014-00-1-0640 from the Office of Naval Research , and in part , by award 0133123 from the National Science Foundation . 
+	</s>
+	
+
+	<s id="197">
+		 Thanks to Michael Glass for initially suggesting extending LSA with features and to HCRC ( University of Edinburgh ) for sharing their annotated MapTask corpus . 
+	</s>
+	
+
+	<s id="198">
+		 The work was performed while the first author was at the University of Illinois in Chicago . 
+	</s>
+	
+
+	<s id="199">
+		 References Avrim Blum and Tom Mitchell . 
+	</s>
+	
+
+	<s id="200">
+		 1998. Combining labeled and unlabeled data with co-training . 
+	</s>
+	
+
+	<s id="201">
+		 In COLT98 , Proceedings of the Conference on Computational Learning Theory . 
+	</s>
+	
+
+	<s id="202">
+		 Jean Carletta , Amy Isard , Stephen Isard , Jacqueline C. Kowtko , Gwyneth Doherty-Sneddon , and Anne H. Anderson . 
+	</s>
+	
+
+	<s id="203">
+		 1997. The reliability of a dialogue structure coding scheme . 
+	</s>
+	
+
+	<s id="204">
+		 Computational Lingustics , 23(1):13–31 . 
+	</s>
+	
+
+	<s id="205">
+		 Jean Carletta . 
+	</s>
+	
+
+	<s id="206">
+		 1996. Assessing agreement on classification tasks : the Kappa statistic . 
+	</s>
+	
+
+	<s id="207">
+		 Computational Linguistics , 22(2):249–254 . 
+	</s>
+	
+
+	<s id="208">
+		 Peter W. Foltz , Walter Kintsch , and Thomas K. Landauer . 
+	</s>
+	
+
+	<s id="209">
+		 1998. The measurement of textual coherence with Latent Semantic Analysis . 
+	</s>
+	
+
+	<s id="210">
+		 Discourse Processes , 25:285–308 . 
+	</s>
+	
+
+	<s id="211">
+		 Peter W. Foltz , Darrell Laham , and Thomas K. Landauer . 
+	</s>
+	
+
+	<s id="212">
+		 1999. The intelligent essay assessor : Applications to educational technology . 
+	</s>
+	
+
+	<s id="213">
+		 Interactive Multimedia Electronic Journal of Computer- Enhanced Learning , 1(2) . 
+	</s>
+	
+
+	<s id="214">
+		 Michael Glass and Barbara Di Eugenio . 
+	</s>
+	
+
+	<s id="215">
+		 2002. MUP : The UIC standoff markup tool . 
+	</s>
+	
+
+	<s id="216">
+		 In The Third SigDIAL Workshop on Discourse and Dialogue , Philadelphia , PA , July . 
+	</s>
+	
+
+	<s id="217">
+		 Michael Glass , Heena Raval , Barbara Di Eugenio , and Maarika Traat . 
+	</s>
+	
+
+	<s id="218">
+		 2002. The DIAG-NLP dialogues : coding manual . 
+	</s>
+	
+
+	<s id="219">
+		 Technical Report UICCS 02-03 , University of Illinois - Chicago . 
+	</s>
+	
+
+	<s id="220">
+		 Dharmendra Kanejiya , Arun Kumar , and Surendra Prasad . 
+	</s>
+	
+
+	<s id="221">
+		 2003. Automatic Evaluation of Students’ Answers using Syntactically Enhanced LSA . 
+	</s>
+	
+
+	<s id="222">
+		 In HLT-NAACL Workshop on Building Educational Applications using Natural Language Processing , pages 53–60 , Edmonton , Canada . 
+	</s>
+	
+
+	<s id="223">
+		 Walter Kintsch . 
+	</s>
+	
+
+	<s id="224">
+		 2001. Predication . 
+	</s>
+	
+
+	<s id="225">
+		 Cognitive Science , 25:173–202 . 
+	</s>
+	
+
+	<s id="226">
+		 Klaus Krippendorff . 
+	</s>
+	
+
+	<s id="227">
+		 1980. Content Analysis : an Introduction to its Methodology . 
+	</s>
+	
+
+	<s id="228">
+		 Sage Publications , Beverly Hills , CA . 
+	</s>
+	
+
+	<s id="229">
+		 T. Lager and N. Zinovjeva . 
+	</s>
+	
+
+	<s id="230">
+		 1999. Training a dialogue act tagger with the p-TBL system . 
+	</s>
+	
+
+	<s id="231">
+		 In The Third Swedish Symposium on Multimodal Communication , Link¨oping University Natural Language Processing Laboratory ( NLPLAB ) . 
+	</s>
+	
+
+	<s id="232">
+		 Thomas K. Landauer and S.T. Dumais . 
+	</s>
+	
+
+	<s id="233">
+		 1997. A solution to Plato’s problem : The latent semantic analysis theory of acquisition , induction , and representation of knowledge . 
+	</s>
+	
+
+	<s id="234">
+		 Psychological Review , 104:211–240 . 
+	</s>
+	
+
+	<s id="235">
+		 Lori Levin , Ann Thym´e-Gobbel , Alon Lavie , Klaus Ries , and Klaus Zechner . 
+	</s>
+	
+
+	<s id="236">
+		 1998. A discourse coding scheme for conversational Spanish . 
+	</s>
+	
+
+	<s id="237">
+		 In Proceedings ICSLP . 
+	</s>
+	
+
+	<s id="238">
+		 J. Ross Quinlan . 
+	</s>
+	
+
+	<s id="239">
+		 1993. C4.5 : Programs for Machine Learning . 
+	</s>
+	
+
+	<s id="240">
+		 Morgan Kaufmann. Klaus Ries . 
+	</s>
+	
+
+	<s id="241">
+		 1999. HMM and Neural Network Based Speech Act Detection . 
+	</s>
+	
+
+	<s id="242">
+		 In Proceedings of ICASSP 99 , Phoenix , Arizona , March . 
+	</s>
+	
+
+	<s id="243">
+		 Ken Samuel , Sandra Carberry , and K. VijayShanker . 
+	</s>
+	
+
+	<s id="244">
+		 1998. Dialogue act tagging with transformation-based learning . 
+	</s>
+	
+
+	<s id="245">
+		 In ACL/COLING 98 , Proceedings of the 36th Annual Meeting of the Association for Computational Linguistics ( joint with the 17th International Conference on Computational Linguistics ) , pages 1150–1156 . 
+	</s>
+	
+
+	<s id="246">
+		 John R. Searle . 
+	</s>
+	
+
+	<s id="247">
+		 1975. Indirect Speech Acts . 
+	</s>
+	
+
+	<s id="248">
+		 In P. Cole and J.L. Morgan , editors , Syntax and Semantics 3 . 
+	</s>
+	
+
+	<s id="249">
+		 Speech Acts . 
+	</s>
+	
+
+	<s id="250">
+		 Academic Press . 
+	</s>
+	
+
+	<s id="251">
+		 Reprinted in Pragmatics . 
+	</s>
+	
+
+	<s id="252">
+		 A Reader , Steven Davis editor , Oxford University Press , 1991 . 
+	</s>
+	
+
+	<s id="253">
+		 Riccardo Serafin . 
+	</s>
+	
+
+	<s id="254">
+		 2003. Feature Latent Semantic Analysis for dialogue act interpretation . 
+	</s>
+	
+
+	<s id="255">
+		 Master’s thesis , University of Illinois - Chicago . 
+	</s>
+	
+
+	<s id="256">
+		 A. Stolcke , K. Ries , N. Coccaro , E. Shriberg , R. Bates , D. Jurafsky , P. Taylor , R. Martin , C. Van Ess-Dykema , and M. Meteer . 
+	</s>
+	
+
+	<s id="257">
+		 2000. Dialogue act modeling for automatic tagging and recognition of conversational speech . 
+	</s>
+	
+
+	<s id="258">
+		 Computational Linguistics , 26(3):339–373 . 
+	</s>
+	
+
+	<s id="259">
+		 Douglas M. Towne . 
+	</s>
+	
+
+	<s id="260">
+		 1997. Approximate reasoning techniques for intelligent diagnostic instruction . 
+	</s>
+	
+
+	<s id="261">
+		 International Journal ofArtificial Intelligence in Education . 
+	</s>
+	
+
+	<s id="262">
+		 Peter Wiemer-Hastings . 
+	</s>
+	
+
+	<s id="263">
+		 2001. Rules for syntax , vectors for semantics . 
+	</s>
+	
+
+	<s id="264">
+		 In CogSci01 , Proceedings of the Twenty-Third Annual Meeting of the Cognitive Science Society , Edinburgh , Scotland . 
+	</s>
+	
+
+
+</acldoc>

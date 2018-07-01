@@ -1,0 +1,1399 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1083">
+	
+
+	<s id="1">
+		 Statistical Machine Translation by Parsing I. Dan Melamed Computer Science Department New York University New York , NY , U.S.A. 10003-6806 lastname @cs.nyu.edu Abstract In an ordinary syntactic parser , the input is a string , and the grammar ranges over strings . 
+	</s>
+	
+
+	<s id="2">
+		 This paper explores generalizations of ordinary parsing algorithms that allow the input to consist of string tuples and/or the grammar to range over string tuples . 
+	</s>
+	
+
+	<s id="3">
+		 Such algorithms can infer the synchronous structures hidden in parallel texts . 
+	</s>
+	
+
+	<s id="4">
+		 It turns out that these generalized parsers can do most of the work required to train and apply a syntax-aware statistical machine translation system . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction A parser is an algorithm for inferring the structure of its input , guided by a grammar that dictates what structures are possible or probable . 
+	</s>
+	
+
+	<s id="6">
+		 In an ordinary parser , the input is a string , and the grammar ranges over strings . 
+	</s>
+	
+
+	<s id="7">
+		 This paper explores generalizations of ordinary parsing algorithms that allow the input to consist of string tuples and/or the grammar to range over string tuples . 
+	</s>
+	
+
+	<s id="8">
+		 Such inference algorithms can perform various kinds of analysis on parallel texts , also known as multitexts . 
+	</s>
+	
+
+	<s id="9">
+		 Figure 1 shows some of the ways in which ordinary parsing can be generalized . 
+	</s>
+	
+
+	<s id="10">
+		 A synchronous parser is an algorithm that can infer the syntactic structure of each component text in a multitext and simultaneously infer the correspondence relation between these structures . 
+	</s>
+	
+
+	<s id="11">
+		 ' When a parser’s input can have fewer dimensions than the parser’s grammar , we call it a translator . 
+	</s>
+	
+
+	<s id="12">
+		 When a parser’s grammar can have fewer dimensions than the parser’s input , we call it a synchronizer . 
+	</s>
+	
+
+	<s id="13">
+		 The corresponding processes are called translation and synchronization . 
+	</s>
+	
+
+	<s id="14">
+		 To our knowledge , synchronization has never been explored as a class of algorithms . 
+	</s>
+	
+
+	<s id="15">
+		 Neither has the relationship between parsing and word alignment . 
+	</s>
+	
+
+	<s id="16">
+		 The relationship between translation and ordinary parsing was noted a long time ' A suitable set of ordinary parsers can also infer the syntac- tic structure of each component , but cannot infer the correspondence relation between these structures . 
+	</s>
+	
+
+	<s id="17">
+		 Figure 1 : Generalizations of ordinary parsing . 
+	</s>
+	
+
+	<s id="18">
+		 ago ( Aho &amp; Ullman , 1969 ) , but here we articulate it in more detail : ordinary parsing is a special case of synchronous parsing , which is a special case of translation . 
+	</s>
+	
+
+	<s id="19">
+		 This paper offers an informal guided tour of the generalized parsing algorithms in Figure 1 . 
+	</s>
+	
+
+	<s id="20">
+		 It culminates with a recipe for using these algorithms to train and apply a syntax-aware statistical machine translation ( SMT ) system . 
+	</s>
+	
+
+	<s id="21">
+		 2 Multitext Grammars and Multitrees The algorithms in this paper can be adapted for any synchronous grammar formalism . 
+	</s>
+	
+
+	<s id="22">
+		 The vehicle for the present guided tour shall be multitext grammar ( MTG ) , which is a generalization of context-free grammar to the synchronous case 
+		<ref citStr="Melamed , 2003" id="1" label="CEPF" position="3087">
+			( Melamed , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="23">
+		 We shall limit our attention to MTGs in Generalized Chomsky Normal Form ( GCNF ) 
+		<ref citStr="Melamed et al. , 2004" id="2" label="CEPF" position="3205">
+			( Melamed et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="24">
+		 This normal form allows simpler algorithm descriptions than the normal forms used by 
+		<ref citStr="Wu ( 1997 )" id="3" label="CJPN" position="3313">
+			Wu ( 1997 )
+		</ref>
+		 and 
+		<ref citStr="Melamed ( 2003 )" id="4" label="CJPN" position="3334">
+			Melamed ( 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="25">
+		 In GCNF , every production is either a terminal production or a nonterminal production . 
+	</s>
+	
+
+	<s id="26">
+		 A nonterminal production might look like this : 1 2 3 ... 
+	</s>
+	
+
+	<s id="27">
+		 I = dimensionality of input ordinary parsing 3 2 1 generalized parsing ( any D ; any I ) synchronization ( I &gt;= D ) synchronous translation ( D &gt;= I ) word alignment ordinary parsing ro=P=1 ) parsing ( D=I ) D(2) A B E ( 1 ) There are nonterminals on the left-hand side ( LHS ) and in parentheses on the right-hand side ( RHS ) . 
+	</s>
+	
+
+	<s id="28">
+		 Each row of the production describes rewriting in a different component text of a multitext . 
+	</s>
+	
+
+	<s id="29">
+		 In each row , a role template describes the relative order and contiguity of the RHS nonterminals . 
+	</s>
+	
+
+	<s id="30">
+		 E.g. , in the top row , [ 1,2 ] indicates that the first nonterminal ( A ) precedes the second ( B ) . 
+	</s>
+	
+
+	<s id="31">
+		 In the bottom row , [ 1,2 , 1 ] indicates that the first nonterminal both precedes and follows the second , i.e. D is discontinuous . 
+	</s>
+	
+
+	<s id="32">
+		 Discontinuous nonterminals are annotated with the number of their contiguous segments , as in . 
+	</s>
+	
+
+	<s id="33">
+		 The ( “join” ) operator rearranges the non- terminals in each component according to their role template . 
+	</s>
+	
+
+	<s id="34">
+		 The nonterminals on the RHS are written in columns called links . 
+	</s>
+	
+
+	<s id="35">
+		 Links express translational equivalence . 
+	</s>
+	
+
+	<s id="36">
+		 Some nonterminals might have no translation in some components , indicated by ( ) , as in the 2nd row . 
+	</s>
+	
+
+	<s id="37">
+		 Terminal productions have exactly one “active” component , in which there is exactly one terminal on the RHS . 
+	</s>
+	
+
+	<s id="38">
+		 The other components are inactive . 
+	</s>
+	
+
+	<s id="39">
+		 E.g. , ( 2 ) The semantics of are the usual semantics of rewriting systems , i.e. , that the expression on the LHS can be rewritten as the expression on the RHS . 
+	</s>
+	
+
+	<s id="40">
+		 However , all the nonterminals in the same link must be rewritten simultaneously . 
+	</s>
+	
+
+	<s id="41">
+		 In this manner , MTGs generate tuples of parse trees that are isomorphic up to reordering of sibling nodes and deletion . 
+	</s>
+	
+
+	<s id="42">
+		 Figure 2 shows two representations of a tree that might be generated by an MTG in GCNF for the imperative sentence pair Wash the dishes / Pasudu moy . 
+	</s>
+	
+
+	<s id="43">
+		 The tree exhibits both deletion and inversion in translation . 
+	</s>
+	
+
+	<s id="44">
+		 We shall refer to such multidimensional trees as multitrees . 
+	</s>
+	
+
+	<s id="45">
+		 The different classes of generalized parsing algorithms in this paper differ only in their grammars and in their logics . 
+	</s>
+	
+
+	<s id="46">
+		 They are all compatible with the same parsing semirings and search strategies . 
+	</s>
+	
+
+	<s id="47">
+		 Therefore , we shall describe these algorithms in terms of their underlying logics and grammars , abstracting away the semirings and search strategies , in order to elucidate how the different classes of algorithms are related to each other . 
+	</s>
+	
+
+	<s id="48">
+		 Logical descriptions of inference algorithms involve inference rules : means that can be inferred from and . 
+	</s>
+	
+
+	<s id="49">
+		 An item that appears in an inference rule stands for the proposition that the item is in the parse chart . 
+	</s>
+	
+
+	<s id="50">
+		 A production rule that appears in an inference rule stands for the proposition that the production is in the grammar . 
+	</s>
+	
+
+	<s id="51">
+		 Such specifications are nondeter- Figure 2 : Above : A tree generated by a 2-MTG in English and ( transliterated ) Russian . 
+	</s>
+	
+
+	<s id="52">
+		 Every internal node is annotated with the linear order of its children , in every component where there are two children . 
+	</s>
+	
+
+	<s id="53">
+		 Below : A graphical representation of the same tree . 
+	</s>
+	
+
+	<s id="54">
+		 Rectangles are 2D constituents . 
+	</s>
+	
+
+	<s id="55">
+		 ministic : they do not indicate the order in which a parser should attempt inferences . 
+	</s>
+	
+
+	<s id="56">
+		 A deterministic parsing strategy can always be chosen later , to suit the application . 
+	</s>
+	
+
+	<s id="57">
+		 We presume that readers are familiar with declarative descriptions of inference algorithms , as well as with semiring parsing 
+		<ref citStr="Goodman , 1999" id="5" label="CEPF" position="7193">
+			( Goodman , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="58">
+		 3 A Synchronous CKY Parser Figure 3 shows Logic C. Parser C is any parser based on Logic C. As in Melamed (2003)’s Parser A , Parser C’s items consist of a -dimensional label vector and a -dimensional d-span vector.2 The items contain d-spans , rather than ordinary spans , because 2Superscripts and subscripts indicate the range of dimensions of a vector . 
+	</s>
+	
+
+	<s id="59">
+		 E.g. , is a vector spanning dimensions 1 through . 
+	</s>
+	
+
+	<s id="60">
+		 See 
+		<ref citStr="Melamed ( 2003 )" id="6" label="CERF" position="7654">
+			Melamed ( 2003 )
+		</ref>
+		 for definitions of cardinality , d-span , and the operators and . 
+	</s>
+	
+
+	<s id="61">
+		 Wash ^the moy dishes Pasudu S NP N V WASH D DISH Wash the dishes PAS Pasudu MIT V moy S NP N Parser C needs to know all the boundaries of each item , not just the outermost boundaries . 
+	</s>
+	
+
+	<s id="62">
+		 Some ( but not all ) dimensions of an item can be inactive , denoted , and have an empty d-span ( ) . 
+	</s>
+	
+
+	<s id="63">
+		 The input to Parser C is a tuple of parallel texts , with lengths . 
+	</s>
+	
+
+	<s id="64">
+		 The notation indicates that the Goal item must span the input from the left of the first word to the right of the last word in each component . 
+	</s>
+	
+
+	<s id="65">
+		 Thus , the Goal item must be contiguous in all dimensions . 
+	</s>
+	
+
+	<s id="66">
+		 Parser C begins with an empty chart . 
+	</s>
+	
+
+	<s id="67">
+		 The only inferences that can fire in this state are those with no antecedent items ( though they can have antecedent production rules ) . 
+	</s>
+	
+
+	<s id="68">
+		 In Logic C , is the value that the grammar assigns to the terminal production . 
+	</s>
+	
+
+	<s id="69">
+		 The range of this value depends on the semiring used . 
+	</s>
+	
+
+	<s id="70">
+		 A Scan inference can fire for the th word in component for every terminal pro- duction in the grammar where appears in the th component . 
+	</s>
+	
+
+	<s id="71">
+		 Each Scan consequent has exactly one active d-span , and that d-span always has the form because such items always span one word , so the distance between the item’s boundaries is always one . 
+	</s>
+	
+
+	<s id="72">
+		 The Compose inference in Logic C is the same as in Melamed’s Parser A , using slightly different notation : In Logic C , the function represents the value that the grammar assigns to the nonterminal production . 
+	</s>
+	
+
+	<s id="73">
+		 Parser C can compose two items if their labels appear on the RHS of a production rule in the grammar , and if the contiguity and relative order of their intervals is consistent with the role templates of that production rule . 
+	</s>
+	
+
+	<s id="74">
+		 Figure 3 : Logic C ( “C” for CKY ) These constraints are enforced by the d-span operators and . 
+	</s>
+	
+
+	<s id="75">
+		 Parser C is conceptually simpler than the synchronous parsers of 
+		<ref citStr="Wu ( 1997 )" id="7" label="OJPF" position="9673">
+			Wu ( 1997 )
+		</ref>
+		 , 
+		<ref citStr="Alshawi et al . ( 2000 )" id="8" label="OJPF" position="9700">
+			Alshawi et al . ( 2000 )
+		</ref>
+		 , and 
+		<ref citStr="Melamed ( 2003 )" id="9" label="OJPF" position="9723">
+			Melamed ( 2003 )
+		</ref>
+		 , because it uses only one kind of item , and it never composes terminals . 
+	</s>
+	
+
+	<s id="76">
+		 The inference rules of Logic C are the multidimensional generalizations of inference rules with the same names in ordinary CKY parsers . 
+	</s>
+	
+
+	<s id="77">
+		 For example , given a suitable grammar and the input ( imperative ) sentence pair Wash the dishes / Pasudu moy , Parser C might make the 9 inferences in Figure 4 to infer the multitree in Figure 2 . 
+	</s>
+	
+
+	<s id="78">
+		 Note that there is one inference per internal node of the multitree . 
+	</s>
+	
+
+	<s id="79">
+		 
+		<ref citStr="Goodman ( 1999 )" id="10" label="CEPF" position="10258">
+			Goodman ( 1999 )
+		</ref>
+		 shows how a parsing logic can be combined with various semirings to compute different kinds of information about the input . 
+	</s>
+	
+
+	<s id="80">
+		 Depending on the chosen semiring , a parsing logic can compute the single most probable derivation and/or its probability , the most probable derivations and/or their total probability , all possible derivations and/or their total probability , the number of possible derivations , etc. . 
+	</s>
+	
+
+	<s id="81">
+		 All the parsing semirings catalogued by Goodman apply the same way to synchronous parsing , and to all the other classes of algorithms discussed in this paper . 
+	</s>
+	
+
+	<s id="82">
+		 The class of synchronous parsers includes some algorithms for word alignment . 
+	</s>
+	
+
+	<s id="83">
+		 A translation lexicon ( weighted or not ) can be viewed as a degenerate MTG ( not in GCNF ) where every production has a link of terminals on the RHS . 
+	</s>
+	
+
+	<s id="84">
+		 Under such an MTG , the logic of word alignment is the one in Melamed (2003)’s Parser A , but without Compose inferences . 
+	</s>
+	
+
+	<s id="85">
+		 The only other difference is that , instead of a single item , the Goal of word alignment is any set of items that covers all dimensions of the input . 
+	</s>
+	
+
+	<s id="86">
+		 This logic can be used with the expectation semiring 
+		<ref citStr="Eisner , 2002" id="11" label="CEPF" position="11474">
+			( Eisner , 2002 )
+		</ref>
+		 to find the maximum likelihood estimates of the parameters of a word-to-word translation model . 
+	</s>
+	
+
+	<s id="87">
+		 An important application of Parser C is parameter estimation for probabilistic MTGs ( PMTGs ) . 
+	</s>
+	
+
+	<s id="88">
+		 
+		<ref citStr="Eisner ( 2002 )" id="12" label="CEPF" position="11701">
+			Eisner ( 2002 )
+		</ref>
+		 has claimed that parsing under an expectation semiring is equivalent to the Inside-Outside algorithm for PCFGs . 
+	</s>
+	
+
+	<s id="89">
+		 If so , then there is a straightforward generalization for PMTGs . 
+	</s>
+	
+
+	<s id="90">
+		 Parameter estimation is beyond the scope of this paper , however . 
+	</s>
+	
+
+	<s id="91">
+		 The next section assumes that we have an MTG , probabilistic or not , as required by the semiring . 
+	</s>
+	
+
+	<s id="92">
+		 4 Translation A -MTG can guide a synchronous parser to infer the hidden structure of a -component multi- text . 
+	</s>
+	
+
+	<s id="93">
+		 Now suppose that we have a -MTG and an input multitext with only components , Inference Rules Scan component d , : Compose : Item Form : Goal : . 
+	</s>
+	
+
+	<s id="94">
+		 Figure 4 : Possible sequence of inferences of Parser C on input Wash the dishes / Pasudu moy . 
+	</s>
+	
+
+	<s id="95">
+		 When some of the component texts are missing , we can ask the parser to infer a -dimensional multitree that includes the missing components . 
+	</s>
+	
+
+	<s id="96">
+		 The resulting multitree will cover the input components/dimensions among its dimensions . 
+	</s>
+	
+
+	<s id="97">
+		 It will also express the output compo- nents/dimensions , along with their syntactic structures . 
+	</s>
+	
+
+	<s id="98">
+		 Figure 5 : Logic CT ( “T” for Translation ) Figure 5 shows Logic CT , which is a generalization of Logic C. Translator CT is any parser based on Logic CT . 
+	</s>
+	
+
+	<s id="99">
+		 The items of Translator CT have a -dimensional label vector , as usual . 
+	</s>
+	
+
+	<s id="100">
+		 However , their d-span vectors are only -dimensional , because it is not necessary to constrain absolute word positions in the output dimensions . 
+	</s>
+	
+
+	<s id="101">
+		 Instead , we need only constrain the cardinality of the output nonterminals , which is accomplished by the role templates in the term . 
+	</s>
+	
+
+	<s id="102">
+		 Translator CT scans only the input components . 
+	</s>
+	
+
+	<s id="103">
+		 Terminal productions with active output components are simply loaded from the grammar , and their LHSs are added to the chart without d-span information . 
+	</s>
+	
+
+	<s id="104">
+		 Composition proceeds as before , except that there are no constraints on the role templates in the output dimensions – the role templates in are free variables . 
+	</s>
+	
+
+	<s id="105">
+		 In summary , Logic CT differs from Logic C as follows : Items store no position information ( d-spans ) for the output components . 
+	</s>
+	
+
+	<s id="106">
+		 For the output components , the Scan inferences are replaced by Load inferences , which are not constrained by the input . 
+	</s>
+	
+
+	<s id="107">
+		 The Compose inference does not constrain the d-spans of the output components . 
+	</s>
+	
+
+	<s id="108">
+		 ( Though it still constrains their cardinality . 
+	</s>
+	
+
+	<s id="109">
+		 ) Compose : Item Form : Goal : Inference Rules Scan component : Load component , : We have constructed a translator from a synchronous parser merely by relaxing some constraints on the output dimensions . 
+	</s>
+	
+
+	<s id="110">
+		 Logic C is just Logic CT for the special case where . 
+	</s>
+	
+
+	<s id="111">
+		 The relationship between the two classes of algorithms is easier to see from their declarative logics than it would be from their procedural pseudocode or equations . 
+	</s>
+	
+
+	<s id="112">
+		 Like Parser C , Translator CT can Compose items that have no dimensions in common . 
+	</s>
+	
+
+	<s id="113">
+		 If one of the items is active only in the input dimension(s) , and the other only in the output dimension(s) , then the inference is , de facto , a translation . 
+	</s>
+	
+
+	<s id="114">
+		 The possible translations are determined by consulting the grammar . 
+	</s>
+	
+
+	<s id="115">
+		 Thus , in addition to its usual function of evaluating syntactic structures , the grammar simultaneously functions as a translation model . 
+	</s>
+	
+
+	<s id="116">
+		 Logic CT can be coupled with any parsing semiring . 
+	</s>
+	
+
+	<s id="117">
+		 For example , under a boolean semiring , this logic will succeed on an -dimensional input if and only if it can infer a -dimensional multitree whose root is the goal item . 
+	</s>
+	
+
+	<s id="118">
+		 Such a tree would contain a -dimensional translation of the input . 
+	</s>
+	
+
+	<s id="119">
+		 Thus , under a boolean semiring , Translator CT can determine whether a translation of the input exists . 
+	</s>
+	
+
+	<s id="120">
+		 Under an inside-probability semiring , Translator CT can compute the total probability of all multitrees containing the input and its translations in the output components . 
+	</s>
+	
+
+	<s id="121">
+		 All these derivation trees , along with their probabilities , can be efficiently represented as a packed parse forest , rooted at the goal item . 
+	</s>
+	
+
+	<s id="122">
+		 Unfortunately , finding the most probable output string still requires summing probabilities over an exponential number of trees . 
+	</s>
+	
+
+	<s id="123">
+		 This problem was shown to be NP-hard in the one-dimensional case ( Sima’an , 1996 ) . 
+	</s>
+	
+
+	<s id="124">
+		 We have no reason to believe that it is any easier when each internal node of the tree . 
+	</s>
+	
+
+	<s id="125">
+		 The intended ordering of the terminals in each output dimension can be assembled from these templates by a linear-time linearization post-process that traverses the finished multitree in postorder . 
+	</s>
+	
+
+	<s id="126">
+		 To the best of our knowledge , Logic CT is the first published translation logic to be compatible with all of the semirings catalogued by 
+		<ref citStr="Goodman ( 1999 )" id="13" label="CEPF" position="16598">
+			Goodman ( 1999 )
+		</ref>
+		 , among others . 
+	</s>
+	
+
+	<s id="127">
+		 It is also the first to simultaneously accommodate multiple input components and multiple output components . 
+	</s>
+	
+
+	<s id="128">
+		 When a source document is available in multiple languages , a translator can benefit from the disambiguating information in each . 
+	</s>
+	
+
+	<s id="129">
+		 Translator CT can take advantage of such information without making the strong independence assumptions of Och &amp; 
+		<ref citStr="Ney ( 2001 )" id="14" label="CEPF" position="17013">
+			Ney ( 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="130">
+		 When output is desired in multiple languages , Translator CT offers all the putative benefits of the interlingual approach to MT , including greater efficiency and greater consistency across output components . 
+	</s>
+	
+
+	<s id="131">
+		 Indeed , the language of multitrees can be viewed as an interlingua . 
+	</s>
+	
+
+	<s id="132">
+		 5 Synchronization We have explored inference of -dimensional multi- trees under a -dimensional grammar , where . 
+	</s>
+	
+
+	<s id="133">
+		 Now we generalize along the other axis of Figure 1(a) . 
+	</s>
+	
+
+	<s id="134">
+		 Multitext synchronization is most often used to infer -dimensional multitrees without the benefit of an -dimensional grammar . 
+	</s>
+	
+
+	<s id="135">
+		 One application is inducing a parser in one language from a parser in another ( L¨u et al. , 2002 ) . 
+	</s>
+	
+
+	<s id="136">
+		 The application that is most relevant to this paper is bootstrapping an -dimensional grammar . 
+	</s>
+	
+
+	<s id="137">
+		 In theory , it is possible to induce a PMTG from multitext in an unsupervised manner . 
+	</s>
+	
+
+	<s id="138">
+		 A more reliable way is to start from a corpus of multitrees — a multitreebank.3 We are not aware of any multitreebanks at this time . 
+	</s>
+	
+
+	<s id="139">
+		 The most straightforward way to create one is to parse some multitext using a synchronous parser , such as Parser C . 
+	</s>
+	
+
+	<s id="140">
+		 However , if the goal is to bootstrap an -PMTG , then there is no -PMTG that can evaluate the terms in the parser’s logic . 
+	</s>
+	
+
+	<s id="141">
+		 Our solution is to orchestrate lower-dimensional knowledge sources to evaluate the terms . 
+	</s>
+	
+
+	<s id="142">
+		 Then , we can use the same parsing logic to synchronize multitext into a multitreebank . 
+	</s>
+	
+
+	<s id="143">
+		 To illustrate , we describe a relatively simple synchronizer , using the Viterbi-derivation semiring.4 Under this semiring , a synchronizer computes the single most probable multitree for a given multitext . 
+	</s>
+	
+
+	<s id="144">
+		 3In contrast , a parallel treebank might contain no information about translational equivalence . 
+	</s>
+	
+
+	<s id="145">
+		 4The inside-probability semiring would be required for maximum-likelihood synchronization . 
+	</s>
+	
+
+	<s id="146">
+		 . 
+	</s>
+	
+
+	<s id="147">
+		 The Viterbi-derivation semiring would be the most often used with Translator CT in practice . 
+	</s>
+	
+
+	<s id="148">
+		 Given a -PMTG , Translator CT can use this semiring to find the single most probable -dimensional multitree that covers the -dimensional input . 
+	</s>
+	
+
+	<s id="149">
+		 The multitree inferred by the translator will have the words of both the input and the output components in its leaves . 
+	</s>
+	
+
+	<s id="150">
+		 For example , given a suitable grammar and the input Pasudu moy , Translator CT could infer the multitree in Figure 2 . 
+	</s>
+	
+
+	<s id="151">
+		 The set of inferences would be exactly the same as those listed in Figure 4 , except that the items would have no d-spans in the English component . 
+	</s>
+	
+
+	<s id="152">
+		 In practice , we usually want the output as a string tuple , rather than as a multitree . 
+	</s>
+	
+
+	<s id="153">
+		 Under the various derivation semirings 
+		<ref citStr="Goodman , 1999" id="15" label="CEPF" position="19828">
+			( Goodman , 1999 )
+		</ref>
+		 , Translator CT can store the output role templates in I fed the cat ya kota kormil Figure 6 : Synchronization . 
+	</s>
+	
+
+	<s id="154">
+		 Only one synchronous dependency structure ( dashed arrows ) is compatible with the monolingual structure ( solid arrows ) and word alignment ( shaded cells ) . 
+	</s>
+	
+
+	<s id="155">
+		 If we have no suitable PMTG , then we can use other criteria to search for trees that have high probability . 
+	</s>
+	
+
+	<s id="156">
+		 We shall consider the common synchronization scenario where a lexicalized monolingual grammar is available for at least one component.5 Also , given a tokenized set of -tuples of parallel sentences , it is always possible to estimate a word-to-word translation model ( e.g. , Och &amp; Ney , 2003).6 A word-to-word translation model and a lexicalized monolingual grammar are sufficient to drive a synchronizer . 
+	</s>
+	
+
+	<s id="157">
+		 For example , in Figure 6 a monolingual grammar has allowed only one dependency structure on the English side , and a word-to-word translation model has allowed only one word alignment . 
+	</s>
+	
+
+	<s id="158">
+		 The syntactic structures of all dimensions of a multitree are isomorphic up to reordering of sibling nodes and deletion . 
+	</s>
+	
+
+	<s id="159">
+		 So , given a fixed correspondence between the tree leaves ( i.e. words ) across components , choosing the optimal structure for one component is tantamount to choosing the optimal synchronous structure for all components . 
+	</s>
+	
+
+	<s id="160">
+		 7 Ignoring the nonterminal labels , only one dependency structure is compatible with these constraints – the one indicated by dashed arrows . 
+	</s>
+	
+
+	<s id="161">
+		 Bootstrapping a PMTG from a lower-dimensional PMTG and a word-to-word translation model is similar in spirit to the way that regular grammars can help to estimate CFGs ( Lari &amp; Young , 1990 ) , and the way that simple translation models can help to bootstrap more sophisticated ones 
+		<ref citStr="Brown et al. , 1993" id="16" label="CEPF" position="21681">
+			( Brown et al. , 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="162">
+		 5 Such a grammar can be induced from a treebank , for example . 
+	</s>
+	
+
+	<s id="163">
+		 We are currently aware of treebanks for English , Spanish , German , Chinese , Czech , Arabic , and Korean . 
+	</s>
+	
+
+	<s id="164">
+		 6Although most of the literature discusses word translation models between only two languages , it is possible to combine several 2D models into a higher-dimensional model ( Mann &amp; Yarowsky , 2001 ) . 
+	</s>
+	
+
+	<s id="165">
+		 7Except where the unstructured components have words that are linked to nothing . 
+	</s>
+	
+
+	<s id="166">
+		 We need only redefine the terms in a way that does not rely on an -PMTG . 
+	</s>
+	
+
+	<s id="167">
+		 Without loss of generality , we shall assume a -PMTG that ranges over the first components , where . 
+	</s>
+	
+
+	<s id="168">
+		 We shall then refer to the structured components and the unstructured components . 
+	</s>
+	
+
+	<s id="169">
+		 We begin with . 
+	</s>
+	
+
+	<s id="170">
+		 For the structured compo- nents , we retain the grammar- based definition : and continues by making independence assumptions . 
+	</s>
+	
+
+	<s id="171">
+		 The first assumption is that the structured components of the production’s RHS are conditionally independent of the unstructured components of its LHS : ( 1 ) The above probability can be looked up in the -PMTG . 
+	</s>
+	
+
+	<s id="172">
+		 Second , since we have no useful non- terminals in the unstructured components , we let ( 2 ) if and otherwise . 
+	</s>
+	
+
+	<s id="173">
+		 Third , we assume that the word-to-word translation probabilities are independent of anything else : ( 7 ) 8 We have ignored lexical heads so far , but we need them for this synchronizer . 
+	</s>
+	
+
+	<s id="174">
+		 9The procedure is analogous when the heir is the first non- terminal link on the RHS , rather than the second . 
+	</s>
+	
+
+	<s id="175">
+		 ( 3 ) ( 4 ) , s where the latter probability can be looked up in our -PMTG . 
+	</s>
+	
+
+	<s id="176">
+		 For the unstructured components , there are no useful nonterminal labels . 
+	</s>
+	
+
+	<s id="177">
+		 Therefore , we assume that the unstructured components use only one ( dummy ) nonterminal label , so that if and undefined oth- erwise for . 
+	</s>
+	
+
+	<s id="178">
+		 Our treatment of nonterminal productions begins by applying the chain rule9 These probabilities can be obtained from our wordto-word translation model , which would typically be estimated under exactly such an independence assumption . 
+	</s>
+	
+
+	<s id="179">
+		 Finally , we assume that the output role templates are independent of each other and uniformly distributed , up to some maximum cardinality . 
+	</s>
+	
+
+	<s id="180">
+		 Let be the number of unique role templates of cardinality or less . 
+	</s>
+	
+
+	<s id="181">
+		 Then Under Assumptions 5–8 , ( 5 ) if and 0 otherwise . 
+	</s>
+	
+
+	<s id="182">
+		 We can use these definitions of the grammar terms in the inference rules of Logic C to synchronize multitexts into multitreebanks . 
+	</s>
+	
+
+	<s id="183">
+		 More sophisticated synchronization methods are certainly possible . 
+	</s>
+	
+
+	<s id="184">
+		 For example , we could project a part-of-speech tagger ( Yarowsky &amp; Ngai , 2001 ) to improve our estimates in Equation 6 . 
+	</s>
+	
+
+	<s id="185">
+		 Yet , despite their relative simplicity , the above methods for estimating production rule probabilities use all of the available information in a consistent manner , without double-counting . 
+	</s>
+	
+
+	<s id="186">
+		 This kind of synchronizer stands in contrast to more ad-hoc approaches ( e.g. , Matsumoto , 1993 ; Meyers , 1996 ; Wu , 1998 ; Hwa et al. , 2002 ) . 
+	</s>
+	
+
+	<s id="187">
+		 Some of these previous works fix the word alignments first , and then infer compatible parse structures . 
+	</s>
+	
+
+	<s id="188">
+		 Others do the opposite . 
+	</s>
+	
+
+	<s id="189">
+		 Information about syntactic structure can be inferred more accurately given information about translational equivalence , and vice versa . 
+	</s>
+	
+
+	<s id="190">
+		 Commitment to either kind of information without consideration of the other increases the potential for compounded errors . 
+	</s>
+	
+
+	<s id="191">
+		 6 Multitree-based Statistical MT Multitree-based statistical machine translation ( MTSMT ) is an architecture for SMT that revolves around multitrees . 
+	</s>
+	
+
+	<s id="192">
+		 Figure 7 shows how to build and use a rudimentary MTSMT system , starting from some multitext and one or more monolingual tree- banks . 
+	</s>
+	
+
+	<s id="193">
+		 The recipe follows : T1 . 
+	</s>
+	
+
+	<s id="194">
+		 Induce a word-to-word translation model . 
+	</s>
+	
+
+	<s id="195">
+		 T2 . 
+	</s>
+	
+
+	<s id="196">
+		 Induce PCFGs from the relative frequencies of productions in the monolingual treebanks . 
+	</s>
+	
+
+	<s id="197">
+		 T3 . 
+	</s>
+	
+
+	<s id="198">
+		 Synchronize some multitext , e.g. using the approximations in Section 5 . 
+	</s>
+	
+
+	<s id="199">
+		 T4 . 
+	</s>
+	
+
+	<s id="200">
+		 Induce an initial PMTG from the relative frequencies of productions in the multitreebank . 
+	</s>
+	
+
+	<s id="201">
+		 T5 . 
+	</s>
+	
+
+	<s id="202">
+		 Re-estimate the PMTG parameters , using a synchronous parser with the expectation semiring . 
+	</s>
+	
+
+	<s id="203">
+		 A1 . 
+	</s>
+	
+
+	<s id="204">
+		 Use the PMTG to infer the most probable multitree covering new input text . 
+	</s>
+	
+
+	<s id="205">
+		 A2 . 
+	</s>
+	
+
+	<s id="206">
+		 Linearize the output dimensions of the multi- tree . 
+	</s>
+	
+
+	<s id="207">
+		 Steps T2 , T4 and A2 are trivial . 
+	</s>
+	
+
+	<s id="208">
+		 Steps T1 , T3 , T5 , and A1 are instances of the generalized parsers described in this paper . 
+	</s>
+	
+
+	<s id="209">
+		 Figure 7 is only an architecture . 
+	</s>
+	
+
+	<s id="210">
+		 Computational complexity and generalization error stand in the way of its practical implementation . 
+	</s>
+	
+
+	<s id="211">
+		 Nevertheless , it is satisfying to note that all the non-trivial algo- rithms in Figure 7 are special cases of Translator CT . 
+	</s>
+	
+
+	<s id="212">
+		 It is therefore possible to implement an MTSMT system using just one inference algorithm , param- eterized by a grammar , a semiring , and a search strategy . 
+	</s>
+	
+
+	<s id="213">
+		 An advantage of building an MT system in this manner is that improvements invented for ordi- nary parsing algorithms can often be applied to all the main components of the system . 
+	</s>
+	
+
+	<s id="214">
+		 For example , 
+		<ref citStr="Melamed ( 2003 )" id="17" label="CEPF" position="27134">
+			Melamed ( 2003 )
+		</ref>
+		 showed how to reduce the com- putational complexity of a synchronous parser by , just by changing the logic . 
+	</s>
+	
+
+	<s id="215">
+		 The same opti- mization can be applied to the inference algorithms in this paper . 
+	</s>
+	
+
+	<s id="216">
+		 With proper software design , such op- timizations need never be implemented more than once . 
+	</s>
+	
+
+	<s id="217">
+		 For simplicity , the algorithms in this paper are based on CKY logic . 
+	</s>
+	
+
+	<s id="218">
+		 However , the architecture in Figure 7 can also be implemented using general- izations of more sophisticated parsing logics , such as those inherent in Earley or Head-Driven parsers . 
+	</s>
+	
+
+	<s id="219">
+		 7 Conclusion This paper has presented generalizations of ordinary parsing that emerge when the grammar and/or the input can be multidimensional . 
+	</s>
+	
+
+	<s id="220">
+		 Along the way , it has elucidated the relationships between ordinary parsers and other classes of algorithms , some previously known and some not . 
+	</s>
+	
+
+	<s id="221">
+		 It turns out that , given some multitext and a monolingual treebank , a rudimentary multitree-based statistical machine translation system can be built and applied using only generalized parsers and some trivial glue . 
+	</s>
+	
+
+	<s id="222">
+		 There are three research benefits of using generalized parsers to build MT systems . 
+	</s>
+	
+
+	<s id="223">
+		 First , we can ( 8 ) PCFG(s) T2 relative frequency computation A1 translation input multitext A2 linearization multitree output multitext monolingual treebank(s) training multitext T1 word alignment T5 word^to^word translation model estimation via multitreebank synchronous parameter parsing T4 synchronization relative frequency computation T3 PMTG Figure 7 : Data-flow diagram for a rudimentary MTSMT system based on generalizations of parsing . 
+	</s>
+	
+
+	<s id="224">
+		 take advantage of past and future research on making parsers more accurate and more efficient . 
+	</s>
+	
+
+	<s id="225">
+		 Therefore , second , we can concentrate our efforts on better models , without worrying about MT-specific search algorithms . 
+	</s>
+	
+
+	<s id="226">
+		 Third , more generally and most importantly , this approach encourages MT research to be less specialized and more transparently related to the rest of computational linguistics . 
+	</s>
+	
+
+	<s id="227">
+		 Acknowledgments Thanks to Joseph Turian , Wei Wang , Ben Wellington , and the anonymous reviewers for valuable feedback . 
+	</s>
+	
+
+	<s id="228">
+		 This research was supported by an NSF CAREER Award , the DARPA TIDES program , and an equipment gift from Sun Microsystems . 
+	</s>
+	
+
+	<s id="229">
+		 References A. Aho &amp; J. 
+		<ref citStr="Ullman ( 1969 )" id="18" position="29549">
+			Ullman ( 1969 )
+		</ref>
+		 “Syntax Directed Translations and the Pushdown Assembler,” Journal of Computer and System Sciences 3 , 37-56 . 
+	</s>
+	
+
+	<s id="230">
+		 H. Alshawi , S. Bangalore , &amp; S. 
+		<ref citStr="Douglas ( 2000 )" id="19" position="29725">
+			Douglas ( 2000 )
+		</ref>
+		 “Learning Dependency Translation Models as Collections of Finite State Head Transducers,” Computational Linguistics 26(1):45-60 . 
+	</s>
+	
+
+	<s id="231">
+		 P. F. Brown , S. A. Della Pietra , V. J. Della Pietra , &amp; R. L. 
+		<ref citStr="Mercer ( 1993 )" id="20" position="29950">
+			Mercer ( 1993 )
+		</ref>
+		 “The Mathematics of Statistical Machine Translation : Parameter Estimation,” Computational Linguistics 19(2):263–312 . 
+	</s>
+	
+
+	<s id="232">
+		 J. 
+		<ref citStr="Goodman ( 1999 )" id="21" position="30101">
+			Goodman ( 1999 )
+		</ref>
+		 “Semiring Parsing,” Computational Linguistics 25(4):573–305 . 
+	</s>
+	
+
+	<s id="233">
+		 R. Hwa , P. Resnik , A. Weinberg , &amp; O. 
+		<ref citStr="Kolak ( 2002 )" id="22" position="30234">
+			Kolak ( 2002 )
+		</ref>
+		 “Evaluating Translational Correspondence using Annotation Projection,” Proceedings of the ACL . 
+	</s>
+	
+
+	<s id="234">
+		 J. 
+		<ref citStr="Eisner ( 2002 )" id="23" position="30360">
+			Eisner ( 2002 )
+		</ref>
+		 “Parameter Estimation for Probabilistic Finite- State Transducers,” Proceedings of the ACL . 
+	</s>
+	
+
+	<s id="235">
+		 K. Lari &amp; S. 
+		<ref citStr="Young ( 1990 )" id="24" position="30496">
+			Young ( 1990 )
+		</ref>
+		 “The Estimation of Stochas- tic Context-Free Grammars using the Inside-Outside Algo- rithm,” Computer Speech and Language Processing 4:35– 56 . 
+	</s>
+	
+
+	<s id="236">
+		 Y. L¨u , S. Li , T. Zhao , &amp; M. 
+		<ref citStr="Yang ( 2002 )" id="25" position="30703">
+			Yang ( 2002 )
+		</ref>
+		 “Learning Chinese Bracketing Knowledge Based on a Bilingual Language Model,” Proceedings of COLING . 
+	</s>
+	
+
+	<s id="237">
+		 G. S. Mann &amp; D. 
+		<ref citStr="Yarowsky ( 2001 )" id="26" position="30853">
+			Yarowsky ( 2001 )
+		</ref>
+		 “Multipath Translation Lexicon Induction via Bridge Languages,” Proceedings of HL T/NAACL . 
+	</s>
+	
+
+	<s id="238">
+		 Y. 
+		<ref citStr="Matsumoto ( 1993 )" id="27" position="30978">
+			Matsumoto ( 1993 )
+		</ref>
+		 “Structural Matching of Parallel Texts,” Proceedings of the ACL . 
+	</s>
+	
+
+	<s id="239">
+		 I. D. 
+		<ref citStr="Melamed ( 2003 )" id="28" position="31078">
+			Melamed ( 2003 )
+		</ref>
+		 “Multitext Grammars and Synchronous Parsers,” Proceedings ofHLT/NAACL . 
+	</s>
+	
+
+	<s id="240">
+		 I. D. Melamed , G. Satta , &amp; B. 
+		<ref citStr="Wellington ( 2004 )" id="29" position="31217">
+			Wellington ( 2004 )
+		</ref>
+		 “Generalized Multitext Grammars,” Proceedings of the ACL ( this volume ) . 
+	</s>
+	
+
+	<s id="241">
+		 A. Meyers , R. Yangarber , &amp; R. 
+		<ref citStr="Grishman ( 1996 )" id="30" position="31357">
+			Grishman ( 1996 )
+		</ref>
+		 “Alignment of Shared Forests for Bilingual Corpora,” Proceedings of COLING . 
+	</s>
+	
+
+	<s id="242">
+		 F. Och &amp; H. 
+		<ref citStr="Ney ( 2001 )" id="31" position="31474">
+			Ney ( 2001 )
+		</ref>
+		 “Statistical Multi-Source Translation,” Proceedings ofMT Summit VIII . 
+	</s>
+	
+
+	<s id="243">
+		 F. Och &amp; H. 
+		<ref citStr="Ney ( 2003 )" id="32" position="31585">
+			Ney ( 2003 )
+		</ref>
+		 “A Systematic Comparison of Various Statistical Alignment Models,” Computational Linguistics 29(1):19-51 . 
+	</s>
+	
+
+	<s id="244">
+		 K. Sima’an ( 1996 ) “Computational Complexity of Probabilistic Disambiguation by means of Tree-Grammars,” Proceedings of COLING . 
+	</s>
+	
+
+	<s id="245">
+		 D. 
+		<ref citStr="Wu ( 1996 )" id="33" position="31860">
+			Wu ( 1996 )
+		</ref>
+		 “A polynomial-time algorithm for statistical machine translation,” Proceedings of the ACL . 
+	</s>
+	
+
+	<s id="246">
+		 D. 
+		<ref citStr="Wu ( 1997 )" id="34" position="31978">
+			Wu ( 1997 )
+		</ref>
+		 “Stochastic inversion transduction grammars and bilingual parsing of parallel corpora,” Computational Linguistics 23(3):377-404 . 
+	</s>
+	
+
+	<s id="247">
+		 D. Wu &amp; H. 
+		<ref citStr="Wong ( 1998 )" id="35" position="32148">
+			Wong ( 1998 )
+		</ref>
+		 “Machine translation with a stochastic grammatical channel,” Proceedings of the ACL . 
+	</s>
+	
+
+	<s id="248">
+		 K. Yamada &amp; K. 
+		<ref citStr="Knight ( 2002 )" id="36" position="32280">
+			Knight ( 2002 )
+		</ref>
+		 “A Decoder for Syntax-based Statistical MT,” Proceedings of the ACL . 
+	</s>
+	
+
+	<s id="249">
+		 D. Yarowsky &amp; G. 
+		<ref citStr="Ngai ( 2001 )" id="37" position="32396">
+			Ngai ( 2001 )
+		</ref>
+		 “Inducing Multilingual POS Taggers and NP Bracketers via Robust Projection Across Aligned Corpora,” Proceedings of the NAACL . 
+	</s>
+	
+
+
+</acldoc>

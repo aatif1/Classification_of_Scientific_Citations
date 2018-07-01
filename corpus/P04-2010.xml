@@ -1,0 +1,1015 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-2010">
+	
+
+	<s id="1">
+		 A Machine Learning Approach to German Pronoun Resolution Beata Kouchnir Department of Computational Linguistics T¨ubingen University 72074 T¨ubingen , Germany kouchnir@sfs.uni-tuebingen.de Abstract This paper presents a novel ensemble learning approach to resolving German pronouns . 
+	</s>
+	
+
+	<s id="2">
+		 Boosting , the method in question , combines the moderately accurate hypotheses of several classifiers to form a highly accurate one . 
+	</s>
+	
+
+	<s id="3">
+		 Experiments show that this approach is superior to a single decision-tree classifier . 
+	</s>
+	
+
+	<s id="4">
+		 Furthermore , we present a standalone system that resolves pronouns in unannotated text by using a fully automatic sequence of preprocessing modules that mimics the manual annotation process . 
+	</s>
+	
+
+	<s id="5">
+		 Although the system performs well within a limited textual domain , further research is needed to make it effective for open-domain question answering and text summarisation . 
+	</s>
+	
+
+	<s id="6">
+		 1 Introduction Automatic coreference resolution , pronominal and otherwise , has been a popular research area in Natural Language Processing for more than two decades , with extensive documentation of both the rule-based and the machine learning approach . 
+	</s>
+	
+
+	<s id="7">
+		 For the latter , good results have been achieved with large feature sets ( including syntactic , semantic , grammatical and morphological information ) derived from handannotated corpora . 
+	</s>
+	
+
+	<s id="8">
+		 However , for applications that work with plain text ( e.g. question answering , text summarisation ) , this approach is not practical . 
+	</s>
+	
+
+	<s id="9">
+		 The system presented in this paper resolves German pronouns in free text by imitating the manual annotation process with off-the-shelf language sofware . 
+	</s>
+	
+
+	<s id="10">
+		 As the avalability and reliability of such software is limited , the system can use only a small number of features . 
+	</s>
+	
+
+	<s id="11">
+		 The fact that most German pronouns are morphologically ambiguous proves an additional challenge . 
+	</s>
+	
+
+	<s id="12">
+		 The choice of boosting as the underlying machine learning algorithm is motivated both by its theoretical concept as well as its performance for other NLP tasks . 
+	</s>
+	
+
+	<s id="13">
+		 The fact that boosting uses the method of ensemble learning , i.e. combining the decisions of several classifiers , suggests that the combined hypothesis will be more accurate than one learned by a single classifier . 
+	</s>
+	
+
+	<s id="14">
+		 On the practical side , boosting has distinguished itself by achieving good results with small feature sets . 
+	</s>
+	
+
+	<s id="15">
+		 2 Related Work Although extensive research has been conducted on statistical anaphora resolution , the bulk of the work has concentrated on the English language . 
+	</s>
+	
+
+	<s id="16">
+		 Nevertheless , comparing different strategies helped shape the system described in this paper . 
+	</s>
+	
+
+	<s id="17">
+		 
+		<ref citStr="McCarthy and Lehnert , 1995" id="1" label="CEPF" position="2759">
+			( McCarthy and Lehnert , 1995 )
+		</ref>
+		 were among the first to use machine learning for coreference resolution . 
+	</s>
+	
+
+	<s id="18">
+		 RESOLVE was trained on data from MUC-5 English Joint Venture ( EJV ) corpus and used the C4.5 decision tree algorithm 
+		<ref citStr="Quinlan , 1993" id="2" label="CEPF" position="2979">
+			( Quinlan , 1993 )
+		</ref>
+		 with eight features , most of which were tailored to the joint venturte domain . 
+	</s>
+	
+
+	<s id="19">
+		 The system achieved an F-measure of 86.5 for full coreference resolution ( no values were given for pronouns ) . 
+	</s>
+	
+
+	<s id="20">
+		 Although a number this high must be attributed to the specific textual domain , RESOLVE also outperformed the authors’ rule-based algorithm by 7.6 percentage points , which encouraged further reseach in this direction . 
+	</s>
+	
+
+	<s id="21">
+		 Unlike the other systems presented in this section , 
+		<ref citStr="Morton , 2000" id="3" label="CEPF" position="3492">
+			( Morton , 2000 )
+		</ref>
+		 does not use a decision tree algorithm but opts instead for a maximum entropy model . 
+	</s>
+	
+
+	<s id="22">
+		 The model is trained on a subset of the Wall Street Journal , comprising 21 million tokens . 
+	</s>
+	
+
+	<s id="23">
+		 The reported F-measure for pronoun resolution is 81.5 . 
+	</s>
+	
+
+	<s id="24">
+		 However , 
+		<ref citStr="Morton , 2000" id="4" label="CJPN" position="3782">
+			( Morton , 2000 )
+		</ref>
+		 only attempts to resolve singular pronouns , and there is no mention of what percentage of total pronouns are covered by this restriction . 
+	</s>
+	
+
+	<s id="25">
+		 
+		<ref citStr="Soon et al. , 2001" id="5" label="CEPF" position="3954">
+			( Soon et al. , 2001 )
+		</ref>
+		 use the C4.5 algorithm with a set of 12 domain-independent features , ten syntactic and two semantic . 
+	</s>
+	
+
+	<s id="26">
+		 Their system was trained on both the MUC-6 and the MUC-7 datasets , for which it achieved F-scores of 62.6 and 60.4 , respectively . 
+	</s>
+	
+
+	<s id="27">
+		 Although these results are far worse than the ones reported in 
+		<ref citStr="McCarthy and Lehnert , 1995" id="6" label="CEPF" position="4303">
+			( McCarthy and Lehnert , 1995 )
+		</ref>
+		 , they are comparable to the best-performing rule-based systems in the respective competitions . 
+	</s>
+	
+
+	<s id="28">
+		 As 
+		<ref citStr="McCarthy and Lehnert , 1995" id="7" label="CEPF" position="4444">
+			( McCarthy and Lehnert , 1995 )
+		</ref>
+		 , 
+		<ref citStr="Soon et al. , 2001" id="8" label="CEPF" position="4469">
+			( Soon et al. , 2001 )
+		</ref>
+		 do not report separate results for pronouns . 
+	</s>
+	
+
+	<s id="29">
+		 
+		<ref citStr="Ng and Cardie , 2002" id="9" label="CEPF" position="4549">
+			( Ng and Cardie , 2002 )
+		</ref>
+		 expanded on the work of 
+		<ref citStr="Soon et al. , 2001" id="10" label="CEPF" position="4596">
+			( Soon et al. , 2001 )
+		</ref>
+		 by adding 41 lexical , semantic and grammatical features . 
+	</s>
+	
+
+	<s id="30">
+		 However , since using this many features proved to be detrimental to performance , all features that induced low precision rules were discarded , leaving only 19 . 
+	</s>
+	
+
+	<s id="31">
+		 The final system outperformed that of 
+		<ref citStr="Soon et al. , 2001" id="11" label="CEPN" position="4898">
+			( Soon et al. , 2001 )
+		</ref>
+		 , with F-scores of 69.1 and 63.4 for MUC-6 and MUC-7 , respectively . 
+	</s>
+	
+
+	<s id="32">
+		 For pronouns , the reported results are 74.6 and 57.8 , respectively . 
+	</s>
+	
+
+	<s id="33">
+		 The experiment presented in 
+		<ref citStr="Strube et al. , 2002" id="12" label="CEPF" position="5110">
+			( Strube et al. , 2002 )
+		</ref>
+		 is one of the few dealing with the application of machine learning to German coreference resolution covering definite noun phrases , proper names and personal , possessive and demonstrative pronouns . 
+	</s>
+	
+
+	<s id="34">
+		 The research is based on the Heidelberg Text Corpus ( see Section 4 ) , which makes it ideal for comparison with our system . 
+	</s>
+	
+
+	<s id="35">
+		 
+		<ref citStr="Strube et al. , 2002" id="13" label="CEPF" position="5480">
+			( Strube et al. , 2002 )
+		</ref>
+		 used 15 features modeled after those used by state-of-the-art resolution systems for English . 
+	</s>
+	
+
+	<s id="36">
+		 The results for personal and possessive pronouns are 82.79 and 84.94 , respectively . 
+	</s>
+	
+
+	<s id="37">
+		 3 Boosting All of the systems described in the previous section use a single classifier to resolve coreference . 
+	</s>
+	
+
+	<s id="38">
+		 Our intuition , however , is that a combination of classifiers is better suited for this task . 
+	</s>
+	
+
+	<s id="39">
+		 The concept of ensemble learning 
+		<ref citStr="Dietterich , 2000" id="14" label="CEPF" position="5961">
+			( Dietterich , 2000 )
+		</ref>
+		 is based on the assumption that combining the hypotheses of several classifiers yields a hypothesis that is much more accurate than that of an individual classifier . 
+	</s>
+	
+
+	<s id="40">
+		 One of the most popular ensemble learning methods is boosting 
+		<ref citStr="Schapire , 2002" id="15" label="CEPF" position="6219">
+			( Schapire , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="41">
+		 It is based on the observation that finding many weak hypotheses is easier than finding one strong hypothesis . 
+	</s>
+	
+
+	<s id="42">
+		 This is achieved by running a base learning algorithm over several iterations . 
+	</s>
+	
+
+	<s id="43">
+		 Initially , an importance weight is distributed uniformly among the training examples . 
+	</s>
+	
+
+	<s id="44">
+		 After each iteration , the weight is redistributed , so that misclassified examples get higher weights . 
+	</s>
+	
+
+	<s id="45">
+		 The base learner is thus forced to concentrate on difficult examples . 
+	</s>
+	
+
+	<s id="46">
+		 Although boosting has not yet been applied to coreference resolution , it has outperformed stateof-the-art systems for NLP tasks such as partofspeech tagging and prepositional phrase attachment 
+		<ref citStr="Abney et al. , 1999" id="16" label="CEPF" position="6949">
+			( Abney et al. , 1999 )
+		</ref>
+		 , word sense disambiguation 
+		<ref citStr="Escudero et al. , 2000" id="17" label="CEPF" position="7004">
+			( Escudero et al. , 2000 )
+		</ref>
+		 , and named entity recognition 
+		<ref citStr="Carreras et al. , 2002" id="18" label="CEPF" position="7062">
+			( Carreras et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="47">
+		 The implementation used for this project is BoosTexter 
+		<ref citStr="Schapire and Singer , 2000" id="19" label="OEPF" position="7159">
+			( Schapire and Singer , 2000 )
+		</ref>
+		 , a toolkit freely available for research purposes . 
+	</s>
+	
+
+	<s id="48">
+		 In addition to labels , BoosTexter assigns confidence weights that reflect the reliability of the decisions . 
+	</s>
+	
+
+	<s id="49">
+		 4 System Description Our system resolves pronouns in three stages : preprocessing , classification , and postprocessing . 
+	</s>
+	
+
+	<s id="50">
+		 Figure 1 gives an overview of the system architecture , while this section provides details of each component . 
+	</s>
+	
+
+	<s id="51">
+		 4.1 Training and Test Data The system was trained with data from the Heidelberg Text Corpus ( HTC ) , provided by the European Media Laboratory in Heidelberg , Germany . 
+	</s>
+	
+
+	<s id="52">
+		 Figure 1 : System Architecture The HTC is a collection of 250 short texts ( 30-700 tokens ) describing architecture , historical events and people associated with the city of Heidelberg . 
+	</s>
+	
+
+	<s id="53">
+		 To examine its domain (in)dependence , the system was tested on 40 unseen HTC texts as well as on 25 articles from the Spiegel magazine , the topics of which include current events , science , arts and entertainment , and travel . 
+	</s>
+	
+
+	<s id="54">
+		 4.2 The MMAX Annotation Tool The manual annotation of the training data was done with the MMAX ( Multi-Modal Annotation in XML ) annotation tool ( M¨uller and Strube , 2001 ) . 
+	</s>
+	
+
+	<s id="55">
+		 The fist step of coreference annotation is to identify the markables , i.e. noun phrases that refer to real-word entities . 
+	</s>
+	
+
+	<s id="56">
+		 Each markable is annotated with the following attributes : np form : proper noun , definite NP , indefinite NP , personal pronoun , possessive pronoun , or demonstrative pronoun . 
+	</s>
+	
+
+	<s id="57">
+		 person , number and gender . 
+	</s>
+	
+
+	<s id="58">
+		 The possible values are 1s , 1p , 2s , 2p , 3m , 3f , 3n , 3p . 
+	</s>
+	
+
+	<s id="59">
+		 semantic class : human , physical object ( includes animals ) , or abstract . 
+	</s>
+	
+
+	<s id="60">
+		 When the semantic class is ambiguous , the ”abstract” option is chosen . 
+	</s>
+	
+
+	<s id="61">
+		 type : if the entity that the markable refers to is new to the discourse , the value is ”none” . 
+	</s>
+	
+
+	<s id="62">
+		 If the markable refers to an already mentioned entity , the value is ”anaphoric” . 
+	</s>
+	
+
+	<s id="63">
+		 An anaphoric markable has another attribute for its relation to the antecedent . 
+	</s>
+	
+
+	<s id="64">
+		 The values for this attribute are ”direct” , ”pronominal” , and ”ISA” ( hyponym-hyperonym ) . 
+	</s>
+	
+
+	<s id="65">
+		 To mark coreference , MMAX uses coreference sets , such that every new reference to an already mentioned entity is added to the set of that entity . 
+	</s>
+	
+
+	<s id="66">
+		 Implicitly , there is a set for every entity in the discourse - if an entity occurs only once , its set contains one markable . 
+	</s>
+	
+
+	<s id="67">
+		 grammatical role : subject , object ( direct or indirect ) , or other . 
+	</s>
+	
+
+	<s id="68">
+		 4.3 Feature Vector agreement : this attribute is a combination of The features used by our system are summarised in Table 4.3 . 
+	</s>
+	
+
+	<s id="69">
+		 The individual features for anaphor Feature Description pron the pronoun ana npform NP form of the anaphor ana gramrole grammatical role of the anaphor ana agr agreement of the anaphor ana semclass* semantic class of the anaphor ante npform NP form of the antecedent ante gramrole grammatical role of the antecedent ante agr agreement of the antecedent ante semclass* semantic class of the antecedent dist distance in markables between anaphor and antecedent ( 1 .. 20 ) same agr same agreement of anaphor and antecedent ? 
+	</s>
+	
+
+	<s id="70">
+		 same gramrole same grammatical role of anaphor and antecedent ? 
+	</s>
+	
+
+	<s id="71">
+		 same semclass* same semantic class of anaphor and antecedent ? 
+	</s>
+	
+
+	<s id="72">
+		 Table 1 : Features used by our system . 
+	</s>
+	
+
+	<s id="73">
+		 *-ed features were only used for 10-fold cross-validation on the manually annotated data and antecedent - NP form , grammatical role , semantic class - are extracted directly from the annotation . 
+	</s>
+	
+
+	<s id="74">
+		 The relational features are generated by comparing the individual ones . 
+	</s>
+	
+
+	<s id="75">
+		 The binary target function - coreferent , non-coreferent - is determined by comparing the values of the member attribute . 
+	</s>
+	
+
+	<s id="76">
+		 If both markables are members of the same set , they are coreferent , otherwise they are not . 
+	</s>
+	
+
+	<s id="77">
+		 Due to lack of resources , the semantic class attribute cannot be annotated automatically , and is therefore used only for comparison with 
+		<ref citStr="Strube et al. , 2002" id="20" label="CEPF" position="11327">
+			( Strube et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="78">
+		 4.4 Noun Phrase Chunking , NER and POS-Tagging To identify markables automatically , the system uses the noun phrase chunker described in 
+		<ref citStr="Schmid and Schulte im Walde , 2000" id="21" label="OERF" position="11515">
+			( Schmid and Schulte im Walde , 2000 )
+		</ref>
+		 , which displays case information along with the chunks . 
+	</s>
+	
+
+	<s id="79">
+		 The chunker is based on a head-lexicalised probabilistic context free grammar ( H-L PCFG ) and achieves an F-measure of 92 for range only and 83 for range and label , whereby a range of a noun chunk is defined as ”all words from the beginning of the noun phrase to the head noun” . 
+	</s>
+	
+
+	<s id="80">
+		 This is different from manually annotated markables , which can be complex noun phrases . 
+	</s>
+	
+
+	<s id="81">
+		 Despite good overall performance , the chunker fails on multi-word proper names in which case it marks each word as an individual chunk . 
+	</s>
+	
+
+	<s id="82">
+		 ' Since many pronouns refer to named entities , the chunker needs to be supplemented by a named entity recogniser . 
+	</s>
+	
+
+	<s id="83">
+		 Although , to our knowledge , there currently does not exist an off-the-shelf named entity recogniser for German , we were able to obtain the system submitted by 
+		<ref citStr="Curran and Clark , 2003" id="22" label="OERF" position="12436">
+			( Curran and Clark , 2003 )
+		</ref>
+		 to the 2003 CoNLL competition . 
+	</s>
+	
+
+	<s id="84">
+		 In order to run the recogniser , the data needs to be tokenised , tagged and lemmatised , all of which is done by the TreeTagger 
+		<ref citStr="Schmid , 1995" id="23" label="OERF" position="12624">
+			( Schmid , 1995 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="85">
+		 4.5 Markable Creation After the markables are identified , they are automatically annotated with the attributes described in Section 4.4 . 
+	</s>
+	
+
+	<s id="86">
+		 The NP form can be reliably determined by examining the output of the noun chunker and the named entity recogniser . 
+	</s>
+	
+
+	<s id="87">
+		 Pronouns and named entities are already labeled during chunking . 
+	</s>
+	
+
+	<s id="88">
+		 The remaining markables are labelled as definite NPs if their first words are definite articles or possessive determiners , and as indefinite NPs otherwise . 
+	</s>
+	
+
+	<s id="89">
+		 Grammatical role is determined by the case assigned to the markable - subject if nominative , object if accusative . 
+	</s>
+	
+
+	<s id="90">
+		 Although datives and genitives can also be objects , they are more likely to be adjuncts and are therefore assigned the value ”other” . 
+	</s>
+	
+
+	<s id="91">
+		 For non-pronominal markables , agreement is determined by lexicon lookup of the head nouns . 
+	</s>
+	
+
+	<s id="92">
+		 Number ambiguities are resolved with the help of the case information . 
+	</s>
+	
+
+	<s id="93">
+		 Most proper names , except for a few common ones , do not appear in the lexicon and have to remain ambiguous . 
+	</s>
+	
+
+	<s id="94">
+		 Although it is impossible to fully resolve the agreement ambiguities of pronominal markables , they can be classi- ' An example is [ Verteidigunsminister Donald ] [ Rumsfeld ] ( [ Minister of Defense Donald ] [ Rumsfeld ] ) . 
+	</s>
+	
+
+	<s id="95">
+		 fied as either feminine/plural or masculine/neuter . 
+	</s>
+	
+
+	<s id="96">
+		 Therefore we added two underspecified values to the agreement attribute : 3f 3p and 3m 3n . 
+	</s>
+	
+
+	<s id="97">
+		 Each of these values was made to agree with both of its subvalues . 
+	</s>
+	
+
+	<s id="98">
+		 4.6 Antecedent Selection After classification , one non-pronominal antecedent has to be found for each pronoun . 
+	</s>
+	
+
+	<s id="99">
+		 As BoosTexter assigns confidence weights to its predictions , we have a choice between selecting the antecedent closest to the anaphor ( closest-first ) and the one with the highest weight ( best-first ) . 
+	</s>
+	
+
+	<s id="100">
+		 Furthermore , we have a choice between ignoring pronominal antecedents ( and risking to discard all the correct antecedents within the window ) and resolving them ( and risking multiplication of errors ) . 
+	</s>
+	
+
+	<s id="101">
+		 In case all of the instances within the window have been classified as non-coreferent , we choose the negative instance with the lowest weight as the antecedent . 
+	</s>
+	
+
+	<s id="102">
+		 The following section presents the results for each of the selection strategies . 
+	</s>
+	
+
+	<s id="103">
+		 5 Evaluation Before evaluating the actual system , we compared the performance of boosting to that of C4.5 , as reported in 
+		<ref citStr="Strube et al. , 2002" id="24" label="CJPN" position="15166">
+			( Strube et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="104">
+		 Trained on the same corpus and evaluated with the 10-fold crossvalidation method , boosting significantly outperforms C4.5 on both personal and possessive pronouns ( see Table 2 ) . 
+	</s>
+	
+
+	<s id="105">
+		 These results support the intuition that ensemble methods are superior to single classifiers . 
+	</s>
+	
+
+	<s id="106">
+		 To put the performance of our system into perspective , we established a baseline and an upper bound for the task . 
+	</s>
+	
+
+	<s id="107">
+		 The baseline chooses as the antecedent the closest non-pronominal markable that agrees in number and gender with the pronoun . 
+	</s>
+	
+
+	<s id="108">
+		 The upper bound is the system’s performance on the manually annotated ( gold standard ) data without the semantic features . 
+	</s>
+	
+
+	<s id="109">
+		 For the baseline , accuracy is significantly higher for the gold standard data than for the two test sets ( see Table 3 ) . 
+	</s>
+	
+
+	<s id="110">
+		 This shows that agreement is the most important feature , which , if annotated correctly , resolves almost half of the pronouns . 
+	</s>
+	
+
+	<s id="111">
+		 The classification results of the gold standard data , which are much lower than the ones in Table 2 also PPER PPOS 
+		<ref citStr="Strube et al. , 2002" id="25" label="OJRN" position="16281">
+			( Strube et al. , 2002 )
+		</ref>
+		 82.8 84.9 our system 87.4 86.9 Table 2 : Comparison of classification performance ( F ) with 
+		<ref citStr="Strube et al. , 2002" id="26" label="OJPN" position="16399">
+			( Strube et al. , 2002 )
+		</ref>
+		 demonstrate the importance of the semantic features . 
+	</s>
+	
+
+	<s id="112">
+		 As for the test sets , while the classifier significantly outperformed the baseline for the HTC set , it did nothing for the Spiegel set . 
+	</s>
+	
+
+	<s id="113">
+		 This shows the limitations of an algorithm trained on overly restricted data . 
+	</s>
+	
+
+	<s id="114">
+		 Among the selection heuristics , the approach of resolving pronominal antecedents proved consistently more effective than ignoring them , while the results for the closest-first and best-first strategies were mixed . 
+	</s>
+	
+
+	<s id="115">
+		 They imply , however , that the bestfirst approach should be chosen if the classifier performed above a certain threshold ; otherwise the closest-first approach is safer . 
+	</s>
+	
+
+	<s id="116">
+		 Overall , the fact that 67.2 of the pronouns were correctly resolved in the automatically annotated HTC test set , while the upper bound is 82.0 , validates the approach taken for this system . 
+	</s>
+	
+
+	<s id="117">
+		 6 Conclusion and Future Work The pronoun resolution system presented in this paper performs well for unannotated text of a limited domain . 
+	</s>
+	
+
+	<s id="118">
+		 While the results are encouraging considering the knowledge-poor approach , experiments with a more complex textual domain show that the system is unsuitable for wide-coverage tasks such as question answering and summarisation . 
+	</s>
+	
+
+	<s id="119">
+		 To examine whether the system would yield comparable results in unrestricted text , it needs to be trained on a more diverse and possibly larger corpus . 
+	</s>
+	
+
+	<s id="120">
+		 For this purpose , T¨uba-D/Z , a treebank consisting of German newswire text , is presently being annotated with coreference information . 
+	</s>
+	
+
+	<s id="121">
+		 As the syntactic annotation of the treebank is richer than that of the HTC corpus , additional features may be derived from it . 
+	</s>
+	
+
+	<s id="122">
+		 Experiments with T¨ubaD/Z will show whether the performance achieved for the HTC test set is scalable . 
+	</s>
+	
+
+	<s id="123">
+		 For future versions of the system , it might also HTC-Gold HTC-Test Spiegel Baseline accuracy 46.7 % 30.9 % 31.1 % Classification F score 77.9 62.8 30.4 Best-first , ignoring pronominal ant . 
+	</s>
+	
+
+	<s id="124">
+		 82.0 % 67.2 % 28.3 % Best-first , resolving pronominal ant . 
+	</s>
+	
+
+	<s id="125">
+		 72.2 % 49.1 % 21.7 % Closest-first , ignoring pronominal ant . 
+	</s>
+	
+
+	<s id="126">
+		 82.0 % 57.3 % 34.4 % Closest-first , resolving pronominal ant . 
+	</s>
+	
+
+	<s id="127">
+		 72.2 % 49.1 % 22.8 % Table 3 : Accuracy of the different selection heuristics compared with baseline accuracy and classification F-score . 
+	</s>
+	
+
+	<s id="128">
+		 HTC-Gold and HTC-Test stand for manually and automatically annotated test sets , respectively . 
+	</s>
+	
+
+	<s id="129">
+		 be beneficial to use full parses instead of chunks . 
+	</s>
+	
+
+	<s id="130">
+		 As most German verbs are morphologically unambiguous , an analysis of them could help disambiguate pronouns . 
+	</s>
+	
+
+	<s id="131">
+		 However , due to the relatively free word order of the German language , this approach requires extensive reseach . 
+	</s>
+	
+
+	<s id="132">
+		 References Steven Abney , Robert E. Schapire , and Yoram Singer . 
+	</s>
+	
+
+	<s id="133">
+		 1999. Boosting applied to tagging and PP attachment . 
+	</s>
+	
+
+	<s id="134">
+		 In Proceedings of the Joint SIGDAT Conference on Empirical Methods in Natural Language Processing and Very Large Corpora . 
+	</s>
+	
+
+	<s id="135">
+		 Xavier Carreras , Lluis M`arquez , and Lluis Padr´o . 
+	</s>
+	
+
+	<s id="136">
+		 2002. Named entity extraction using AdaBoost . 
+	</s>
+	
+
+	<s id="137">
+		 In Proceedings of CoNLL-2002 , pages 167–170 , Taipei , Taiwan . 
+	</s>
+	
+
+	<s id="138">
+		 James R. Curran and Stephen Clark . 
+	</s>
+	
+
+	<s id="139">
+		 2003. Language- independent NER using a maximum entropy tagger . 
+	</s>
+	
+
+	<s id="140">
+		 In Proceedings of CoNLL-2003 , pages 164–167 , Edmonton , Canada . 
+	</s>
+	
+
+	<s id="141">
+		 Thomas G. Dietterich . 
+	</s>
+	
+
+	<s id="142">
+		 2000. Ensemble methods in machine learning . 
+	</s>
+	
+
+	<s id="143">
+		 In First International Workshop on Multiple Classifier Systems , Lecture Notes in Computer Science , pages 1–15 . 
+	</s>
+	
+
+	<s id="144">
+		 Springer , New York . 
+	</s>
+	
+
+	<s id="145">
+		 Gerard Escudero , Lluis M`arquez , and German Rigau . 
+	</s>
+	
+
+	<s id="146">
+		 2000. Boosting applied to word sense disambiguation . 
+	</s>
+	
+
+	<s id="147">
+		 In Proceedings of the 12th European Conference on Machine Learning , pages 129–141 . 
+	</s>
+	
+
+	<s id="148">
+		 Joseph F. McCarthy and Wendy G. Lehnert . 
+	</s>
+	
+
+	<s id="149">
+		 1995. Using decision trees for coreference resolution . 
+	</s>
+	
+
+	<s id="150">
+		 In Proceedings of the 14th International Joint Conference on Artificial Intelligence ( IJCAI’95 ) , pages 1050– 1055 , Montreal , Canada . 
+	</s>
+	
+
+	<s id="151">
+		 Thomas S. Morton . 
+	</s>
+	
+
+	<s id="152">
+		 2000. Coreference for nlp applications . 
+	</s>
+	
+
+	<s id="153">
+		 In Proceedings of the 38th Annual Meeting of the Associationfor Computational Linguistics ( ACL’00 ) , Hong Kong . 
+	</s>
+	
+
+	<s id="154">
+		 Christoph M¨uller and Michael Strube . 
+	</s>
+	
+
+	<s id="155">
+		 2001. Annotating anaphoric and bridging relations with MMAX . 
+	</s>
+	
+
+	<s id="156">
+		 In Proceedings ofthe 2nd SIGdial Workshop on Discourse and Dialogue , pages 90–95 , Aalborg , Denmark . 
+	</s>
+	
+
+	<s id="157">
+		 Vincent Ng and Claire Cardie . 
+	</s>
+	
+
+	<s id="158">
+		 2002. Improving machine learning approaches to coreference resolution . 
+	</s>
+	
+
+	<s id="159">
+		 In Proceedings ofthe 40th Annual Meeting ofthe Association for Computational Linguistics ( ACL’02 ) , pages 104–111 , Philadelphia , PA , USA . 
+	</s>
+	
+
+	<s id="160">
+		 J. Ross Quinlan . 
+	</s>
+	
+
+	<s id="161">
+		 1993. C4.5 : Programs for Machine Learning . 
+	</s>
+	
+
+	<s id="162">
+		 Morgan Kaufman , San Mateo , CA . 
+	</s>
+	
+
+	<s id="163">
+		 Robert E. Schapire and Yoram Singer . 
+	</s>
+	
+
+	<s id="164">
+		 2000. Boostexter : A boosting-based system for text categorization . 
+	</s>
+	
+
+	<s id="165">
+		 Machine Learning , 39(2/3):135–168 . 
+	</s>
+	
+
+	<s id="166">
+		 Robert E. Schapire . 
+	</s>
+	
+
+	<s id="167">
+		 2002. The boosting approach to machine learning : an overview . 
+	</s>
+	
+
+	<s id="168">
+		 In Proceedings of the MSRI Workshop on Nonlinear Estimation and Classification . 
+	</s>
+	
+
+	<s id="169">
+		 Helmut Schmid and Sabine Schulte im Walde . 
+	</s>
+	
+
+	<s id="170">
+		 2000 . 
+	</s>
+	
+
+	<s id="171">
+		 Robust German noun chunking with a probabilistic context-free grammar . 
+	</s>
+	
+
+	<s id="172">
+		 In Proceedings of the 18th International Conference on Computational Linguistics ( COLING-00 ) , pages 726–732 , Saarbr¨ucken , Germany . 
+	</s>
+	
+
+	<s id="173">
+		 Helmut Schmid . 
+	</s>
+	
+
+	<s id="174">
+		 1995. Improvements in part-ofspeech tagging with an application to German . 
+	</s>
+	
+
+	<s id="175">
+		 In Proceedings of the ACL SIGDAT-Workshop . 
+	</s>
+	
+
+	<s id="176">
+		 Wee Meng Soon , Hwee Tou Ng , and Daniel Chung Yong Lim . 
+	</s>
+	
+
+	<s id="177">
+		 2001. A machine learning approach to coreference resolution of noun phrases . 
+	</s>
+	
+
+	<s id="178">
+		 Computational Linguistics , 27(4):521–544 . 
+	</s>
+	
+
+	<s id="179">
+		 Michael Strube , Stefan Rapp , and Christoph M¨uller . 
+	</s>
+	
+
+	<s id="180">
+		 2002. The influence of minimum edit distance on reference resolution . 
+	</s>
+	
+
+	<s id="181">
+		 In Proceedings of the 2002 Conference on Empirical Methods in Natural Language Processing ( EMNLP’02 ) , pages 312–319 , Philadelphia , PA , USA . 
+	</s>
+	
+
+
+</acldoc>

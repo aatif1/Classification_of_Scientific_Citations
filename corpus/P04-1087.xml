@@ -1,0 +1,1630 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1087">
+	
+
+	<s id="1">
+		 Acquiring the Meaning of Discourse Markers Ben Hutchinson School of Informatics University of Edinburgh B.Hutchinson@sms.ed.ac.uk Abstract This paper applies machine learning techniques to acquiring aspects of the meaning of discourse markers . 
+	</s>
+	
+
+	<s id="2">
+		 Three subtasks of acquiring the meaning of a discourse marker are considered : learning its polarity , veridicality , and type ( i.e. causal , temporal or additive ) . 
+	</s>
+	
+
+	<s id="3">
+		 Accuracy of over 90 % is achieved for all three tasks , well above the baselines . 
+	</s>
+	
+
+	<s id="4">
+		 1 Introduction This paper is concerned with automatically acquiring the meaning of discourse markers . 
+	</s>
+	
+
+	<s id="5">
+		 By considering the distributions of individual tokens of discourse markers , we classify discourse markers along three dimensions upon which there is substantial agreement in the literature : polarity , veridicality and type . 
+	</s>
+	
+
+	<s id="6">
+		 This approach of classifying linguistic types by the distribution of linguistic tokens makes this research similar in spirit to that of 
+		<ref citStr="Baldwin and Bond ( 2003 )" id="1" label="CEPF" position="1037">
+			Baldwin and Bond ( 2003 )
+		</ref>
+		 and 
+		<ref citStr="Stevenson and Merlo ( 1999 )" id="2" label="CEPF" position="1070">
+			Stevenson and Merlo ( 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="7">
+		 Discourse markers signal relations between discourse units . 
+	</s>
+	
+
+	<s id="8">
+		 As such , discourse markers play an important role in the parsing of natural language discourse 
+		<ref citStr="Forbes et al. , 2001" id="3" label="CEPF" position="1248">
+			( Forbes et al. , 2001 
+		</ref>
+		<ref citStr="Marcu , 2000" id="4" label="CEPF" position="1271">
+			; Marcu , 2000 )
+		</ref>
+		 , and their correspondence with discourse relations can be exploited for the unsupervised learning of discourse relations 
+		<ref citStr="Marcu and Echihabi , 2002" id="5" label="CEPF" position="1439">
+			( Marcu and Echihabi , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="9">
+		 In addition , generating natural language discourse requires the appropriate selection and placement of discourse markers 
+		<ref citStr="Moser and Moore , 1995" id="6" label="CEPF" position="1573">
+			( Moser and Moore , 1995 
+		</ref>
+		<ref citStr="Grote and Stede , 1998" id="7" label="CEPF" position="1598">
+			; Grote and Stede , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="10">
+		 It follows that a detailed account of the semantics and pragmatics of discourse markers would be a useful resource for natural language processing . 
+	</s>
+	
+
+	<s id="11">
+		 Rather than looking at the finer subtleties in meaning of particular discourse markers ( e.g. 
+		<ref citStr="Bestgen et al . ( 2003 )" id="8" label="CJPF" position="1912">
+			Bestgen et al . ( 2003 )
+		</ref>
+		 ) , this paper aims at a broad scale classification of a subclass of discourse markers : structural connectives . 
+	</s>
+	
+
+	<s id="12">
+		 This breadth of coverage is of particular importance for discourse parsing , where a wide range of linguistic realisations must be catered for . 
+	</s>
+	
+
+	<s id="13">
+		 This work can be seen as orthogonal to that of Di 
+		<ref citStr="Eugenio et al . ( 1997 )" id="9" label="CEPF" position="2264">
+			Eugenio et al . ( 1997 )
+		</ref>
+		 , which addresses the problem of learning if and where discourse markers should be generated . 
+	</s>
+	
+
+	<s id="14">
+		 Unfortunately , the manual classification of large numbers of discourse markers has proven to be a difficult task , and no complete classification yet exists . 
+	</s>
+	
+
+	<s id="15">
+		 For example , 
+		<ref citStr="Knott ( 1996 )" id="10" label="CEPF" position="2566">
+			Knott ( 1996 )
+		</ref>
+		 presents a list of around 350 discourse markers , but his taxonomic classification , perhaps the largest classification in the literature , accounts for only around 150 of these . 
+	</s>
+	
+
+	<s id="16">
+		 A general method of automatically classifying discourse markers would therefore be of great utility , both for English and for languages with fewer manually created resources . 
+	</s>
+	
+
+	<s id="17">
+		 This paper constitutes a step in that direction . 
+	</s>
+	
+
+	<s id="18">
+		 It attempts to classify discourse markers whose classes are already known , and this allows the classifier to be evaluated empirically . 
+	</s>
+	
+
+	<s id="19">
+		 The proposed task of learning automatically the meaning of discourse markers raises several questions which we hope to answer : Q1 . 
+	</s>
+	
+
+	<s id="20">
+		 Difficulty How hard is it to acquire the meaning of discourse markers ? 
+	</s>
+	
+
+	<s id="21">
+		 Are some aspects of meaning harder to acquire than others ? 
+	</s>
+	
+
+	<s id="22">
+		 Q2 . 
+	</s>
+	
+
+	<s id="23">
+		 Choice of features What features are useful for acquiring the meaning of discourse markers ? 
+	</s>
+	
+
+	<s id="24">
+		 Does the optimal choice of features depend on the aspect of meaning being learnt ? 
+	</s>
+	
+
+	<s id="25">
+		 Q3 . 
+	</s>
+	
+
+	<s id="26">
+		 Classifiers Which machine learning algorithms work best for this task ? 
+	</s>
+	
+
+	<s id="27">
+		 Can the right choice of empirical features make the classification problems linearly separable ? 
+	</s>
+	
+
+	<s id="28">
+		 Q4 . 
+	</s>
+	
+
+	<s id="29">
+		 Evidence Can corpus evidence be found for the existing classifications of discourse markers ? 
+	</s>
+	
+
+	<s id="30">
+		 Is there empirical evidence for a separate class of TEMPORAL markers ? 
+	</s>
+	
+
+	<s id="31">
+		 We proceed by first introducing the classes of discourse markers that we use in our experiments . 
+	</s>
+	
+
+	<s id="32">
+		 Section 3 discusses the database of discourse markers used as our corpus . 
+	</s>
+	
+
+	<s id="33">
+		 In Section 4 we describe our experiments , including choice of features . 
+	</s>
+	
+
+	<s id="34">
+		 The results are presented in Section 5 . 
+	</s>
+	
+
+	<s id="35">
+		 Finally , we conclude and discuss future work in Section 6 . 
+	</s>
+	
+
+	<s id="36">
+		 2 Discourse markers Discourse markers are lexical items ( possibly multi- word ) that signal relations between propositions , events or speech acts . 
+	</s>
+	
+
+	<s id="37">
+		 Examples of discourse markers are given in Tables 1 , 2 and 3 . 
+	</s>
+	
+
+	<s id="38">
+		 In this paper we will focus on a subclass of discourse markers known as structural connectives . 
+	</s>
+	
+
+	<s id="39">
+		 These markers , even though they may be multiword expressions , function syntactically as if they were coordinating or subordinating conjunctions 
+		<ref citStr="Webber et al. , 2003" id="11" label="CEPF" position="4947">
+			( Webber et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="40">
+		 The literature contains many different classifications of discourse markers , drawing upon a wide range of evidence including textual cohesion 
+		<ref citStr="Halliday and Hasan , 1976" id="12" label="CEPF" position="5131">
+			( Halliday and Hasan , 1976 )
+		</ref>
+		 , hypotactic conjunctions 
+		<ref citStr="Martin , 1992" id="13" label="CEPF" position="5175">
+			( Martin , 1992 )
+		</ref>
+		 , cognitive plausibility 
+		<ref citStr="Sanders et al. , 1992" id="14" label="CEPF" position="5226">
+			( Sanders et al. , 1992 )
+		</ref>
+		 , substitutability 
+		<ref citStr="Knott , 1996" id="15" label="CEPF" position="5262">
+			( Knott , 1996 )
+		</ref>
+		 , and psycholinguistic experiments 
+		<ref citStr="Louwerse , 2001" id="16" label="CEPF" position="5317">
+			( Louwerse , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="41">
+		 Nevertheless there is also considerable agreement . 
+	</s>
+	
+
+	<s id="42">
+		 Three dimensions of classification that recur , albeit under a variety of names , are polarity , veridicality and type . 
+	</s>
+	
+
+	<s id="43">
+		 We now discuss each of these in turn . 
+	</s>
+	
+
+	<s id="44">
+		 2.1 Polarity Many discourse markers signal a concession , a contrast or the denial of an expectation . 
+	</s>
+	
+
+	<s id="45">
+		 These markers have been described as having the feature polarity=NEG-POL . 
+	</s>
+	
+
+	<s id="46">
+		 An example is given in ( 1 ) . 
+	</s>
+	
+
+	<s id="47">
+		 ( 1 ) Suzy’s part-time , but she does more work than the rest of us put together . 
+	</s>
+	
+
+	<s id="48">
+		 ( Taken from Knott ( 1996 , p. 185 ) ) This sentence is true if and only if Suzy both is part- time and does more work than the rest of them put together . 
+	</s>
+	
+
+	<s id="49">
+		 In addition , it has the additional effect of signalling that the fact Suzy does more work is surprising — it denies an expectation . 
+	</s>
+	
+
+	<s id="50">
+		 A similar effect can be obtained by using the connective and and adding more context , as in ( 2 ) ( 2 ) Suzy’s efficiency is astounding . 
+	</s>
+	
+
+	<s id="51">
+		 She’s part-time , and she does more work than the rest of us put together . 
+	</s>
+	
+
+	<s id="52">
+		 The difference is that although it is possible for and to co-occur with a negative polarity discourse relation , it need not . 
+	</s>
+	
+
+	<s id="53">
+		 Discourse markers like and are said to have the feature polarity=POS-POL . 
+	</s>
+	
+
+	<s id="54">
+		 1 On 1An alternative view is that discourse markers like and are underspecified with respect to polarity 
+		<ref citStr="Knott , 1996" id="17" label="CEPF" position="6782">
+			( Knott , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="55">
+		 In this the other hand , a NEG-POL discourse marker like but always co-occurs with a negative polarity discourse relation . 
+	</s>
+	
+
+	<s id="56">
+		 The gold standard classes of POS-POL and NEGPOL discourse markers used in the learning experiments are shown in Table 1 . 
+	</s>
+	
+
+	<s id="57">
+		 The gold standards for all three experiments were compiled by consulting a range of previous classifications 
+		<ref citStr="Knott , 1996" id="18" label="CEPF" position="7167">
+			( Knott , 1996 
+		</ref>
+		<ref citStr="Knott and Dale , 1994" id="19" label="CEPF" position="7182">
+			; Knott and Dale , 1994 
+		</ref>
+		<ref citStr="Louwerse , 2001" id="20" label="CEPF" position="7206">
+			; Louwerse , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="58">
+		 2 POS-POL NEG-POL after , and , as , as soon as , although , because , before , considering but , even if , that , ever since , for , given that , even though , if , in case , in order that , in that , even when , insofar as , now , now that , on only if , only the grounds that , once , seeing when , or , or as , since , so , so that , the in- else , though , stant , the moment , then , to the unless , until , extent that , when , whenever whereas , yet Table 1 : Discourse markers used in the polarity experiment 2.2 Veridicality A discourse relation is veridical if it implies the truth of both its arguments 
+		<ref citStr="Asher and Lascarides , 2003" id="21" label="CEPF" position="7883">
+			( Asher and Lascarides , 2003 )
+		</ref>
+		 , otherwise it is not . 
+	</s>
+	
+
+	<s id="59">
+		 For example , in ( 3 ) it is not necessarily true either that David can stay up or that he promises , or will promise , to be quiet . 
+	</s>
+	
+
+	<s id="60">
+		 For this reason we will say if has the feature veridicality=NON-VERIDICAL . 
+	</s>
+	
+
+	<s id="61">
+		 ( 3 ) David can stay up if he promises to be quiet . 
+	</s>
+	
+
+	<s id="62">
+		 The disjunctive discourse marker or is also NON- VERIDICAL , because it does not imply that both of its arguments are true . 
+	</s>
+	
+
+	<s id="63">
+		 On the other hand , and does imply this , and so has the feature veridicality=VERIDICAL . 
+	</s>
+	
+
+	<s id="64">
+		 The VERIDICAL and NON-VERIDICAL discourse markers used in the learning experiments are shown in Table 2 . 
+	</s>
+	
+
+	<s id="65">
+		 Note that the polarity and veridicality are independent , for example even if is both NEGPOL and NON-VERIDICAL . 
+	</s>
+	
+
+	<s id="66">
+		 2.3 Type Discourse markers like because signal a CAUSAL relation , for example in ( 4 ) . 
+	</s>
+	
+
+	<s id="67">
+		 account , discourse markers have positive polarity only if they can never be paraphrased using a discourse marker with negative polarity . 
+	</s>
+	
+
+	<s id="68">
+		 Interpreted in these terms , our experiment aims to distinguish negative polarity discourse markers from all others . 
+	</s>
+	
+
+	<s id="69">
+		 2An effort was made to exclude discourse markers whose classification could be contentious , as well as ones which showed ambiguity across classes . 
+	</s>
+	
+
+	<s id="70">
+		 Some level ofjudgement was therefore exercised by the author . 
+	</s>
+	
+
+	<s id="71">
+		 VERIDICAL NON- VERIDICAL after , although , and , as , as soon assuming as , because , but , considering that , even if , that , even though , even when , if , if ever , if ever since , for , given that , in or- only , in case , der that , in that , insofar as , now , on condition now that , on the grounds that , that , on the once , only when , seeing as , assumption since , so , so that , the instant , that , only if , the moment , then , though , to or , or else , the extent that , until , when , supposing whenever , whereas , while , yet that , unless Table 2 : Discourse markers used in the veridicality experiment ( 4 ) The tension in the boardroom rose sharply because the chairman arrived . 
+	</s>
+	
+
+	<s id="72">
+		 As a result , because has the feature type=CAUSAL . 
+	</s>
+	
+
+	<s id="73">
+		 Other discourse markers that express a temporal relation , such as after , have the feature type=TEMPORAL . 
+	</s>
+	
+
+	<s id="74">
+		 Just as a POS-POL discourse marker can occur with a negative polarity discourse relation , the context can also supply a causal relation even when a TEMPORAL discourse marker is used , as in ( 5 ) . 
+	</s>
+	
+
+	<s id="75">
+		 ( 5 ) The tension in the boardroom rose sharply after the chairman arrived . 
+	</s>
+	
+
+	<s id="76">
+		 If the relation a discourse marker signals is neither CAUSAL or TEMPORAL it has the feature type=ADDITIVE . 
+	</s>
+	
+
+	<s id="77">
+		 The need for a distinct class of TEMPORAL discourse relations is disputed in the literature . 
+	</s>
+	
+
+	<s id="78">
+		 On the one hand , it has been suggested that TEMPORAL relations are a subclass of ADDITIVE ones on the grounds that the temporal reference inherent in the marking of tense and aspect “more or less” fixes the temporal ordering of events 
+		<ref citStr="Sanders et al. , 1992" id="22" label="CEPF" position="10950">
+			( Sanders et al. , 1992 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="79">
+		 This contrasts with arguments that resolving discourse relations and temporal order occur as distinct but inter-related processes 
+		<ref citStr="Lascarides and Asher , 1993" id="23" label="CEPF" position="11123">
+			( Lascarides and Asher , 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="80">
+		 On the other hand , several of the discourse markers we count as TEMPORAL , such as as soon as , might be described as CAUSAL 
+		<ref citStr="Oberlander and Knott , 1995" id="24" label="CEPF" position="11292">
+			( Oberlander and Knott , 1995 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="81">
+		 One of the results of the experiments described below is that corpus evidence suggests ADDITIVE , TEMPORAL and CAUSAL discourse markers have distinct distributions . 
+	</s>
+	
+
+	<s id="82">
+		 The ADDITIVE , TEMPORAL and CAUSAL discourse markers used in the learning experiments are shown in Table 3 . 
+	</s>
+	
+
+	<s id="83">
+		 These features are independent of the previous ones , for example even though is CAUSAL , VERIDICAL and NEG-POL . 
+	</s>
+	
+
+	<s id="84">
+		 ADDITIVE TEMPORAL CAUSAL and , but , after , as although , because , whereas soon as , even though , for , given that , if , if ever , in case , on condition that , on before , ever since , the assumption that , now , now that , once , until , on the grounds that , provided that , providing that , so , so that , supposing that , though , unless when , whenever Table 3 : Discourse markers used in the type experiment 3 Corpus The data for the experiments comes from a database of sentences collected automatically from the British National Corpus and the world wide web 
+		<ref citStr="Hutchinson , 2004" id="25" label="CEPF" position="12313">
+			( Hutchinson , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="85">
+		 The database contains example sentences for each of 140 discourse structural connectives . 
+	</s>
+	
+
+	<s id="86">
+		 Many discourse markers have surface forms with other usages , e.g. before in the phrase before noon . 
+	</s>
+	
+
+	<s id="87">
+		 The following procedure was therefore used to select sentences for inclusion in the database . 
+	</s>
+	
+
+	<s id="88">
+		 First , sentences containing a string matching the surface form of a structural connective were extracted . 
+	</s>
+	
+
+	<s id="89">
+		 These sentences were then parsed using a statistical parser 
+		<ref citStr="Charniak , 2000" id="26" label="OEPF" position="12836">
+			( Charniak , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="90">
+		 Potential structural connectives were then classified on the basis of their syntactic context , in particular their proximity to S nodes . 
+	</s>
+	
+
+	<s id="91">
+		 Figure 1 shows example syntactic contexts which were used to identify discourse markers . 
+	</s>
+	
+
+	<s id="92">
+		 ( S ... ) ( CC and ) ( S ... ) ( SBAR ( IN after ) ( S ... ) ) ( PP ( IN after ) ( S ... ) ) ( PP ( VBN given ) ( SBAR ( IN that ) ( S ... ) ) ) ( NP ( DT the ) ( NN moment ) ( SBAR ... ) ) ( ADVP ( RB as ) ( RB long ) ( SBAR ( IN as ) ( S ... ) ) ) ( PP ( IN in ) ( SBAR ( IN that ) ( S ... ) ) ) Figure 1 : Identifying structural connectives It is because structural connectives are easy to identify in this manner that the experiments use only this subclass of discourse markers . 
+	</s>
+	
+
+	<s id="93">
+		 Due to both parser errors , and the fact that the syntactic heuristics are not foolproof , the database contains noise . 
+	</s>
+	
+
+	<s id="94">
+		 Manual analysis of a sample of 500 sentences revealed about 12 % of sentences do not contain the discourse marker they are supposed to . 
+	</s>
+	
+
+	<s id="95">
+		 Of the discourse markers used in the experiments , their frequencies in the database ranged from 270 for the instant to 331,701 for and . 
+	</s>
+	
+
+	<s id="96">
+		 The mean number of instances was 32,770 , while the median was 4,948 . 
+	</s>
+	
+
+	<s id="97">
+		 4 Experiments This section presents three machine learning experiments into automatically classifying discourse markers according to their polarity , veridicality and type . 
+	</s>
+	
+
+	<s id="98">
+		 We begin in Section 4.1 by describing the features we extract for each discourse marker token . 
+	</s>
+	
+
+	<s id="99">
+		 Then in Section 4.2 we describe the different classifiers we use . 
+	</s>
+	
+
+	<s id="100">
+		 The results are presented in Section 4.3 . 
+	</s>
+	
+
+	<s id="101">
+		 4.1 Features used We only used structural connectives in the experiments . 
+	</s>
+	
+
+	<s id="102">
+		 This meant that the clauses linked syntactically were also related at the discourse level 
+		<ref citStr="Webber et al. , 2003" id="27" label="CEPF" position="14705">
+			( Webber et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="103">
+		 Two types of features were extracted from the conjoined clauses . 
+	</s>
+	
+
+	<s id="104">
+		 Firstly , we used lexical co-occurrences with words of various parts of speech . 
+	</s>
+	
+
+	<s id="105">
+		 Secondly , we used a range of linguistically motivated syntactic , semantic , and discourse features . 
+	</s>
+	
+
+	<s id="106">
+		 4.1.1 Lexical co-occurrences Lexical co-occurrences have previously been shown to be useful for discourse level learning tasks 
+		<ref citStr="Lapata and Lascarides , 2004" id="28" label="CEPF" position="15121">
+			( Lapata and Lascarides , 2004 
+		</ref>
+		<ref citStr="Marcu and Echihabi , 2002" id="29" label="CEPF" position="15152">
+			; Marcu and Echihabi , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="107">
+		 For each discourse marker , the words occurring in their superordinate ( main ) and subordinate clauses were recorded,3 along with their parts of speech . 
+	</s>
+	
+
+	<s id="108">
+		 We manually clustered the Penn Treebank parts of speech together to obtain coarser grained syntactic categories , as shown in Table 4 . 
+	</s>
+	
+
+	<s id="109">
+		 We then lemmatised each word and excluded all lemmas with a frequency of less than 1000 per million in the BNC. . 
+	</s>
+	
+
+	<s id="110">
+		 Finally , words were attached a prefix of either SUB or SUPER according to whether they occurred in the sub- or superordinate clause linked by the marker . 
+	</s>
+	
+
+	<s id="111">
+		 This distinguished , for example , between occurrences of then in the antecedent ( subordinate ) and consequent ( main ) clauses linked by if. . 
+	</s>
+	
+
+	<s id="112">
+		 We also recorded the presence of other discourse markers in the two clauses , as these had previously 3For coordinating conjunctions , the left clause was taken to be superordinate/main clause , the right , the subordinate clause . 
+	</s>
+	
+
+	<s id="113">
+		 New label Penn Treebank labels vb vb vbd vbg vbn vbp vbz nn nn nns nnp jj jj jjrjjs rb rb rbr rbs aux aux auxg md prp prp prp $ in in Table 4 : Clustering of POS labels been found to be useful on a related classification task 
+		<ref citStr="Hutchinson , 2003" id="30" label="CEPF" position="16432">
+			( Hutchinson , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="114">
+		 The discourse markers used for this are based on the list of 350 markers given by 
+		<ref citStr="Knott ( 1996 )" id="31" label="OEPF" position="16540">
+			Knott ( 1996 )
+		</ref>
+		 , and include multiword expressions . 
+	</s>
+	
+
+	<s id="115">
+		 Due to the sparser nature of discourse markers , compared to verbs for example , no frequency cutoffs were used . 
+	</s>
+	
+
+	<s id="116">
+		 4.1.2 Linguistically motivated features These included a range of one and two dimensional features representing more abstract linguistic information , and were extracted through automatic analysis of the parse trees . 
+	</s>
+	
+
+	<s id="117">
+		 One dimensional features Two one dimensional features recorded the location of discourse markers . 
+	</s>
+	
+
+	<s id="118">
+		 POSITION indicated whether a discourse marker occurred between the clauses it linked , or before both of them . 
+	</s>
+	
+
+	<s id="119">
+		 It thus relates to information structuring . 
+	</s>
+	
+
+	<s id="120">
+		 EMBEDDING indicated the level of embedding , in number of clauses , of the discourse marker beneath the sentence’s highest level clause . 
+	</s>
+	
+
+	<s id="121">
+		 We were interested to see if some types of discourse relations are more often deeply embedded . 
+	</s>
+	
+
+	<s id="122">
+		 The remaining features recorded the presence of linguistic features that are localised to a particular clause . 
+	</s>
+	
+
+	<s id="123">
+		 Like the lexical co-occurrence features , these were indexed by the clause they occurred in : either SUPER or SUB . 
+	</s>
+	
+
+	<s id="124">
+		 We expected negation to correlate with negative polarity discourse markers , and approximated negation using four features . 
+	</s>
+	
+
+	<s id="125">
+		 NEG-SUBJ and NEGVERB indicated the presence of subject negation ( e.g. nothing ) or verbal negation ( e.g. n’t ) . 
+	</s>
+	
+
+	<s id="126">
+		 We also recorded the occurrence of a set of negative polarity items ( NPI ) , such as any and ever . 
+	</s>
+	
+
+	<s id="127">
+		 The features NPI-AND-NEG and NPI-WO-NEG indicated whether an NPI occurred in a clause with or without verbal or subject negation . 
+	</s>
+	
+
+	<s id="128">
+		 Eventualities can be placed or ordered in time us- ing not just discourse markers but also temporal expressions . 
+	</s>
+	
+
+	<s id="129">
+		 The feature TEMPEX recorded the number of temporal expressions in each clause , as returned by a temporal expression tagger 
+		<ref citStr="Mani and Wilson , 2000" id="32" label="CEPF" position="18502">
+			( Mani and Wilson , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="130">
+		 If the main verb was an inflection of to be or to do we recorded this using the features BE and DO . 
+	</s>
+	
+
+	<s id="131">
+		 Our motivation was to capture any correlation of these verbs with states and events respectively . 
+	</s>
+	
+
+	<s id="132">
+		 If the final verb was a modal auxiliary , this ellipsis was evidence of strong cohesion in the text 
+		<ref citStr="Halliday and Hasan , 1976" id="33" label="CEPF" position="18861">
+			( Halliday and Hasan , 1976 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="133">
+		 We recorded this with the feature VP-ELLIPSIS . 
+	</s>
+	
+
+	<s id="134">
+		 Pronouns also indicate cohesion , and have been shown to correlate with subjectivity 
+		<ref citStr="Bestgen et al. , 2003" id="34" label="CEPF" position="19040">
+			( Bestgen et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="135">
+		 A class of features PRONOUNS represented pronouns , with denoting either 1 st person , 2nd person , or 3rd person animate , inanimate or plural . 
+	</s>
+	
+
+	<s id="136">
+		 The syntactic structure of each clause was captured using two features , one finer grained and one coarser grained . 
+	</s>
+	
+
+	<s id="137">
+		 STRUCTURAL-SKELETON identified the major constituents under the S or VP nodes , e.g. a simple double object construction gives “NP VB NP NP” . 
+	</s>
+	
+
+	<s id="138">
+		 ARGS identified whether the clause contained an ( overt ) object , an ( overt ) subject , or both , or neither . 
+	</s>
+	
+
+	<s id="139">
+		 The overall size of a clause was represented using four features . 
+	</s>
+	
+
+	<s id="140">
+		 WORDS , NPS and PPS recorded the numbers of words , NPs and PPs in a clause ( not counting embedded clauses ) . 
+	</s>
+	
+
+	<s id="141">
+		 The feature CLAUSES counted the number of clauses embedded beneath a clause . 
+	</s>
+	
+
+	<s id="142">
+		 Two dimensional features These features all recorded combinations of linguistic features across the two clauses linked by the discourse marker . 
+	</s>
+	
+
+	<s id="143">
+		 For example the MOOD feature would take the value DECL,IMP for the sentence John is coming , but don’t tell anyone ! 
+	</s>
+	
+
+	<s id="144">
+		 These features were all determined automatically by analysing the auxiliary verbs and the main verbs’ POS tags . 
+	</s>
+	
+
+	<s id="145">
+		 The features and the possible values for each clause were as follows : MODALITY : one of FUTURE , ABILITY or NULL ; MOOD : one of DECL , IMP or INTERR ; PERFECT : either YES or NO ; PROGRESSIVE : either YES or NO ; TENSE : either PAST or PRESENT . 
+	</s>
+	
+
+	<s id="146">
+		 4.2 Classifier architectures Two different classifiers , based on local and global methods of comparison , were used in the experiments . 
+	</s>
+	
+
+	<s id="147">
+		 The first , 1 Nearest Neighbour ( 1NN ) , is an instance based classifier which assigns each marker to the same class as that of the marker nearest to it . 
+	</s>
+	
+
+	<s id="148">
+		 For this , three different distance metrics were explored . 
+	</s>
+	
+
+	<s id="149">
+		 The first metric was the Euclidean distance function , shown in ( 6 ) , applied to probability distributions . 
+	</s>
+	
+
+	<s id="150">
+		 ( 6 ) The second , , is a smoothed variant of the information theoretic Kullback-Leibner divergence ( Lee , 2001 , with ) . 
+	</s>
+	
+
+	<s id="151">
+		 Its definition is given in ( 7 ) . 
+	</s>
+	
+
+	<s id="152">
+		 ( 7 ) The third metric , , is a -test weighted adap- tion of the Jaccard coefficient 
+		<ref citStr="Curran and Moens , 2002" id="35" label="CEPF" position="21344">
+			( Curran and Moens , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="153">
+		 In it basic form , the Jaccard coefficient is essentially a measure of how much two distributions overlap . 
+	</s>
+	
+
+	<s id="154">
+		 The -test variant weights co-occurrences by the strength of their collocation , using the following function : This is then used define the weighted version of the Jaccard coefficient , as shown in ( 8 ) . 
+	</s>
+	
+
+	<s id="155">
+		 The words associated with distributions and are indicated by and , respectively . 
+	</s>
+	
+
+	<s id="156">
+		 ( 8 ) and had previously been found to be the best metrics for other tasks involving lexi cal similarity . 
+	</s>
+	
+
+	<s id="157">
+		 is included to indicate what can be achieved using a somewhat naive metric . 
+	</s>
+	
+
+	<s id="158">
+		 The second classifier used , Naive Bayes , takes the overall distribution of each class into account . 
+	</s>
+	
+
+	<s id="159">
+		 It essentially defines a decision boundary in the form of a curved hyperplane . 
+	</s>
+	
+
+	<s id="160">
+		 The Weka implementation 
+		<ref citStr="Witten and Frank , 2000" id="36" label="OEPF" position="22233">
+			( Witten and Frank , 2000 )
+		</ref>
+		 was used for the experiments , with 10-fold cross-validation . 
+	</s>
+	
+
+	<s id="161">
+		 4.3 Results We began by comparing the performance of the 1NN classifier using the various lexical co- occurrence features against the gold standards . 
+	</s>
+	
+
+	<s id="162">
+		 The results using all lexical co-occurrences are shown Task Baseline All POS Best Best subset single POS polarity 67.4 74.4 72.1 74.4 76.7 ( rb ) 83.7 ( rb ) 76.7 ( rb ) 83.7 veridicality 73.5 81.6 85.7 75.5 83.7 ( nn ) 91.8 ( vb ) 87.8 ( vb ) 91.8 type 58.1 74.2 64.5 81.8 74.2 ( in ) 74.2 ( rb ) 77.4 ( jj ) 87.8 Using and either rb or DMs+rb . 
+	</s>
+	
+
+	<s id="163">
+		 Using both and vb , and and vb+in . 
+	</s>
+	
+
+	<s id="164">
+		 Using and vb+aux+in Table 5 : Results using the 1NN classifier on lexical co-occurrences Feature Positively correlated discourse marker co-occurrences POS-POL though , but , although , assuming that NEG-POL otherwise , still , in truth , still , after that , in this way , granted that , in contrast , by then , in the event VERIDICAL obviously , now , even , indeed , once more , considering that , even after , once more , atfirst sight NON-VERIDICAL or , no doubt , in turn , then , by all means , before then ADDITIVE also , in addition , still , only , at the same time , clearly , naturally , now , of course TEMPORAL back , once more , like , and , once more , which was why , CAUSAL again , altogether , back , finally , also , thereby , at once , while , clearly , Table 6 : Most informative discourse marker co-occurrences in the super- ( ) and subordinate ( ) clauses in Table 5 . 
+	</s>
+	
+
+	<s id="165">
+		 The baseline was obtained by assigning discourse markers to the largest class , i.e. with the most types . 
+	</s>
+	
+
+	<s id="166">
+		 The best results obtained using just a single POS class are also shown . 
+	</s>
+	
+
+	<s id="167">
+		 The results across the different metrics suggest that adverbs and verbs are the best single predictors of polarity and veridicality , respectively . 
+	</s>
+	
+
+	<s id="168">
+		 We next applied the 1NN classifier to co- occurrences with discourse markers . 
+	</s>
+	
+
+	<s id="169">
+		 The results are shown in Table 7 . 
+	</s>
+	
+
+	<s id="170">
+		 The results show that for each task 1NN with the weighted Jaccard coefficient performs at least as well as the other three classifiers . 
+	</s>
+	
+
+	<s id="171">
+		 1NN with metric : Naive Task Bayes polarity 74.4 81.4 81.4 81.4 veridicality 83.7 79.6 83.7 73.5 type 74.2 80.1 80.1 58.1 Table 7 : Results using co-occurrences with DMs We also compared using the following combinations of different parts of speech : vb + aux , vb + in , vb + rb , nn + prp , vb + nn + prp , vb + aux + rb , vb + aux + in , vb + aux + nn + prp , nn + prp + in , DMs + rb , DMs + vb and DMs + rb + vb . 
+	</s>
+	
+
+	<s id="172">
+		 The best results obtained using all combinations tried are shown in the last column of Table 5 . 
+	</s>
+	
+
+	<s id="173">
+		 For DMs + rb , DMs + vb and DMs + rb + vb we also tried weighting the co- occurrences so that the sums of the co-occurrences with each of verbs , adverbs and discourse markers were equal . 
+	</s>
+	
+
+	<s id="174">
+		 However this did not lead to any better results . 
+	</s>
+	
+
+	<s id="175">
+		 One property that distinguishes from the other metrics is that it weights features the strength of their collocation . 
+	</s>
+	
+
+	<s id="176">
+		 We were therefore interested to see which co-occurrences were most informative . 
+	</s>
+	
+
+	<s id="177">
+		 Using Weka’s feature selection utility , we ranked discourse marker co-occurrences by their information gain when predicting polarity , veridicality and type . 
+	</s>
+	
+
+	<s id="178">
+		 The most informative co-occurrences are listed in Table 6 . 
+	</s>
+	
+
+	<s id="179">
+		 For example , if also occurs in the subordinate clause then the discourse marker is more likely to be ADDITIVE . 
+	</s>
+	
+
+	<s id="180">
+		 The 1NN and Naive Bayes classifiers were then applied to co-occurrences with just the DMs that were most informative for each task . 
+	</s>
+	
+
+	<s id="181">
+		 The results , shown in Table 8 , indicate that the performance of 1NN drops when we restrict ourselves to this subset . 
+	</s>
+	
+
+	<s id="182">
+		 4 However Naive Bayes outperforms all previous 1NN classifiers . 
+	</s>
+	
+
+	<s id="183">
+		 Base- 1NN with : Naive Task line Bayes polarity 67.4 72.1 69.8 90.7 veridicality 73.5 85.7 77.6 91.8 type 58.1 67.7 58.1 93.5 Table 8 : Results using most informative DMs 4The metric is omitted because it essentially already has its own method of factoring in informativity . 
+	</s>
+	
+
+	<s id="184">
+		 Feature Positively correlated features POS-POL No significantly informative predictors correlated positively NEG-POL NEG-VERBAL , NEG-SUBJ , ARGS=NONE , MODALITY= ABILITY,ABILITY VERIDICAL VERB=BE , WORDS , WORDS , MODALITY= NULL,NULL NON-VERID TEMPEX , PRONOUN , PRONOUN ADDITIVE WORDS , WORDS , CLAUSES , MODALITY= ABILITY,FUTURE , MODALITY= ABILITY,ABILITY , NPS , MODALITY= FUTURE,FUTURE , MOOD= DECLARATIVE,DECLARATIVE TEMPORAL EMBEDDING=7 , PRONOUN , MOOD= INTERROGATIVE,DECLARATIVE CAUSAL NEG-SUBJ , NEG-VERBAL , NPI-WO-NEG , NPI-AND-NEG , MODALITY= NULL,FUTURE Table 9 : The most informative linguistically motivated predictors for each class . 
+	</s>
+	
+
+	<s id="185">
+		 The indices and indicate that a one dimensional feature belongs to the superordinate or subordinate clause , respectively . 
+	</s>
+	
+
+	<s id="186">
+		 Weka’s feature selection utility was also applied to all the linguistically motivated features described in Section 4.1.2 . 
+	</s>
+	
+
+	<s id="187">
+		 The most informative features are shown in Table 9 . 
+	</s>
+	
+
+	<s id="188">
+		 Naive Bayes was then applied using both all the linguistically motivated features , and just the most informative ones . 
+	</s>
+	
+
+	<s id="189">
+		 The results are shown in Table 10 . 
+	</s>
+	
+
+	<s id="190">
+		 Task Baseline All Most features informative polarity veridicality type 67.4 73.5 58.1 74.4 77.6 64.5 72.1 79.6 77.4 Table 10 : Naive Bayes and linguistic features 5 Discussion The results demonstrate that discourse markers can be classified along three different dimensions with an accuracy of over 90 % . 
+	</s>
+	
+
+	<s id="191">
+		 The best classifiers used a global algorithm ( Naive Bayes ) , with co- occurrences with a subset of discourse markers as features . 
+	</s>
+	
+
+	<s id="192">
+		 The success of Naive Bayes shows that with the right choice of features the classification task is highly separable . 
+	</s>
+	
+
+	<s id="193">
+		 The high degree of accuracy attained on the type task suggests that there is empirical evidence for a distinct class of TEMPORAL markers . 
+	</s>
+	
+
+	<s id="194">
+		 The results also provide empirical evidence for the correlation between certain linguistic features and types of discourse relation . 
+	</s>
+	
+
+	<s id="195">
+		 Here we restrict ourselves to making just five observations . 
+	</s>
+	
+
+	<s id="196">
+		 Firstly , verbs and adverbs are the most informative parts of speech when classifying discourse markers . 
+	</s>
+	
+
+	<s id="197">
+		 This is presumably because of their close relation to the main predicate of the clause . 
+	</s>
+	
+
+	<s id="198">
+		 Secondly , Table 6 shows that the discourse marker DM in the structure X , but/though/although Y DM Z is more likely to be signalling a positive polarity discourse relation between Y and Z than a negative polarity one . 
+	</s>
+	
+
+	<s id="199">
+		 This suggests that a negative polarity discourse relation is less likely to be embedded directly beneath another negative polarity discourse relation . 
+	</s>
+	
+
+	<s id="200">
+		 Thirdly , negation correlates with the main clause of NEG-POL discourse markers , and it also correlates with subordinate clause of CAUSAL ones . 
+	</s>
+	
+
+	<s id="201">
+		 Fourthly , NON-VERIDICAL correlates with second person pronouns , suggesting that a writer/speaker is less likely to make assertions about the reader/listener than about other entities . 
+	</s>
+	
+
+	<s id="202">
+		 Lastly , the best results with knowledge poor features , i.e. lexical co-occurrences , were better than those with linguistically sophisticated ones . 
+	</s>
+	
+
+	<s id="203">
+		 It may be that the sophisticated features are predictive of only certain subclasses of the classes we used , e.g. hypotheticals , or signallers of contrast . 
+	</s>
+	
+
+	<s id="204">
+		 6 Conclusions and future work We have proposed corpus-based techniques for classifying discourse markers along three dimensions : polarity , veridicality and type . 
+	</s>
+	
+
+	<s id="205">
+		 For these tasks we were able to classify with accuracy rates of 90.7 % , 91.8 % and 93.5 % respectively . 
+	</s>
+	
+
+	<s id="206">
+		 These equate to error reduction rates of 71.5 % , 69.1 % and 84.5 % from the baseline error rates . 
+	</s>
+	
+
+	<s id="207">
+		 In addition , we determined which features were most informative for the different classification tasks . 
+	</s>
+	
+
+	<s id="208">
+		 In future work we aim to extend our work in two directions . 
+	</s>
+	
+
+	<s id="209">
+		 Firstly , we will consider finer-grained classification tasks , such as learning whether a causal discourse marker introduces a cause or a consequence , e.g. distinguishing because from so . 
+	</s>
+	
+
+	<s id="210">
+		 Secondly , we would like to see how far our results can be extended to include adverbial discourse markers , such as instead or for example , by using just features of the clauses they occur in . 
+	</s>
+	
+
+	<s id="211">
+		 Acknowledgements I would like to thank Mirella Lapata , Alex Lascarides , Bonnie Webber , and the three anonymous reviewers for their comments on drafts of this paper . 
+	</s>
+	
+
+	<s id="212">
+		 This research was supported by EPSRC Grant GR/R40036/01 and a University of Sydney Travelling Scholarship . 
+	</s>
+	
+
+	<s id="213">
+		 References Nicholas Asher and Alex Lascarides . 
+	</s>
+	
+
+	<s id="214">
+		 2003. Logics of Conversation . 
+	</s>
+	
+
+	<s id="215">
+		 Cambridge University Press . 
+	</s>
+	
+
+	<s id="216">
+		 Timothy Baldwin and Francis Bond . 
+	</s>
+	
+
+	<s id="217">
+		 2003. Learning the countability of English nouns from corpus data . 
+	</s>
+	
+
+	<s id="218">
+		 In Proceedings ofACL 2003 , pages 463–470 . 
+	</s>
+	
+
+	<s id="219">
+		 Yves Bestgen , Liesbeth Degand , and Wilbert Spooren . 
+	</s>
+	
+
+	<s id="220">
+		 2003. On the use of automatic techniques to determine the semantics of connectives in large newspaper corpora : An exploratory study . 
+	</s>
+	
+
+	<s id="221">
+		 In Proceedings of the MAD’03 workshop on Multidisciplinary Approaches to Discourse , October . 
+	</s>
+	
+
+	<s id="222">
+		 Eugene Charniak . 
+	</s>
+	
+
+	<s id="223">
+		 2000. A maximum-entropy-inspired parser . 
+	</s>
+	
+
+	<s id="224">
+		 In Proceedings of the First Conference of the North American Chapter of the Association for Computational Linguistics ( NAACL-2000 ) , Seattle , Washington , USA . 
+	</s>
+	
+
+	<s id="225">
+		 James R. Curran and M. Moens . 
+	</s>
+	
+
+	<s id="226">
+		 2002. Improvements in automatic thesaurus extraction . 
+	</s>
+	
+
+	<s id="227">
+		 In Proceedings of the Workshop on Unsupervised Lexical Acquisition , pages 59–67 , Philadelphia , PA , USA . 
+	</s>
+	
+
+	<s id="228">
+		 Barbara Di Eugenio , Johanna D. Moore , and Massimo Paolucci . 
+	</s>
+	
+
+	<s id="229">
+		 1997. Learning features that predict cue usage . 
+	</s>
+	
+
+	<s id="230">
+		 In Proceedings of the 35th Conference of the Association for Computational Linguistics ( ACL97 ) , Madrid , Spain , July . 
+	</s>
+	
+
+	<s id="231">
+		 Katherine Forbes , Eleni Miltsakaki , Rashmi Prasad , Anoop Sarkar , Aravind Joshi , and Bonnie Webber . 
+	</s>
+	
+
+	<s id="232">
+		 2001. D-LTAG system—discourse parsing with a lexicalised tree adjoining grammar . 
+	</s>
+	
+
+	<s id="233">
+		 In Proceedings ofthe ESSLI 2001 Workshop on Information Structure , Discourse Structure , and Discourse Semantics , Helsinki , Finland . 
+	</s>
+	
+
+	<s id="234">
+		 Brigitte Grote and Manfred Stede . 
+	</s>
+	
+
+	<s id="235">
+		 1998. Discourse marker choice in sentence planning . 
+	</s>
+	
+
+	<s id="236">
+		 In Eduard Hovy , editor , Proceedings of the Ninth International Workshop on Natural Language Generation , pages 128– 137 . 
+	</s>
+	
+
+	<s id="237">
+		 Association for Computational Linguistics , New Brunswick , New Jersey . 
+	</s>
+	
+
+	<s id="238">
+		 M. Halliday and R. Hasan . 
+	</s>
+	
+
+	<s id="239">
+		 1976. Cohesion in English . 
+	</s>
+	
+
+	<s id="240">
+		 Longman . 
+	</s>
+	
+
+	<s id="241">
+		 Ben Hutchinson . 
+	</s>
+	
+
+	<s id="242">
+		 2003. Automatic classification of discourse markers by their co-occurrences . 
+	</s>
+	
+
+	<s id="243">
+		 In Proceedings of the ESSLLI2003 workshop on Discourse Particles : Meaning and Implementation , Vienna , Austria . 
+	</s>
+	
+
+	<s id="244">
+		 Ben Hutchinson . 
+	</s>
+	
+
+	<s id="245">
+		 2004. Mining the web for discourse markers . 
+	</s>
+	
+
+	<s id="246">
+		 In Proceedings of the Fourth International Conference on Language Resources and Evaluation ( LREC 2004 ) , Lisbon , Portugal . 
+	</s>
+	
+
+	<s id="247">
+		 Alistair Knott and Robert Dale . 
+	</s>
+	
+
+	<s id="248">
+		 1994. Using linguistic phenomena to motivate a set of coherence relations . 
+	</s>
+	
+
+	<s id="249">
+		 Discourse Processes , 18(1):35–62 . 
+	</s>
+	
+
+	<s id="250">
+		 Alistair Knott . 
+	</s>
+	
+
+	<s id="251">
+		 1996. A data-driven methodology for motivating a set of coherence relations . 
+	</s>
+	
+
+	<s id="252">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="253">
+		 thesis , University of Edinburgh . 
+	</s>
+	
+
+	<s id="254">
+		 Mirella Lapata and Alex Lascarides . 
+	</s>
+	
+
+	<s id="255">
+		 2004. Inferring sentence-internal temporal relations . 
+	</s>
+	
+
+	<s id="256">
+		 In In Proceedings of the Human Language Technology Conference and the North American Chapter of the Association for Computational Linguistics Annual Meeting , Boston , MA . 
+	</s>
+	
+
+	<s id="257">
+		 Alex Lascarides and Nicholas Asher . 
+	</s>
+	
+
+	<s id="258">
+		 1993 . 
+	</s>
+	
+
+	<s id="259">
+		 Temporal interpretation , discourse relations and common sense entailment . 
+	</s>
+	
+
+	<s id="260">
+		 Linguistics and Philosophy , 16(5):437– 493 . 
+	</s>
+	
+
+	<s id="261">
+		 Lillian Lee . 
+	</s>
+	
+
+	<s id="262">
+		 2001. On the effectiveness of the skew divergence for statistical language analysis . 
+	</s>
+	
+
+	<s id="263">
+		 Artificial Intelligence and Statistics , pages 65–72 . 
+	</s>
+	
+
+	<s id="264">
+		 Max M Louwerse . 
+	</s>
+	
+
+	<s id="265">
+		 2001. An analytic and cognitive parameterization of coherence relations . 
+	</s>
+	
+
+	<s id="266">
+		 Cognitive Linguistics , 12(3):291–315 . 
+	</s>
+	
+
+	<s id="267">
+		 Inderjeet Mani and George Wilson . 
+	</s>
+	
+
+	<s id="268">
+		 2000 . 
+	</s>
+	
+
+	<s id="269">
+		 Robust temporal processing of news . 
+	</s>
+	
+
+	<s id="270">
+		 In Proceedings of the 38th Annual Meeting of the Association for Computational Linguistics ( ACL 2000 ) , pages 69–76 , New Brunswick , New Jersey . 
+	</s>
+	
+
+	<s id="271">
+		 Daniel Marcu and Abdessamad Echihabi . 
+	</s>
+	
+
+	<s id="272">
+		 2002. An unsupervised approach to recognizing discourse relations . 
+	</s>
+	
+
+	<s id="273">
+		 In Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics ( ACL2002 ) , Philadelphia , PA . 
+	</s>
+	
+
+	<s id="274">
+		 Daniel Marcu . 
+	</s>
+	
+
+	<s id="275">
+		 2000. The Theory and Practice of Dis- course Parsing and Summarization . 
+	</s>
+	
+
+	<s id="276">
+		 The MIT Press . 
+	</s>
+	
+
+	<s id="277">
+		 Jim Martin . 
+	</s>
+	
+
+	<s id="278">
+		 1992. English Text : System and Structure . 
+	</s>
+	
+
+	<s id="279">
+		 Benjamin , Amsterdam . 
+	</s>
+	
+
+	<s id="280">
+		 M. Moser and J. Moore . 
+	</s>
+	
+
+	<s id="281">
+		 1995. Using discourse analysis and automatic text generation to study discourse cue usage . 
+	</s>
+	
+
+	<s id="282">
+		 In Proceedings of the AAAI 1995 Spring Symposium on Empirical Methods in Discourse Interpretation and Generation , pages 92–98 . 
+	</s>
+	
+
+	<s id="283">
+		 Jon Oberlander and Alistair Knott . 
+	</s>
+	
+
+	<s id="284">
+		 1995. Issues in cue phrase implicature . 
+	</s>
+	
+
+	<s id="285">
+		 In Proceedings of the AAAI Spring Symposium on Empirical Methods in Discourse Interpretation and Generation . 
+	</s>
+	
+
+	<s id="286">
+		 Ted J. M. Sanders , W. P. M. Spooren , and L. G. M. Noordman . 
+	</s>
+	
+
+	<s id="287">
+		 1992. Towards a taxonomy of coherence relations . 
+	</s>
+	
+
+	<s id="288">
+		 Discourse Processes , 15:1–35 . 
+	</s>
+	
+
+	<s id="289">
+		 Suzanne Stevenson and Paola Merlo . 
+	</s>
+	
+
+	<s id="290">
+		 1999. Automatic verb classification using distributions of grammatical features . 
+	</s>
+	
+
+	<s id="291">
+		 In Proceedings of the 9th Conference of the European Chapter of the ACL , pages 45–52 , Bergen , Norway . 
+	</s>
+	
+
+	<s id="292">
+		 Bonnie Webber , Matthew Stone , Aravind Joshi , and Alistair Knott . 
+	</s>
+	
+
+	<s id="293">
+		 2003. Anaphora and discourse structure . 
+	</s>
+	
+
+	<s id="294">
+		 Computational Linguistics , 29(4):545–588 . 
+	</s>
+	
+
+	<s id="295">
+		 Ian H. Witten and Eibe Frank . 
+	</s>
+	
+
+	<s id="296">
+		 2000. Data Mining : Practical machine learning tools with Java implementations . 
+	</s>
+	
+
+	<s id="297">
+		 Morgan Kaufmann , San Francisco . 
+	</s>
+	
+
+
+</acldoc>

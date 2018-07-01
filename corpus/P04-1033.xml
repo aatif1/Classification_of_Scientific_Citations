@@ -1,0 +1,1337 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1033">
+	
+
+	<s id="1">
+		 Learning with Unlabeled Data for Text Categorization Using Bootstrapping and Feature Projection Techniques Youngjoong Ko Jungyun Seo Dept. of Computer Science , Sogang Univ . 
+	</s>
+	
+
+	<s id="2">
+		 Dept. of Computer Science , Sogang Univ . 
+	</s>
+	
+
+	<s id="3">
+		 Sinsu-dong 1 , Mapo-gu Sinsu-dong 1 , Mapo-gu Seoul , 121-742 , Korea Seoul , 121-742 , Korea kyj@nlpzodiac.sogang.ac.kr seojy@ccs.sogang.ac.kr Abstract A wide range of supervised learning algorithms has been applied to Text Categorization . 
+	</s>
+	
+
+	<s id="4">
+		 However , the supervised learning approaches have some problems . 
+	</s>
+	
+
+	<s id="5">
+		 One of them is that they require a large , often prohibitive , number of labeled training documents for accurate learning . 
+	</s>
+	
+
+	<s id="6">
+		 Generally , acquiring class labels for training data is costly , while gathering a large quantity of unlabeled data is cheap . 
+	</s>
+	
+
+	<s id="7">
+		 We here propose a new automatic text categorization method for learning from only unlabeled data using a bootstrapping framework and a feature projection technique . 
+	</s>
+	
+
+	<s id="8">
+		 From results of our experiments , our method showed reasonably comparable performance compared with a supervised method . 
+	</s>
+	
+
+	<s id="9">
+		 If our method is used in a text categorization task , building text categorization systems will become significantly faster and less expensive . 
+	</s>
+	
+
+	<s id="10">
+		 1 Introduction Text categorization is the task of classifying documents into a certain number of pre-defined categories . 
+	</s>
+	
+
+	<s id="11">
+		 Many supervised learning algorithms have been applied to this area . 
+	</s>
+	
+
+	<s id="12">
+		 These algorithms today are reasonably successful when provided with enough labeled or annotated training examples . 
+	</s>
+	
+
+	<s id="13">
+		 For example , there are Naive Bayes 
+		<ref citStr="McCallum and Nigam , 1998" id="1" label="CJPN" position="1694">
+			( McCallum and Nigam , 1998 )
+		</ref>
+		 , Rocchio 
+		<ref citStr="Lewis et al. , 1996" id="2" label="CJPN" position="1728">
+			( Lewis et al. , 1996 )
+		</ref>
+		 , Nearest Neighbor ( kNN ) 
+		<ref citStr="Yang et al. , 2002" id="3" label="CJPN" position="1778">
+			( Yang et al. , 2002 )
+		</ref>
+		 , TCFP 
+		<ref citStr="Ko and Seo , 2002" id="4" label="CJPN" position="1807">
+			( Ko and Seo , 2002 )
+		</ref>
+		 , and Support Vector Machine ( SVM ) 
+		<ref citStr="Joachims , 1998" id="5" label="CJPN" position="1864">
+			( Joachims , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="14">
+		 However , the supervised learning approach has some difficulties . 
+	</s>
+	
+
+	<s id="15">
+		 One key difficulty is that it requires a large , often prohibitive , number of labeled training data for accurate learning . 
+	</s>
+	
+
+	<s id="16">
+		 Since a labeling task must be done manually , it is a painfully time-consuming process . 
+	</s>
+	
+
+	<s id="17">
+		 Furthermore , since the application area of text categorization has diversified from newswire articles and web pages to E-mails and newsgroup postings , it is also a difficult task to create training data for each application area 
+		<ref citStr="Nigam et al. , 1998" id="6" label="CEPF" position="2438">
+			( Nigam et al. , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="18">
+		 In this light , we consider learning algorithms that do not require such a large amount of labeled data . 
+	</s>
+	
+
+	<s id="19">
+		 While labeled data are difficult to obtain , unlabeled data are readily available and plentiful . 
+	</s>
+	
+
+	<s id="20">
+		 Therefore , this paper advocates using a bootstrapping framework and a feature projection technique with just unlabeled data for text categorization . 
+	</s>
+	
+
+	<s id="21">
+		 The input to the bootstrapping process is a large amount of unlabeled data and a small amount of seed information to tell the learner about the specific task . 
+	</s>
+	
+
+	<s id="22">
+		 In this paper , we consider seed information in the form of title words associated with categories . 
+	</s>
+	
+
+	<s id="23">
+		 In general , since unlabeled data are much less expensive and easier to collect than labeled data , our method is useful for text categorization tasks including online data sources such as web pages , E-mails , and newsgroup postings . 
+	</s>
+	
+
+	<s id="24">
+		 To automatically build up a text classifier with unlabeled data , we must solve two problems ; how we can automatically generate labeled training documents ( machine-labeled data ) from only title words and how we can handle incorrectly labeled documents in the machine-labeled data . 
+	</s>
+	
+
+	<s id="25">
+		 This paper provides solutions for these problems . 
+	</s>
+	
+
+	<s id="26">
+		 For the first problem , we employ the bootstrapping framework . 
+	</s>
+	
+
+	<s id="27">
+		 For the second , we use the TCFP classifier with robustness from noisy data 
+		<ref citStr="Ko and Seo , 2004" id="7" label="OEPF" position="3880">
+			( Ko and Seo , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="28">
+		 How can labeled training data be automatically created from unlabeled data and title words ? 
+	</s>
+	
+
+	<s id="29">
+		 Maybe unlabeled data don’t have any information for building a text classifier because they do not contain the most important information , their category . 
+	</s>
+	
+
+	<s id="30">
+		 Thus we must assign the class to each document in order to use supervised learning approaches . 
+	</s>
+	
+
+	<s id="31">
+		 Since text categorization is a task based on pre-defined categories , we know the categories for classifying documents . 
+	</s>
+	
+
+	<s id="32">
+		 Knowing the categories means that we can choose at least a representative title word of each category . 
+	</s>
+	
+
+	<s id="33">
+		 This is the starting point of our proposed method . 
+	</s>
+	
+
+	<s id="34">
+		 As we carry out a bootstrapping task from these title words , we can finally get labeled training data . 
+	</s>
+	
+
+	<s id="35">
+		 Suppose , for example , that we are interested in classifying newsgroup postings about specially ‘Autos’ category . 
+	</s>
+	
+
+	<s id="36">
+		 Above all , we can select ‘automobile’ as a title word , and automatically extract keywords ( ‘car’ , ‘gear’ , ‘transmission’ , ‘sedan’ , and so on ) using co-occurrence information . 
+	</s>
+	
+
+	<s id="37">
+		 In our method , we use context ( a sequence of 60 words ) as a unit of meaning for bootstrapping from title words ; it is generally constructed as a middle size of a sentence and a document . 
+	</s>
+	
+
+	<s id="38">
+		 We then extract core contexts that include at least one of the title words and the keywords . 
+	</s>
+	
+
+	<s id="39">
+		 We call them centroid-contexts because they are regarded as contexts with the core meaning of each category . 
+	</s>
+	
+
+	<s id="40">
+		 From the centroidcontexts , we can gain many words contextually co- occurred with the title words and keywords : ‘driver’ , ‘clutch’ , ‘trunk’ , and so on . 
+	</s>
+	
+
+	<s id="41">
+		 They are words in first-order co-occurrence with the title words and the keywords . 
+	</s>
+	
+
+	<s id="42">
+		 To gather more vocabulary , we extract contexts that are similar to centroid-contexts by a similarity measure ; they contain words in second-order co-occurrence with the title words and the keywords . 
+	</s>
+	
+
+	<s id="43">
+		 We finally construct context-cluster of each category as the combination of centroid-contexts and contexts selected by the similarity measure . 
+	</s>
+	
+
+	<s id="44">
+		 Using the context-clusters as labeled training data , a Naive Bayes classifier can be built . 
+	</s>
+	
+
+	<s id="45">
+		 Since the Naive Bayes classifier can label all unlabeled documents for their category , we can finally obtain labeled training data ( machine-labeled data ) . 
+	</s>
+	
+
+	<s id="46">
+		 When the machine-labeled data is used to learn a text classifier , there is another difficult in that they have more incorrectly labeled documents than manually labeled data . 
+	</s>
+	
+
+	<s id="47">
+		 Thus we develop and employ the TCFP classifiers with robustness from noisy data . 
+	</s>
+	
+
+	<s id="48">
+		 The rest of this paper is organized as follows . 
+	</s>
+	
+
+	<s id="49">
+		 Section 2 reviews previous works . 
+	</s>
+	
+
+	<s id="50">
+		 In section 3 and 4 , we explain the proposed method in detail . 
+	</s>
+	
+
+	<s id="51">
+		 Section 5 is devoted to the analysis of the empirical results . 
+	</s>
+	
+
+	<s id="52">
+		 The final section describes conclusions and future works . 
+	</s>
+	
+
+	<s id="53">
+		 2 Related Works In general , related approaches for using unlabeled data in text categorization have two directions ; One builds classifiers from a combination of labeled and unlabeled data 
+		<ref citStr="Nigam , 2001" id="8" label="CEPF" position="7118">
+			( Nigam , 2001 
+		</ref>
+		<ref citStr="Bennett and Demiriz , 1999" id="9" label="CEPF" position="7133">
+			; Bennett and Demiriz , 1999 )
+		</ref>
+		 , and the other employs clustering algorithms for text categorization 
+		<ref citStr="Slonim et al. , 2002" id="10" label="CEPF" position="7258">
+			( Slonim et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="54">
+		 Nigam studied an Expected Maximization ( EM ) technique for combining labeled and unlabeled data for text categorization in his dissertation . 
+	</s>
+	
+
+	<s id="55">
+		 He showed that the accuracy of learned text classifiers can be improved by augmenting a small number of labeled training data with a large pool of unlabeled data . 
+	</s>
+	
+
+	<s id="56">
+		 Bennet and Demiriz achieved small improvements on some UCI data sets using SVM . 
+	</s>
+	
+
+	<s id="57">
+		 It seems that SVMs assume that decision boundaries lie between classes in low-density regions of instance space , and the unlabeled examples help find these areas . 
+	</s>
+	
+
+	<s id="58">
+		 Slonim suggested clustering techniques for unsupervised document classification . 
+	</s>
+	
+
+	<s id="59">
+		 Given a collection of unlabeled data , he attempted to find clusters that are highly correlated with the true topics of documents by unsupervised clustering methods . 
+	</s>
+	
+
+	<s id="60">
+		 In his paper , Slonim proposed a new clustering method , the sequential Information Bottleneck ( sIB ) algorithm . 
+	</s>
+	
+
+	<s id="61">
+		 3 The Bootstrapping Algorithm for Creating Machine-labeled Data The bootstrapping framework described in this paper consists of the following steps . 
+	</s>
+	
+
+	<s id="62">
+		 Each module is described in the following sections in detail . 
+	</s>
+	
+
+	<s id="63">
+		 1. Preprocessing : Contexts are separated from unlabeled documents and content words are extracted from them . 
+	</s>
+	
+
+	<s id="64">
+		 2. Constructing context-clusters for training : - Keywords of each category are created - Centroid-contexts are extracted and verified - Context-clusters are created by a similarity measure 3 . 
+	</s>
+	
+
+	<s id="65">
+		 Learning Classifier : Naive Bayes classifier are learned by using the context-clusters 3.1 Preprocessing The preprocessing module has two main roles : extracting content words and reconstructing the collected documents into contexts . 
+	</s>
+	
+
+	<s id="66">
+		 We use the Brill POS tagger to extract content words 
+		<ref citStr="Brill , 1995" id="11" label="OEPF" position="9117">
+			( Brill , 1995 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="67">
+		 Generally , the supervised learning approach with labeled data regards a document as a unit of meaning . 
+	</s>
+	
+
+	<s id="68">
+		 But since we can use only the title words and unlabeled data , we define context as a unit of meaning and we employ it as the meaning unit to bootstrap the meaning of each category . 
+	</s>
+	
+
+	<s id="69">
+		 In our system , we regard a sequence of 60 content words within a document as a context . 
+	</s>
+	
+
+	<s id="70">
+		 To extract contexts from a document , we use sliding window techniques 
+		<ref citStr="Maarek et al. , 1991" id="12" label="CERF" position="9629">
+			( Maarek et al. , 1991 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="71">
+		 The window is a slide from the first word of the document to the last in the size of the window ( 60 words ) and the interval of each window ( 30 words ) . 
+	</s>
+	
+
+	<s id="72">
+		 Therefore , the final output of preprocessing is a set of context vectors that are represented as content words of each context . 
+	</s>
+	
+
+	<s id="73">
+		 3.2 Constructing Context-Clusters for Training At first , we automatically create keywords from a title word for each category using co-occurrence information . 
+	</s>
+	
+
+	<s id="74">
+		 Then centroid-contexts are extracted using the title word and keywords . 
+	</s>
+	
+
+	<s id="75">
+		 They contain at least one of the title and keywords . 
+	</s>
+	
+
+	<s id="76">
+		 Finally , we can gain more information of each category by assigning remaining contexts to each context- cluster using a similarity measure technique ; the remaining contexts do not contain any keywords or title words . 
+	</s>
+	
+
+	<s id="77">
+		 3.2.1 Creating Keyword Lists The starting point of our method is that we have title words and collected documents . 
+	</s>
+	
+
+	<s id="78">
+		 A title word can present the main meaning of each category but it could be insufficient in representing any category for text categorization . 
+	</s>
+	
+
+	<s id="79">
+		 Thus we need to find words that are semantically related to a title word , and we define them as keywords of each category . 
+	</s>
+	
+
+	<s id="80">
+		 The score of semantic similarity between a title word , T , and a word , W , is calculated by the cosine metric as follows : ( 1 ) where t ; and w ; represent the occurrence ( binary value : 0 or 1 ) of words T and W in ;-th document respectively , and n is the total number of documents in the collected documents . 
+	</s>
+	
+
+	<s id="81">
+		 This method calculates the similarity score between words based on the degree of their co-occurrence in the same document . 
+	</s>
+	
+
+	<s id="82">
+		 Since the keywords for text categorization must have the power to discriminate categories as well as similarity with the title words , we assign a word to the keyword list of a category with the maximum similarity score and recalculate the score of the word in the category using the following formula : ( 2 ) where Tma. , is the title word with the maximum similarity score with a word W , c ma. , is the category of the title word Tma. , , and Tsecond ma. , is other title word with the second high similarity score with the word W . 
+	</s>
+	
+
+	<s id="83">
+		 This formula means that a word with high ranking in a category has a high similarity score with the title word of the category and a high similarity score difference with other title words . 
+	</s>
+	
+
+	<s id="84">
+		 We sort out words assigned to each category according to the calculated score in descending order . 
+	</s>
+	
+
+	<s id="85">
+		 We then choose top m words as keywords in the category . 
+	</s>
+	
+
+	<s id="86">
+		 Table 1 shows the list of keywords ( top 5 ) for each category in the WebKB data set . 
+	</s>
+	
+
+	<s id="87">
+		 Table 1 . 
+	</s>
+	
+
+	<s id="88">
+		 The list of keywords in the WebKB data set Category course Title Word Keywords faculty project student course assignments , hours , instructor , professor project student class , fall associate , ph.d , fax , interests , publications system , systems , research , software , information graduate , computer , science , page , university 3.2.2 Extracting and Verifying Centroid-Contexts We choose contexts with a keyword or a title word of a category as centroid-contexts . 
+	</s>
+	
+
+	<s id="89">
+		 Among centroid-contexts , some contexts could not have good features of a category even though they include the keywords of the category . 
+	</s>
+	
+
+	<s id="90">
+		 To rank the importance of centroid-contexts , we compute the importance score of each centroid-context . 
+	</s>
+	
+
+	<s id="91">
+		 First of all , weights ( W;j ) of word w ; in j-th category are calculated using Term Frequency ( TF ) within a category and Inverse Category Frequency ( ICF ) 
+		<ref citStr="Cho and Kim , 1997" id="13" label="CERF" position="13320">
+			( Cho and Kim , 1997 )
+		</ref>
+		 as follows : ( 3 ) where CF ; is the number of categories that contain w ; and M is the total number of categories . 
+	</s>
+	
+
+	<s id="92">
+		 Using word weights ( W;j ) calculated by formula 3 , the score of a centroid-context ( Sk ) in j-th category ( cj ) is computed as follows : ( 4 ) where N is the number of words in the centroidcontext . 
+	</s>
+	
+
+	<s id="93">
+		 As a result , we obtain a set of words in first- order co-occurrence from centroid-contexts of each category . 
+	</s>
+	
+
+	<s id="94">
+		 3.2.3 Creating Context-Clusters We gather the second-order co-occurrence information by assigning remaining contexts to the context-cluster of each category . 
+	</s>
+	
+
+	<s id="95">
+		 For the assigning criterion , we calculate similarity between remaining contexts and centroid-contexts of each category . 
+	</s>
+	
+
+	<s id="96">
+		 Thus we employ the similarity measure technique by 
+		<ref citStr="Karov and Edelman ( 1998 )" id="14" label="CERF" position="14155">
+			Karov and Edelman ( 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="97">
+		 In our method , a part of this technique is reformed for our purpose and remaining contexts are assigned to each context-cluster by that revised technique . 
+	</s>
+	
+
+	<s id="98">
+		 1 ) Measurement of word and context similarities As similar words tend to appear in similar contexts , we can compute the similarity by using contextual information . 
+	</s>
+	
+
+	<s id="99">
+		 Words and contexts play complementary roles . 
+	</s>
+	
+
+	<s id="100">
+		 Contexts are similar to the extent that they contain similar words , and words are similar to the extent that they appear in similar contexts 
+		<ref citStr="Karov and Edelman , 1998" id="15" label="CEPF" position="14734">
+			( Karov and Edelman , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="101">
+		 This definition is circular . 
+	</s>
+	
+
+	<s id="102">
+		 Thus it is applied iteratively using two matrices , WSM and CSM . 
+	</s>
+	
+
+	<s id="103">
+		 Each category has a word similarity matrix WSMn and a context similarity matrix CSMn . 
+	</s>
+	
+
+	<s id="104">
+		 In each iteration n , we update WSMn , whose rows and columns are labeled by all content words encountered in the centroid-contexts of each category and input remaining contexts . 
+	</s>
+	
+
+	<s id="105">
+		 In that matrix , the cell ( ij ) holds a value between 0 and 1 , indicating the extent to which the i-th word is contextually similar to the j-th word . 
+	</s>
+	
+
+	<s id="106">
+		 Also , we keep and update a CSMn , which holds similarities among contexts . 
+	</s>
+	
+
+	<s id="107">
+		 The rows of CSMn correspond to the remaining contexts and the columns to the centroid-contexts . 
+	</s>
+	
+
+	<s id="108">
+		 In this paper , the number of input contexts of row and column in CSM is limited to 200 , considering execution time and memory allocation , and the number of iterations is set as 3 . 
+	</s>
+	
+
+	<s id="109">
+		 To compute the similarities , we initialize WSMn to the identity matrix . 
+	</s>
+	
+
+	<s id="110">
+		 The following steps are iterated until the changes in the similarity values are small enough . 
+	</s>
+	
+
+	<s id="111">
+		 1. Update the context similarity matrix CSMn , using the word similarity matrix WSMn . 
+	</s>
+	
+
+	<s id="112">
+		 2. Update the word similarity matrix WSMn , using the context similarity matrix CSMn . 
+	</s>
+	
+
+	<s id="113">
+		 2 ) Affinity formulae To simplify the symmetric iterative treatment of similarity between words and contexts , we define an auxiliary relation between words and contexts as affinity . 
+	</s>
+	
+
+	<s id="114">
+		 Affinity formulae are defined as follows 
+		<ref citStr="Karov and Edelman , 1998" id="16" label="CERF" position="16333">
+			( Karov and Edelman , 1998 )
+		</ref>
+		 : ( 5 ) aff (X,W)=max,X simn(X,Xj) ( 6 ) In the above formulae , n denotes the iteration number , and the similarity values are defined by WSMn and CSMn . 
+	</s>
+	
+
+	<s id="115">
+		 Every word has some affinity to the context , and the context can be represented by a vector indicating the affinity of each word to it . 
+	</s>
+	
+
+	<s id="116">
+		 3 ) Similarity formulae The similarity of W1 to W2 is the average affinity of the contexts that include W1 to W2 , and the similarity of a context X1 to X2 is a weighted average of the affinity of the words in X1 to X2 . 
+	</s>
+	
+
+	<s id="117">
+		 Similarity formulae are defined as follows : ( 7 ) else ( 8 ) The weights in formula 7 are computed as reflecting global frequency , log-likelihood factors , and part of speech as used in 
+		<ref citStr="Karov and Edelman , 1998" id="17" label="CERF" position="17091">
+			( Karov and Edelman , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="118">
+		 The sum of weights in formula 8 , which is a reciprocal number of contexts that contain W1 , is 1 . 
+	</s>
+	
+
+	<s id="119">
+		 4 ) Assigning remaining contexts to a category We decided a similarity value of each remaining context for each category using the following method : ( 9 ) In formula 9 , i ) X is a remaining context , ii ) is a category set , and iii ) ccc ={S1 , ... , Sn}is a controid-contexts set of category ci . 
+	</s>
+	
+
+	<s id="120">
+		 Each remaining context is assigned to a category which has a maximum similarity value . 
+	</s>
+	
+
+	<s id="121">
+		 But there may exist noisy remaining contexts which do not belong to any category . 
+	</s>
+	
+
+	<s id="122">
+		 To remove these noisy remaining contexts , we set up a dropping threshold using normal distribution of similarity values as follows 
+		<ref citStr="Ko and Seo , 2000" id="18" label="CERF" position="17864">
+			( Ko and Seo , 2000 )
+		</ref>
+		 : ( 10 ) where i ) X is a remaining context , ii ) µ is an average of similarity values sim(X , ci ) , iii ) ^ is a ci^ C standard deviation of similarity values , and iv ) ^ is a numerical value corresponding to the threshold ( % ) in normal distribution table . 
+	</s>
+	
+
+	<s id="123">
+		 Finally , a remaining context is assigned to the context-cluster of any category when the category has a maximum similarity above the dropping threshold value . 
+	</s>
+	
+
+	<s id="124">
+		 In this paper , we empirically use a 15 % threshold value from an experiment using a validation set . 
+	</s>
+	
+
+	<s id="125">
+		 3.3 Learning the Naive Bayes Classifier Using Context-Clusters conventional classifiers in using machine-labeled data . 
+	</s>
+	
+
+	<s id="126">
+		 In above section , we obtained labeled training data : context-clusters . 
+	</s>
+	
+
+	<s id="127">
+		 Since training data are labeled as the context unit , we employ a Naive Bayes classifier because it can be built by estimating the word probability in a category , but not in a document . 
+	</s>
+	
+
+	<s id="128">
+		 That is , the Naive Bayes classifier does not require labeled data with the unit of documents unlike other classifiers . 
+	</s>
+	
+
+	<s id="129">
+		 We use the Naive Bayes classifier with minor modifications based on Kullback-Leibler Divergence 
+		<ref citStr="Craven et al. , 2000" id="19" label="CERF" position="19079">
+			( Craven et al. , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="130">
+		 We classify a document di according to the following formula : ( 11 ) where i ) n is the number of words in document di , ii ) wt is the t-th word in the vocabulary , iii ) N(wt,di) is the frequency of word wt in document di . 
+	</s>
+	
+
+	<s id="131">
+		 Here , the Laplace smoothing is used to estimate the probability of word wt in class cj and the probability of class cj as follows : ( 13 ) where N(wt,cc) is the count of the number of times word wt occurs in the context-cluster ( Gcj ) of category cj. 4 Using a Feature Projection Technique for Handling Noisy Data of Machine-labeled Data We finally obtained labeled data of a documents unit , machine-labeled data . 
+	</s>
+	
+
+	<s id="132">
+		 Now we can learn text classifiers using them . 
+	</s>
+	
+
+	<s id="133">
+		 But since the machine- labeled data are created by our method , they generally include far more incorrectly labeled documents than the human-labeled data . 
+	</s>
+	
+
+	<s id="134">
+		 Thus we employ a feature projection technique for our method . 
+	</s>
+	
+
+	<s id="135">
+		 By the property of the feature projection technique , a classifier ( the TCFP classifier ) can have robustness from noisy data 
+		<ref citStr="Ko and Seo , 2004" id="20" label="CEPF" position="20195">
+			( Ko and Seo , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="136">
+		 As seen in our experiment results , TCFP showed the highest performance among The TCFP classifier with robustness from noisy data Here , we simply describe the TCFP classifier using the feature projection technique ( Ko and Seo , 2002 ; 2004 ) . 
+	</s>
+	
+
+	<s id="137">
+		 In this approach , the classification knowledge is represented as sets of projections of training data on each feature dimension . 
+	</s>
+	
+
+	<s id="138">
+		 The classification of a test document is based on the voting of each feature of that test document . 
+	</s>
+	
+
+	<s id="139">
+		 That is , the final prediction score is calculated by accumulating the voting scores of all features . 
+	</s>
+	
+
+	<s id="140">
+		 First of all , we must calculate the voting ratio of each category for all features . 
+	</s>
+	
+
+	<s id="141">
+		 Since elements with a high TF-IDF value in projections of a feature must become more useful classification criteria for the feature , we use only elements with TF-IDF values above the average TF-IDF value for voting . 
+	</s>
+	
+
+	<s id="142">
+		 And the selected elements participate in proportional voting with the same importance as the TF-IDF value of each element . 
+	</s>
+	
+
+	<s id="143">
+		 The voting ratio of each category cj in a feature tm is calculated by the following formula : ( 14 ) In formula 14 , w(tm , d ) is the weight of term tm in document d , Im denotes a set of elements selected for voting and y(cj , t m ( l ) ) ^ { 0.1 } is a function ; if the category for an element tm(l) is equal to cj , the output value is 1 . 
+	</s>
+	
+
+	<s id="144">
+		 Otherwise , the output value is 0 . 
+	</s>
+	
+
+	<s id="145">
+		 Next , since each feature separately votes on feature projections , contextual information is missing . 
+	</s>
+	
+
+	<s id="146">
+		 Thus we calculate co-occurrence frequency of features in the training data and modify TF-IDF values of two terms ti and tj in a test document by co-occurrence frequency between them ; terms with a high co-occurrence frequency value have higher term weights . 
+	</s>
+	
+
+	<s id="147">
+		 Finally , the voting score of each category cj in the m-th feature tm of a test document d is calculated by the following formula : ( 15 ) where tw(tm,d) denotes a modified term weight by the co-occurrence frequency and X Qm ) denotes 2 the calculated ^ statistics value of tm. ( 12 ) Table 2 . 
+	</s>
+	
+
+	<s id="148">
+		 The top micro-avg F1 scores and precision-recall breakeven points of each method . 
+	</s>
+	
+
+	<s id="149">
+		 OurMethod OurMethod OurMethod OurMethod OurMethod OurMethod Newsgroups WebKB Reuters ( basis ) ( NB ) 83.46 73.22 88.23 ( Rocchio ) ( LNN ) 79.95 68.04 85.65 ( SVM ) 82.49 73.74 87.41 ( TCFP ) 86.19 75.47 89.09 79.36 83 73.63 75.28 88.62 86.26 The outline of the TCFP classifier is as follow : 5 Empirical Evaluation 5.1 Data Sets and Experimental Settings To test our method , we used three different kinds of data sets : UseNet newsgroups ( 20 Newsgroups ) , web pages ( WebKB ) , and newswire art icles ( Reuters 21578 ) . 
+	</s>
+	
+
+	<s id="150">
+		 For fair evaluation in Newsgroups and WebKB , we employed the five- fold cross-validation method . 
+	</s>
+	
+
+	<s id="151">
+		 The Newsgroups data set , collected by Ken Lang , contains about 20,000 articles evenly divided among 20 UseNet discussion groups 
+		<ref citStr="McCallum and Nigam , 1998" id="21" label="OEPF" position="23257">
+			( McCallum and Nigam , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="152">
+		 In this paper , we used only 16 categories after removing 4 categories : three miscellaneous categories ( talk.politics.misc , talk.religion.misc , and comp.os.ms-windows.misc ) and one duplicate ing category ( comp.sys . 
+	</s>
+	
+
+	<s id="153">
+		 ibm.pc.hardware ) . 
+	</s>
+	
+
+	<s id="154">
+		 The second data set comes from the WebKB project at CMU 
+		<ref citStr="Craven et al. , 2000" id="22" label="OEPF" position="23609">
+			( Craven et al. , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="155">
+		 This data set contains web pages gathered fr om university computer science departments . 
+	</s>
+	
+
+	<s id="156">
+		 The Reuters 21578 Distribution 1.0 data set consists of 12,902 articles and 90 topic categories from the Reuters newswire . 
+	</s>
+	
+
+	<s id="157">
+		 Like other study in 
+		<ref citStr="Nigam , 2001" id="23" label="CEPF" position="23889">
+			( Nigam , 2001 )
+		</ref>
+		 , we used the ten most populous categori es to identify the news topic . 
+	</s>
+	
+
+	<s id="158">
+		 About 25 % documents from training data of each data set are selected for a validation set . 
+	</s>
+	
+
+	<s id="159">
+		 We applied a statistical feature selection method ( ^2 statistics ) to a preprocessing stage for each classifier 
+		<ref citStr="Yan g and Pedersen , 1997" id="24" label="CEPF" position="24216">
+			( Yan g and Pedersen , 1997 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="160">
+		 As performance measures , we followed the standard definition of recall , precision , an d F1 measure . 
+	</s>
+	
+
+	<s id="161">
+		 For evaluation performance average across categories , we used the micro-averaging method 
+		<ref citStr="Yang et al. , 2002" id="25" label="OERF" position="24453">
+			( Yang et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="162">
+		 Results on Reuters are reported as precision-recall breakeven points , which is a stan dard information retrieval measure for binary classification 
+		<ref citStr="Joachims , 1998" id="26" label="CEPF" position="24632">
+			( Joachims , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="163">
+		 Title words in our experiment are selected according to category names of each data set ( see Table 1 as an example ) . 
+	</s>
+	
+
+	<s id="164">
+		 5.2 Experimental Results 5.2.1 Observing the Performance According to the Number of Keywords First of all , we determine the number of keywords in our method using the validation set . 
+	</s>
+	
+
+	<s id="165">
+		 The number of keywords is limited by the top m-th keyword from the ordered list of each category . 
+	</s>
+	
+
+	<s id="166">
+		 Figure 1 displays the performance at different number of keywords ( fr om 0 to 20 ) in each data set . 
+	</s>
+	
+
+	<s id="167">
+		 Figure 1 . 
+	</s>
+	
+
+	<s id="168">
+		 The comparison of performance according to the number of keywords We set the number of keywords to 2 in Newsgroups , 5 in WebKB , and 3 in Reuters empirically . 
+	</s>
+	
+
+	<s id="169">
+		 Generally , we recommend that the number of keywords be between 2 an d 5. 5.2.2 Comparing our Method Using TCFP with those Using other Classifiers In this section , we prove the superiority of TCFP over the other classifiers ( SVM , kNN , Naive Bayes ( NB ) , Roccio ) in training data with much noisy data such as machine-labeled data . 
+	</s>
+	
+
+	<s id="170">
+		 As shown in Table 2 , we obtained the best performan ce in using TCFP at all three data sets . 
+	</s>
+	
+
+	<s id="171">
+		 mean Let us define the notations . 
+	</s>
+	
+
+	<s id="172">
+		 OurMethod(basis) denotes the Naive Bayes classifier using labeled contexts an d OurMethod(NB) denotes the Naive Bayes classifier using machine-labeled data as 1. input : test document : d =&lt;t1 , t2 , ... , tn&gt; 2. main process For each feature ti tw(ti,d) is calculated For each feature ti For each category c ; vote[c;]=vote[c;]+vs(c;,ti) by Formula 15 prediction = arg max vote[c ; ] training data . 
+	</s>
+	
+
+	<s id="173">
+		 The same manner is applied for other classifiers . 
+	</s>
+	
+
+	<s id="174">
+		 OurMethod(TCFP) achieved more advanced scores than OurMethod(basis) : 6.83 in Newsgroups , 1.84 in WebKB , and 0.47 in Reuters . 
+	</s>
+	
+
+	<s id="175">
+		 5.2.3 Comparing with the Supervised Naive Bayes Classifier For this experiment , we consider two possible cases for labeling task . 
+	</s>
+	
+
+	<s id="176">
+		 The first task is to label a part of collected documents and the second is to label all of them . 
+	</s>
+	
+
+	<s id="177">
+		 As the first task , we built up a new training data set ; it consists of 500 different documents randomly chosen from appropriate categories like the experiment in 
+		<ref citStr="Slonim et al. , 2002" id="27" label="CERF" position="26922">
+			( Slonim et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="178">
+		 As a result , we report performances from two kinds of Naive Bayes classifiers which are learned from 500 training documents and the whole training documents respectively . 
+	</s>
+	
+
+	<s id="179">
+		 Table 3 . 
+	</s>
+	
+
+	<s id="180">
+		 The comparison of our method and the supervised NB classifier OurMethod NB NB Newsgroups WebKB Reuters ( TCFP ) 86.19 75.47 89.09 ( 500 ) 72.68 74.1 82.1 ( All ) 91.72 85.29 91.64 In Table 3 , the results of our method are higher than those of NB(500) and are comparable to those of NB(All) in all data sets . 
+	</s>
+	
+
+	<s id="181">
+		 Especially , the result in Reuters reached 2.55 close to that of NB(All) though it used the whole labeled training data . 
+	</s>
+	
+
+	<s id="182">
+		 5.2.4 Enhancing our Method from Choosing Keywords by Human The main problem of our method is that the performance depends on the quality of the keywords and title words . 
+	</s>
+	
+
+	<s id="183">
+		 As we have seen in Table 3 , we obtained the worst performance in the WebKB data set . 
+	</s>
+	
+
+	<s id="184">
+		 In fact , title words and keywords of each category in the WebKB data set also have high frequency in other categories . 
+	</s>
+	
+
+	<s id="185">
+		 We think these factors contribute to a comparatively poor performance of our method . 
+	</s>
+	
+
+	<s id="186">
+		 If keywords as well as title words are supplied by humans , our method may achieve higher performance . 
+	</s>
+	
+
+	<s id="187">
+		 However , choosing the proper keywords for each category is a much difficult task . 
+	</s>
+	
+
+	<s id="188">
+		 Moreover , keywords from developers , who have insufficient knowledge about an application domain , do not guarantee high performance . 
+	</s>
+	
+
+	<s id="189">
+		 In order to overcome this problem , we propose a hybrid method for choosing keywords . 
+	</s>
+	
+
+	<s id="190">
+		 That is , a developer obtains 10 candidate keywords from our keyword extraction method and then they can choose proper keywords from them . 
+	</s>
+	
+
+	<s id="191">
+		 Table 4 shows the results from three data sets . 
+	</s>
+	
+
+	<s id="192">
+		 Table 4 . 
+	</s>
+	
+
+	<s id="193">
+		 The comparison of our method and enhancing method Newsgroups WebKB Reuters OurMethod Enhancing ( TCFP ) ) Improvement ( TCFP ) 86.23 77.59 89.52 +0.04 +2.12 +0.43 86.19 75.47 89.09 As shown in Table 4 , especially we could achieve significant improvement in the WebKb data set . 
+	</s>
+	
+
+	<s id="194">
+		 Thus we find that the new method for choosing keywords is more useful in a domain with confused keywords between categories such as the WebKB data set . 
+	</s>
+	
+
+	<s id="195">
+		 5.2.5 Comparing with a Clustering Technique In related works , we presented two approaches using unlabeled data in text categorization ; one approach combines unlabeled data and labeled data , and the other approach uses the clustering technique for text categorization . 
+	</s>
+	
+
+	<s id="196">
+		 Since our method does not use any labeled data , it cannot be fairly compared with the former approaches . 
+	</s>
+	
+
+	<s id="197">
+		 Therefore , we compare our method with a clustering technique . 
+	</s>
+	
+
+	<s id="198">
+		 
+		<ref citStr="Slonim et al . ( 2002 )" id="28" label="CJPF" position="29702">
+			Slonim et al . ( 2002 )
+		</ref>
+		 proposed a new clustering algorithm ( sIB ) for unsupervised document classification and verified the superiority of his algorithm . 
+	</s>
+	
+
+	<s id="199">
+		 In his experiments , the sIB algorithm was superior to other clustering algorithms . 
+	</s>
+	
+
+	<s id="200">
+		 As we set the same experimental settings as in Slonim’s experiments and conduct experiments , we verify that our method outperforms ths sIB algorithm . 
+	</s>
+	
+
+	<s id="201">
+		 In our experiments , we used the micro-averaging precision as performance measure and two revised data sets : revised_ In revised_ NG , the categories of Newsgroups were united with respect to 10 meta-categories : five comp categories , three politics categories , two sports categories , three religions categories , and two transportation categories into five big meta- categories . 
+	</s>
+	
+
+	<s id="202">
+		 The revised_ Reuters used the 10 most frequent categories in the Reuters 21578 corpus under the ModApte split . 
+	</s>
+	
+
+	<s id="203">
+		 As shown in Table 5 , our method shows 6.65 advanced score in revised_ NG and 3.2 advanced score in revised_ Reuters . 
+	</s>
+	
+
+	<s id="204">
+		 Table 5 . 
+	</s>
+	
+
+	<s id="205">
+		 The comparison of our method and sIB revised NG revised_Reuters sIB OurMethod Improvement 79.5 ( TCFP ) +6.65 85.8 86.15 +3.2 89 Reuters . 
+	</s>
+	
+
+	<s id="206">
+		 These data sets were revised in the same way according to Slonim’s paper as follows : NG , revised _ 6 Conclusions and Future Works This paper has addressed a new unsupervised or semi-unsupervised text categorization method . 
+	</s>
+	
+
+	<s id="207">
+		 Though our method uses only title words and unlabeled data , it shows reasonably comparable performance in comparison with that of the supervised Naive Bayes classifier . 
+	</s>
+	
+
+	<s id="208">
+		 Moreover , it outperforms a clustering method , sIB . 
+	</s>
+	
+
+	<s id="209">
+		 Labeled data are expensive while unlabeled data are inexpensive and plentiful . 
+	</s>
+	
+
+	<s id="210">
+		 Therefore , our method is useful for low-cost text categorization . 
+	</s>
+	
+
+	<s id="211">
+		 Furthermore , if some text categorization tasks require high accuracy , our method can be used as an assistant tool for easily creating labeled training data . 
+	</s>
+	
+
+	<s id="212">
+		 Since our method depends on title words and keywords , we need additional studies about the characteristics of candidate words for title words and keywords according to each data set . 
+	</s>
+	
+
+	<s id="213">
+		 Acknowledgement This work was supported by grant No . 
+	</s>
+	
+
+	<s id="214">
+		 R01-2003- 000-11588-0 from the basic Research Program of the KOSEF References K. Bennett and A. Demiriz , 1999 , Semi-supervised Support Vector Machines , Advances in Neural Information Processing Systems 11 , pp. 368-374 . 
+	</s>
+	
+
+	<s id="215">
+		 E. Brill , 1995 , Transformation-Based Error-driven Learning and Natural Language Processing : A Case Study in Part of Speech Tagging , Computational Linguistics , Vol.21 , No. 4 . 
+	</s>
+	
+
+	<s id="216">
+		 K. Cho and J. Kim , 1997 , Automatic Text Categorization on Hierarchical Category Structure by using ICF ( Inverse Category Frequency ) Weighting , In Proc . 
+	</s>
+	
+
+	<s id="217">
+		 of KISS conference , pp. 507-510 . 
+	</s>
+	
+
+	<s id="218">
+		 M. Craven , D. DiPasquo , D. Freitag , A. McCallum , T. Mitchell , K. Nigam , and S. Slattery , 2000 , Learning to construct knowledge bases from the World Wide Web , Artificial Intelligence , 118(1-2) , pp. 69-113 . 
+	</s>
+	
+
+	<s id="219">
+		 T. Joachims , 1998 , Text Categorization with Support Vector Machines : Learning with Many Relevant Features . 
+	</s>
+	
+
+	<s id="220">
+		 In Proc . 
+	</s>
+	
+
+	<s id="221">
+		 of ECML , pp. 137-142 . 
+	</s>
+	
+
+	<s id="222">
+		 Y. Karov and S. Edelman , 1998 , Similarity-based Word Sense Disambiguation , Computational Linguistics , Vol. 24 , No. 1 , pp. 41-60 . 
+	</s>
+	
+
+	<s id="223">
+		 Y. Ko and J. Seo , 2000 , Automatic Text Categorization by Unsupervised Learning , In Proc . 
+	</s>
+	
+
+	<s id="224">
+		 of COLING’2000 , pp. 453-459 . 
+	</s>
+	
+
+	<s id="225">
+		 Y. Ko and J. Seo , 2002 , Text Categorization using Feature Projections , In Proc . 
+	</s>
+	
+
+	<s id="226">
+		 of COLING ’2002 , pp. 467-473 . 
+	</s>
+	
+
+	<s id="227">
+		 Y. Ko and J. Seo , 2004 , Using the Feature Projection Technique based on the Normalized Voting Method for Text Classification , Information Processing and Management , Vol. 40 , No. 2 , pp. 191-208 . 
+	</s>
+	
+
+	<s id="228">
+		 D.D. Lewis , R.E. Schapire , J.P. Callan , and R. Papka , 1996 , Training Algorithms for Linear Text Classifiers . 
+	</s>
+	
+
+	<s id="229">
+		 In Proc . 
+	</s>
+	
+
+	<s id="230">
+		 of SIGIR’96 , pp.289-297 . 
+	</s>
+	
+
+	<s id="231">
+		 Y. Maarek , D. Berry , and G. Kaiser , 1991 , An Information Retrieval Approach for Automatically Construction Software Libraries , IEEE Transaction on Software Engineering , Vol. 17 , No. 8 , pp. 800- 813 . 
+	</s>
+	
+
+	<s id="232">
+		 A. McCallum and K. Nigam , 1998 , A Comparison of Event Models for Naive Bayes Text Classification . 
+	</s>
+	
+
+	<s id="233">
+		 AAAI ’98 workshop on Learning for Text Categorization , pp. 41-48 . 
+	</s>
+	
+
+	<s id="234">
+		 K. P. Nigam , A. McCallum , S. Thrun , and T. Mitchell , 1998 , Learning to Classify Text from Labeled and Unlabeled Documents , In Proc . 
+	</s>
+	
+
+	<s id="235">
+		 of AAAI-98 . 
+	</s>
+	
+
+	<s id="236">
+		 K. P. Nigam , 2001 , Using Unlabeled Data to Improve Text Classification , The dissertation for the degree of Doctor of Philosophy . 
+	</s>
+	
+
+	<s id="237">
+		 N. Slonim , N. Friedman , and N. Tishby , 2002 , Unsupervised Document Classification using Sequential Information Maximization , In Proc . 
+	</s>
+	
+
+	<s id="238">
+		 of SIGIR’02 , pp. 129-136 . 
+	</s>
+	
+
+	<s id="239">
+		 Y. Yang and J. P. Pedersen . 
+	</s>
+	
+
+	<s id="240">
+		 1997 , Feature selection in statistical leaning of text categorization . 
+	</s>
+	
+
+	<s id="241">
+		 In Proc . 
+	</s>
+	
+
+	<s id="242">
+		 of ICML’97 , pp. 412-420 . 
+	</s>
+	
+
+	<s id="243">
+		 Y. Yang , S. Slattery , and R. Ghani . 
+	</s>
+	
+
+	<s id="244">
+		 2002 , A study of approaches to hypertext categorization , Journal of Intelligent Information Systems , Vol. 18 , No. 2 . 
+	</s>
+	
+
+
+</acldoc>

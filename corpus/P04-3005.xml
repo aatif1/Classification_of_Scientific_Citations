@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-3005">
+	
+
+	<s id="1">
+		 Customizing Parallel Corpora at the Document Level Monica ROGATI and Yiming YANG Computer Science Department , Carnegie Mellon University 5000 Forbes Avenue Pittsburgh , PA 15213 mrogati@cs.cmu.edu , yiming@cs.cmu.edu Abstract Recent research in cross-lingual information retrieval ( CLIR ) established the need for properly matching the parallel corpus used for query translation to the target corpus . 
+	</s>
+	
+
+	<s id="2">
+		 We propose a document-level approach to solving this problem : building a custom-made parallel corpus by automatically assembling it from documents taken from other parallel corpora . 
+	</s>
+	
+
+	<s id="3">
+		 Although the general idea can be applied to any application that uses parallel corpora , we present results for CLIR in the medical domain . 
+	</s>
+	
+
+	<s id="4">
+		 In order to extract the best- matched documents from several parallel corpora , we propose ranking individual documents by using a length-normalized Okapi-based similarity score between them and the target corpus . 
+	</s>
+	
+
+	<s id="5">
+		 This ranking allows us to discard 50-90 % of the training data , while avoiding the performance drop caused by a good but mismatched resource , and even improving CLIR effectiveness by 4-7 % when compared to using all available training data . 
+	</s>
+	
+
+	<s id="6">
+		 1 Introduction Our recent research in cross-lingual information retrieval ( CLIR ) established the need for properly matching the parallel corpus used for query translation to the target corpus 
+		<ref citStr="Rogati and Yang , 2004" id="1" label="CEPF" position="1458">
+			( Rogati and Yang , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="7">
+		 In particular , we showed that using a general purpose machine translation ( MT ) system such as SYSTRAN , or a general purpose parallel corpus - both of which perform very well for news stories 
+		<ref citStr="Peters , 2003" id="2" label="OEPN" position="1682">
+			( Peters , 2003 )
+		</ref>
+		 - dramatically fails in the medical domain . 
+	</s>
+	
+
+	<s id="8">
+		 To explore solutions to this problem , we used cosine similarity between training and target corpora as respective weights when building a translation model . 
+	</s>
+	
+
+	<s id="9">
+		 This approach treats a parallel corpus as a homogeneous entity , an entity that is self-consistent in its domain and document quality . 
+	</s>
+	
+
+	<s id="10">
+		 In this paper , we propose that instead of weighting entire resources , we can select individual documents from these corpora in order to build a parallel corpus that is tailor-made to fit a specific target collection . 
+	</s>
+	
+
+	<s id="11">
+		 To avoid confusion , it is helpful to remember that in IR settings the true test data are the queries , not the target documents . 
+	</s>
+	
+
+	<s id="12">
+		 The documents are available off-line and can be ( and usually are ) used for training and system development . 
+	</s>
+	
+
+	<s id="13">
+		 In other words , by matching the training corpora and the target documents we are not using test data for training . 
+	</s>
+	
+
+	<s id="14">
+		 
+		<ref citStr="Rogati and Yang , 2004" id="3" label="CEPF" position="2691">
+			( Rogati and Yang , 2004 )
+		</ref>
+		 also discusses indirectly related work , such as query translation disambiguation and building domain-specific language models for speech recognition . 
+	</s>
+	
+
+	<s id="15">
+		 We are not aware of any additional related work . 
+	</s>
+	
+
+	<s id="16">
+		 In addition to proposing individual documents as the unit for building custom-made parallel corpora , in this paper we start exploring the criteria used for individual document selection by examining the effect of ranking documents using the length-normalized Okapi-based similarity score between them and the target corpus . 
+	</s>
+	
+
+	<s id="17">
+		 2 Evaluation Data 2.1 Medical Domain Corpus : Springer The Springer corpus consists of 9640 documents ( titles plus abstracts of medical journal articles ) each in English and in German , with 25 queries in both languages , and relevance judgments made by native German speakers who are medical experts and are fluent in English . 
+	</s>
+	
+
+	<s id="18">
+		 We split this parallel corpus into two subsets , and used the first subset ( 4,688 documents ) for training , and the remaining subset ( 4,952 documents ) as the test set in all our experiments . 
+	</s>
+	
+
+	<s id="19">
+		 This configuration allows us to experiment with CLIR in both directions ( EN-DE and DE-EN ) . 
+	</s>
+	
+
+	<s id="20">
+		 We applied an alignment algorithm to the training documents , and obtained a sentence- aligned parallel corpus with about 30K sentences in each language . 
+	</s>
+	
+
+	<s id="21">
+		 2.2 Training Corpora In addition to Springer , we have used four other English-German parallel corpora for training : • NEWS is a collection of 59K sentence aligned news stories , downloaded from the web ( 1996-2000 ) , and available at http://www.isi.edu/~koehn/publications/denews/ • WAC is a small parallel corpus obtained by mining the web 
+		<ref citStr="Nie et al. , 2000" id="4" label="OEPF" position="4426">
+			( Nie et al. , 2000 )
+		</ref>
+		 , in no particular domain • EUROPARL is a parallel corpus provided by ( Koehn ) . 
+	</s>
+	
+
+	<s id="22">
+		 Its documents are sentence aligned European Parliament proceedings . 
+	</s>
+	
+
+	<s id="23">
+		 This is a large collection that has been successfully used for CLEF , when the target corpora were collections of news stories 
+		<ref citStr="Rogati and Yang , 2003" id="5" label="CEPF" position="4750">
+			( Rogati and Yang , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="24">
+		 • MEDTITLE is an English-German parallel corpus consisting of 549K paired titles of medical journal articles . 
+	</s>
+	
+
+	<s id="25">
+		 These titles were gathered from the PubMed online database ( http://www.ncbi.nlm.nih.gov/PubMed/ ) . 
+	</s>
+	
+
+	<s id="26">
+		 Table 1 presents a summary of the five training corpora characteristics . 
+	</s>
+	
+
+	<s id="27">
+		 Name Size ( sent ) Domain NEWS 59K news WAC 60K mixed EUROPAR 665K politics L SPRINGE 30K medical R MEDTITL 550K medical E Table 1 . 
+	</s>
+	
+
+	<s id="28">
+		 Characteristics of Parallel Training Corpora 3 Selecting Documents from Parallel Corpora While selecting and weighing entire training corpora is a problem already explored by 
+		<ref citStr="Rogati and Yang , 2004" id="6" label="CEPF" position="5419">
+			( Rogati and Yang , 2004 )
+		</ref>
+		 , in this paper we focus on a lower granularity level : individual documents in the parallel corpora . 
+	</s>
+	
+
+	<s id="29">
+		 We seek to construct a custom parallel corpus , by choosing individual documents which best match the testing collection . 
+	</s>
+	
+
+	<s id="30">
+		 We compute the similarity between the test collection ( in German or English ) and each individual document in the parallel corpora for that respective language . 
+	</s>
+	
+
+	<s id="31">
+		 We have a choice of similarity metrics , but since this computation is simply retrieval with a long query , we start with the Okapi model 
+		<ref citStr="Robertson , 1993" id="7" label="CEPF" position="5994">
+			( Robertson , 1993 )
+		</ref>
+		 , as implemented by the Lemur system 
+		<ref citStr="Olgivie and Callan , 2001" id="8" label="OEPF" position="6061">
+			( Olgivie and Callan , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="32">
+		 Although the Okapi model takes into account average document length , we compare it with its length-normalized version , measuring per-word similarity . 
+	</s>
+	
+
+	<s id="33">
+		 The two measures are identified in the results section by “Okapi” and “Normalized” . 
+	</s>
+	
+
+	<s id="34">
+		 Once the similarity is computed for each document in the parallel corpora , only the top N most similar documents are kept for training . 
+	</s>
+	
+
+	<s id="35">
+		 They are an approximation of the domain(s) of the test collection . 
+	</s>
+	
+
+	<s id="36">
+		 Selecting N has not been an issue for this corpus ( values between 10-75 % were safe ) . 
+	</s>
+	
+
+	<s id="37">
+		 However , more generally , this parameter can be tuned to a different test corpus as any other parameter . 
+	</s>
+	
+
+	<s id="38">
+		 Alternatively , the document score can also be incorporated into the translation model , eliminating the need for thresholding . 
+	</s>
+	
+
+	<s id="39">
+		 4 CLIR Method We used a corpus-based approach , similar to that in 
+		<ref citStr="Rogati and Yang , 2003" id="9" label="CERF" position="7002">
+			( Rogati and Yang , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="40">
+		 Let L1 be the source language and L2 be the target language . 
+	</s>
+	
+
+	<s id="41">
+		 The cross- lingual retrieval consists of the following steps : 1 . 
+	</s>
+	
+
+	<s id="42">
+		 Expanding a query in L1 using blind feedback 2 . 
+	</s>
+	
+
+	<s id="43">
+		 Translating the query by taking the dot product between the query vector ( with weights from step 1 ) and a translation matrix obtained by calculating translation probabilities or term-term similarity using the parallel corpus . 
+	</s>
+	
+
+	<s id="44">
+		 3. Expanding the query in L2 using blind feedback 4 . 
+	</s>
+	
+
+	<s id="45">
+		 Retrieving documents in L2 Here , blind feedback is the process of retrieving documents and adding the terms of the top-ranking documents to the query for expansion . 
+	</s>
+	
+
+	<s id="46">
+		 We used simplified Rocchio positive feedback as implemented by Lemur 
+		<ref citStr="Olgivie and Callan , 2001" id="10" label="OEPF" position="7794">
+			( Olgivie and Callan , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="47">
+		 For the results in this paper , we have used Pointwise Mutual Information ( PMI ) instead of IBM Model 1 
+		<ref citStr="Brown et al. , 1993" id="11" label="CEPF" position="7934">
+			( Brown et al. , 1993 )
+		</ref>
+		 , since 
+		<ref citStr="Rogati and Yang , 2004" id="12" label="CEPF" position="7969">
+			( Rogati and Yang , 2004 )
+		</ref>
+		 found it to be as effective on Springer , but faster to compute . 
+	</s>
+	
+
+	<s id="48">
+		 5 Results and Discussion 5.1 Empirical Settings For the retrieval part of our system , we adapted Lemur 
+		<ref citStr="Ogilvie and Callan , 2001" id="13" label="OEPF" position="8178">
+			( Ogilvie and Callan , 2001 )
+		</ref>
+		 to allow the use of weighted queries . 
+	</s>
+	
+
+	<s id="49">
+		 Several parameters were tuned , none of them on the test set . 
+	</s>
+	
+
+	<s id="50">
+		 In our corpus- based approach , the main parameters are those used in query expansion based on pseudo- relevance , i.e. , the maximum number of documents and the maximum number of words to be used , and the relative weight of the expanded portion with respect to the initial query . 
+	</s>
+	
+
+	<s id="51">
+		 Since the Springer training set is fairly small , setting aside a subset of the data for parameter tuning was not desirable . 
+	</s>
+	
+
+	<s id="52">
+		 We instead chose parameter values that were stable on the CLEF collection 
+		<ref citStr="Peters , 2003" id="14" label="CEPF" position="8817">
+			( Peters , 2003 )
+		</ref>
+		 : 5 and 20 as the maximum numbers of documents and words , respectively . 
+	</s>
+	
+
+	<s id="53">
+		 The relative weight of the expanded portion with respect to the initial query was set to 0.5 . 
+	</s>
+	
+
+	<s id="54">
+		 The results were evaluated using mean average precision ( AvgP ) , a standard performance measure for IR evaluations . 
+	</s>
+	
+
+	<s id="55">
+		 In the following sections , DE-EN refers to retrieval where the query is in German and the documents in English , while EN-DE refers to retrieval in the opposite direction . 
+	</s>
+	
+
+	<s id="56">
+		 5.2 Using the Parallel Corpora Separately Can we simply choose a parallel corpus that performed very well on news stories , hoping it is robust across domains ? 
+	</s>
+	
+
+	<s id="57">
+		 Natural approaches also include choosing the largest corpus available , or using all corpora together . 
+	</s>
+	
+
+	<s id="58">
+		 Figure 1 shows the effect of these strategies . 
+	</s>
+	
+
+	<s id="59">
+		 Figure 1. CLIR results on the Springer test set by AvgP . 
+	</s>
+	
+
+	<s id="60">
+		 EN-DE DE-EN using PMI with different training corpora . 
+	</s>
+	
+
+	<s id="61">
+		 We notice that choosing the largest collection ( EUROPARL ) , using all resources available without weights ( ALL ) , and even choosing a large collection in the medical domain ( MEDTITLE ) are all sub-optimal strategies . 
+	</s>
+	
+
+	<s id="62">
+		 Given these results , we believe that resource selection and weighting is necessary . 
+	</s>
+	
+
+	<s id="63">
+		 Thoroughly exploring weighting strategies is beyond the scope of this paper and it would involve collection size , genre , and translation quality in addition to a measure of domain match . 
+	</s>
+	
+
+	<s id="64">
+		 Here , we start by selecting individual documents that match the domain of the test collection . 
+	</s>
+	
+
+	<s id="65">
+		 We examine the effect this choice has on domain-specific CLIR . 
+	</s>
+	
+
+	<s id="66">
+		 5.3 Using Okapi weights to build a custom parallel corpus Figures 2 and 3 compare the two document selection strategies discussed in Section 3 to using all available documents , and to the ideal ( but not truly optimal ) situation where there exists a “best” resource to choose and this collection is known . 
+	</s>
+	
+
+	<s id="67">
+		 By “best” , we mean one that can produce optimal results on the test corpus , with respect to the given metric In reality , the true “best” resource is unknown : as seen above , many intuitive choices for the best collection are not optimal . 
+	</s>
+	
+
+	<s id="68">
+		 Figure 2. CLIR DE-EN performance vs. . 
+	</s>
+	
+
+	<s id="69">
+		 Percent of Parallel Documents Used . 
+	</s>
+	
+
+	<s id="70">
+		 “Best Corpus” is given by an oracle and is usually unknown . 
+	</s>
+	
+
+	<s id="71">
+		 Figure 3. CLIR EN-DE performance vs. . 
+	</s>
+	
+
+	<s id="72">
+		 Percent of Parallel Documents Used . 
+	</s>
+	
+
+	<s id="73">
+		 “Best Corpus” is given by an oracle and is usually unknown SPRINGER MEDTITLE WAC NEWS EUROPARL ALL 60 55 50 45 40 1 10 100 Percent Used ( log ) Okapi Normalized All Corpora Best Corpus Okapi Normalized All Corpora Best Corpus 70 1 10 100 Percent Used ( log ) 65 60 55 50 70 60 50 40 30 20 10 0 Notice that the normalized version performs better and is more stable . 
+	</s>
+	
+
+	<s id="74">
+		 Per-word similarity is , in this case , important when the documents are used to train translation scores : shorter parallel documents are better when building the translation matrix . 
+	</s>
+	
+
+	<s id="75">
+		 Our strategy accounts for a 4-7 % improvement over using all resources with no weights , for both retrieval directions . 
+	</s>
+	
+
+	<s id="76">
+		 It is also very close to the “oracle” condition , which chooses the best collection in advance . 
+	</s>
+	
+
+	<s id="77">
+		 More importantly , by using this strategy we are avoiding the sharp performance drop when using a mismatched , although very good , resource ( such as EUROPARL ) . 
+	</s>
+	
+
+	<s id="78">
+		 6 Future Work We are currently exploring weighting strategies involving collection size , genre , and estimating translation quality in addition to a measure of domain match . 
+	</s>
+	
+
+	<s id="79">
+		 Another question we are examining is the granularity level used when selecting resources , such as selection at the document or cluster level . 
+	</s>
+	
+
+	<s id="80">
+		 Similarity and overlap between resources themselves is also worth considering while exploring tradeoffs between redundancy and noise . 
+	</s>
+	
+
+	<s id="81">
+		 We are also interested in how these approaches would apply to other domains . 
+	</s>
+	
+
+	<s id="82">
+		 7 Conclusions We have examined the issue of selecting appropriate training resources for cross-lingual information retrieval . 
+	</s>
+	
+
+	<s id="83">
+		 We have proposed and evaluated a simple method for creating a customized parallel corpus from other available parallel corpora by matching the domain of the test documents with that of individual parallel documents . 
+	</s>
+	
+
+	<s id="84">
+		 We noticed that choosing the largest collection , using all resources available without weights , and even choosing a large collection in the medical domain are all sub-optimal strategies . 
+	</s>
+	
+
+	<s id="85">
+		 The techniques we have presented here are not restricted to CLIR and can be applied to other areas where parallel corpora are necessary , such as statistical machine translation . 
+	</s>
+	
+
+	<s id="86">
+		 The trained translation matrix can also be reused and can be converted to any of the formats required by such applications . 
+	</s>
+	
+
+	<s id="87">
+		 8 Acknowledgements We would like to thank Ralf Brown for collecting the MEDTITLE and SPRINGER data . 
+	</s>
+	
+
+	<s id="88">
+		 This research is sponsored in part by the National Science Foundation ( NSF ) under grant IIS9982226 , and in part by the DOD under award 114008-N66001992891808 . 
+	</s>
+	
+
+	<s id="89">
+		 Any opinions and conclusions in this paper are the authors’ and do not necessarily reflect those of the sponsors . 
+	</s>
+	
+
+	<s id="90">
+		 References Brown , P.F , Pietra , D. , Pietra , D , Mercer , R.L. 1993.The Mathematics of Statistical Machine Translation : Parameter Estimation . 
+	</s>
+	
+
+	<s id="91">
+		 In Computational Linguistics , 19:263-312 Koehn , P. Europarl : A Multilingual Corpus for Evaluation of Machine Translation . 
+	</s>
+	
+
+	<s id="92">
+		 Draft , Unpublished . 
+	</s>
+	
+
+	<s id="93">
+		 Nie , J. Y. , Simard , M. and Foster , G .. 2000 . 
+	</s>
+	
+
+	<s id="94">
+		 Using parallel web pages for multi-lingual IR . 
+	</s>
+	
+
+	<s id="95">
+		 In C. Peters(Ed.) , Proceedings of the CLEF 2000 forum Ogilvie , P. and Callan , J. 2001 . 
+	</s>
+	
+
+	<s id="96">
+		 Experiments using the Lemur toolkit . 
+	</s>
+	
+
+	<s id="97">
+		 In Proceedings of the Tenth Text Retrieval Conference ( TREC-10 ) . 
+	</s>
+	
+
+	<s id="98">
+		 Peters , C. 2003 . 
+	</s>
+	
+
+	<s id="99">
+		 Results of the CLEF 2003 Cross-Language System Evaluation Campaign . 
+	</s>
+	
+
+	<s id="100">
+		 Working Notes for the CLEF 2003 Workshop , 21-22 August , Trondheim , Norway Robertson , S.E. and all . 
+	</s>
+	
+
+	<s id="101">
+		 1993. Okapi at TREC . 
+	</s>
+	
+
+	<s id="102">
+		 In The First TREC Retrieval Conference , Gaithersburg , MD . 
+	</s>
+	
+
+	<s id="103">
+		 pp. 21-30 Rogati , M and Yang , Y. 2003 . 
+	</s>
+	
+
+	<s id="104">
+		 Multilingual Information Retrieval using Open , Transparent Resources in CLEF 2003 . 
+	</s>
+	
+
+	<s id="105">
+		 In C. Peters ( Ed . 
+	</s>
+	
+
+	<s id="106">
+		 ) , Results of the CLEF2003 cross-language evaluation forum Rogati , M and Yang , Y. 2004 . 
+	</s>
+	
+
+	<s id="107">
+		 Resource Selection for Domain Specific Cross-Lingual IR . 
+	</s>
+	
+
+	<s id="108">
+		 In Proceedings of ACM SIGIR Conference on Research and Development in Information Retrieval ( SIGIR'04 ) . 
+	</s>
+	
+
+
+</acldoc>

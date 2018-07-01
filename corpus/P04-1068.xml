@@ -1,0 +1,1477 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1068">
+	
+
+	<s id="1">
+		 Creating Multilingual Translation Lexicons with Regional Variations Using Web Corpora Pu-Jen Cheng &quot; , Yi-Cheng Pan &quot; , Wen-Hsiang Lu+ , and Lee-Feng Chien&quot;^ &quot; Institute of Information Science , Academia Sinica , Taiwan + Dept. of Computer Science and Information Engineering , National Cheng Kung Univ. , Taiwan ^ Dept. of Information Management , National Taiwan University , Taiwan { pjcheng , thomas02 , whlu , lfchien}@iis.sinica.edu.tw Abstract The purpose of this paper is to automatically create multilingual translation lexicons with regional variations . 
+	</s>
+	
+
+	<s id="2">
+		 We propose a transitive translation approach to determine translation variations across languages that have insufficient corpora for translation via the mining of bilingual search-result pages and clues of geographic information obtained from Web search engines . 
+	</s>
+	
+
+	<s id="3">
+		 The experimental results have shown the feasibility of the proposed approach in efficiently generating translation equivalents of various terms not covered by general translation dictionaries . 
+	</s>
+	
+
+	<s id="4">
+		 It also revealed that the created translation lexicons can reflect different cultural aspects across regions such as Taiwan , Hong Kong and mainland China . 
+	</s>
+	
+
+	<s id="5">
+		 1 Introduction Compilation of translation lexicons is a crucial process for machine translation ( MT ) 
+		<ref citStr="Brown et al. , 1990" id="1" label="CEPF" position="1347">
+			( Brown et al. , 1990 )
+		</ref>
+		 and cross-language information retrieval ( CLIR ) systems 
+		<ref citStr="Nie et al. , 1999" id="2" label="CEPF" position="1427">
+			( Nie et al. , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="6">
+		 A lot of effort has been spent on constructing translation lexicons from domain-specific corpora in an automatic way 
+		<ref citStr="Melamed , 2000" id="3" label="CJPN" position="1556">
+			( Melamed , 2000 
+		</ref>
+		<ref citStr="Smadja et al. , 1996" id="4" label="CJPN" position="1573">
+			; Smadja et al. , 1996 
+		</ref>
+		<ref citStr="Kupiec , 1993" id="5" label="CJPN" position="1596">
+			; Kupiec , 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="7">
+		 However , such methods encounter two fundamental problems : translation of regional variations and the lack of up-to-date and high-lexical-coverage corpus source , which are worthy of further investigation . 
+	</s>
+	
+
+	<s id="8">
+		 The first problem is resulted from the fact that the translations of a term may have variations in different dialectal regions . 
+	</s>
+	
+
+	<s id="9">
+		 Translation lexicons constructed with conventional methods may not adapt to regional usages . 
+	</s>
+	
+
+	<s id="10">
+		 For example , a Chinese-English lexicon constructed using a Hong Kong corpus cannot be directly adapted to the use in mainland China and Taiwan . 
+	</s>
+	
+
+	<s id="11">
+		 An obvious example is that the word “taxi” is normally translated into “ ^^ ” ( Chinese transliteration of taxi ) in Hong Kong , which is completely different from the translated Chinese words of “^^^” ( rental cars ) in mainland China and “^^^” ( cars with meters ) in Taiwan . 
+	</s>
+	
+
+	<s id="12">
+		 Besides , trans- literations of a term are often pronounced differently across regions . 
+	</s>
+	
+
+	<s id="13">
+		 For example , the company name “Sony” is transliterated into “^^” ( xinli ) in Tai- wan and “^^” ( suoni ) in mainland China . 
+	</s>
+	
+
+	<s id="14">
+		 Such terms , in today’s increasingly internationalized world , are appearing more and more often . 
+	</s>
+	
+
+	<s id="15">
+		 It is believed that their translations should reflect the cultural aspects across different dialectal regions . 
+	</s>
+	
+
+	<s id="16">
+		 Translations without consideration of the regional usages will lead to many serious misunderstandings , especially if the context to the original terms is not available . 
+	</s>
+	
+
+	<s id="17">
+		 
+		<ref citStr="Halpern ( 2000 )" id="6" label="CEPN" position="3200">
+			Halpern ( 2000 )
+		</ref>
+		 discussed the importance of translating simplified and traditional Chinese lexemes that are semantically , not orthographically , equivalent in various regions . 
+	</s>
+	
+
+	<s id="18">
+		 However , previous work on constructing translation lexicons for use in different regions was limited . 
+	</s>
+	
+
+	<s id="19">
+		 That might be resulted from the other problem that most of the conventional approaches are based heavily on domain-specific corpora . 
+	</s>
+	
+
+	<s id="20">
+		 Such corpora may be insufficient , or unavailable , for certain domains . 
+	</s>
+	
+
+	<s id="21">
+		 The Web is becoming the largest data repository in the world . 
+	</s>
+	
+
+	<s id="22">
+		 A number of studies have been reported on experiments in the use of the Web to complement insufficient corpora . 
+	</s>
+	
+
+	<s id="23">
+		 Most of them 
+		<ref citStr="Kilgarriff et al. , 2003" id="7" label="CJPN" position="3946">
+			( Kilgarriff et al. , 2003 )
+		</ref>
+		 tried to automatically collect parallel texts of different language versions ( e.g. English and Chinese ) , instead of different regional versions ( e.g. Chinese in Hong Kong and Taiwan ) , from the Web. . 
+	</s>
+	
+
+	<s id="24">
+		 These methods are feasible but only certain pairs of languages and subject domains can extract sufficient parallel texts as corpora . 
+	</s>
+	
+
+	<s id="25">
+		 Different from the previous work , 
+		<ref citStr="Lu et al . ( 2002 )" id="8" label="CJPN" position="4359">
+			Lu et al . ( 2002 )
+		</ref>
+		 utilized Web anchor texts as a comparable bilingual corpus source to extract translations for out-of-vocabulary terms ( OOV ) , the terms not covered by general translation dictionaries . 
+	</s>
+	
+
+	<s id="26">
+		 This approach is applicable to the compilation of translation lexicons in diverse domains but requires powerful crawlers and high network bandwidth to gather Web data . 
+	</s>
+	
+
+	<s id="27">
+		 It is fortunate that the Web contains rich pages in a mixture of two or more languages for some lan- guage pairs such as Asian languages and English . 
+	</s>
+	
+
+	<s id="28">
+		 Many of them contain bilingual translations of terms , including OOV terms , e.g. companies ' , personal and technical names . 
+	</s>
+	
+
+	<s id="29">
+		 In addition , geographic information about Web pages also provides useful clues to the regions where translations appear . 
+	</s>
+	
+
+	<s id="30">
+		 We are , therefore , interested in realizing whether these nice characteristics make it possible to automatically construct multilingual translation lexicons with regional variations . 
+	</s>
+	
+
+	<s id="31">
+		 Real search engines , such as Google ( http://www.google.com ) and AltaVista ( http://www. altavista.com ) , allow us to search English terms only for pages in a certain language , e.g. Chinese or Japanese . 
+	</s>
+	
+
+	<s id="32">
+		 This motivates us to investigate how to construct translation lexicons from bilingual search- result pages ( as the corpus ) , which are normally returned in a long ordered list of snippets of summaries ( including titles and page descriptions ) to help users locate interesting pages . 
+	</s>
+	
+
+	<s id="33">
+		 The purpose of this paper is trying to propose a systematic approach to create multilingual translation lexicons with regional variations through mining of bilingual search-result pages . 
+	</s>
+	
+
+	<s id="34">
+		 The bilingual pages retrieved by a term in one language are adopted as the corpus for extracting its translations in another language . 
+	</s>
+	
+
+	<s id="35">
+		 Three major problems are found and have to be dealt with , including : ( 1 ) ex- tracting translations for unknown terms — how to extract translations with correct lexical boundaries from noisy bilingual search-result pages , and how to estimate term similarity for determining correct translations from the extracted candidates ; ( 2 ) find- ing translations with regional variations — how to find regional translation variations that seldom co- occur in the same Web pages , and how to identify the corresponding languages of the retrieved search- result pages once if the location clues ( e.g. URLs ) in them might not imply the language they are written in ; and ( 3 ) translation with limited corpora — how to translate terms with insufficient search-result pages for particular pairs of languages such as Chinese and Japanese , and simplified Chinese and traditional Chinese . 
+	</s>
+	
+
+	<s id="36">
+		 The goal of this paper is to deal with the three problems . 
+	</s>
+	
+
+	<s id="37">
+		 Given a term in one language , all possible translations will be extracted from the obtained bilingual search-result pages based on their similarity to the term . 
+	</s>
+	
+
+	<s id="38">
+		 For those language pairs with unavailable corpora , a transitive translation model is proposed , by which the source term is translated into the target language through an intermediate language . 
+	</s>
+	
+
+	<s id="39">
+		 The transitive translation model is further enhanced by a competitive linking algorithm . 
+	</s>
+	
+
+	<s id="40">
+		 The algorithm can effectively alleviate the problem of error propagation in the process of translation , where translation errors may occur due to incorrect identification of the ambiguous terms in the intermediate language . 
+	</s>
+	
+
+	<s id="41">
+		 In addi tion , because the search-result pages might contain snippets that do not be really written in the target language , a filtering process is further performed to eliminate the translation variations not of interest . 
+	</s>
+	
+
+	<s id="42">
+		 Several experiments have been conducted to examine the performance of the proposed approach . 
+	</s>
+	
+
+	<s id="43">
+		 The experimental results have shown that the approach can generate effective translation equivalents of various terms — especially for OOV terms such as proper nouns and technical names , which can be used to enrich general translation dictionaries . 
+	</s>
+	
+
+	<s id="44">
+		 The results also revealed that the created translation lexicons can reflect different cultural aspects across regions such as Taiwan , Hong Kong and mainland China . 
+	</s>
+	
+
+	<s id="45">
+		 In the rest of this paper , we review related work in translation extraction in Section 2 . 
+	</s>
+	
+
+	<s id="46">
+		 We present the transitive model and describe the direct translation process in Sections 3 and 4 , respectively . 
+	</s>
+	
+
+	<s id="47">
+		 The conducted experiments and their results are described in Section 5 . 
+	</s>
+	
+
+	<s id="48">
+		 Finally , in Section 6 , some concluding remarks are given . 
+	</s>
+	
+
+	<s id="49">
+		 2 Related Work In this section , we review some research in generating translation equivalents for automatic construction of translational lexicons . 
+	</s>
+	
+
+	<s id="50">
+		 Transitive translation : Several transitive translation techniques have been developed to deal with the unreliable direct translation problem . 
+	</s>
+	
+
+	<s id="51">
+		 
+		<ref citStr="Borin ( 2000 )" id="9" label="CEPF" position="9360">
+			Borin ( 2000 )
+		</ref>
+		 used various sources to improve the alignment of word translation and proposed the pivot alignment , which combined direct translation and indirect translation via a third language . 
+	</s>
+	
+
+	<s id="52">
+		 
+		<ref citStr="Gollins et al . ( 2001 )" id="10" label="CEPF" position="9577">
+			Gollins et al . ( 2001 )
+		</ref>
+		 proposed a feasible method that translated terms in parallel across multiple intermediate languages to eliminate errors . 
+	</s>
+	
+
+	<s id="53">
+		 In addition , 
+		<ref citStr="Simard ( 2000 )" id="11" label="CEPF" position="9738">
+			Simard ( 2000 )
+		</ref>
+		 exploited the transitive properties of translations to improve the quality of multilingual text alignment . 
+	</s>
+	
+
+	<s id="54">
+		 Corpus-based translation : To automatically construct translation lexicons , conventional research in MT has generally used statistical techniques to extract translations from domain-specific sentence- aligned parallel bilingual corpora . 
+	</s>
+	
+
+	<s id="55">
+		 
+		<ref citStr="Kupiec ( 1993 )" id="12" label="CJPN" position="10119">
+			Kupiec ( 1993 )
+		</ref>
+		 attempted to find noun phrase correspondences in parallel corpora using part-of-speech tagging and noun phrase recognition methods . 
+	</s>
+	
+
+	<s id="56">
+		 
+		<ref citStr="Smadja et al . ( 1996 )" id="13" label="CJPN" position="10285">
+			Smadja et al . ( 1996 )
+		</ref>
+		 proposed a statistical association measure of the Dice coefficient to deal with the problem of collocation translation . 
+	</s>
+	
+
+	<s id="57">
+		 
+		<ref citStr="Melamed ( 2000 )" id="14" label="CJPN" position="10432">
+			Melamed ( 2000 )
+		</ref>
+		 proposed statistical translation models to improve the techniques of word alignment by taking advantage of preexisting knowledge , which was more effective than a knowledge-free model . 
+	</s>
+	
+
+	<s id="58">
+		 Although high accuracy of translation extraction can be easily achieved by these techniques , sufficiently large parallel corpora for ( a ) Taiwan ( Traditional Chinese ) ( b ) Mainland China ( Simplified Chinese ) ( c ) Hong Kong ( Traditional Chinese ) Figure 1 : Examples of the search-result pages in different Chinese regions that were obtained via the English query term “George Bush” from Google . 
+	</s>
+	
+
+	<s id="59">
+		 various subject domains and language pairs are not always available . 
+	</s>
+	
+
+	<s id="60">
+		 Some attention has been devoted to automatic extraction of term translations from comparable or even unrelated texts . 
+	</s>
+	
+
+	<s id="61">
+		 Such methods encounter more difficulties due to the lack of parallel correlations aligned between documents or sentence pairs . 
+	</s>
+	
+
+	<s id="62">
+		 
+		<ref citStr="Rapp ( 1999 )" id="15" label="CJPN" position="11401">
+			Rapp ( 1999 )
+		</ref>
+		 utilized non-parallel corpora based on the assumption that the contexts of a term should be similar to the contexts of its translation in any language pairs . 
+	</s>
+	
+
+	<s id="63">
+		 
+		<ref citStr="Fung et al . ( 1998 )" id="16" label="CJPN" position="11591">
+			Fung et al . ( 1998 )
+		</ref>
+		 also proposed a similar approach that used a vector-space model and took a bilingual lexicon ( called seed words ) as a feature set to estimate the similarity between a word and its translation candidates . 
+	</s>
+	
+
+	<s id="64">
+		 Web-based translation : Collecting parallel texts of different language versions from the Web has recently received much attention 
+		<ref citStr="Kilgarriff et al. , 2003" id="17" label="CEPF" position="11967">
+			( Kilgarriff et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="65">
+		 
+		<ref citStr="Nie et al . ( 1999 )" id="18" label="CJPN" position="11999">
+			Nie et al . ( 1999 )
+		</ref>
+		 tried to automatically discover parallel Web documents . 
+	</s>
+	
+
+	<s id="66">
+		 They assumed a Web page’s parents might contain the links to different versions of it and Web pages with the same content might have similar structures and lengths . 
+	</s>
+	
+
+	<s id="67">
+		 
+		<ref citStr="Resnik ( 1999 )" id="19" label="CJPN" position="12257">
+			Resnik ( 1999 )
+		</ref>
+		 addressed the issue of language identification for finding Web pages in the languages of interest . 
+	</s>
+	
+
+	<s id="68">
+		 
+		<ref citStr="Yang et al . ( 2003 )" id="20" label="CJPN" position="12388">
+			Yang et al . ( 2003 )
+		</ref>
+		 presented an alignment method to identify one-to-one Chinese and English title pairs based on dynamic programming . 
+	</s>
+	
+
+	<s id="69">
+		 These methods often require powerful crawlers to gather sufficient Web data , as well as more network bandwidth and storage . 
+	</s>
+	
+
+	<s id="70">
+		 On the other hand , 
+		<ref citStr="Cao et al . ( 2002 )" id="21" label="CEPF" position="12689">
+			Cao et al . ( 2002 )
+		</ref>
+		 used the Web to examine if the arbitrary combination of translations of a noun phrase was statistically important . 
+	</s>
+	
+
+	<s id="71">
+		 3 Construction of Translation Lexicons To construct translation lexicons with regional variations , we propose a transitive translation model Strans(s,t) to estimate the degree of possibility of the translation of a term s in one ( source ) language ls into a term t in another ( target ) language lt . 
+	</s>
+	
+
+	<s id="72">
+		 Given the term s in ls , we first extract a set of terms C={t;} , where t ; in lt acts as a translation candidate of s , from a corpus . 
+	</s>
+	
+
+	<s id="73">
+		 In this case , the corpus consists of a set of search-result pages retrieved from search engines using term s as a query . 
+	</s>
+	
+
+	<s id="74">
+		 Based on our previous work 
+		<ref citStr="Cheng et al. , 2004" id="22" label="CERF" position="13455">
+			( Cheng et al. , 2004 )
+		</ref>
+		 , we can efficiently extract term t ; by calculating the association measurement of every character or word n-gram in the corpus and applying the local maxima algorithm . 
+	</s>
+	
+
+	<s id="75">
+		 The association measurement is determined by the degree of cohesion holding the words together within a word n- gram , and enhanced by examining if a word n-gram has complete lexical boundaries . 
+	</s>
+	
+
+	<s id="76">
+		 Next , we rank the extracted candidates C as a list T in a decreasing order by the model Strans(s,t) as the result . 
+	</s>
+	
+
+	<s id="77">
+		 3.1 Bilingual Search-Result Pages The Web contains rich texts in a mixture of multiple languages and in different regions . 
+	</s>
+	
+
+	<s id="78">
+		 For example , Chinese pages on the Web may be written in traditional or simplified Chinese as a principle language and in English as an auxiliary language . 
+	</s>
+	
+
+	<s id="79">
+		 According to our observations , translated terms frequently occur together with a term in mixed-language texts . 
+	</s>
+	
+
+	<s id="80">
+		 For example , Figure 1 illustrates the search-result pages of the English term “George Bush,” which was submitted to Google for searching Chinese pages in different regions . 
+	</s>
+	
+
+	<s id="81">
+		 In Figure 1 ( a ) it contains the translations “I 1 jI JIr ” ( George Bush ) and “I J ( Bush ) obtainedfrom the pages in Taiwan . 
+	</s>
+	
+
+	<s id="82">
+		 In Figures 1 ( b ) and ( c ) the term “George Bush” is translated into “I J j- f ”(busir) or “I J &amp;I ”(buson) in mainland China and “ I J~”(busu) in Hong Kong . 
+	</s>
+	
+
+	<s id="83">
+		 This characteristic of bilingual search-result pages is also useful for other language pairs such as other Asian languages mixed with English . 
+	</s>
+	
+
+	<s id="84">
+		 For each term to be translated in one ( source ) language , we first submit it to a search engine for locating the bilingual Web documents containing the term and written in another ( target ) language from a specified region . 
+	</s>
+	
+
+	<s id="85">
+		 The returned search-result pages containing snippets ( illustrated in Figure 1 ) , instead of the documents themselves , are collected as a corpus from which translation candidates are extracted and correct translations are then selected . 
+	</s>
+	
+
+	<s id="86">
+		 Compared with parallel corpora and anchor texts , bilingual search-result pages are easier to collect and can promptly reflect the dynamic content of the Web. . 
+	</s>
+	
+
+	<s id="87">
+		 In addition , geographic information about Web pages such as URLs also provides useful clues to the regions where translations appear . 
+	</s>
+	
+
+	<s id="88">
+		 
+		<ref citStr="Melamed , 2000" id="23" label="CEPF" position="15870">
+			( Melamed , 2000 )
+		</ref>
+		 , is developed to determine the most probable translations . 
+	</s>
+	
+
+	<s id="89">
+		 ei ; 3.2 The Transitive Translation Model s1 ~~~~ ( Internet ) ^ ^^ ^^ Transitive translation is particularly necessary for the translation of terms with regional variations because the variations seldom co-occur in the same bilingual pages . 
+	</s>
+	
+
+	<s id="90">
+		 To estimate the possibility of being the translation t ^ T of term s , the transitive translation model first performs so-called direct translation , which attempts to learn translational equivalents directly from the corpus . 
+	</s>
+	
+
+	<s id="91">
+		 The direct translation method is simple , but strongly affected by the quality of the adopted corpus . 
+	</s>
+	
+
+	<s id="92">
+		 ( Detailed description of the direct translation method will be given in Section 4 . 
+	</s>
+	
+
+	<s id="93">
+		 ) If the term s and its translation t appear infrequently , the statistical information obtained from the corpus might not be reliable . 
+	</s>
+	
+
+	<s id="94">
+		 For example , a term in simplified Chinese , e.g. ^^^ ( Internet ) does not usually co-occur together with its variation in traditional Chinese , e.g. ~~~~ ( Internet ) . 
+	</s>
+	
+
+	<s id="95">
+		 To deal with this problem , our idea is that the term s can be first translated into an intermediate translation m , which might co-occur with s , via a third ( or intermediate ) language lm . 
+	</s>
+	
+
+	<s id="96">
+		 The correct translation t can then be extracted if it can be found as a translation of m . 
+	</s>
+	
+
+	<s id="97">
+		 The transitive translation model , therefore , combines the processes of both direct translation and indirect translation , and is defined as : Strans ( s , t ) Sdirec~ , t ) , if Sdirect(s , t ) Sindirect(s , t )=^S~~ect(s , m ) × S~~rect(m , t ) ×v(m) , otherwise ^m where m is one of the top k most probable intermediate translations of s in language lm , and tv is the confidence value of m’s accuracy , which can be estimated based on m’s probability of occurring in the corpus , and B is a predefined threshold value . 
+	</s>
+	
+
+	<s id="98">
+		 3.3 The Competitive Linking Algorithm One major challenge of the transitive translation model is the propagation of translation errors . 
+	</s>
+	
+
+	<s id="99">
+		 That is , incorrect m will significantly reduce the accuracy of the translation of s into t . 
+	</s>
+	
+
+	<s id="100">
+		 A typical case is the indirect association problem 
+		<ref citStr="Melamed , 2000" id="24" label="CEPF" position="18119">
+			( Melamed , 2000 )
+		</ref>
+		 , as shown in Figure 2 in which we want to translate the term s1 ( s=s1 ) . 
+	</s>
+	
+
+	<s id="101">
+		 Assume that t1 is s1’s corresponding translation , but appears infrequently with s1 . 
+	</s>
+	
+
+	<s id="102">
+		 An indirect association error might arise when t2 , the translation of s1’s highly relevant term s2 , co-occurs often with s1 . 
+	</s>
+	
+
+	<s id="103">
+		 This problem is very important for the situation in which translation is a many-to-many mapping . 
+	</s>
+	
+
+	<s id="104">
+		 To reduce such errors and enhance the reliability of the estimation , a competitive linking algorithm , which is extended from Melamed’s work s2 ~~ ( Technology ) s3 NIFf-M ( Browser ) s4 WWI ( Computer ) s5 ~p ( Information ) Figure 2 : An illustration of a bipartite graph . 
+	</s>
+	
+
+	<s id="105">
+		 The idea of the algorithm is described below . 
+	</s>
+	
+
+	<s id="106">
+		 For each translated term t;^ T in lt , we translate it back into original language ls and then model the translation mappings as a bipartite graph , as shown in Figure 2 , where the vertices on one side correspond to the terms { si } or { t ; } in one language . 
+	</s>
+	
+
+	<s id="107">
+		 An edge ei ; indicates the corresponding two terms si and t ; might be the translations of each other , and is weighted by the sum of Sdirect(si,t;) and Sdirect(t;,si,) . 
+	</s>
+	
+
+	<s id="108">
+		 Based on the weighted values , we can examine if each translated term t;^ T in lt can be correctly translated into the original term s1 . 
+	</s>
+	
+
+	<s id="109">
+		 If term t ; has any translations better than term s1 in ls , term t ; might be a so-called indirect association error and should be eliminated from T . 
+	</s>
+	
+
+	<s id="110">
+		 In the above example , if the weight of e22 is larger than that of e12 , the term “Technology” will be not con- sidered as the translation of “~~~~” ( Internet ) . 
+	</s>
+	
+
+	<s id="111">
+		 Finally , for all translated terms { t ; } ^ T that are not eliminated , we re-rank them by the weights of the edges { ei ; } and the top k ones are then taken as the translations . 
+	</s>
+	
+
+	<s id="112">
+		 More detailed description of the algorithm could be referred to 
+		<ref citStr="Lu et al . ( 2004 )" id="25" label="CERF" position="20100">
+			Lu et al . ( 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="113">
+		 4 Direct Translation In this section , we will describe the details of the direct translation process , i.e. the way to compute Sdirect(s,t) . 
+	</s>
+	
+
+	<s id="114">
+		 Three methods will be presented to estimate the similarity between a source term and each of its translation candidates . 
+	</s>
+	
+
+	<s id="115">
+		 Moreover , because the search- result pages of the term might contain snippets that do not actually be written in the target language , we will introduce a filtering method to eliminate the translation variations not of interest . 
+	</s>
+	
+
+	<s id="116">
+		 4.1 Translation Extraction The Chi-square Method : A number of statistical measures have been proposed for estimating term association based on co-occurrence analysis , including mutual information , DICE coefficient , chi-square test , and log-likelihood ratio 
+		<ref citStr="Rapp , 1999" id="26" label="CEPF" position="20912">
+			( Rapp , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="117">
+		 Chi- square test ( X2 ) is adopted in our study because the required parameters for it can be obtained by submit- &gt; Technology Internet t1 t2 ting Boolean queries to search engines and utilizing the returned page counts ( number of pages ) . 
+	</s>
+	
+
+	<s id="118">
+		 Given a term s and a translation candidate t , suppose the total number of Web pages is N ; the number of pages containing both s and t , n(s,t) , is a ; the number of pages containing s but not t , n(s,—t) , is b ; the number of pages containing t but not s , n( —s,t ) , is c ; and the number of pages containing neither s nor t , n(—s , —t ) , is d . 
+	</s>
+	
+
+	<s id="119">
+		 ( Although d is not provided by search engines , it can be computed by d=N-a-b-c . 
+	</s>
+	
+
+	<s id="120">
+		 ) Assume s and t are independent . 
+	</s>
+	
+
+	<s id="121">
+		 Then , the expected frequency of ( s,t ) , E(s,t) , is (a+c)(a+b)/N ; the expected frequency of ( s,—t ) , E(s,—t) , is (b+d)(a+b)/N ; the expected frequency of ( —s,t ) , E(—s,t) , is (a+c)(c+d)/N ; and the ex- pected frequency of ( —s,—t ) , E(—s,—t) , is (b+d)(c+d)/N . 
+	</s>
+	
+
+	<s id="122">
+		 Hence , the conventional chi-square test can be computed as : c2 Sdi,.ect ( s , t ) [ n(X , Y ) ^ E(X , Y ) ] E(X,Y) = ^ ^ X^ { s,¬ s},^Y^ { t,¬t } N×(a×d^b×c) = (a+b)×(a+c)×(b+d)×(c+d) wti=(ti,p)×log(N) ; f(t;,) p max 2 2 Althoughthechi-squaremethodissimpletocom- pute,itismoreapplicabletohigh-frequencytermsthanlow-frequencytermssincetheformeraremorelikelytoappearwiththeircandidates.Moreover,cer- taincandidatesthatfrequentlyco-occurwithtermsmaynotimplythattheyareappropriatetranslations.Thus,anothermethodispresented.TheContext-VectorMethod:Thebasicideaofthismethodisthattheterms’stranslationequivalentsmaysharecommoncontextualtermswithsinthesearch-resultpages,similartoRapp(1999).ForbothsanditscandidatesC,wetaketheircontextualtermsconstitutingthesearch-resultpagesastheirfeatures.ThesimilaritybetweensandeachcandidateinCwillbecomputedbasedontheirfeaturevectorsinthevec- tor-spacemodel.Herein,weadopttheconventional tf- idfweightingschemetoestimatethesigni fi cance of features and define it as : n where f(ti,p) is the frequency of term ti insearch-result page p , Nis the total numberofWeb pages , and n is the numberofthe pages containing ti . 
+	</s>
+	
+
+	<s id="123">
+		 Finally , the similaritybetween terms and its translation candidate tcanbe estimatedwiththecosine measure , i.e. S c e ct(s,t)=c o s(cvs,cvt),wherecvsandcvtarethecon- textvectors of s andt , respectively . 
+	</s>
+	
+
+	<s id="124">
+		 Inthe context-vectormethod , a low-frequency termstillhas achance ofextractingcorrecttransla- tions , ifitshares commoncontexts with its tran sla- tions in the search-result pages . 
+	</s>
+	
+
+	<s id="125">
+		 Although the method provides aneffective wayto overcome the chi-square method’s problem , its performance dependsheavily on thequality ofthe retrievedsearch-resultpages , such as thesizes andamounts ofsnippets . 
+	</s>
+	
+
+	<s id="126">
+		 Also , feature selectionneeds to be carefullyhandledinsome cases . 
+	</s>
+	
+
+	<s id="127">
+		 The CombinedMethod : The context-vectorandchi- square methods are basicallycomplementary . 
+	</s>
+	
+
+	<s id="128">
+		 Intuitively , a more completesolutionis to integrate the two methods . 
+	</s>
+	
+
+	<s id="129">
+		 Consideringthe various ranges ofsimilarity values betweenthe two methods , we compute the similaritybetweenterms andits translationcandidate tbythe weightedsumof 1/Rx2(s,t) and 1/RCV(s,t).Rx2(s,t) ( or RCV(s,t)) represents the similar- ityranking ofeachtranslation candidate t with respect to s andis assignedto be from1 to k(numberofoutput) in decreasing orderofsimilaritymeasure SX2di,.ect(s,t) ( or SCVdi,.ect(s,t)) . 
+	</s>
+	
+
+	<s id="130">
+		 Thatis , ifthe similari ty rankings of t are high in both of the context-vector and chi-square methods , it will be also ranked high in the combined method . 
+	</s>
+	
+
+	<s id="131">
+		 4.2 Translation Filtering Thedirecttranslation process assumes thattheretrieved search-resultpages ofatermexactly contain snippets fromacertain region(e.g . 
+	</s>
+	
+
+	<s id="132">
+		 HongKong ) and written inthe targetlanguage(e.g . 
+	</s>
+	
+
+	<s id="133">
+		 traditional Chinese ) . 
+	</s>
+	
+
+	<s id="134">
+		 However , the assumption mightnotbe reliable because thelocation(e.g . 
+	</s>
+	
+
+	<s id="135">
+		 URL ) ofaWeb pagemay notimplythatitis written bythe principle language used inthatregion . 
+	</s>
+	
+
+	<s id="136">
+		 Also , we cannotidentify the language ofasnippetsimply usingits characterencoding scheme , becausedifferentregions may use the same characterencodingschemes ( e.g. TaiwanandHong Kong mainlyusethe same traditional Chineseencoding scheme ) . 
+	</s>
+	
+
+	<s id="137">
+		 From previous work(Tsouetal. , 2004 ) we know thatword entropies significantly reflectlanguage differences inHong Kong , Taiwan andChina . 
+	</s>
+	
+
+	<s id="138">
+		 Herein , wepropose anothermethod fordealingwith the above problem . 
+	</s>
+	
+
+	<s id="139">
+		 Since ourgoal is trying to eliminate the translationcandidates { t ; } thatare notfrom the snippets inlanguage lt , foreachcandidate t;we merge all ofthesnippets thatcontaint;into adocumentand thenidentifythe correspondinglanguage of t;basedonthe document . 
+	</s>
+	
+
+	<s id="140">
+		 We trainauni-gramlanguage model foreachlanguageofconcernandperformlanguage identification basedon a discri mination function , which locates maximum character or word entropy and is defined as : lang(t ;)=argmax^^p(w|l)lnp(w|l),l^L t— N(t;) ^ where N(t;) is the collection ofthe snippets containing t;andL is asetoflanguages to be identified . 
+	</s>
+	
+
+	<s id="141">
+		 The candidate t;will be eliminated if lang(t;)^lt . 
+	</s>
+	
+
+	<s id="142">
+		 To examine the feasibility of the proposed method in identifying Chinese in Taiwan , mainland China and Hong Kong , we conducted a preliminary experiment . 
+	</s>
+	
+
+	<s id="143">
+		 To avoid the data sparseness of using a tri-gram language model , we simply use the above unigram model to perform language identification . 
+	</s>
+	
+
+	<s id="144">
+		 Even so , the experimental result has shown that very high identification accuracy can be achieved . 
+	</s>
+	
+
+	<s id="145">
+		 Some Web portals contain different versions for specific regions such as Yahoo ! 
+	</s>
+	
+
+	<s id="146">
+		 Taiwan ( http://tw.yahoo . 
+	</s>
+	
+
+	<s id="147">
+		 com ) and Yahoo ! 
+	</s>
+	
+
+	<s id="148">
+		 Hong Kong ( http://hk.yahoo.com ) . 
+	</s>
+	
+
+	<s id="149">
+		 This allows us to collect regional training data for constructing language models . 
+	</s>
+	
+
+	<s id="150">
+		 In the task of translating English terms into traditional Chinese in Taiwan , the extracted candidates for “laser” contained “^ ^” ( translation of laser mainly used in Taiwan ) and “^^” ( translation of laser mainly used in mainland China ) . 
+	</s>
+	
+
+	<s id="151">
+		 Based on the merged snippets , we found that “^^” had higher entropy value for the language model of mainland China while “^^ ” had higher entropy value for the language models of Taiwan and Hong Kong . 
+	</s>
+	
+
+	<s id="152">
+		 5 Performance Evaluation We conducted extensive experiments to examine the performance of the proposed approach . 
+	</s>
+	
+
+	<s id="153">
+		 We obtained the search-result pages of a term by submitting it to the real-world search engines , including Google and Openfind ( http://www.openfind.com.tw ) . 
+	</s>
+	
+
+	<s id="154">
+		 Only the first 100 snippets received were used as the corpus . 
+	</s>
+	
+
+	<s id="155">
+		 Performance Metric : The average top-n inclusion rate was adopted as a metric on the extraction of translation equivalents . 
+	</s>
+	
+
+	<s id="156">
+		 For a set of terms to be translated , its top-n inclusion rate was defined as the percentage of the terms whose translations could be found in the first n extracted translations . 
+	</s>
+	
+
+	<s id="157">
+		 The experiments were categorized into direct translation and transitive translation . 
+	</s>
+	
+
+	<s id="158">
+		 5.1 Direct Translation Data set : We collected English terms from two real- world Chinese search engine logs in Taiwan , i.e. Dreamer ( http://www.dreamer.com.tw ) and GAIS ( http://gais.cs.ccu.edu.tw ) . 
+	</s>
+	
+
+	<s id="159">
+		 These English terms were potential ones in the Chinese logs that needed correct translations . 
+	</s>
+	
+
+	<s id="160">
+		 The Dreamer log contained 228,566 unique query terms from a period of over 3 months in 1998 , while the GAIS log contained 114,182 unique query terms from a period of two weeks in 1999 . 
+	</s>
+	
+
+	<s id="161">
+		 The collection contained a set of 430 frequent English terms , which were obtained from the 1,230 English terms out of the most popular 9,709 ones ( with frequencies above 10 in both logs ) . 
+	</s>
+	
+
+	<s id="162">
+		 About 36 % ( 156/430 ) of the collection could be found in the LDC ( Linguistic Data Consortium , http://www.ldc.upenn. edu/Projects/Chinese ) English-to-Chinese lexicon with 120K entries , while about 64 % ( 274/430 ) were not covered by the lexicon . 
+	</s>
+	
+
+	<s id="163">
+		 English-to-Chinese Translation : In this experiment , we tried to directly translate the collected 430 English terms into traditional Chinese . 
+	</s>
+	
+
+	<s id="164">
+		 Table 1 shows the results in terms of the top 1-5 inclusion rates for the translation of the collected English terms . 
+	</s>
+	
+
+	<s id="165">
+		 “^2 ” , “CV” , and “^2+CV” represent the methods based on the chi- square , context-vector , and chi-square plus context- vector methods , respectively . 
+	</s>
+	
+
+	<s id="166">
+		 Although either the chi-square or context-vector method was effective , the method based on both of them ( x2+CV ) achieved the best performance in maximizing the inclusion rates in every case because they looked complementary . 
+	</s>
+	
+
+	<s id="167">
+		 The proposed approach was found to be effective in finding translations of proper names , e.g. personal names “Jordan” ( ^ ^ , ^^ ) , “Keanu Reeves” ( ^^^^ , ^^^^ ) , companies’ names “TOYOTA” ( ^^ ) , “EPSON” ( ^^^ ) , and tech- nical terms “EDI” ( ^^^^^^ ) , “Ethernet” ( ^ ^^^ ) , etc. English-to-Chinese Translation for Mainland China , Taiwan and Hong Kong : Chinese can be classified into simplified Chinese ( SC ) and traditional Chinese ( TC ) based on its writing form or character encoding scheme . 
+	</s>
+	
+
+	<s id="168">
+		 SC is mainly used in mainland China while TC is mainly used in Taiwan and Hong Kong ( HK ) . 
+	</s>
+	
+
+	<s id="169">
+		 In this experiment , we further investigated the effectiveness of the proposed approach in English-to-Chinese translation for the three different regions . 
+	</s>
+	
+
+	<s id="170">
+		 The collected 430 English terms were classified into five types : people , organization , place , computer and network , and others . 
+	</s>
+	
+
+	<s id="171">
+		 Tables 2 and 3 show the statistical results and some examples , respectively . 
+	</s>
+	
+
+	<s id="172">
+		 In Table 3 , the number stands for a translated term’s ranking . 
+	</s>
+	
+
+	<s id="173">
+		 The underlined terms were correct translations and the others were relevant translations . 
+	</s>
+	
+
+	<s id="174">
+		 These translations might benefit the CLIR tasks , whose performance could be referred to our earlier work which emphasized on translating unknown queries 
+		<ref citStr="Cheng et al. , 2004" id="27" label="CEPF" position="31237">
+			( Cheng et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="175">
+		 The results in Table 2 show that the translations for mainland China and HK were not reliable enough in the top-1 , compared with the translations for Taiwan . 
+	</s>
+	
+
+	<s id="176">
+		 One possible reason was that the test terms were collected from Taiwan’s search engine logs . 
+	</s>
+	
+
+	<s id="177">
+		 Most of them were popular in Taiwan but not in the others . 
+	</s>
+	
+
+	<s id="178">
+		 Only 100 snippets retrieved might not balance or be sufficient for translation extraction . 
+	</s>
+	
+
+	<s id="179">
+		 However , the inclusion rates for the three regions were close in the top-5 . 
+	</s>
+	
+
+	<s id="180">
+		 Observing the five types , we could find that type place containing the names of well-known countries and cities achieved the best performance in maximizing the inclusion rates in every case and almost had no regional variations ( 9 % , 1/11 ) except Table 1 : Inclusion rates for Web query terms using various similarity measurements Method Dic OOV All Top-1 Top-3 Top-5 Top-1 Top-3 Top-5 Top-1 Top-3 Top-5 X2 42.1 % 57.9 % 62.1 % 40.2 % 53.8 % 56.2 % 41.4 % 56.3 % 59.8 % CV 51.7 % 59.8 % 62.5 % 45.0 % 55.6 % 57.4 % 49.1 % 58.1 % 60.5 % X2+ CV 52.5 % 60.4 % 63.1 % 46.1 % 56.2 % 58.0 % 50.7 % 58.8 % 61.4 % Table 2 : Inclusion rates for different types of Web query terms Type Extracted Translations Taiwan ( Big5 ) Mainland China ( GB ) Hong Kong ( Big5 ) Top-1 Top-3 Top-5 Top-1 Top-3 Top-5 Top-1 Top-3 Top-5 People ( 14 ) 57.1 % 64.3 % 64.3 % 35.7 % 57.1 % 64.3 % 21.4 % 57.1 % 57.1 % Organization ( 147 ) 44.9 % 55.1 % 56.5 % 47.6 % 58.5 % 62.6 % 37.4 % 46.3 % 53.1 % Place ( 11 ) 90.9 % 90.9 % 90.9 % 63.6 % 100.0 % 100.0 % 81.8 % 81.8 % 81.8 % Computer &amp; Network ( 115 ) 55.8 % 59.3 % 63.7 % 32.7 % 59.3 % 64.6 % 42.5 % 65.5 % 68.1 % Others ( 143 ) 49.0 % 58.7 % 62.2 % 30.8 % 49.7 % 58.7 % 28.7 % 50.3 % 60.8 % Total ( 430 ) 50.7 % 58.8 % 61.4 % 38.1 % 56.7 % 62.8 % 36.5 % 54.0 % 60.5 % Table 3 : Examples of extracted correct/relevant translations of English terms in three Chinese regions English Terms Extracted Correct or Relevant Target Translations Taiwan ( Traditional Chinese ) Mainland China ( Simplified Chinese ) Hong Kong ( Traditional Chinese ) Police ~-1 ( 1 ) ~-1V* ( 2 ) ~-1~ ( 4 ) ~-1 ( 1 ) IVY , ( 2 ) ~4 ' ( 4 ) i a ( 1 ) ~-1 ( 3 ) V~r 1J ( 5 ) Taxi ! 
+	</s>
+	
+
+	<s id="181">
+		 . 
+	</s>
+	
+
+	<s id="182">
+		 i ( 1 ) *4 ( 3 ) &lt;&lt; &lt;)&quot;~ ( 1 ) P°J~ ( 4 ) P°J~ ( 1 ) P°J~ ~~ ( 2 ) 44&quot;~ ( 15 ) Laser ~s ( 1 ) ~st JWJ ( 3 ) jf~X1 ( 4 ) ~t ( 1 ) F11D ' ( 2 ) ~t % ( 3 ) ~s ( 4 ) ~t ( 1 ) ~s ( 2 ) ~tP°J ( 3 ) ( 4 ) , . 
+	</s>
+	
+
+	<s id="183">
+		 Hacker i4 (1)&quot;r ( 2 ) r'JP . 
+	</s>
+	
+
+	<s id="184">
+		 ( 7 ) 4 ( 1 ) ( 5 ) [ ffj'F ( 6 ) i4 (1)4 ( 2 ) Y ' ( 9 ) Database ~~i ( 1 ) F11_*~~i ( 3 ) ~MF* ( 1 ) ~MF*~Y1 ( 9 ) ~~i ( 1 ) { ~i ( 3 ) ~~ ( 5 ) Information ~f.A ( 1 ) ~~ ( 3 ) ~f.A-,M ( 4 ) j 4( ( 1 ) j 4(VXJ ( 3 ) ~4 ; t ( 7 ) ~~ ( 1 ) Vf.A ( 6 ) Internet caf6 -,M&quot;rp~ ( 3 ) -,M&quot;r ( 4 ) -,Mp ( 5 ) VXJ~p~ ( 1 ) VXJ~p~~ ( 2 ) VXJP ° ' ( 6 ) -,MP°' ( 1 ) ~14 ( 3 ) -,M : r ( 4 ) Search Engine ~~ % ( 2 ) ~~`J [ IV ( 5 ) ~~`J [ IV r ( 1 ) ~~`J [ IV ( 3 ) ~~ % ( 1 ) ~~ % ( 8 ) Digital Camera ffI~ ( 1 ) { f ffI~ ( 2 ) ~V ffIfr ' ( 1 ) ~V Wj~ ( 6 ) f~* ( 1 ) { ~ffI~ ( 2 ) ffIM ( 3 ) Table 4 : Inclusion rates of transitive translations of proper names and technical terms Type Source Target Intermediate Language Top-1 Top-3 Top5 Language Language Scientist Name Chinese English None 70.0 % 84.0 % 86.0 % English Japanese None 32.0 % 56.0 % 64.0 % English Korean None 34.0 % 58.0 % 68.0 % Chinese Japanese English 26.0 % 40.0 % 48.0 % Chinese Korean English 30.0 % 42.0 % 50.0 % Disease Name Chinese English None 50.0 % 74.0 % 74.0 % English Japanese None 38.0 % 48.0 % 62.0 % English Korean None 30.0 % 50.0 % 58.0 % Chinese Japanese English 32.0 % 44.0 % 50.0 % Chinese Korean English 24.0 % 38.0 % 44.0 % that the city “Sydney” was translated into ; , FU ( Syd ney ) in SC for mainland China and HK and ~~ ( Sydney ) in TC for Taiwan . 
+	</s>
+	
+
+	<s id="185">
+		 Type computer and network containing technical terms had the most regional variations ( 41 % , 47/115 ) and type people had 36 % ( 5/14 ) . 
+	</s>
+	
+
+	<s id="186">
+		 In general , the translations in the two types were adapted to the use in different regions . 
+	</s>
+	
+
+	<s id="187">
+		 On the other hand , 10 % ( 15/147 ) and 8 % ( 12/143 ) of the translations in types organization and others , respec- tively , had regional variations , because most of the terms in type others were general terms such as “bank” and “movies” and in type organization many local companies in Taiwan had no translation variations in mainland China and HK . 
+	</s>
+	
+
+	<s id="188">
+		 Moreover , many translations in the types of people , organization , and computer and network were quite different in Taiwan and mainland China such as the personal name “Bred Pitt” was translated into “^~I” in SC and “If J'-k'- hV~I” in TC , the com- pany name “Ericsson” into “u~j ” in SC and “V1 ~ j ” in TC , and the computer-related term “EDI” into “~~{~q~” in SC and “~~~~~~” in TC . 
+	</s>
+	
+
+	<s id="189">
+		 In general , the translations in HK had a higher chance to cover both of the translations in mainland China and Taiwan . 
+	</s>
+	
+
+	<s id="190">
+		 5.2 Multilingual &amp; Transitive Translation Data set : Since technical terms had the most region variations among the five types as mentioned in the previous subsection , we collected two other data sets for examining the performance of the proposed approach in multilingual and transitive translation . 
+	</s>
+	
+
+	<s id="191">
+		 The data sets contained 50 scientists’ names and 50 dis- ease names in English , which were randomly selected from 256 scientists ( Science/People ) and 664 diseases ( Health/Diseases ) in the Yahoo ! 
+	</s>
+	
+
+	<s id="192">
+		 Directory ( http://www.yahoo.com ) , respectively . 
+	</s>
+	
+
+	<s id="193">
+		 English-to-Japanese/Korean Translation : In this experiment , the collected scientists’ and disease names in English were translated into Japanese and Korean to examine if the proposed approach could be applicable to other Asian languages . 
+	</s>
+	
+
+	<s id="194">
+		 As the result in Table 4 shows , for the English-to-Japanese translation , the top-1 , top-3 , and top-5 inclusion rates were 35 % , 52 % , and 63 % , respectively ; for the English-to-Korean translation , the top-1 , top-3 , and top- 5 inclusion rates were 32 % , 54 % , and 63 % , respectively , on average . 
+	</s>
+	
+
+	<s id="195">
+		 Chinese-to-Japanese/Korean Translation via English : To further investigate if the proposed transitive approach can be applicable to other language pairs that are not frequently mixed in documents such as Chinese and Japanese ( or Korean ) , we did transitive translation via English . 
+	</s>
+	
+
+	<s id="196">
+		 In this experiment , we first manually translated the collected data sets in English into traditional Chinese and then did the Chinese-to-Japanese/Korean translation via the third language English . 
+	</s>
+	
+
+	<s id="197">
+		 The results in Table 4 show that the propagation of translation errors reduced the translation accuracy . 
+	</s>
+	
+
+	<s id="198">
+		 For example , the inclusion rates of the Chinese-toJapanese translation were lower than those of the English-to-Japanese translation since only 70%-86 % inclusion rates were reached in the Chinese-toEnglish translation in the top 1-5 . 
+	</s>
+	
+
+	<s id="199">
+		 Although transitive translation might produce more noisy translations , it still produced acceptable translation candidates for human verification . 
+	</s>
+	
+
+	<s id="200">
+		 In Table 4 , 45%- 50 % of the extracted top 5 Japanese or Korean terms might have correct translations . 
+	</s>
+	
+
+	<s id="201">
+		 6 Conclusion It is important that the translation of a term can be automatically adapted to its usage in different dialectal regions . 
+	</s>
+	
+
+	<s id="202">
+		 We have proposed a Web-based translation approach that takes into account limited bilingual search-result pages from real search engines as comparable corpora . 
+	</s>
+	
+
+	<s id="203">
+		 The experimental results have shown the feasibility of the automatic approach in generation of effective translation equivalents of various terms and construction of multilingual translation lexicons that reflect regional translation variations . 
+	</s>
+	
+
+	<s id="204">
+		 References L. Borin . 
+	</s>
+	
+
+	<s id="205">
+		 2000. You’ll take the high road and I’ll take the low road : using a third language to improve bilingual word alignment . 
+	</s>
+	
+
+	<s id="206">
+		 In Proc . 
+	</s>
+	
+
+	<s id="207">
+		 of COLING-2000 , pp. 97-103 . 
+	</s>
+	
+
+	<s id="208">
+		 P. F. Brown , J. Cocke , S. A. D. Pietra , V. J. D. Pietra , F. Jelinek , J. D. Lafferty , R. L. Mercer , and P. S. Roossin . 
+	</s>
+	
+
+	<s id="209">
+		 1990. A statistical approach to machine translation . 
+	</s>
+	
+
+	<s id="210">
+		 Computational Linguistics , 16(2):79-85 . 
+	</s>
+	
+
+	<s id="211">
+		 Y.-B. Cao and H. Li . 
+	</s>
+	
+
+	<s id="212">
+		 2002. Base noun phrase translation using Web data the EM algorithm . 
+	</s>
+	
+
+	<s id="213">
+		 In Proc . 
+	</s>
+	
+
+	<s id="214">
+		 of COLING-2002 , pp. 127-133 . 
+	</s>
+	
+
+	<s id="215">
+		 P.-J. Cheng , J.-W. Teng , R.-C. Chen , J.-H. Wang , W.-H. Lu , and L.-F. Chien . 
+	</s>
+	
+
+	<s id="216">
+		 2004 . 
+	</s>
+	
+
+	<s id="217">
+		 Translating unknown queries with Web corpora for cross-language information retrieval . 
+	</s>
+	
+
+	<s id="218">
+		 In Proc . 
+	</s>
+	
+
+	<s id="219">
+		 of ACM SIGIR-2004 . 
+	</s>
+	
+
+	<s id="220">
+		 P. Fung and L. Y. Yee . 
+	</s>
+	
+
+	<s id="221">
+		 1998. An IR approach for translating new words from nonparallel , comparable texts . 
+	</s>
+	
+
+	<s id="222">
+		 In Proc . 
+	</s>
+	
+
+	<s id="223">
+		 of ACL-98 , pp. 414-420 . 
+	</s>
+	
+
+	<s id="224">
+		 T. Gollins and M. Sanderson . 
+	</s>
+	
+
+	<s id="225">
+		 2001. Improving cross language information with triangulated translation . 
+	</s>
+	
+
+	<s id="226">
+		 In Proc . 
+	</s>
+	
+
+	<s id="227">
+		 of ACM SIGIR-2001 , pp. 90-95 . 
+	</s>
+	
+
+	<s id="228">
+		 J. Halpern . 
+	</s>
+	
+
+	<s id="229">
+		 2000. Lexicon-based orthographic disambiguation in CJK intelligent information retrieval . 
+	</s>
+	
+
+	<s id="230">
+		 In Proc . 
+	</s>
+	
+
+	<s id="231">
+		 of Workshop on Asian Language Resources and International Standardization . 
+	</s>
+	
+
+	<s id="232">
+		 A. Kilgarriff and G. Grefenstette . 
+	</s>
+	
+
+	<s id="233">
+		 2003. Introduction to the special issue on the web as corpus . 
+	</s>
+	
+
+	<s id="234">
+		 Computational Linguistics 29(3) : 333-348 . 
+	</s>
+	
+
+	<s id="235">
+		 J. M. Kupiec . 
+	</s>
+	
+
+	<s id="236">
+		 1993. An algorithm for finding noun phrase correspondences in bilingual corpora . 
+	</s>
+	
+
+	<s id="237">
+		 In Proc . 
+	</s>
+	
+
+	<s id="238">
+		 of ACL93 , pp. 17-22 . 
+	</s>
+	
+
+	<s id="239">
+		 W.-H. Lu , L.-F. Chien , and H.-J. Lee . 
+	</s>
+	
+
+	<s id="240">
+		 2004. Anchor text mining for translation of web queries : a transitive translation Approach . 
+	</s>
+	
+
+	<s id="241">
+		 ACM TOIS 22(2) : 242-269 . 
+	</s>
+	
+
+	<s id="242">
+		 W.-H. Lu , L.-F. Chien , and H.-J. Lee . 
+	</s>
+	
+
+	<s id="243">
+		 2002. Translation of Web queries using anchor text mining . 
+	</s>
+	
+
+	<s id="244">
+		 ACM TALIP : 159-172 . 
+	</s>
+	
+
+	<s id="245">
+		 I. D. Melamed . 
+	</s>
+	
+
+	<s id="246">
+		 2000. Models of translational equivalence among words . 
+	</s>
+	
+
+	<s id="247">
+		 Computational Linguistics , 26(2) : 221- 249 . 
+	</s>
+	
+
+	<s id="248">
+		 J.-Y. Nie , P. Isabelle , M. Simard , and R. Durand . 
+	</s>
+	
+
+	<s id="249">
+		 1999. Cross-language information retrieval based on parallel texts and automatic mining of parallel texts from the Web. . 
+	</s>
+	
+
+	<s id="250">
+		 In Proc . 
+	</s>
+	
+
+	<s id="251">
+		 of ACM SIGIR-99 , pp. 74-81 . 
+	</s>
+	
+
+	<s id="252">
+		 R. Rapp . 
+	</s>
+	
+
+	<s id="253">
+		 1999. Automatic identification of word translations from unrelated English and German corpora , In Proc . 
+	</s>
+	
+
+	<s id="254">
+		 of ACL-99 , pp. 519-526 . 
+	</s>
+	
+
+	<s id="255">
+		 P. Resnik . 
+	</s>
+	
+
+	<s id="256">
+		 1999. Mining the Web for bilingual text . 
+	</s>
+	
+
+	<s id="257">
+		 In Proc . 
+	</s>
+	
+
+	<s id="258">
+		 of ACL-99 , pp. 527-534 . 
+	</s>
+	
+
+	<s id="259">
+		 M. Simard . 
+	</s>
+	
+
+	<s id="260">
+		 2000 . 
+	</s>
+	
+
+	<s id="261">
+		 Multilingual Text Alignment . 
+	</s>
+	
+
+	<s id="262">
+		 In “Parallel Text Processing” , J. Veronis , ed. , pages 49-67 , Kluwer Academic Publishers , Netherlands . 
+	</s>
+	
+
+	<s id="263">
+		 F. Smadja , K. McKeown , and V. Hatzivassiloglou . 
+	</s>
+	
+
+	<s id="264">
+		 1996 . 
+	</s>
+	
+
+	<s id="265">
+		 Translating collocations for bilingual lexicons : a statistical approach . 
+	</s>
+	
+
+	<s id="266">
+		 Computational Linguistics , 22(1) : 1-38 . 
+	</s>
+	
+
+	<s id="267">
+		 B. K. Tsou , T. B. Y. Lai , and K. Chow . 
+	</s>
+	
+
+	<s id="268">
+		 2004. Comparing entropies within the Chinese language . 
+	</s>
+	
+
+	<s id="269">
+		 In Proc . 
+	</s>
+	
+
+	<s id="270">
+		 of IJCNLP-2004 . 
+	</s>
+	
+
+	<s id="271">
+		 C. C. Yang and K.-W. Li . 
+	</s>
+	
+
+	<s id="272">
+		 2003. Automatic construction of English/Chinese parallel corpora . 
+	</s>
+	
+
+	<s id="273">
+		 JASIST 54(8) : 730-742 . 
+	</s>
+	
+
+
+</acldoc>

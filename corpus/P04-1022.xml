@@ -1,0 +1,1571 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1022">
+	
+
+	<s id="1">
+		 Collocation Translation Acquisition Using Monolingual Corpora Yajuan LÜ Microsoft Research Asia 5F Sigma Center , No. 49 Zhichun Road , Haidian District , Beijing , China , 100080 t-yjlv@microsoft.com Ming ZHOU Microsoft Research Asia 5F Sigma Center , No. 49 Zhichun Road , Haidian District , Beijing , China , 100080 mingzhou@microsoft.com Abstract Collocation translation is important for machine translation and many other NLP tasks . 
+	</s>
+	
+
+	<s id="2">
+		 Unlike previous methods using bilingual parallel corpora , this paper presents a new method for acquiring collocation translations by making use of monolingual corpora and linguistic knowledge . 
+	</s>
+	
+
+	<s id="3">
+		 First , dependency triples are extracted from Chinese and English corpora with dependency parsers . 
+	</s>
+	
+
+	<s id="4">
+		 Then , a dependency triple translation model is estimated using the EM algorithm based on a dependency correspondence assumption . 
+	</s>
+	
+
+	<s id="5">
+		 The generated triple translation model is used to extract collocation translations from two monolingual corpora . 
+	</s>
+	
+
+	<s id="6">
+		 Experiments show that our approach outperforms the existing monolingual corpus based methods in dependency triple translation and achieves promising results in collocation translation extraction . 
+	</s>
+	
+
+	<s id="7">
+		 1 Introduction A collocation is an arbitrary and recurrent word combination 
+		<ref citStr="Benson , 1990" id="1" label="CEPF" position="1329">
+			( Benson , 1990 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="8">
+		 Previous work in collocation acquisition varies in the kinds of collocations they detect . 
+	</s>
+	
+
+	<s id="9">
+		 These range from two- word to multi-word , with or without syntactic structure 
+		<ref citStr="Smadja 1993" id="2" label="CEPF" position="1520">
+			( Smadja 1993 
+		</ref>
+		<ref citStr="Lin , 1998" id="3" label="CEPF" position="1534">
+			; Lin , 1998 
+		</ref>
+		<ref citStr="Pearce , 2001" id="4" label="CEPF" position="1547">
+			; Pearce , 2001 
+		</ref>
+		<ref citStr="Seretan et al . 2003" id="5" label="CEPF" position="1563">
+			; Seretan et al . 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="10">
+		 In this paper , a collocation refers to a recurrent word pair linked with a certain syntactic relation . 
+	</s>
+	
+
+	<s id="11">
+		 For instance , &lt;solve , verb-object , problem&gt; is a collocation with a syntactic relation verb-object . 
+	</s>
+	
+
+	<s id="12">
+		 Translation of collocations is difficult for nonnative speakers . 
+	</s>
+	
+
+	<s id="13">
+		 Many collocation translations are idiosyncratic in the sense that they are unpredictable by syntactic or semantic features . 
+	</s>
+	
+
+	<s id="14">
+		 Consider Chinese to English translation . 
+	</s>
+	
+
+	<s id="15">
+		 The translations of “ &amp;” can be “solve” or “resolve” . 
+	</s>
+	
+
+	<s id="16">
+		 The translations of “f p7)&quot;” can be “problem” or “issue” . 
+	</s>
+	
+
+	<s id="17">
+		 However , translations of the collocation “ &amp; — f p7 ) &quot; ” as “solve —problem” or “resolve— issue” is preferred over “solve—issue” or “resolve —problem” . 
+	</s>
+	
+
+	<s id="18">
+		 Automatically acquiring these collocation translations will be very useful for machine translation , cross language information retrieval , second language learning and many other NLP applications . 
+	</s>
+	
+
+	<s id="19">
+		 
+		<ref citStr="Smadja et al. , 1996" id="6" label="CEPF" position="2631">
+			( Smadja et al. , 1996 
+		</ref>
+		<ref citStr="Gao et al. , 2002" id="7" label="CEPF" position="2654">
+			; Gao et al. , 2002 
+		</ref>
+		<ref citStr="Wu and Zhou , 2003" id="8" label="CEPF" position="2674">
+			; Wu and Zhou , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="20">
+		 Some studies have been done for acquiring collocation translations using parallel corpora 
+		<ref citStr="Smadja et al , 1996" id="9" label="CJPF" position="2798">
+			( Smadja et al , 1996 
+		</ref>
+		<ref citStr="Kupiec , 1993" id="10" label="CJPF" position="2820">
+			; Kupiec , 1993 
+		</ref>
+		<ref citStr="Echizen-ya et al. , 2003" id="11" label="CJPF" position="2836">
+			; Echizen-ya et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="21">
+		 These works implicitly assume that a bilingual corpus on a large scale can be obtained easily . 
+	</s>
+	
+
+	<s id="22">
+		 However , despite efforts in compiling parallel corpora , sufficient amounts of such corpora are still unavailable . 
+	</s>
+	
+
+	<s id="23">
+		 Instead of heavily relying on bilingual corpora , this paper aims to solve the bottleneck in a different way : to mine bilingual knowledge from structured monolingual corpora , which can be more easily obtained in a large volume . 
+	</s>
+	
+
+	<s id="24">
+		 Our method is based on the observation that despite the great differences between Chinese and English , the main dependency relations tend to have a strong direct correspondence 
+		<ref citStr="Zhou et al. , 2001" id="12" label="CEPF" position="3547">
+			( Zhou et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="25">
+		 Based on this assumption , a new translation model based on dependency triples is proposed . 
+	</s>
+	
+
+	<s id="26">
+		 The translation probabilities are estimated from two monolingual corpora using the EM algorithm with the help of a bilingual translation dictionary . 
+	</s>
+	
+
+	<s id="27">
+		 Experimental results show that the proposed triple translation model outperforms the other three models in comparison . 
+	</s>
+	
+
+	<s id="28">
+		 The obtained triple translation model is also used for collocation translation extraction . 
+	</s>
+	
+
+	<s id="29">
+		 Evaluation results demonstrate the effectiveness of our method . 
+	</s>
+	
+
+	<s id="30">
+		 The remainder of this paper is organized as follows . 
+	</s>
+	
+
+	<s id="31">
+		 Section 2 provides a brief description on the related work . 
+	</s>
+	
+
+	<s id="32">
+		 Section 3 describes our triple translation model and training algorithm . 
+	</s>
+	
+
+	<s id="33">
+		 Section 4 extracts collocation translations from two independent monolingual corpora . 
+	</s>
+	
+
+	<s id="34">
+		 Section 5 evaluates the proposed method , and the last section draws conclusions and presents the future work . 
+	</s>
+	
+
+	<s id="35">
+		 2 Related work There has been much previous work done on monolingual collocation extraction . 
+	</s>
+	
+
+	<s id="36">
+		 They can in general be classified into two types : window-based and syntax-based methods . 
+	</s>
+	
+
+	<s id="37">
+		 The former extracts collocations within a fixed window 
+		<ref citStr="Church and Hanks 1990" id="13" label="CEPF" position="4815">
+			( Church and Hanks 1990 
+		</ref>
+		<ref citStr="Smadja , 1993" id="14" label="CEPF" position="4839">
+			; Smadja , 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="38">
+		 The latter extracts collocations which have a syntactic relationship 
+		<ref citStr="Lin , 1998" id="15" label="CEPF" position="4937">
+			( Lin , 1998 
+		</ref>
+		<ref citStr="Seretan et al. , 2003" id="16" label="CEPF" position="4950">
+			; Seretan et al. , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="39">
+		 The syntax-based method becomes more favorable with recent significant increases in parsing efficiency and accuracy . 
+	</s>
+	
+
+	<s id="40">
+		 Several metrics have been adopted to measure the association strength in collocation extraction . 
+	</s>
+	
+
+	<s id="41">
+		 
+		<ref citStr="Thanopoulos et al . ( 2002 )" id="17" label="CEPF" position="5249">
+			Thanopoulos et al . ( 2002 )
+		</ref>
+		 give comparative evaluations on these metrics . 
+	</s>
+	
+
+	<s id="42">
+		 Most previous research in translation knowledge acquisition is based on parallel corpora 
+		<ref citStr="Brown et al. , 1993" id="18" label="CEPF" position="5419">
+			( Brown et al. , 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="43">
+		 As for collocation translation , 
+		<ref citStr="Smadja et al . ( 1996 )" id="19" label="CEPF" position="5487">
+			Smadja et al . ( 1996 )
+		</ref>
+		 implement a system to extract collocation translations from a parallel English- French corpus . 
+	</s>
+	
+
+	<s id="44">
+		 English collocations are first extracted using the Xtract system , then corresponding French translations are sought based on the Dice coefficient . 
+	</s>
+	
+
+	<s id="45">
+		 
+		<ref citStr="Echizen-ya et al . ( 2003 )" id="20" label="CEPF" position="5778">
+			Echizen-ya et al . ( 2003 )
+		</ref>
+		 propose a method to extract bilingual collocations using recursive chain-link-type learning . 
+	</s>
+	
+
+	<s id="46">
+		 In addition to collocation translation , there is also some related work in acquiring phrase or term translations from parallel corpus 
+		<ref citStr="Kupiec , 1993" id="21" label="CEPF" position="6017">
+			( Kupiec , 1993 
+		</ref>
+		<ref citStr="Yamamoto and Matsumoto 2000" id="22" label="CEPF" position="6033">
+			; Yamamoto and Matsumoto 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="47">
+		 Since large aligned bilingual corpora are hard to obtain , some research has been conducted to exploit translation knowledge from non-parallel corpora . 
+	</s>
+	
+
+	<s id="48">
+		 Their work is mainly on word level . 
+	</s>
+	
+
+	<s id="49">
+		 
+		<ref citStr="Koehn and Knight ( 2000 )" id="23" label="CEPF" position="6309">
+			Koehn and Knight ( 2000 )
+		</ref>
+		 presents an approach to estimating word translation probabilities using unrelated monolingual corpora with the EM algorithm . 
+	</s>
+	
+
+	<s id="50">
+		 The method exhibits promising results in selecting the right translation among several options provided by bilingual dictionary . 
+	</s>
+	
+
+	<s id="51">
+		 Zhou et al.(2001) proposes a method to simulate translation probability with a cross language similarity score , which is estimated from monolingual corpora based on mutual information . 
+	</s>
+	
+
+	<s id="52">
+		 The method achieves good results in word translation selection . 
+	</s>
+	
+
+	<s id="53">
+		 In addition , 
+		<ref citStr="Dagan and Itai , 1994" id="24" label="CEPF" position="6893">
+			( Dagan and Itai , 1994 )
+		</ref>
+		 and 
+		<ref citStr="Li , 2002" id="25" label="CEPF" position="6911">
+			( Li , 2002 )
+		</ref>
+		 propose using two monolingual corpora for word sense disambiguation . 
+	</s>
+	
+
+	<s id="54">
+		 
+		<ref citStr="Fung , 1998" id="26" label="CEPF" position="7006">
+			( Fung , 1998 )
+		</ref>
+		 uses an IR approach to induce new word translations from comparable corpora . 
+	</s>
+	
+
+	<s id="55">
+		 
+		<ref citStr="Rapp , 1999" id="27" label="CEPF" position="7109">
+			( Rapp , 1999 )
+		</ref>
+		 and 
+		<ref citStr="Koehn and Knight , 2002" id="28" label="CEPF" position="7141">
+			( Koehn and Knight , 2002 )
+		</ref>
+		 extract new word translations from non-parallel corpus . 
+	</s>
+	
+
+	<s id="56">
+		 
+		<ref citStr="Cao and Li , 2002" id="29" label="CEPF" position="7229">
+			( Cao and Li , 2002 )
+		</ref>
+		 acquire noun phrase translations by making use of web data . 
+	</s>
+	
+
+	<s id="57">
+		 
+		<ref citStr="Wu and Zhou , 2003" id="30" label="CEPF" position="7322">
+			( Wu and Zhou , 2003 )
+		</ref>
+		 also make full use of large scale monolingual corpora and limited bilingual corpora for synonymous collocation extraction . 
+	</s>
+	
+
+	<s id="58">
+		 3 Training a triple translation model from monolingual corpora In this section , we first describe the dependency correspondence assumption underlying our approach . 
+	</s>
+	
+
+	<s id="59">
+		 Then a dependency triple translation model and the monolingual corpus based training algorithm are proposed . 
+	</s>
+	
+
+	<s id="60">
+		 The obtained triple translation model will be used for collocation translation extraction in next section . 
+	</s>
+	
+
+	<s id="61">
+		 3.1 Dependency correspondence between Chinese and English A dependency triple consists of a head , a dependant , and a dependency relation . 
+	</s>
+	
+
+	<s id="62">
+		 Using a dependency parser , a sentence can be analyzed into dependency triples . 
+	</s>
+	
+
+	<s id="63">
+		 We represent a triple as ( w1,r,w2 ) , where w1 and w2 are words and r is the dependency relation . 
+	</s>
+	
+
+	<s id="64">
+		 It means that w2 has a dependency relation r with w1 . 
+	</s>
+	
+
+	<s id="65">
+		 For example , a triple ( overcome , verb-object , d;ff;culty ) means that “d;ff;culty” is the object of the verb “overcome” . 
+	</s>
+	
+
+	<s id="66">
+		 Among all the dependency relations , we only consider the following three key types that we think , are the most important in text analysis and machine translation : verb-object ( VO ) , nounadj(AN) , and verb- adv(AV) . 
+	</s>
+	
+
+	<s id="67">
+		 It is our observation that there is a strong correspondence in major dependency relations in the translation between English and Chinese . 
+	</s>
+	
+
+	<s id="68">
+		 For example , an object-verb relation in Chinese ( e.g.(AER , VO , ^^ ) ) is usually translated into the same verb-object relation in English(e.g . 
+	</s>
+	
+
+	<s id="69">
+		 ( overcome , VO , d;ff;culty ) ) . 
+	</s>
+	
+
+	<s id="70">
+		 This assumption has been experimentally justified based on a large and balanced bilingual corpus in our previous work 
+		<ref citStr="Zhou et al. , 2001" id="31" label="CEPF" position="9138">
+			( Zhou et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="71">
+		 We come to the conclusion that more than 80 % of the above dependency relations have a one-one mapping between Chinese and English . 
+	</s>
+	
+
+	<s id="72">
+		 We can conclude that there is indeed a very strong correspondence between Chinese and English in the three considered dependency relations . 
+	</s>
+	
+
+	<s id="73">
+		 This fact will be used to estimate triple translation model using two monolingual corpora . 
+	</s>
+	
+
+	<s id="74">
+		 3.2 Triple translation model According to Bayes’s theorem , given a Chinese triple ctr ; = ( c1 , rc , c2 ) , and the set of its candidate English triple translations etr ; = ( e1 , re , e2 ) , the best English triple eˆtr ; = ( eˆ1 , re , eˆ2 ) is the one that maximizes the Equation ( 1 ) : = arg max etr ; = arg max etr ; = arg max p(etr ; | ctr ; ) p(etr ; p( )p( | etr ; ) Cm em )p( | ) / p(ctr ; ) em Cm ( 1 ) ˆ etr ; etr ; where p(etr;) is usually called the language model and p(ctr ; | etr ; ) is usually called the translation model . 
+	</s>
+	
+
+	<s id="75">
+		 Language Model The language model p(etr;) is calculated with English triples database . 
+	</s>
+	
+
+	<s id="76">
+		 In order to tackle with the data sparseness problem , we smooth the language model with an interpolation method , as described below . 
+	</s>
+	
+
+	<s id="77">
+		 When the given English triple occurs in the corpus , we can calculate it as in Equation ( 2 ) . 
+	</s>
+	
+
+	<s id="78">
+		 p(etr;) = freq(el,re , e2 ) ( 2 ) where freq ( e1 , re , e2 ) represents the frequency of triple etr ; . 
+	</s>
+	
+
+	<s id="79">
+		 N represents the total counts of all the English triples in the training corpus . 
+	</s>
+	
+
+	<s id="80">
+		 For an English triple et. ; = ( e1 , re , e2 ) , if we assume that two words e1 and e2 are conditionally independent given the relation re , Equation ( 2 ) can be rewritten as in (3)
+		<ref citStr="Lin , 1998" id="32" label="CEPF" position="10848">
+			(Lin , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="81">
+		 p(etr;) = p(re)p(e1 | re)p(e2 | re ) ( 3 ) p(ctr ; | etr;)=p(q,rc,c2 | etr ; ) , etr;)p(c2|r , etr;)p(rc Assumption 2 : Foran Englishtriple assume thatc ; only depends on e ; only depends on Equation(6) is , etr;)p(c2| i~ , etr;)p( e =p(c1 | e1)p(c2 | e2)p(rc | re ) p(e1 | re ) = freq(e1,re,*) * ) , p(e2 | r2 ) = fPeq ( *,re,e2 ) * ) , The wildcard symbol * means it can be any word or relation . 
+	</s>
+	
+
+	<s id="82">
+		 With Equations ( 2 ) and ( 3 ) , we get the interpolated language model as shown in ( 4 ) . 
+	</s>
+	
+
+	<s id="83">
+		 p(etr;) = ^freNetr ; ) +(1^A)p(re)p(e1 | re)p(e2 | re ) ( 4 ) where 0 &lt; ^ &lt; 1 . 
+	</s>
+	
+
+	<s id="84">
+		 ^ is calculated as below : 1 ^ = ^ ( 5 ) 1 1 ( )+ freq etr ; freq ( * , , r e freq ( * , re fr eq p ( re ) = ( N re , where * ) , = p(c1 | rc | etr ; ) Translation Model We simplify the translationmodel accordingthe followingtwo assumptions . 
+	</s>
+	
+
+	<s id="85">
+		 Assumption 1 : GivenanEnglish triple etr ; , and the corresponding Chinese dependency relationrc , c1 and c2 are conditionally independent . 
+	</s>
+	
+
+	<s id="86">
+		 We have : ( 6 ) etr ; , ( i ^{1,2} ) , and rc re . 
+	</s>
+	
+
+	<s id="87">
+		 rewritt en as : p(c tr ; |e tr ; =p(c1 c ) ( 7 ) Notice that p(c1|e1) and p(c2|e2) are translationprobabilities withintriples , they are differentfromthe unrestrictedprobabilities suchas the ones in IBM models 
+		<ref citStr="Brown etal. , 1993" id="33" label="CJPF" position="12158">
+			( Brown etal. , 1993 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="88">
+		 We distinguishtranslationprobability betweenhead ( p(c1|e1)) and dependant ( p(c2|e2) ) . 
+	</s>
+	
+
+	<s id="89">
+		 In the restofthe paper , we use phead ( c | e ) and pdep ( c | e ) to denote the headtranslation probability and dependanttranslationprobability respectively . 
+	</s>
+	
+
+	<s id="90">
+		 As the correspondence betweenthe same dependency relationacross Englishand Chinese is strong , we simply assume p(rc|re) =1 forthe corresponding re and rc , and p(rc | re ) = 0 forthe othercases . 
+	</s>
+	
+
+	<s id="91">
+		 phead(c1|e1 ) and pdep(c2|e2) cannotbe estimated directlybecause there is no triple-aligned corpus available . 
+	</s>
+	
+
+	<s id="92">
+		 Here , we presentanapproachto estimating these probabilities fromtwo monolingual corporabased onthe EM algorithm . 
+	</s>
+	
+
+	<s id="93">
+		 3.3 Estimation ofword translation probability using the EM algorithm Chinese andEnglishcorporaare firstparsed usingadependencyparser , andtwo dependency triple databases are generated . 
+	</s>
+	
+
+	<s id="94">
+		 The candidate English translationset ofChinese triples is generatedthrough abilingual dictionary andthe assumption ofstrongcorrespondence of dependency relations . 
+	</s>
+	
+
+	<s id="95">
+		 There is ariskthatunrelated triples inChinese andEnglish can be connected withthis method . 
+	</s>
+	
+
+	<s id="96">
+		 However , as the conditions that are used to make the connectionare quite strong ( i.e. possible wordtranslations inthe same triple structure ) , we believe thatthis risk , is notvery severe . 
+	</s>
+	
+
+	<s id="97">
+		 Then , the expectationmaximization(EM) algorithmis introducedto iteratively strengthenthe correctconnections an d weaken the incorrect connections . 
+	</s>
+	
+
+	<s id="98">
+		 EM Algorithm Accordingto section3.2 , the translation probabilities fromaChinese triple ctr ; to an Englishtriple etr ; can be computedusing the Englishtriple language model p(etr;) anda translationmodel from English to Chinese p(ctr;|etr;) . 
+	</s>
+	
+
+	<s id="99">
+		 The Englishlanguage model can be |etr ; estimated using Equation ( 4 ) and the translation model can be calculated using Equation ( 7 ) . 
+	</s>
+	
+
+	<s id="100">
+		 The translation probabilities phead ( c | e ) and pdep ( c | e ) are initially set to a uniform distribution as follows : Where ^e represents the translation set of the English word e . 
+	</s>
+	
+
+	<s id="101">
+		 Then , the word translation probabilities are estimated iteratively using the EM algorithm . 
+	</s>
+	
+
+	<s id="102">
+		 Figure 1 gives a formal description of the EM algorithm . 
+	</s>
+	
+
+	<s id="103">
+		 Figure 1 : EM algorithm The basic idea is that under the restriction of the English triple language model p(etri) and translation dictionary , we wish to estimate the translation probabilities phead ( c | e ) and pdep ( c | e ) that best explain the Chinese triple database as a translation from the English triple database . 
+	</s>
+	
+
+	<s id="104">
+		 In each iteration , the normalized triple translation probabilities are used to update the word translation probabilities . 
+	</s>
+	
+
+	<s id="105">
+		 Intuitively , after finding the most probable translation of the Chinese triple , we can collect counts for the word translation it contains . 
+	</s>
+	
+
+	<s id="106">
+		 Since the English triple language model provides context information for the disambiguation of the Chinese words , only the appropriate occurrences are counted . 
+	</s>
+	
+
+	<s id="107">
+		 Now , with the language model estimated using Equation ( 4 ) and the translation probabilities estimated using EM algorithm , we can compute the best triple translation for a given Chinese triple using Equations ( 1 ) and ( 7 ) . 
+	</s>
+	
+
+	<s id="108">
+		 4 Collocation translation extraction from two monolingual corpora This section describes how to extract collocation translation from independent monolingual corpora . 
+	</s>
+	
+
+	<s id="109">
+		 First , collocations are extracted from a monolingual triples database . 
+	</s>
+	
+
+	<s id="110">
+		 Then , collocation translations are acquired using the triple translation model obtained in section 3 . 
+	</s>
+	
+
+	<s id="111">
+		 4.1 Monolingual collocation extraction As introduced in section 2 , much work has been done to extract collocations . 
+	</s>
+	
+
+	<s id="112">
+		 Among all the measure metrics , log likelihood ratio ( LLR ) has proved to give better results 
+		<ref citStr="Duning , 1993" id="34" label="CEPF" position="16103">
+			( Duning , 1993 
+		</ref>
+		<ref citStr="Thanopoulos et al. , 2002" id="35" label="CEPF" position="16119">
+			; Thanopoulos et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="113">
+		 In this paper , we take LLR as the metric to extract collocations from a dependency triple database . 
+	</s>
+	
+
+	<s id="114">
+		 For a given Chinese triple ctri = ( c1 , rc , c2 ) , the LLR score is calculated as follows : Logl = a log a + blogb + clog c + d log d )^( a+c)log(a+c) ( b+d)log(b+d +NlogN where , a= freq ( c„ r , c2 c = freq ( * , rc , d N^a ^b ^ c. N is the total counts of all Chinese triples . 
+	</s>
+	
+
+	<s id="115">
+		 Those triples whose LLR values are larger than a given threshold are taken as a collocation . 
+	</s>
+	
+
+	<s id="116">
+		 This syntax-based collocation has the advantage that it can represent both adjacent and long distance word association . 
+	</s>
+	
+
+	<s id="117">
+		 Here , we only extract the three main types of collocation that have been mentioned in section 3.1 . 
+	</s>
+	
+
+	<s id="118">
+		 4.2 Collocation translation extraction For the acquired collocations , we try to extract their translations from the other monolingual ^1 ( c | e ) = pdep ( c | e ) = ^ ^^ 0 , otherwise phead Train language model for English triple p(etri ) ; Initialize word translation probabilities phead ( c | e ) and pdep ( c | e ) uniformly as in Equation ( 8 ) ; Iterate Set scorehead ( c | e ) and scoredep ( c | e ) to 0 for all dictionary entries ( c,e ) ; for all Chinese triples ctri = ( c1 , rc , c2 ) for all candidate English triple translations etri = ( e1 , re , e2 compute triple translation probability p(etri | ctri ) by p(etri)phead(c1 | e1)pdep(c2 | e2)p(rc | re ) end for normalize p(etri | ctri ) , so that their sum is 1 ; for all triple translation etri = ( e1 , re , e2 ) add p(etri | ctri ) to scorehead ( c1 | e1 ) add p ( etri | ctri ) to scoredep ( c2 | e2 ) endfor endfor for all translation pairs ( c , e ) set phead ( c | e ) to normalized scorehead ( c | e ) ; set pdep ( c | e ) to normalized scoredep ( c | e ) ; endfor enditerate ) ( a+b)log( a+b ( 9 ) + d )log( c + c d ) , b = freq r* ) ^ freq ( c1 , r , c2 ) freq ( c1,rc , c2 c2 ) , ) , corpus using the triple translation model trained with the method proposed in section 3 . 
+	</s>
+	
+
+	<s id="119">
+		 Our objective is to acquire collocation translations as translation knowledge for a machine translation system , so only highly reliable collocation translations are extracted . 
+	</s>
+	
+
+	<s id="120">
+		 Figure 2 describes the algorithm for Chinese-English collocation translation extraction . 
+	</s>
+	
+
+	<s id="121">
+		 It can be seen that the best English triple candidate is extracted as the translation of the given Chinese collocation only if the Chinese collocation is also the best translation candidate of the English triple . 
+	</s>
+	
+
+	<s id="122">
+		 But the English triple is not necessarily a collocation . 
+	</s>
+	
+
+	<s id="123">
+		 English collocation translations can be extracted in a similar way . 
+	</s>
+	
+
+	<s id="124">
+		 Figure 2 : Collocation translation extraction 4.3 Implementation of our approach Our English corpus is from Wall Street Journal ( 1987-1992 ) and Associated Press ( 1988-1990 ) , and the Chinese corpus is from People’s Daily ( 1980-1998 ) . 
+	</s>
+	
+
+	<s id="125">
+		 The two corpora are parsed using the NLPWin parser1 
+		<ref citStr="Heidorn , 2000" id="36" label="OEPF" position="19143">
+			( Heidorn , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="126">
+		 The statistics for three main types of dependency triples are shown in tables 1 and 2 . 
+	</s>
+	
+
+	<s id="127">
+		 Token refers to the total number of triple occurrences and Type refers to the number of unique triples in the corpus . 
+	</s>
+	
+
+	<s id="128">
+		 Statistic for the extracted Chinese collocations and the collocation translations is shown in Table 3 . 
+	</s>
+	
+
+	<s id="129">
+		 Class #Type #Token VO 1,579,783 19,168,229 AN 311,560 5,383,200 AV 546,054 9,467,103 Table 1 : Chinese dependency triples 1 The NLPWin parser is a rule-based parser developed at Microsoft research , which parses several languages including Chinese and English . 
+	</s>
+	
+
+	<s id="130">
+		 Its output can be a phrase structure parse tree or a logical form which is represented with dependency triples . 
+	</s>
+	
+
+	<s id="131">
+		 Class #Type #Token VO 1,526,747 8,943,903 AN 1,163,440 6,386,097 AV 215,110 1,034,410 Table 2 : English dependency triples Class #Type #Translated VO 99,609 28,841 AN 35,951 12,615 AV 46,515 6,176 Table 3 : Extracted Chinese collocations and E-C translation pairs The translation dictionaries we used in training and translation are combined from two dictionaries : HITDic and NLPWinDic 2 . 
+	</s>
+	
+
+	<s id="132">
+		 The final E-C dictionary contains 126,135 entries , and C-E dictionary contains 91,275 entries . 
+	</s>
+	
+
+	<s id="133">
+		 5 Experiments and evaluation To evaluate the effectiveness of our methods , two experiments have been conducted . 
+	</s>
+	
+
+	<s id="134">
+		 The first one compares our method with three other monolingual corpus based methods in triple translation . 
+	</s>
+	
+
+	<s id="135">
+		 The second one evaluates the accuracy of the acquired collocation translation . 
+	</s>
+	
+
+	<s id="136">
+		 5.1 Dependency triple translation Triple translation experiments are conducted from Chinese to English . 
+	</s>
+	
+
+	<s id="137">
+		 We randomly selected 2000 Chinese triples ( whose frequency is larger than 2 ) from the dependency triple database . 
+	</s>
+	
+
+	<s id="138">
+		 The standard translation answer sets were built manually by three linguistic experts . 
+	</s>
+	
+
+	<s id="139">
+		 For each Chinese triple , its English translation set contain English triples provided by anyone of the three linguists . 
+	</s>
+	
+
+	<s id="140">
+		 Among 2000 candidate triples , there are 101 triples that can’t be translated into English triples with same relation . 
+	</s>
+	
+
+	<s id="141">
+		 For example , the Chinese triple ( 14 , VO , *A ) should be translated into “bargain” . 
+	</s>
+	
+
+	<s id="142">
+		 The two words in triple cannot be translated separately . 
+	</s>
+	
+
+	<s id="143">
+		 We call this kind of collocation translation no-compositional translations . 
+	</s>
+	
+
+	<s id="144">
+		 Our current model cannot deal with this kind of translation . 
+	</s>
+	
+
+	<s id="145">
+		 In addition , there are also 157 error dependency triples , which result from parsing mistakes . 
+	</s>
+	
+
+	<s id="146">
+		 We filtered out these two kinds of triples and got a standard test set with 1,742 Chinese triples and 4,645 translations in total . 
+	</s>
+	
+
+	<s id="147">
+		 We compare our triple translation model with three other models on the same standard test set with the same translation dictionary . 
+	</s>
+	
+
+	<s id="148">
+		 As the 2 These two dictionaries are built by Harbin Institute of Technology and Microsoft Research respectively . 
+	</s>
+	
+
+	<s id="149">
+		 For each Chinese collocation ccol : a. Acquire the best English triple translation eˆtri using C-E triple translation model : eri =argmaxp(etri)p(ctri | etri ) etri b . 
+	</s>
+	
+
+	<s id="150">
+		 For the acquired eˆtri , calculate the best Chinese triple translation cˆtri using E-C triple translation model : ctri = arg max p(ctri) p(e ri | c ri ) c tri c . 
+	</s>
+	
+
+	<s id="151">
+		 If ccol = cˆtri , add ccol q eˆtri to collocation translation database . 
+	</s>
+	
+
+	<s id="152">
+		 baseline experiment , Model A selects the highest- frequency translation for each word in triple ; Model B selects translation with the maximal target triple probability , as proposed in 
+		<ref citStr="Dagan 1994" id="37" label="CEPF" position="22791">
+			( Dagan 1994 )
+		</ref>
+		 ; Model C selects translation using both language model and translation model , but the translation probability is simulated by a similarity score which is estimated from monolingual corpus using mutual information measure 
+		<ref citStr="Zhou et al. , 2001" id="38" label="CEPF" position="23037">
+			( Zhou et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="153">
+		 And our triple translation model is model D . 
+	</s>
+	
+
+	<s id="154">
+		 Suppose cori = ( c1 , rc , c2 ) is the Chinese triple to be translated . 
+	</s>
+	
+
+	<s id="155">
+		 The four compared models can be formally expressed as follows : Model A : emax = ( arg max ( freq ( e1 ) ) , re , arg max ( freq ( e2 e1^ Trans ( q ) e2^ Trans ( c2 ) Model B : emax = arg max p ( eori ) = arg max p ( e1 , e , e2 eori e1^Trans ( c1 ) e2^ Trans ( c2 ) Model C : emax = arg max(p(eori )×likelyhood(cori | eori ) ) eori = arg max (p(eori)×Sim(e„ c1)×Sim(e2 , c2 e1^Trans(c1) e2^Trans(c2 ) where , Sim(e , c ) is similarity score between e and c 
+		<ref citStr="Zhou et al. , 2001" id="39" label="CEPF" position="23670">
+			( Zhou et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="156">
+		 Model D ( our model ) : emax = argmax(p(eori ) ( | ) ) p c e ori ori eori = argmax(p(eori )phead(c1 | e1)pdep ( c2 | e2)p(rc | re ) ) e1^Trans(c1) e2 ^ Trans( c2 ) Table 4 : Translationresults comparison The evaluationresults on the standard testsetare showninTable 4 , where coverage is the percentages oftriples whichcan be translated . 
+	</s>
+	
+
+	<s id="157">
+		 Some triples can’t be translatedby Model B , C and D because ofthe lackofdictionarytranslations or datasparseness intriples . 
+	</s>
+	
+
+	<s id="158">
+		 In fact , the coverage of Model A is 100 % . 
+	</s>
+	
+
+	<s id="159">
+		 Itwas setto the same as others inorderto compare accuracy usingthe same test set . 
+	</s>
+	
+
+	<s id="160">
+		 The oracle score is the upperboundaccuracy underthe conditions ofcurrent translation dictionary andstandard testset . 
+	</s>
+	
+
+	<s id="161">
+		 Top Naccuracy is definedas the percentage oftriples whose selected top Ntran slations include correct translations . 
+	</s>
+	
+
+	<s id="162">
+		 We cansee thatboth Model C andModel D achieve betterresults thanModel B . 
+	</s>
+	
+
+	<s id="163">
+		 This shows thatthe translationmodel trained from monolingual corporareally helps to improve the performance oftranslation . 
+	</s>
+	
+
+	<s id="164">
+		 Ourmodel also outperforms Model C , whichdemonstrates the probabilities trainedby ourEM algorithmachieve betterperformance thanheuristic similarity scores . 
+	</s>
+	
+
+	<s id="165">
+		 Infact , ourevaluationmethodis very rigorous . 
+	</s>
+	
+
+	<s id="166">
+		 To avoid bias in evaluation , we take human translationresults as standard . 
+	</s>
+	
+
+	<s id="167">
+		 The real translation accuracy is reasonablybetterthanthe evaluation results . 
+	</s>
+	
+
+	<s id="168">
+		 Butas we can see , compared to the oracle score , the current models still have much room for improvement . 
+	</s>
+	
+
+	<s id="169">
+		 And coverage is also not high due to the limitations of the translation dictionary and the sparse data problem . 
+	</s>
+	
+
+	<s id="170">
+		 5.2 Coll ocation translation extraction 47,632 Chinese collocationtranslations are extracted with the methodproposedinsection4 . 
+	</s>
+	
+
+	<s id="171">
+		 We randomlyselected1000 translations for evaluation . 
+	</s>
+	
+
+	<s id="172">
+		 Three linguistic experts tagthe acceptability ofthe translation . 
+	</s>
+	
+
+	<s id="173">
+		 Those tran slations that are tagged as acceptable by at least two experts are evaluated as correct . 
+	</s>
+	
+
+	<s id="174">
+		 The evaluation results are shown in Table 5 . 
+	</s>
+	
+
+	<s id="175">
+		 Table 5 : Extracted collocationtran slation results We cansee thatthe extractedcollocation translations achieve amuch betterresult thantriple translation . 
+	</s>
+	
+
+	<s id="176">
+		 The average accuracy is 63.20 % and the collocations withrelation ANachieve the highestaccuracy of68.15 % . 
+	</s>
+	
+
+	<s id="177">
+		 Ifwe only consider those Chinese collocations whose translations are also Englishcollocations , we obtain an even better accuracy of72.16 % as shownin the lastrowof Table 5 . 
+	</s>
+	
+
+	<s id="178">
+		 The results justify ourideathatwe can acquire reliable translationforcollocationby makinguse oftriple translation model in two directions . 
+	</s>
+	
+
+	<s id="179">
+		 These acquiredcollocationtranslations are very valuable fortranslation knowledge building . 
+	</s>
+	
+
+	<s id="180">
+		 Manually crafting collocationtranslations canbe time-consuming an d cannot ensure high quality in a consistent way . 
+	</s>
+	
+
+	<s id="181">
+		 Our work will certainly improve the quality and efficiency of collocation translation acquisition . 
+	</s>
+	
+
+	<s id="182">
+		 Total Acceptance Accuracy ( % ) VO 590 373 63.22 AN 292 199 68.15 AV 118 60 50.85 All 1000 632 63.20 ColTrans 334 241 72.16 ) ) ) ) ) Cove- Accuracy(%) Oracle Rage(%) Top 1 Top 3 ( % ) Model A 17.21 ---- B Model C 35.88 57.74 Model D 36.91 58.58 Model 83.98 33.56 53.79 66.30 5.3 Discussion Although our approach achieves promising results , it still has some limitations to be remedied in future work . 
+	</s>
+	
+
+	<s id="183">
+		 ( 1 ) Translation dictionary extension Due to the limited coverage of the dictionary , a correct translation may not be stored in the dictionary . 
+	</s>
+	
+
+	<s id="184">
+		 This naturally limits the coverage of triple translations . 
+	</s>
+	
+
+	<s id="185">
+		 Some research has been done to expand translation dictionary using a non-parallel corpus 
+		<ref citStr="Rapp , 1999" id="40" label="CEPF" position="27534">
+			( Rapp , 1999 
+		</ref>
+		<ref citStr="Keohn and Knight , 2002" id="41" label="CEPF" position="27548">
+			; Keohn and Knight , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="186">
+		 It can be used to improve our work . 
+	</s>
+	
+
+	<s id="187">
+		 ( 2 ) Noise filtering of parsers Since we use parsers to generate dependency triple databases , this inevitably introduces some parsing mistakes . 
+	</s>
+	
+
+	<s id="188">
+		 From our triple translation test data , we can see that 7.85 % ( 157/2000 ) types of triples are error triples . 
+	</s>
+	
+
+	<s id="189">
+		 These errors will certainly influence the translation probability estimation in the training process . 
+	</s>
+	
+
+	<s id="190">
+		 We need to find an effective way to filter out mistakes and perform necessary automatic correction . 
+	</s>
+	
+
+	<s id="191">
+		 ( 3 ) Non-compositional collocation translation . 
+	</s>
+	
+
+	<s id="192">
+		 Our model is based on the dependency correspondence assumption , which assumes that a triple’s translation is also a triple . 
+	</s>
+	
+
+	<s id="193">
+		 But there are still some collocations that can’t be translated word by word . 
+	</s>
+	
+
+	<s id="194">
+		 For example , the Chinese triple ( &amp;4 , VO , )AxA ) usually be translated into “be effective” ; the English triple ( take , VO , place ) usually be translated into “R't” . 
+	</s>
+	
+
+	<s id="195">
+		 The two words in triple cannot be translated separately . 
+	</s>
+	
+
+	<s id="196">
+		 Our current model cannot deal with this kind of non-compositional collocation translation . 
+	</s>
+	
+
+	<s id="197">
+		 
+		<ref citStr="Melamed ( 1997 )" id="42" label="CEPF" position="28789">
+			Melamed ( 1997 )
+		</ref>
+		 and 
+		<ref citStr="Lin ( 1999 )" id="43" label="CEPF" position="28806">
+			Lin ( 1999 )
+		</ref>
+		 have done some research on non- compositional phrases discovery . 
+	</s>
+	
+
+	<s id="198">
+		 We will consider taking their work as a complement to our model . 
+	</s>
+	
+
+	<s id="199">
+		 6 Conclusion and future work This paper proposes a novel method to train a triple translation model and extract collocation translations from two independent monolingual corpora . 
+	</s>
+	
+
+	<s id="200">
+		 Evaluation results show that it outperforms the existing monolingual corpus based methods in triple translation , mainly due to the employment of EM algorithm in cross language translation probability estimation . 
+	</s>
+	
+
+	<s id="201">
+		 By making use of the acquired triple translation model in two directions , promising results are achieved in collocation translation extraction . 
+	</s>
+	
+
+	<s id="202">
+		 Our work also demonstrates the possibility of making full use of monolingual resources , such as corpora and parsers for bilingual tasks . 
+	</s>
+	
+
+	<s id="203">
+		 This can help overcome the bottleneck of the lack of a large-scale bilingual corpus . 
+	</s>
+	
+
+	<s id="204">
+		 This approach is also applicable to comparable corpora , which are also easier to access than bilingual corpora . 
+	</s>
+	
+
+	<s id="205">
+		 In future work , we are interested in extending our method to solving the problem of non- compositional collocation translation . 
+	</s>
+	
+
+	<s id="206">
+		 We are also interested in incorporating our triple translation model for sentence level translation . 
+	</s>
+	
+
+	<s id="207">
+		 7 Acknowledgements The authors would like to thank John Chen , Jianfeng Gao and Yunbo Cao for their valuable suggestions and comments on a preliminary draft of this paper . 
+	</s>
+	
+
+	<s id="208">
+		 References Morton Benson . 
+	</s>
+	
+
+	<s id="209">
+		 1990. Collocations and general- purpose dictionaries . 
+	</s>
+	
+
+	<s id="210">
+		 International Journal of Lexicography . 
+	</s>
+	
+
+	<s id="211">
+		 3(1):23–35 Yunbo Cao , Hang Li . 
+	</s>
+	
+
+	<s id="212">
+		 2002. Base noun phrase translation using Web data and the EM algorithm . 
+	</s>
+	
+
+	<s id="213">
+		 The 19th International Conference on Computational Linguistics . 
+	</s>
+	
+
+	<s id="214">
+		 pp. 127-133 Kenneth W. Church and Patrick Hanks . 
+	</s>
+	
+
+	<s id="215">
+		 1990. Word association norms , mutural information , and lexicography . 
+	</s>
+	
+
+	<s id="216">
+		 Computational Linguistics , 16(1):22-29 Ido Dagan and Alon Itai . 
+	</s>
+	
+
+	<s id="217">
+		 1994. Word sense disambiguation using a second language monolingual corpus . 
+	</s>
+	
+
+	<s id="218">
+		 Computational Linguistics , 20(4):563-596 Ted Dunning . 
+	</s>
+	
+
+	<s id="219">
+		 1993 . 
+	</s>
+	
+
+	<s id="220">
+		 Accurate methods for the statistics of surprise and coincidence . 
+	</s>
+	
+
+	<s id="221">
+		 Computational Linguistics . 
+	</s>
+	
+
+	<s id="222">
+		 19(1):61-74 Hiroshi Echizen-ya , Kenji Araki , Yoshi Momouchi , Koji Tochinai . 
+	</s>
+	
+
+	<s id="223">
+		 2003. Effectiveness of automatic extraction of bilingual collocations using recursive chain-link-type learning . 
+	</s>
+	
+
+	<s id="224">
+		 The 9th Machine Translation Summit . 
+	</s>
+	
+
+	<s id="225">
+		 pp. 102-109 Pascale Fung , and Yee Lo Yuen . 
+	</s>
+	
+
+	<s id="226">
+		 1998. An IR approach for translating new words from nonparallel , comparable Texts . 
+	</s>
+	
+
+	<s id="227">
+		 The 36th annual conference of the Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="228">
+		 pp. 414-420 Jianfeng Gao , Jianyun Nie , Hongzhao He , Weijun Chen , Ming Zhou . 
+	</s>
+	
+
+	<s id="229">
+		 2002. Resolving query translation ambiguity using a decaying co- occurrence model and syntactic dependence relations . 
+	</s>
+	
+
+	<s id="230">
+		 The 25th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval . 
+	</s>
+	
+
+	<s id="231">
+		 pp. 183 - 190 G. Heidorn . 
+	</s>
+	
+
+	<s id="232">
+		 2000. Intelligent writing assistant . 
+	</s>
+	
+
+	<s id="233">
+		 In R. Dale , H. Moisl , and H. Somers , editors , A Handbook of Natural Language Processing : Techniques and Applications for the Processing of Language as Text . 
+	</s>
+	
+
+	<s id="234">
+		 Marcel Dekker . 
+	</s>
+	
+
+	<s id="235">
+		 Philipp Koehn and Kevin Knight . 
+	</s>
+	
+
+	<s id="236">
+		 2000 . 
+	</s>
+	
+
+	<s id="237">
+		 Estimating word translation probabilities from unrelated monolingual corpora using the EM algorithm . 
+	</s>
+	
+
+	<s id="238">
+		 National Conference on Artificial Intelligence . 
+	</s>
+	
+
+	<s id="239">
+		 pp.711-715 Philipp Koehn and Kevin Knight . 
+	</s>
+	
+
+	<s id="240">
+		 2002. Learning a translation lexicon from monolingual corpora . 
+	</s>
+	
+
+	<s id="241">
+		 Unsupervised Lexical Acquisition : Workshop of the ACL Special Interest Group on the Lexicon . 
+	</s>
+	
+
+	<s id="242">
+		 pp. 9-16 Julian Kupiec . 
+	</s>
+	
+
+	<s id="243">
+		 1993. An algorithm for finding noun phrase correspondences in bilingual corpora . 
+	</s>
+	
+
+	<s id="244">
+		 The 31st Annual Meeting of the Association for Computational Linguistics , pp. 23-30 Cong Li , Hang Li . 
+	</s>
+	
+
+	<s id="245">
+		 2002. Word translation disambiguation using bilingual bootstrapping . 
+	</s>
+	
+
+	<s id="246">
+		 The 40th annual conference of the Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="247">
+		 pp : 343-351 Dekang Lin . 
+	</s>
+	
+
+	<s id="248">
+		 1998. Extracting collocation from Text corpora . 
+	</s>
+	
+
+	<s id="249">
+		 First Workshop on Computational Terminology . 
+	</s>
+	
+
+	<s id="250">
+		 pp. 57-63 Dekang Lin 1999 . 
+	</s>
+	
+
+	<s id="251">
+		 Automatic identification of non- compositional phrases . 
+	</s>
+	
+
+	<s id="252">
+		 The 37th Annual Meeting of the Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="253">
+		 pp.317--324 Ilya Dan Melamed . 
+	</s>
+	
+
+	<s id="254">
+		 1997. Automatic discovery of non-compositional compounds in parallel data . 
+	</s>
+	
+
+	<s id="255">
+		 The 2nd Conference on Empirical Methods in Natural Language Processing . 
+	</s>
+	
+
+	<s id="256">
+		 pp. 97~108 Brown P.F. , Pietra , S.A.D. , Pietra , V. J. D. , and Mercer R. L. 1993 . 
+	</s>
+	
+
+	<s id="257">
+		 The mathematics of machine translation : parameter estimation . 
+	</s>
+	
+
+	<s id="258">
+		 Computational Linguistics , 19(2):263-313 Reinhard Rapp . 
+	</s>
+	
+
+	<s id="259">
+		 1999. Automatic identification of word translations from unrelated English and German corpora . 
+	</s>
+	
+
+	<s id="260">
+		 The 37th annual conference of the Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="261">
+		 pp. 519-526 Violeta Seretan , Luka Nerima , Eric Wehrli . 
+	</s>
+	
+
+	<s id="262">
+		 2003. Extraction of Multi-Word collocations using syntactic bigram composition . 
+	</s>
+	
+
+	<s id="263">
+		 International Conference on Recent Advances in NLP . 
+	</s>
+	
+
+	<s id="264">
+		 pp. 424-431 Frank Smadja . 
+	</s>
+	
+
+	<s id="265">
+		 1993 . 
+	</s>
+	
+
+	<s id="266">
+		 Retrieving collocations from text : Xtract . 
+	</s>
+	
+
+	<s id="267">
+		 Computational Linguistics , 19(1):143-177 Frank Smadja , Kathleen R. Mckeown , Vasileios Hatzivassiloglou . 
+	</s>
+	
+
+	<s id="268">
+		 1996. Translation collocations for bilingual lexicons : a statistical approach . 
+	</s>
+	
+
+	<s id="269">
+		 Computational Linguistics , 22:1-38 Aristomenis Thanopoulos , Nikos Fakotakis , George Kokkinakis . 
+	</s>
+	
+
+	<s id="270">
+		 2002. Comparative evaluation of collocation extraction metrics . 
+	</s>
+	
+
+	<s id="271">
+		 The 3rd International Conference on Language Resource and Evaluation . 
+	</s>
+	
+
+	<s id="272">
+		 pp.620-625 Hua Wu , Ming Zhou . 
+	</s>
+	
+
+	<s id="273">
+		 2003. Synonymous collocation extraction using translation Information . 
+	</s>
+	
+
+	<s id="274">
+		 The 41 th annual conference of the Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="275">
+		 pp. 120-127 Kaoru Yamamoto , Yuji Matsumoto . 
+	</s>
+	
+
+	<s id="276">
+		 2000. Acquisition of phrase-level bilingual correspondence using dependency structure . 
+	</s>
+	
+
+	<s id="277">
+		 The 18th International Conference on Computational Linguistics . 
+	</s>
+	
+
+	<s id="278">
+		 pp. 933-939 Ming Zhou , Ding Yuan and Changning Huang . 
+	</s>
+	
+
+	<s id="279">
+		 2001. Improving translation selection with a new translation model trained by independent monolingual corpora . 
+	</s>
+	
+
+	<s id="280">
+		 Computaional Linguistics &amp; Chinese Language Processing . 
+	</s>
+	
+
+	<s id="281">
+		 6(1) : 1-26 
+	</s>
+	
+
+
+</acldoc>

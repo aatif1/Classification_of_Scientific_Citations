@@ -1,0 +1,819 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-3021">
+	
+
+	<s id="1">
+		 Compiling Boostexter Rules into a Finite-state Transducer Srinivas Bangalore AT&amp;T Labs–Research 180 Park Avenue Florham Park , NJ 07932 Abstract A number of NLP tasks have been effectively modeled as classification tasks using a variety of classification techniques . 
+	</s>
+	
+
+	<s id="2">
+		 Most of these tasks have been pursued in isolation with the classifier assuming unambiguous input . 
+	</s>
+	
+
+	<s id="3">
+		 In order for these techniques to be more broadly applicable , they need to be extended to apply on weighted packed representations of ambiguous input . 
+	</s>
+	
+
+	<s id="4">
+		 One approach for achieving this is to represent the classification model as a weighted finite-state transducer ( WFST ) . 
+	</s>
+	
+
+	<s id="5">
+		 In this paper , we present a compilation procedure to convert the rules resulting from an AdaBoost classifier into an WFST . 
+	</s>
+	
+
+	<s id="6">
+		 We validate the compilation technique by applying the resulting WFST on a call-routing application . 
+	</s>
+	
+
+	<s id="7">
+		 1 Introduction Many problems in Natural Language Processing ( NLP ) can be modeled as classification tasks either at the word or at the sentence level . 
+	</s>
+	
+
+	<s id="8">
+		 For example , part-of-speech tagging , named-entity identification supertagging1 , word sense disambiguation are tasks that have been modeled as classification problems at the word level . 
+	</s>
+	
+
+	<s id="9">
+		 In addition , there are problems that classify the entire sentence or document into one of a set of categories . 
+	</s>
+	
+
+	<s id="10">
+		 These problems are loosely characterized as semantic classification and have been used in many practical applications including call routing and text classification . 
+	</s>
+	
+
+	<s id="11">
+		 Most of these problems have been addressed in isolation assuming unambiguous ( one-best ) input . 
+	</s>
+	
+
+	<s id="12">
+		 Typically , however , in NLP applications these modules are chained together with each module introducing some amount of error . 
+	</s>
+	
+
+	<s id="13">
+		 In order to alleviate the errors introduced by a module , it is typical for a module to provide multiple weighted solutions ( ideally as a packed representation ) that serve as input to the next module . 
+	</s>
+	
+
+	<s id="14">
+		 For example , a speech recognizer provides a lattice of possible recognition outputs that is to be annotated with part-of-speech and 1 associating each word with a label that represents the syntactic information of the word given the context of the sentence . 
+	</s>
+	
+
+	<s id="15">
+		 named-entities . 
+	</s>
+	
+
+	<s id="16">
+		 Thus classification approaches need to be extended to be applicable on weighted packed representations of ambiguous input represented as a weighted lattice . 
+	</s>
+	
+
+	<s id="17">
+		 The research direction we adopt here is to compile the model of a classifier into a weighted finite-state transducer ( WFST ) so that it can compose with the input lattice . 
+	</s>
+	
+
+	<s id="18">
+		 Finite state models have been extensively applied to many aspects of language processing including , speech recognition 
+		<ref citStr="Pereira and Riley , 1997" id="1" label="CEPF" position="2841">
+			( Pereira and Riley , 1997 )
+		</ref>
+		 , phonology 
+		<ref citStr="Kaplan and Kay , 1994" id="2" label="CEPF" position="2879">
+			( Kaplan and Kay , 1994 )
+		</ref>
+		 , morphology 
+		<ref citStr="Koskenniemi , 1984" id="3" label="CEPF" position="2915">
+			( Koskenniemi , 1984 )
+		</ref>
+		 , chunking 
+		<ref citStr="Abney , 1991" id="4" label="CEPF" position="2927">
+			( Abney , 1991 
+		</ref>
+		<ref citStr="Bangalore and Joshi , 1999" id="5" label="CEPF" position="2942">
+			; Bangalore and Joshi , 1999 )
+		</ref>
+		 , parsing 
+		<ref citStr="Roche , 1999" id="6" label="CEPF" position="2983">
+			( Roche , 1999 
+		</ref>
+		<ref citStr="Oflazer , 1999" id="7" label="CEPF" position="2998">
+			; Oflazer , 1999 )
+		</ref>
+		 and machine translation 
+		<ref citStr="Vilar et al. , 1999" id="8" label="CEPF" position="3041">
+			( Vilar et al. , 1999 
+		</ref>
+		<ref citStr="Bangalore and Riccardi , 2000" id="9" label="CEPF" position="3063">
+			; Bangalore and Riccardi , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="19">
+		 Finite- state models are attractive mechanisms for language processing since they ( a ) provide an efficient data structure for representing weighted ambiguous hypotheses ( b ) generally effective for decoding ( c ) associated with a calculus for composing models which allows for straightforward integration of constraints from various levels of speech and language processing.2 In this paper , we describe the compilation process for a particular classifier model into an WFST and validate the accuracy of the compilation process on a one-best input in a call-routing task . 
+	</s>
+	
+
+	<s id="20">
+		 We view this as a first step toward using a classification model on a lattice input . 
+	</s>
+	
+
+	<s id="21">
+		 The outline of the paper is as follows . 
+	</s>
+	
+
+	<s id="22">
+		 In Section 2 , we review the classification approach to resolving ambiguity in NLP tasks and in Section 3 we discuss the boosting approach to classification . 
+	</s>
+	
+
+	<s id="23">
+		 In Section 4 we describe the compilation of the boosting model into an WFST and validate the result of this compilation using a call- routing task . 
+	</s>
+	
+
+	<s id="24">
+		 2 Resolving Ambiguity by Classification In general , we can characterize all these tagging problems as search problems formulated as shown 2Furthermore , software implementing the finite-state calculus is available for research purposes . 
+	</s>
+	
+
+	<s id="25">
+		 in Equation ( 1 ) . 
+	</s>
+	
+
+	<s id="26">
+		 We notate to be the input vocabulary , to be the vocabulary of tags , an word input sequence as ( ) and tag sequence as ( ) . 
+	</s>
+	
+
+	<s id="27">
+		 We are interested in , the most likely tag sequence out of the possible tag sequences ( ) that can be associated to . 
+	</s>
+	
+
+	<s id="28">
+		 ( 1 ) Following the techniques of Hidden Markov Models ( HMM ) applied to speech recognition , these tagging problems have been previously modeled indirectly through the transformation of the Bayes rule as in Equation 2 . 
+	</s>
+	
+
+	<s id="29">
+		 The problem is then approximated for sequence classification by a k -order Markov model as shown in Equation ( 3 ) . 
+	</s>
+	
+
+	<s id="30">
+		 ( 3 ) Although the HMM approach to tagging can easily be represented as a WFST , it has a drawback in that the use of large contexts and richer features results in sparseness leading to unreliable estimation of the parameters of the model . 
+	</s>
+	
+
+	<s id="31">
+		 An alternate approach to arriving at is to model Equation 1 directly . 
+	</s>
+	
+
+	<s id="32">
+		 There are many examples in recent literature 
+		<ref citStr="Breiman et al. , 1984" id="10" label="CEPF" position="5436">
+			( Breiman et al. , 1984 
+		</ref>
+		<ref citStr="Freund and Schapire , 1996" id="11" label="CEPF" position="5460">
+			; Freund and Schapire , 1996 
+		</ref>
+		<ref citStr="Roth , 1998" id="12" label="CEPF" position="5489">
+			; Roth , 1998 
+		</ref>
+		<ref citStr="Lafferty et al. , 2001" id="13" label="CEPF" position="5503">
+			; Lafferty et al. , 2001 
+		</ref>
+		<ref citStr="McCallum et al. , 2000" id="14" label="CEPF" position="5528">
+			; McCallum et al. , 2000 )
+		</ref>
+		 which take this approach and are well equipped to handle large number of features . 
+	</s>
+	
+
+	<s id="33">
+		 The general framework for these approaches is to learn a model from pairs of associations of the form ( ) where is a feature representation of and ( ) is one of the members of the tag set . 
+	</s>
+	
+
+	<s id="34">
+		 Although these approaches have been more effective than HMMs , there have not been many attempts to represent these models as a WFST , with the exception of the work on compiling decision trees 
+		<ref citStr="Sproat and Riley , 1996" id="15" label="CEPF" position="6068">
+			( Sproat and Riley , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="35">
+		 In this paper , we consider the boosting 
+		<ref citStr="Freund and Schapire , 1996" id="16" label="CEPF" position="6151">
+			( Freund and Schapire , 1996 )
+		</ref>
+		 approach ( which outperforms decision trees ) to Equation 1 and present a technique for compiling the classifier model into a WFST . 
+	</s>
+	
+
+	<s id="36">
+		 3 Boostexter Boostexter is a machine learning tool which is based on the boosting family of algorithms first proposed in 
+		<ref citStr="Freund and Schapire , 1996" id="17" label="CEPF" position="6445">
+			( Freund and Schapire , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="37">
+		 The basic idea of boosting is to build a highly accurate classifier by combining many “weak” or “simple” base learner , each one of which may only be moderately accurate . 
+	</s>
+	
+
+	<s id="38">
+		 A weak learner or a rule is a triple , which tests a predicate ( ^ ) of the input ( ) and assigns a weight ( ) for each member ( ) of if is true in and assigns a weight ( ) otherwise . 
+	</s>
+	
+
+	<s id="39">
+		 It is assumed that a pool of such weak learners can be constructed easily . 
+	</s>
+	
+
+	<s id="40">
+		 From the pool of weak learners , the selection the weak learner to be combined is performed iteratively . 
+	</s>
+	
+
+	<s id="41">
+		 At each iteration , a weak learner is selected that minimizes a prediction error loss function on the training corpus which takes into account the weight assigned to each training example . 
+	</s>
+	
+
+	<s id="42">
+		 Intuitively , the weights encode how important it is that correctly classifies each training example . 
+	</s>
+	
+
+	<s id="43">
+		 Generally , the examples that were most often misclassified by the preceding base classifiers will be given the most weight so as to force the base learner to focus on the “hardest” examples . 
+	</s>
+	
+
+	<s id="44">
+		 As described in 
+		<ref citStr="Schapire and Singer , 1999" id="18" label="CEPF" position="7597">
+			( Schapire and Singer , 1999 )
+		</ref>
+		 , Boostexter uses confidence rated classifiers that output a real number whose sign ( -1 or +1 ) is inter- preted as a prediction , and whose magnitude is a measure of “confidence” . 
+	</s>
+	
+
+	<s id="45">
+		 The iterative algorithm for combining weak learners stops after a pre- specified number of iterations or when the training set accuracy saturates . 
+	</s>
+	
+
+	<s id="46">
+		 3.1 Weak Learners In the case of text classification applications , the set of possible weak learners is instantiated from simple -grams of the input text ( ) . 
+	</s>
+	
+
+	<s id="47">
+		 Thus , if is a function to produce all -grams up to of its argument , then the set of predicates for the weak learners is . 
+	</s>
+	
+
+	<s id="48">
+		 For word-level classification problems , which take into account the left and right context , we extend the set of weak learners created from the word features with those created from the left and right context features . 
+	</s>
+	
+
+	<s id="49">
+		 Thus features of the left context ( ) , features of the right context ( ) and the features of the word itself ( ) constitute the features at position . 
+	</s>
+	
+
+	<s id="50">
+		 The predicates for the pool of weak learners are created from these set of features and are typically -grams on the feature representations . 
+	</s>
+	
+
+	<s id="51">
+		 Thus the set of predicates resulting from the word level features is , from left context features is and from right context features is . 
+	</s>
+	
+
+	<s id="52">
+		 The set of predicates for the weak learners for word level classification problems is :. 3.2 Decoding The result of training is a set of selected rules ( ) . 
+	</s>
+	
+
+	<s id="53">
+		 The output of the final classifier is , i.e. the sum of confidence of all classifiers . 
+	</s>
+	
+
+	<s id="54">
+		 The real-valued predictions of the final classifier can be converted ( 2 ) into probabilities by a logistic function transform ; that is ( 4 ) Thus the most likely tag sequence is deter- mined as in Equation 5 , where is computed using Equation 4. ( 5 ) To date , decoding using the boosted rule sets is restricted to cases where the test input is unambiguous such as strings or words ( not word graphs ) . 
+	</s>
+	
+
+	<s id="55">
+		 By compiling these rule sets into WFSTs , we intend to extend their applicability to packed representations of ambiguous input such as word graphs . 
+	</s>
+	
+
+	<s id="56">
+		 4 Compilation We note that the weak learners selected at the end of the training process can be partitioned into one of three types based on the features that the learners test . 
+	</s>
+	
+
+	<s id="57">
+		 We use the representation of context-dependent rewrite rules 
+		<ref citStr="Johnson , 1972" id="19" label="CEPF" position="10029">
+			( Johnson , 1972 
+		</ref>
+		<ref citStr="Kaplan and Kay , 1994" id="20" label="CEPF" position="10046">
+			; Kaplan and Kay , 1994 )
+		</ref>
+		 and their weighted version 
+		<ref citStr="Mohri and Sproat , 1996" id="21" label="CEPF" position="10126">
+			( Mohri and Sproat , 1996 )
+		</ref>
+		 to represent these weak learners . 
+	</s>
+	
+
+	<s id="58">
+		 The ( weighted ) context-dependent rewrite rules have the general form ( 6 ) where , , and are regular expressions on the alphabet of the rules . 
+	</s>
+	
+
+	<s id="59">
+		 The interpretation of these rules are as follows : Rewrite by when it is preceded by and followed by . 
+	</s>
+	
+
+	<s id="60">
+		 Furthermore , can be extended to a rational power series which are weighted regular expressions where the weights encode preferences over the paths in 
+		<ref citStr="Mohri and Sproat , 1996" id="22" label="CEPF" position="10616">
+			( Mohri and Sproat , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="61">
+		 Each weak learner can then be viewed as a set of weighted rewrite rules mapping the input word into each member ( ) with a weight when the predicate of the weak learner is true and with weight when the predicate of the weak learner is false . 
+	</s>
+	
+
+	<s id="62">
+		 The translation between the three types of weak learners and the weighted context-dependency rules is shown in Table 13 . 
+	</s>
+	
+
+	<s id="63">
+		 We note that these rules apply left to right on an input and do not repeatedly apply at the same point in an input since the output vocabulary would typically be disjoint from the input vocabulary . 
+	</s>
+	
+
+	<s id="64">
+		 We use the technique described in 
+		<ref citStr="Mohri and Sproat , 1996" id="23" label="CEPF" position="11280">
+			( Mohri and Sproat , 1996 )
+		</ref>
+		 to compile each weighted context- dependency rules into an WFST . 
+	</s>
+	
+
+	<s id="65">
+		 The compilation is accomplished by the introduction of context symbols which are used as markers to identify locations for rewrites of with . 
+	</s>
+	
+
+	<s id="66">
+		 After the rewrites , the markers are deleted . 
+	</s>
+	
+
+	<s id="67">
+		 The compilation process is represented as a composition of five transducers . 
+	</s>
+	
+
+	<s id="68">
+		 The WFSTs resulting from the compilation of each selected weak learner ( ) are unioned to create the WFST to be used for decoding . 
+	</s>
+	
+
+	<s id="69">
+		 The weights of paths with the same input and output labels are added during the union operation . 
+	</s>
+	
+
+	<s id="70">
+		 ( 7 ) We note that the due to the difference in the nature of the learning algorithm , compiling decision trees results in a composition of WFSTs representing the rules on the path from the root to a leaf node 
+		<ref citStr="Sproat and Riley , 1996" id="24" label="CEPF" position="12135">
+			( Sproat and Riley , 1996 )
+		</ref>
+		 , while compiling boosted rules results in a union of WFSTs , which is expected to result in smaller transducers . 
+	</s>
+	
+
+	<s id="71">
+		 In order to apply the WFST for decoding , we simply compose the model with the input represented as an WFST ( ) and search for the best path ( if we are interested in the single best classification result ) . 
+	</s>
+	
+
+	<s id="72">
+		 ( 8 ) We have compiled the rules resulting from boostexter trained on transcriptions of speech utterances from a call routing task with a vocabulary ( ) of 2912 and 40 classes ( ) . 
+	</s>
+	
+
+	<s id="73">
+		 There were a total of 1800 rules comprising of 900 positive rules and their negative counterparts . 
+	</s>
+	
+
+	<s id="74">
+		 The WFST resulting from compiling these rules has a 14372 states and 5.7 million arcs . 
+	</s>
+	
+
+	<s id="75">
+		 The accuracy of the WFST on a random set of 7013 sentences was the same ( 85 % accuracy ) as the accuracy with the decoder that accompanies the boostexter program . 
+	</s>
+	
+
+	<s id="76">
+		 This validates the compilation procedure . 
+	</s>
+	
+
+	<s id="77">
+		 5 Conclusions Classification techniques have been used to effectively resolve ambiguity in many natural language 3For ease of exposition , we show the positive and negative sides of a rule each resulting in a context dependency rule . 
+	</s>
+	
+
+	<s id="78">
+		 However , we can represent them in the form of a single context dependency rule which is ommitted here due to space constraints . 
+	</s>
+	
+
+	<s id="79">
+		 :test features of the word :test features of the left context :test features of the right context Type of Weak Learner Weak Learner Weighted Context Dependency Rule :if WORD== then else :if LeftContext== then else :if RightContext== then else Table 1 : Translation of the three types of weak learners into weighted context-dependency rules . 
+	</s>
+	
+
+	<s id="80">
+		 processing tasks . 
+	</s>
+	
+
+	<s id="81">
+		 However , most of these tasks have been solved in isolation and hence assume an unambiguous input . 
+	</s>
+	
+
+	<s id="82">
+		 In this paper , we extend the utility of the classification based techniques so as to be applicable on packed representations such as word graphs . 
+	</s>
+	
+
+	<s id="83">
+		 We do this by compiling the rules resulting from an AdaBoost classifier into a finite-state transducer . 
+	</s>
+	
+
+	<s id="84">
+		 The resulting finite-state transducer can then be used as one part of a finite-state decoding chain . 
+	</s>
+	
+
+	<s id="85">
+		 References S. Abney . 
+	</s>
+	
+
+	<s id="86">
+		 1991. Parsing by chunks . 
+	</s>
+	
+
+	<s id="87">
+		 In Robert Berwick , Steven Abney , and Carol Tenny , editors , Principle-based parsing . 
+	</s>
+	
+
+	<s id="88">
+		 Kluwer Academic Publishers . 
+	</s>
+	
+
+	<s id="89">
+		 S. Bangalore and A. K. Joshi . 
+	</s>
+	
+
+	<s id="90">
+		 1999. Supertagging : An approach to almost parsing . 
+	</s>
+	
+
+	<s id="91">
+		 Computational Linguistics , 25(2) . 
+	</s>
+	
+
+	<s id="92">
+		 S. Bangalore and G. Riccardi . 
+	</s>
+	
+
+	<s id="93">
+		 2000. Stochastic finite-state models for spoken language machine translation . 
+	</s>
+	
+
+	<s id="94">
+		 In Proceedings of the Workshop on Embedded Machine Translation Systems . 
+	</s>
+	
+
+	<s id="95">
+		 L. Breiman , J.H. Friedman , R.A. Olshen , and C.J. Stone . 
+	</s>
+	
+
+	<s id="96">
+		 1984. Classification and Regression Trees . 
+	</s>
+	
+
+	<s id="97">
+		 Wadsworth &amp; Brooks , Pacific Grove , CA . 
+	</s>
+	
+
+	<s id="98">
+		 Y. Freund and R. E. Schapire . 
+	</s>
+	
+
+	<s id="99">
+		 1996. Experiments with a new boosting alogrithm . 
+	</s>
+	
+
+	<s id="100">
+		 In Machine Learning : Proceedings of the Thirteenth International Conference , pages 148–156 . 
+	</s>
+	
+
+	<s id="101">
+		 C.D. Johnson . 
+	</s>
+	
+
+	<s id="102">
+		 1972. Formal Aspects of Phonological Description . 
+	</s>
+	
+
+	<s id="103">
+		 Mouton , The Hague . 
+	</s>
+	
+
+	<s id="104">
+		 R. M. Kaplan and M. Kay . 
+	</s>
+	
+
+	<s id="105">
+		 1994. Regular models of phonological rule systems . 
+	</s>
+	
+
+	<s id="106">
+		 Computational Linguistics , 20(3):331–378 . 
+	</s>
+	
+
+	<s id="107">
+		 K. K. Koskenniemi . 
+	</s>
+	
+
+	<s id="108">
+		 1984 . 
+	</s>
+	
+
+	<s id="109">
+		 Two-level morphology : a general computation model for word -form recognition and production . 
+	</s>
+	
+
+	<s id="110">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="111">
+		 thesis , University of Helsinki . 
+	</s>
+	
+
+	<s id="112">
+		 J. Lafferty , A. McCallum , and F. Pereira . 
+	</s>
+	
+
+	<s id="113">
+		 2001. Conditional random fields : Probabilistic models for segmenting and labeling sequence data . 
+	</s>
+	
+
+	<s id="114">
+		 In In Proceedings of ICML , San Francisco , CA . 
+	</s>
+	
+
+	<s id="115">
+		 A. McCallum , D. Freitag , and F. Pereira . 
+	</s>
+	
+
+	<s id="116">
+		 2000. Maximum entropy markov models for information extraction and segmentation . 
+	</s>
+	
+
+	<s id="117">
+		 In In Proceedings of ICML , Stanford , CA . 
+	</s>
+	
+
+	<s id="118">
+		 M. Mohri and R. Sproat . 
+	</s>
+	
+
+	<s id="119">
+		 1996. An efficient compiler for weighted rewrite rules . 
+	</s>
+	
+
+	<s id="120">
+		 In Proceedings ofACL , pages 231–238 . 
+	</s>
+	
+
+	<s id="121">
+		 K. Oflazer . 
+	</s>
+	
+
+	<s id="122">
+		 1999. Dependency parsing with an extended finite state approach . 
+	</s>
+	
+
+	<s id="123">
+		 In Proceedings of the 37th Annual Meeting of the Association for Computational Linguistics , Maryland , USA , June . 
+	</s>
+	
+
+	<s id="124">
+		 F.C.N. Pereira and M.D. Riley . 
+	</s>
+	
+
+	<s id="125">
+		 1997. Speech recognition by composition of weighted finite automata . 
+	</s>
+	
+
+	<s id="126">
+		 In E. Roche and Schabes Y. , editors , Finite State Devices for Natural Language Processing , pages 431–456 . 
+	</s>
+	
+
+	<s id="127">
+		 MIT Press , Cambridge , Massachusetts . 
+	</s>
+	
+
+	<s id="128">
+		 E. Roche . 
+	</s>
+	
+
+	<s id="129">
+		 1999. Finite state transducers : parsing free and frozen sentences . 
+	</s>
+	
+
+	<s id="130">
+		 In Andr´as Kornai , editor , Extended Finite State Models of Language . 
+	</s>
+	
+
+	<s id="131">
+		 Cambridge University Press . 
+	</s>
+	
+
+	<s id="132">
+		 D. Roth . 
+	</s>
+	
+
+	<s id="133">
+		 1998. Learning to resolve natural language ambiguities : A unified approach . 
+	</s>
+	
+
+	<s id="134">
+		 In Proceedings ofAAAI . 
+	</s>
+	
+
+	<s id="135">
+		 R.E. Schapire and Y . 
+	</s>
+	
+
+	<s id="136">
+		 Singer . 
+	</s>
+	
+
+	<s id="137">
+		 1999. Improved boosting algorithms using confidence-rated predictions . 
+	</s>
+	
+
+	<s id="138">
+		 Machine Learning , 37(3):297–336 , December . 
+	</s>
+	
+
+	<s id="139">
+		 R. Sproat and M. Riley . 
+	</s>
+	
+
+	<s id="140">
+		 1996. Compilation of weighted finite-state transducers from decision trees . 
+	</s>
+	
+
+	<s id="141">
+		 In Proceedings ofACL , pages 215–222 . 
+	</s>
+	
+
+	<s id="142">
+		 J. Vilar , V.M. Jim´enez , J. Amengual , A. Castellanos , D. Llorens , and E. Vidal . 
+	</s>
+	
+
+	<s id="143">
+		 1999. Text and speech translation by means of subsequential transducers . 
+	</s>
+	
+
+	<s id="144">
+		 In Andr´as Kornai , editor , Extened Finite State Models of Language . 
+	</s>
+	
+
+	<s id="145">
+		 Cambridge University Press . 
+	</s>
+	
+
+
+</acldoc>

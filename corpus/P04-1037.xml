@@ -1,0 +1,1563 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1037">
+	
+
+	<s id="1">
+		 Unsupervised Sense Disambiguation Using Bilingual Probabilistic Models Indrajit Bhattacharya Dept. of Computer Science University of Maryland College Park , MD , USA indrajit@cs.umd.edu Lise Getoor Dept. of Computer Science University of Maryland College Park , MD , USA getoor@cs.umd.edu Yoshua Bengio Dept. IRO Universit´e de Montr´eal Montr´eal , Qu´ebec , Canada bengioy@IRO.UMontreal.CA Abstract We describe two probabilistic models for unsupervised word-sense disambiguation using parallel corpora . 
+	</s>
+	
+
+	<s id="2">
+		 The first model , which we call the Sense model , builds on the work of 
+		<ref citStr="Diab and Resnik ( 2002 )" id="1" label="CERF" position="620">
+			Diab and Resnik ( 2002 )
+		</ref>
+		 that uses both parallel text and a sense inventory for the target language , and recasts their approach in a probabilistic framework . 
+	</s>
+	
+
+	<s id="3">
+		 The second model , which we call the Concept model , is a hierarchical model that uses a concept latent variable to relate different language specific sense labels . 
+	</s>
+	
+
+	<s id="4">
+		 We show that both models improve performance on the word sense disambiguation task over previous unsupervised approaches , with the Concept model showing the largest improvement . 
+	</s>
+	
+
+	<s id="5">
+		 Furthermore , in learning the Concept model , as a by-product , we learn a sense inventory for the parallel language . 
+	</s>
+	
+
+	<s id="6">
+		 1 Introduction Word sense disambiguation ( WSD ) has been a central question in the computational linguistics community since its inception . 
+	</s>
+	
+
+	<s id="7">
+		 WSD is fundamental to natural language understanding and is a useful intermediate step for many other language processing tasks 
+		<ref citStr="Ide and Veronis , 1998" id="2" label="CEPF" position="1562">
+			( Ide and Veronis , 1998 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="8">
+		 Many recent approaches make use of ideas from statistical machine learning ; the availability of shared sense definitions ( e.g. WordNet 
+		<ref citStr="Fellbaum , 1998" id="3" label="CEPF" position="1730">
+			( Fellbaum , 1998 )
+		</ref>
+		 ) and recent international competitions 
+		<ref citStr="Kilgarrif and Rosenzweig , 2000" id="4" label="CEPF" position="1806">
+			( Kilgarrif and Rosenzweig , 2000 )
+		</ref>
+		 have enabled researchers to compare their results . 
+	</s>
+	
+
+	<s id="9">
+		 Supervised approaches which make use of a small hand-labeled training set 
+		<ref citStr="Bruce and Wiebe , 1994" id="5" label="CJPN" position="1942">
+			( Bruce and Wiebe , 1994 
+		</ref>
+		<ref citStr="Yarowsky , 1993" id="6" label="CJPN" position="1967">
+			; Yarowsky , 1993 )
+		</ref>
+		 typically outperform unsupervised approaches 
+		<ref citStr="Agirre et al. , 2000" id="7" label="CEPF" position="2032">
+			( Agirre et al. , 2000 
+		</ref>
+		<ref citStr="Litkowski , 2000" id="8" label="CEPF" position="2055">
+			; Litkowski , 2000 
+		</ref>
+		<ref citStr="Lin , 2000" id="9" label="CEPF" position="2074">
+			; Lin , 2000 
+		</ref>
+		<ref citStr="Resnik , 1997" id="10" label="CEPF" position="2087">
+			; Resnik , 1997 
+		</ref>
+		<ref citStr="Yarowsky , 1992" id="11" label="CEPF" position="2103">
+			; Yarowsky , 1992 
+		</ref>
+		<ref citStr="Yarowsky , 1995" id="12" label="CEPF" position="2121">
+			; Yarowsky , 1995 )
+		</ref>
+		 , but tend to be tuned to a specific corpus and are constrained by scarcity of labeled data . 
+	</s>
+	
+
+	<s id="10">
+		 In an effort to overcome the difficulty of finding sense-labeled training data , researchers have begun investigating unsupervised approaches to word- sense disambiguation . 
+	</s>
+	
+
+	<s id="11">
+		 For example , the use of par allel corpora for sense tagging can help with word sense disambiguation 
+		<ref citStr="Brown et al. , 1991" id="13" label="CEPF" position="2528">
+			( Brown et al. , 1991 
+		</ref>
+		<ref citStr="Dagan , 1991" id="14" label="CEPF" position="2550">
+			; Dagan , 1991 
+		</ref>
+		<ref citStr="Dagan and Itai , 1994" id="15" label="CEPF" position="2565">
+			; Dagan and Itai , 1994 
+		</ref>
+		<ref citStr="Ide , 2000" id="16" label="CEPF" position="2589">
+			; Ide , 2000 
+		</ref>
+		<ref citStr="Resnik and Yarowsky , 1999" id="17" label="CEPF" position="2602">
+			; Resnik and Yarowsky , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="12">
+		 As an illustration of sense disambiguation from translation data , when the English word bank is translated to Spanish as orilla , it is clear that we are referring to the shore sense of bank , rather than the financial institution sense . 
+	</s>
+	
+
+	<s id="13">
+		 The main inspiration for our work is 
+		<ref citStr="Diab and Resnik ( 2002 )" id="18" label="CERF" position="2954">
+			Diab and Resnik ( 2002 )
+		</ref>
+		 , who use translations and linguistic knowledge for disambiguation and automatic sense tagging . 
+	</s>
+	
+
+	<s id="14">
+		 
+		<ref citStr="Bengio and Kermorvant ( 2003 )" id="19" label="CEPF" position="3091">
+			Bengio and Kermorvant ( 2003 )
+		</ref>
+		 present a graphical model that is an attempt to formalize probabilistically the main ideas in 
+		<ref citStr="Diab and Resnik ( 2002 )" id="20" label="CEPF" position="3210">
+			Diab and Resnik ( 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="15">
+		 They assume the same semantic hierarchy ( in particular , WordNet ) for both the languages and assign English words as well as their translations to WordNet synsets . 
+	</s>
+	
+
+	<s id="16">
+		 Here we present two variants of the graphical model in 
+		<ref citStr="Bengio and Kermorvant ( 2003 )" id="21" label="CERF" position="3483">
+			Bengio and Kermorvant ( 2003 )
+		</ref>
+		 , along with a method to discover a cluster structure for the Spanish senses . 
+	</s>
+	
+
+	<s id="17">
+		 We also present empirical word sense disambiguation results which demonstrate the gain brought by this probabilistic approach , even while only using the translated word to provide disambiguation information . 
+	</s>
+	
+
+	<s id="18">
+		 Our first generative model , the Sense Model , groups semantically related words from the two languages into senses , and translations are generated by probabilistically choosing a sense and then words from the sense . 
+	</s>
+	
+
+	<s id="19">
+		 We show that this improves on the results of 
+		<ref citStr="Diab and Resnik ( 2002 )" id="22" label="CEPN" position="4088">
+			Diab and Resnik ( 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="20">
+		 Our next model , which we call the Concept Model , aims to improve on the above sense structure by modeling the senses of the two languages separately and relating senses from both languages through a higher-level , semantically less precise concept . 
+	</s>
+	
+
+	<s id="21">
+		 The intuition here is that not all of the senses that are possible for a word will be relevant for a concept . 
+	</s>
+	
+
+	<s id="22">
+		 In other words , the distribution over the senses of a word given a concept can be expected to have a lower entropy than the distribution over the senses of the word in the language as a whole . 
+	</s>
+	
+
+	<s id="23">
+		 In this paper , we look at translation data as a re- source for identification of semantic concepts . 
+	</s>
+	
+
+	<s id="24">
+		 Note that actual translated word pairs are not always good matches semantically , because the translation process is not on a word by word basis . 
+	</s>
+	
+
+	<s id="25">
+		 This introduces a kind of noise in the translation , and an additional hidden variable to represent the shared meaning helps to take it into account . 
+	</s>
+	
+
+	<s id="26">
+		 Improved performance over the Sense Model validates the use of concepts in modeling translations . 
+	</s>
+	
+
+	<s id="27">
+		 An interesting by-product of the Concept Model is a semantic structure for the secondary language . 
+	</s>
+	
+
+	<s id="28">
+		 This is automatically constructed using background knowledge of the structure for the primary language and the observed translation pairs . 
+	</s>
+	
+
+	<s id="29">
+		 In the model , words sharing the same sense are synonyms while senses under the same concept are semantically related in the corpus . 
+	</s>
+	
+
+	<s id="30">
+		 An investigation of the model trained over real data reveals that it can indeed group related words together . 
+	</s>
+	
+
+	<s id="31">
+		 It may be noted that predicting senses from translations need not necessarily be an end result in itself . 
+	</s>
+	
+
+	<s id="32">
+		 As we have already mentioned , lack of labeled data is a severe hindrance for supervised approaches to word sense disambiguation . 
+	</s>
+	
+
+	<s id="33">
+		 At the same time , there is an abundance of bilingual documents and many more can potentially be mined from the web. . 
+	</s>
+	
+
+	<s id="34">
+		 It should be possible using our approach to ( noisily ) assign sense tags to words in such documents , thus providing huge resources of labeled data for supervised approaches to make use of . 
+	</s>
+	
+
+	<s id="35">
+		 For the rest of this paper , for simplicity we will refer to the primary language of the parallel document as English and to the secondary as Spanish . 
+	</s>
+	
+
+	<s id="36">
+		 The paper is organized as follows . 
+	</s>
+	
+
+	<s id="37">
+		 We begin by formally describing the models in Section 2 . 
+	</s>
+	
+
+	<s id="38">
+		 We describe our approach for constructing the senses and concepts in Section 3 . 
+	</s>
+	
+
+	<s id="39">
+		 Our algorithm for learning the model parameters is described in Section 4 . 
+	</s>
+	
+
+	<s id="40">
+		 We present experimental results in Section 5 and our analysis in Section 6 . 
+	</s>
+	
+
+	<s id="41">
+		 We conclude in Section 7 . 
+	</s>
+	
+
+	<s id="42">
+		 2 Probabilistic Models for Parallel Corpora We motivate the use of a probabilistic model by illustrating that disambiguation using translations is possible even when a word has a unique translation . 
+	</s>
+	
+
+	<s id="43">
+		 For example , according to WordNet , the word prevention has two senses in English , which may be abbreviated as hindrance ( the act of hindering or obstruction ) and control ( by prevention , e.g. the control of a disease ) . 
+	</s>
+	
+
+	<s id="44">
+		 It has a single translation in our corpus , that being prevenci´on . 
+	</s>
+	
+
+	<s id="45">
+		 The first English sense , hindrance , also has other words like bar that occur in the corpus and all of these other words are observed to be translated in Spanish as the word obstrucci´on . 
+	</s>
+	
+
+	<s id="46">
+		 In addition , none of these other words translate to prevenci´on . 
+	</s>
+	
+
+	<s id="47">
+		 So it is not unreasonable to suppose that the intended sense for prevention when translated as prevenci´on is different from that of bar . 
+	</s>
+	
+
+	<s id="48">
+		 Therefore , the intended sense is most likely to be control . 
+	</s>
+	
+
+	<s id="49">
+		 At the very heart of the reasoning is probabilistic analysis and independence assumptions . 
+	</s>
+	
+
+	<s id="50">
+		 We are assuming that senses and words have certain occurrence probabilities and that the choice of the word can be made independently once the sense has been decided . 
+	</s>
+	
+
+	<s id="51">
+		 This is the flavor that we look to add to modeling parallel documents for sense disambiguation . 
+	</s>
+	
+
+	<s id="52">
+		 We formally describe the two generative models that use these ideas in Subsections 2.2 and 2.3 . 
+	</s>
+	
+
+	<s id="53">
+		 Figure 1 : Graphical Representations of the a ) Sense Model and the b ) Concept Model 2.1 Notation Throughout , we use uppercase letters to denote random variables and lowercase letters to denote specific instances of the random variables . 
+	</s>
+	
+
+	<s id="54">
+		 A translation pair is ( , ) where the subscript and indicate the primary language ( English ) and the secondary language ( Spanish ) . 
+	</s>
+	
+
+	<s id="55">
+		 and . 
+	</s>
+	
+
+	<s id="56">
+		 We use the shorthand for by ideas in 
+		<ref citStr="Diab and Resnik ( 2002 )" id="23" label="CERF" position="8877">
+			Diab and Resnik ( 2002 )
+		</ref>
+		 and 
+		<ref citStr="Bengio and Kermorvant ( 2003 )" id="24" label="CERF" position="8912">
+			Bengio and Kermorvant ( 2003 )
+		</ref>
+		 , that the English word and the Spanish word in a translation pair share the same precise sense . 
+	</s>
+	
+
+	<s id="57">
+		 In other words , the set of sense labels for the words in the two languages is the same and may be collapsed into one set of senses that is responsible for both English and Spanish words and the single latent variable in the model is the sense label for both words and . 
+	</s>
+	
+
+	<s id="58">
+		 We also make the assumption that the words in both languages are conditionally independent given the sense label . 
+	</s>
+	
+
+	<s id="59">
+		 The generative parameters for the model are the prior a ) Sense Model b ) Concept Model concept sense word We Ws T Te Ts We C Ws. 2.2 The Sense Model The Sense Model makes the assumption , inspired probability of each sense and the conditional probabilities and of each word and in the two languages given the sense . 
+	</s>
+	
+
+	<s id="60">
+		 The generation of a translation pair by this model may be viewed as a two-step process that first selects a sense according to the priors on the senses and then selects a word from each language using the conditional probabilities for that sense . 
+	</s>
+	
+
+	<s id="61">
+		 This may be imagined as a factoring of the joint distribution : . 
+	</s>
+	
+
+	<s id="62">
+		 Note that in the absence of labeled training data , two of the random variables and are observed , while the sense variable is not . 
+	</s>
+	
+
+	<s id="63">
+		 However , we can derive the possible values for our sense labels from WordNet , which gives us the possible senses for each English word . 
+	</s>
+	
+
+	<s id="64">
+		 The Sense model is shown in Figure 1(a) . 
+	</s>
+	
+
+	<s id="65">
+		 2.3 The Concept Model The assumption of a one-to-one association between sense labels made in the Sense Model may be too simplistic to hold for arbitrary languages . 
+	</s>
+	
+
+	<s id="66">
+		 In particular , it does not take into account that translation is from sentence to sentence ( with a shared meaning ) , while the data we are modeling are aligned single-word translations , in which the in- tended meaning of does not always match per- fectly with the intended meaning of . 
+	</s>
+	
+
+	<s id="67">
+		 Generally , a set of related senses in one language may be translated by one of related senses in the other . 
+	</s>
+	
+
+	<s id="68">
+		 This many-to-many mapping is captured in our alternative model using a second level hidden variable called a concept . 
+	</s>
+	
+
+	<s id="69">
+		 Thus we have three hidden variables in the Concept Model — the English sense , the Spanish sense and the concept , where . 
+	</s>
+	
+
+	<s id="70">
+		 We make the assumption that the senses and are independent of each other given the shared concept . 
+	</s>
+	
+
+	<s id="71">
+		 The generative parameters in the model are the prior probabilities over the concepts , the conditional probabilities and for the English and Spanish senses given the concept , and the conditional probabilities and for the words and in each language given their senses . 
+	</s>
+	
+
+	<s id="72">
+		 We can now imagine the generative process of a translation pair by the Concept Model as first selecting a concept according to the priors , then a sense for each language given the concept , and finally a word for each sense using the conditional probabilities of the words . 
+	</s>
+	
+
+	<s id="73">
+		 As in 
+		<ref citStr="Bengio and Kermorvant ( 2003 )" id="25" label="CERF" position="11987">
+			Bengio and Kermorvant ( 2003 )
+		</ref>
+		 , this generative procedure may be captured by factoring the joint distribution using the conditional inde- pendence assumptions as . 
+	</s>
+	
+
+	<s id="74">
+		 The Concept model is shown in Figure 1(b) . 
+	</s>
+	
+
+	<s id="75">
+		 3 Constructing the Senses and Concepts Building the structure of the model is crucial for our task . 
+	</s>
+	
+
+	<s id="76">
+		 Choosing the dimensionality of the hidden variables by selecting the number of senses and concepts , as well as taking advantage of prior knowledge to impose constraints , are very important aspects of building the structure . 
+	</s>
+	
+
+	<s id="77">
+		 If certain words are not possible for a given sense , or certain senses are not possible for a given concept , their corresponding parameters should be 0 . 
+	</s>
+	
+
+	<s id="78">
+		 For instance , for all words that do not belong to a sense , the corresponding parameter would be permanently set to 0 . 
+	</s>
+	
+
+	<s id="79">
+		 Only the remaining parameters need to be modeled explicitly . 
+	</s>
+	
+
+	<s id="80">
+		 While model selection is an extremely difficult problem in general , an important and interesting option is the use of world knowledge . 
+	</s>
+	
+
+	<s id="81">
+		 Semantic hierarchies for some languages have been built . 
+	</s>
+	
+
+	<s id="82">
+		 We should be able to make use of these known taxonomies in constructing our model . 
+	</s>
+	
+
+	<s id="83">
+		 We make heavy use of the WordNet ontology to assign structure to both our models , as we discuss in the following subsections . 
+	</s>
+	
+
+	<s id="84">
+		 There are two major tasks in building the structure — determining the possible sense labels for each word , both English and Spanish , and constructing the concepts , which involves choosing the number of concepts and the probable senses for each concept . 
+	</s>
+	
+
+	<s id="85">
+		 3.1 Building the Sense Model Each word in WordNet can belong to multiple synsets in the hierarchy , which are its possible senses . 
+	</s>
+	
+
+	<s id="86">
+		 In both of our models , we directly use the WordNet senses as the English sense labels . 
+	</s>
+	
+
+	<s id="87">
+		 All WordNet senses for which a word has been observed in the corpus form our set of English sense labels . 
+	</s>
+	
+
+	<s id="88">
+		 The Sense Model holds that the sense labels for the two domains are the same . 
+	</s>
+	
+
+	<s id="89">
+		 So we must use the same WordNet labels for the Spanish words as well . 
+	</s>
+	
+
+	<s id="90">
+		 We include a Spanish word for a sense if is the translation of any English word in . 
+	</s>
+	
+
+	<s id="91">
+		 3.2 Building the Concept Model Unlike the Sense Model , the Concept Model does not constrain the Spanish senses to be the same as the English ones . 
+	</s>
+	
+
+	<s id="92">
+		 So the two major tasks in building the Concept Model are constructing the Spanish senses and then clustering the English and Spanish senses to build the concepts. , and c20 c6118 tel te2 bar prevention obstruccio’n prevencio’n te2 tel tsl ts2 prevention bar prevencio’n obstruccio’n Sense Model Concept Model Figure 2 : The Sense and Concept models for prevention , bar , prevenci´on and obstrucci´on For each Spanish word , we have its set of English translations . 
+	</s>
+	
+
+	<s id="93">
+		 One possibility is to group Spanish words looking at their translations . 
+	</s>
+	
+
+	<s id="94">
+		 However , a more robust approach is to consider the relevant English senses for . 
+	</s>
+	
+
+	<s id="95">
+		 Each English translation for has its set of English sense labels drawn from WordNet . 
+	</s>
+	
+
+	<s id="96">
+		 So the relevant English sense labels for may be defined as . 
+	</s>
+	
+
+	<s id="97">
+		 We call this the English sense map or for . 
+	</s>
+	
+
+	<s id="98">
+		 We use the s to define the Spanish senses . 
+	</s>
+	
+
+	<s id="99">
+		 We may imagine each Spanish word to come from one or more Spanish senses . 
+	</s>
+	
+
+	<s id="100">
+		 If each word has a single sense , then we add a Spanish sense for each and all Spanish words that share that belong to that sense . 
+	</s>
+	
+
+	<s id="101">
+		 Otherwise , the s have to be split into frequently occurring subgroups . 
+	</s>
+	
+
+	<s id="102">
+		 Frequently co-occurring subsets of s can define more refined Spanish senses . 
+	</s>
+	
+
+	<s id="103">
+		 We identify these subsets by looking at pairs of s and computing their intersections . 
+	</s>
+	
+
+	<s id="104">
+		 An intersection is considered to be a Spanish sense if it occurs for a significant number of pairs of s . 
+	</s>
+	
+
+	<s id="105">
+		 We consider both ways of building Spanish senses . 
+	</s>
+	
+
+	<s id="106">
+		 In either case , a constructed Spanish sense comes with its rele- vant set of English senses , which we denote as . 
+	</s>
+	
+
+	<s id="107">
+		 Once we have the Spanish senses , we cluster them to form concepts . 
+	</s>
+	
+
+	<s id="108">
+		 We use the corresponding to each Spanish sense to define a measure of similarity for a pair of Spanish senses . 
+	</s>
+	
+
+	<s id="109">
+		 There are many options to choose from here . 
+	</s>
+	
+
+	<s id="110">
+		 We use a simple measure that counts the number of common items in the two s.1 The similarity measure is now used to cluster the Spanish senses . 
+	</s>
+	
+
+	<s id="111">
+		 Since this measure is not transitive , it does not directly define equivalence classes over . 
+	</s>
+	
+
+	<s id="112">
+		 Instead , we get a similarity graph where the vertices are the Spanish senses and we add an edge between two senses if their similarity is above a threshold . 
+	</s>
+	
+
+	<s id="113">
+		 We now pick each connected component from this graph as a cluster of similar Spanish senses . 
+	</s>
+	
+
+	<s id="114">
+		 ' Another option would be to use a measure of similarity for English senses , proposed in 
+		<ref citStr="Resnik ( 1995 )" id="26" label="CERN" position="16984">
+			Resnik ( 1995 )
+		</ref>
+		 for two synsets in a concept hierarchy like WordNet . 
+	</s>
+	
+
+	<s id="115">
+		 Our initial results with this measure were not favorable . 
+	</s>
+	
+
+	<s id="116">
+		 Now we build the concepts from the Spanish sense clusters . 
+	</s>
+	
+
+	<s id="117">
+		 We recall that a concept is defined by a set of English senses and a set of Spanish senses that are related . 
+	</s>
+	
+
+	<s id="118">
+		 Each cluster represents a concept . 
+	</s>
+	
+
+	<s id="119">
+		 A particular concept is formed by the set of Spanish senses in the cluster and the English senses relevant for them . 
+	</s>
+	
+
+	<s id="120">
+		 The relevant English senses for any Span- ish sense is given by its . 
+	</s>
+	
+
+	<s id="121">
+		 Therefore , the union of the s of all the Spanish senses in the cluster forms the set of English senses for each concept . 
+	</s>
+	
+
+	<s id="122">
+		 4 Learning the Model Parameters Once the model is built , we use the popular EM algorithm 
+		<ref citStr="Dempster et al. , 1977" id="27" label="CERF" position="17803">
+			( Dempster et al. , 1977 )
+		</ref>
+		 for hidden variables to learn the parameters for both models . 
+	</s>
+	
+
+	<s id="123">
+		 The algorithm repeatedly iterates over two steps . 
+	</s>
+	
+
+	<s id="124">
+		 The first step maximizes the expected log-likelihood of the joint probability of the observed data with the current parameter settings . 
+	</s>
+	
+
+	<s id="125">
+		 The next step then re- estimates the values of the parameters of the model . 
+	</s>
+	
+
+	<s id="126">
+		 Below we summarize the re-estimation steps for each model . 
+	</s>
+	
+
+	<s id="127">
+		 4.1 EM for the Sense Model follows similarly . 
+	</s>
+	
+
+	<s id="128">
+		 4.2 EM for the Concept Model follow similarly . 
+	</s>
+	
+
+	<s id="129">
+		 4.3 Initialization of Model Probabilities Since the EM algorithm performs gradient ascent as it iteratively improves the log-likelihood , it is prone to getting caught in local maxima , and selection of the initial conditions is crucial for the learning procedure . 
+	</s>
+	
+
+	<s id="130">
+		 Instead of opting for a uniform or random initialization of the probabilities , we make use of prior knowledge about the English words and senses available from WordNet . 
+	</s>
+	
+
+	<s id="131">
+		 Word- Net provides occurrence frequencies for each synset in the SemCor Corpus that may be normalized to derive probabilities for each English sense . 
+	</s>
+	
+
+	<s id="132">
+		 For the Sense Model , these probabilities form the initial priors over the senses , while all English ( and Spanish ) words belonging to a sense are initially assumed to be equally likely . 
+	</s>
+	
+
+	<s id="133">
+		 However , initialization of the Concept Model using the same knowledge is trickier . 
+	</s>
+	
+
+	<s id="134">
+		 We would like each English sense to have . 
+	</s>
+	
+
+	<s id="135">
+		 But the fact that each sense belongs to multiple concepts and the constraint makes the solution non-trivial . 
+	</s>
+	
+
+	<s id="136">
+		 Instead , we settle for a compromise . 
+	</s>
+	
+
+	<s id="137">
+		 We set and . 
+	</s>
+	
+
+	<s id="138">
+		 Subsequent normalization takes care of the sum constraints . 
+	</s>
+	
+
+	<s id="139">
+		 For a Spanish sense , we set . 
+	</s>
+	
+
+	<s id="140">
+		 Once we have the Spanish sense probabilities , we follow the same procedure for setting for each concept . 
+	</s>
+	
+
+	<s id="141">
+		 All the Spanish and English words for a sense are set to be equally likely , as in the Sense Model . 
+	</s>
+	
+
+	<s id="142">
+		 It turned out in our experiments on real data that this initialization makes a significant difference in model performance . 
+	</s>
+	
+
+	<s id="143">
+		 5 Experimental Evaluation Both the models are generative probabilistic models learned from parallel corpora and are expected to fit the training and subsequent test data . 
+	</s>
+	
+
+	<s id="144">
+		 A good fit should be reflected in good prediction accuracy over a test set . 
+	</s>
+	
+
+	<s id="145">
+		 The prediction task of interest is the sense of an English word when its translation is provided . 
+	</s>
+	
+
+	<s id="146">
+		 We estimate the prediction accuracy and recall of our models on Senseval data.2 In addition , the Concept Model learns a sense structure for the Spanish 2Accuracy is the ratio of the number of correct predictions and the number of attempted predictions . 
+	</s>
+	
+
+	<s id="147">
+		 Recall is the ratio of the number of correct predictions and the size of the test set . 
+	</s>
+	
+
+	<s id="148">
+		 language . 
+	</s>
+	
+
+	<s id="149">
+		 While it is hard to objectively evaluate the quality of such a structure , we present some interesting concepts that are learned as an indication of the potential of our approach . 
+	</s>
+	
+
+	<s id="150">
+		 5.1 Evaluation with Senseval Data In our experiments with real data , we make use of the parallel corpora constructed by 
+		<ref citStr="Diab and Resnik ( 2002 )" id="28" label="OEPF" position="21060">
+			Diab and Resnik ( 2002 )
+		</ref>
+		 for evaluation purposes . 
+	</s>
+	
+
+	<s id="151">
+		 We chose to work on these corpora in order to permit a direct comparison with their results . 
+	</s>
+	
+
+	<s id="152">
+		 The sense-tagged portion of the English corpus is comprised of the English “all- words” section of the SENSEVAL-2 test data . 
+	</s>
+	
+
+	<s id="153">
+		 The remainder of this corpus is constructed by adding the Brown Corpus , the SENSEVAL-1 corpus , the SENSEVAL-2 English Lexical Sample test , trial and training corpora and the Wall Street Journal sections 18-24 from the Penn Treebank . 
+	</s>
+	
+
+	<s id="154">
+		 This English corpus is translated into Spanish using two commercially available MT systems : Globalink Pro 6.4 and Systran Professional Premium . 
+	</s>
+	
+
+	<s id="155">
+		 The GIZA++ implementation of the IBM statistical MT models was used to derive the most-likely word-level alignments , and these define the English/Spanish word co-occurrences . 
+	</s>
+	
+
+	<s id="156">
+		 To take into account variability of translation , we combine the translations from the two systems for each English word , following in the footsteps of 
+		<ref citStr="Diab and Resnik ( 2002 )" id="29" label="CERF" position="22100">
+			Diab and Resnik ( 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="157">
+		 For our experiments , we focus only on nouns , of which there are 875 occurrences in our tagged data . 
+	</s>
+	
+
+	<s id="158">
+		 The sense tags for the English domain are derived from the WordNet 1.7 inventory . 
+	</s>
+	
+
+	<s id="159">
+		 After pruning stopwords , we end up with 16,186 English words , 31,862 Spanish words and 2,385,574 instances of 41,850 distinct translation pairs . 
+	</s>
+	
+
+	<s id="160">
+		 The English words come from 20,361 WordNet senses . 
+	</s>
+	
+
+	<s id="161">
+		 Table 1 : Comparison with Diab’s Model Model Accuracy Recall Parameters Diab 0.618 0.572 - Sense M. 0.624 0.616 154,947 Concept M. 0.672 0.651 120,268 As can be seen from the following table , both our models clearly outperform 
+		<ref citStr="Diab ( 2003 )" id="30" label="CEPN" position="22776">
+			Diab ( 2003 )
+		</ref>
+		 , which is an improvement over 
+		<ref citStr="Diab and Resnik ( 2002 )" id="31" label="CEPN" position="22832">
+			Diab and Resnik ( 2002 )
+		</ref>
+		 , in both accuracy and recall , while the Concept Model does significantly better than the Sense Model with fewer parameters . 
+	</s>
+	
+
+	<s id="162">
+		 The comparison is restricted to the same subset of the test data . 
+	</s>
+	
+
+	<s id="163">
+		 For our best results , the Sense Model has 20,361 senses , while the Concept Model has 20,361 English senses , 11,961 Spanish senses and 7,366 concepts . 
+	</s>
+	
+
+	<s id="164">
+		 The Concept Model results are for the version that allows multiple senses for a Spanish word . 
+	</s>
+	
+
+	<s id="165">
+		 Results for the and Figure 3 : Comparison with Senseval2 Systems single-sense model are similar . 
+	</s>
+	
+
+	<s id="166">
+		 In Figure 3 , we compare the prediction accuracy and recall against those of the 21 Senseval-2 English All Words participants and that of 
+		<ref citStr="Diab ( 2003 )" id="32" label="CEPN" position="23570">
+			Diab ( 2003 )
+		</ref>
+		 , when restricted to the same set of noun instances from the gold standard . 
+	</s>
+	
+
+	<s id="167">
+		 It can be seen that our models outperform all the unsupervised approaches in recall and many supervised ones as well . 
+	</s>
+	
+
+	<s id="168">
+		 No unsupervised approach is better in both accuracy and recall . 
+	</s>
+	
+
+	<s id="169">
+		 It needs to be kept in mind that we take into account only bilingual data for our predictions , and not monolingual features like context of the word as most other WSD approaches do . 
+	</s>
+	
+
+	<s id="170">
+		 5.2 Semantic Grouping of Spanish Senses Table 2 shows some interesting examples of different Spanish senses for discovered concepts.3 The context of most concepts , like the ones shown , can be easily understood . 
+	</s>
+	
+
+	<s id="171">
+		 For example , the first concept is about government actions and the second deals with murder and accidental deaths . 
+	</s>
+	
+
+	<s id="172">
+		 The penultimate concept is interesting because it deals with different kinds of association and involves three different senses containing the word conexi´on . 
+	</s>
+	
+
+	<s id="173">
+		 The other words in two of these senses suggest that they are about union and relation respectively . 
+	</s>
+	
+
+	<s id="174">
+		 The third probably involves the link sense of connection . 
+	</s>
+	
+
+	<s id="175">
+		 Conciseness of the concepts depends on the similarity threshold that is selected . 
+	</s>
+	
+
+	<s id="176">
+		 Some may bring together loosely-related topics , which can be separated by a higher threshold . 
+	</s>
+	
+
+	<s id="177">
+		 6 Model Analysis In this section , we back up our experimental results with an in-depth analysis of the performance of our two models . 
+	</s>
+	
+
+	<s id="178">
+		 Our Sense Model was motivated by 
+		<ref citStr="Diab and Resnik ( 2002 )" id="33" label="CERF" position="25148">
+			Diab and Resnik ( 2002 )
+		</ref>
+		 but the flavors of the two are quite 3Some English words are found to occur in the Spanish Senses . 
+	</s>
+	
+
+	<s id="179">
+		 This is because the machine translation system used to create the Spanish document left certain words untranslated . 
+	</s>
+	
+
+	<s id="180">
+		 different . 
+	</s>
+	
+
+	<s id="181">
+		 The most important distinction is that the Sense Model is a probabilistic generative model for parallel corpora , where interaction between different words stemming from the same sense comes into play , even if the words are not related through translations , and this interdependence of the senses through common words plays a role in sense disambiguation . 
+	</s>
+	
+
+	<s id="182">
+		 We started off with our discussions on semantic ambiguity with the intuition that identification of semantic concepts in the corpus that relate multiple senses should help disambiguate senses . 
+	</s>
+	
+
+	<s id="183">
+		 The Sense Model falls short of this target since it only brings together a single sense from each language . 
+	</s>
+	
+
+	<s id="184">
+		 We will now revisit the motivating example from Section 2 and see how concepts help in disambiguation by grouping multiple related senses together . 
+	</s>
+	
+
+	<s id="185">
+		 For the Sense Model , since it is the only word that can generate . 
+	</s>
+	
+
+	<s id="186">
+		 However , this difference is compensated for by the higher prior probability , which is strengthened by both the translation pairs . 
+	</s>
+	
+
+	<s id="187">
+		 Since the probability of joint occurrence is given by the product for any sense , the model does not develop a clear preference for any of the two senses . 
+	</s>
+	
+
+	<s id="188">
+		 The critical difference in the Concept Model can be appreciated directly from the corresponding joint probability . 
+	</s>
+	
+
+	<s id="189">
+		 In our example , since bar , obstrucci´on can be generated only through concept , is the only English sense conditional boosted by it . 
+	</s>
+	
+
+	<s id="190">
+		 prevention , prevenci´on is generated through a different concept , where the higher condi- tional gradually strengthens one of the possible instantiations for it , and the other one becomes increasingly unlikely as the iterations progress . 
+	</s>
+	
+
+	<s id="191">
+		 The inference is that only one sense of prevention is possible in the context of the parallel corpus . 
+	</s>
+	
+
+	<s id="192">
+		 The key factor in this disambiguation was that two senses of prevention separated out in two different concepts . 
+	</s>
+	
+
+	<s id="193">
+		 The other significant difference between the models is in the constraints on the parameters and the effect that they have on sense disambiguation . 
+	</s>
+	
+
+	<s id="194">
+		 In the Sense Model , , while in the Con- cept Model , separately for each concept . 
+	</s>
+	
+
+	<s id="195">
+		 Now for two relevant senses for an English word , a slight difference in their priors will tend to get ironed out when normalized over the en- 0.8 0.7 0.6 0.5 unsup . 
+	</s>
+	
+
+	<s id="196">
+		 sup . 
+	</s>
+	
+
+	<s id="197">
+		 diab concept model sense model 0.4 0.3 0.2 0.1 0 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 Accuracy , where is the relevant concept in the model . 
+	</s>
+	
+
+	<s id="198">
+		 The preference for a particular instantiation in the model is dependent not on the prior over a sense , but on the sense conditional Table 2 : Example Spanish Senses in a Concept . 
+	</s>
+	
+
+	<s id="199">
+		 For each concept , each row is a separate sense . 
+	</s>
+	
+
+	<s id="200">
+		 Dictionary senses of Spanish words are provided in English within parenthesis where necessary . 
+	</s>
+	
+
+	<s id="201">
+		 actos accidente accidentes supremas muertes(deaths) decisi´on decisiones casualty gobernando gobernante matar(to kill ) matanzas(slaughter) muertes-le gubernamentales slaying gobernaci´on gobierno-proporciona derramamiento-de-sangre ( spilling-of-blood ) cachiporra(bludgeon) obligar(force) obligando(forcing) asesinato(murder) asesinatos prohibir prohibiendo prohibitivo prohibitiva gubernamental gobiernos linterna-el´ectrica linterna(lantern) mania craze faros-autom´ovil(headlight) culto(cult) cultos proto-senility delirio delirium linternas-portuarias(harbor-light) rabias(fury) rabia farfulla(do hastily ) antorcha(torch) antorchas antorchas-pino-nudo oportunidad oportunidades diferenciaci´on ocasi´on ocasiones distinci´on distinciones riesgo(risk) riesgos peligro(danger) destino sino(fate) especializaci´on fortuna suerte(fate) maestria ( mastery ) probabilidad probabilidades peculiaridades particularidades peculiaridades-inglesas especialidad especialidades diablo(devil) diablos dickens modelo parang´on heller ideal ideales lucifer satan satan´as santo(saint) santos san idol idols idolo deslumbra(dazzle) cromo(chromium) meteoro meteoros meteor meteoros-blue dios god dioses meteorito meteoritos pedregosos(rocky) divinidad divinity inmortal(immortal) inmortales teologia teolog deidad deity deidades variaci´on variaciones minutos minuto discordancia desacuerdo(discord) discordancias desviaci´on(deviation) desviaciones desviaciones-normales discrepancia discrepancias fugaces(fieeting) variaci´on diferencia disensi´on momento momentos un-momento minutos momentos momento segundos instante momento pesta˜neo(blink) gui˜na(wink) pesta˜nean adhesi´on adherencia ataduras(tying) enlace(connection) ataduras pasillo(corridor) atadura ataduras aisle conexi´on conexiones pasarela(footbridge) conexi´on une(to unite ) hall vestibulos relaci´on conexi´on pasaje(passage) implicaci´on ( complicity ) envolvimiento callej´on(alley) callejas-ciegas ( blind alley ) callejones-ocultos tire set of senses for the corpus . 
+	</s>
+	
+
+	<s id="202">
+		 In contrast , if these two senses belong to the same concept in the Concept Model , the difference in the sense conditionals will be highlighted since the normalization occurs over a very small set of senses — the senses for only that concept , which in the best possible scenario will contain only the two contending senses , as in concept of our example . 
+	</s>
+	
+
+	<s id="203">
+		 As can be seen from Table 1 , the Concept Model not only outperforms the Sense Model , it does so with significantly fewer parameters . 
+	</s>
+	
+
+	<s id="204">
+		 This may be counter-intuitive since Concept Model involves an extra concept variable . 
+	</s>
+	
+
+	<s id="205">
+		 However , the dissociation of Spanish and English senses can significantly reduce the parameter space . 
+	</s>
+	
+
+	<s id="206">
+		 Imagine two Spanish words that are associated with ten English senses and ac cordingly each of them has a probability for belonging to each of these ten senses . 
+	</s>
+	
+
+	<s id="207">
+		 Aided with a concept variable , it is possible to model the same relationship by creating a separate Spanish sense that contains these two words and relating this Spanish sense with the ten English senses through a concept variable . 
+	</s>
+	
+
+	<s id="208">
+		 Thus these words now need to belong to only one sense as opposed to ten . 
+	</s>
+	
+
+	<s id="209">
+		 Of course , now there are new transition probabilities for each of the eleven senses from the new concept node . 
+	</s>
+	
+
+	<s id="210">
+		 The exact reduction in the parameter space will depend on the frequent subsets discovered for the s of the Spanish words . 
+	</s>
+	
+
+	<s id="211">
+		 Longer and more frequent subsets will lead to larger reductions . 
+	</s>
+	
+
+	<s id="212">
+		 It must also be borne in mind that this reduction comes with the independence assumptions made in the Concept Model . 
+	</s>
+	
+
+	<s id="213">
+		 7 Conclusions and Future Work We have presented two novel probabilistic models for unsupervised word sense disambiguation using parallel corpora and have shown that both models outperform existing unsupervised approaches . 
+	</s>
+	
+
+	<s id="214">
+		 In addition , we have shown that our second model , the Concept model , can be used to learn a sense inventory for the secondary language . 
+	</s>
+	
+
+	<s id="215">
+		 An advantage of the probabilistic models is that they can easily incorporate additional information , such as context information . 
+	</s>
+	
+
+	<s id="216">
+		 In future work , we plan to investigate the use of additional monolingual context . 
+	</s>
+	
+
+	<s id="217">
+		 We would also like to perform additional validation of the learned secondary language sense inventory . 
+	</s>
+	
+
+	<s id="218">
+		 8 Acknowledgments The authors would like to thank Mona Diab and Philip Resnik for many helpful discussions and insightful comments for improving the paper and also for making their data available for our experiments . 
+	</s>
+	
+
+	<s id="219">
+		 This study was supported by NSF Grant 0308030 . 
+	</s>
+	
+
+	<s id="220">
+		 References E. Agirre , J. Atserias , L. Padr , and G. Rigau . 
+	</s>
+	
+
+	<s id="221">
+		 2000. Combining supervised and unsupervised lexical knowledge methods for word sense disambiguation . 
+	</s>
+	
+
+	<s id="222">
+		 In Computers and the Humanities , Special Double Issue on SensEval . 
+	</s>
+	
+
+	<s id="223">
+		 Eds . 
+	</s>
+	
+
+	<s id="224">
+		 Martha Palmer and Adam Kilgarriff . 
+	</s>
+	
+
+	<s id="225">
+		 34:1,2. Yoshua Bengio and Christopher Kermorvant . 
+	</s>
+	
+
+	<s id="226">
+		 2003. Extracting hidden sense probabilities from bitexts . 
+	</s>
+	
+
+	<s id="227">
+		 Technical report , TR 1231 , Departement d’ informatique et recherche operationnelle , Universite de Montreal . 
+	</s>
+	
+
+	<s id="228">
+		 Peter F. Brown , Stephen Della Pietra , Vincent J. Della Pietra , and Robert L. Mercer . 
+	</s>
+	
+
+	<s id="229">
+		 1991. Word-sense disambiguation using statistical methods . 
+	</s>
+	
+
+	<s id="230">
+		 In Meeting of the Association for Computational Linguistics , pages 264–270 . 
+	</s>
+	
+
+	<s id="231">
+		 Rebecca Bruce and Janyce Wiebe . 
+	</s>
+	
+
+	<s id="232">
+		 1994. A new approach to sense identification . 
+	</s>
+	
+
+	<s id="233">
+		 In ARPA Workshop on Human Language Technology . 
+	</s>
+	
+
+	<s id="234">
+		 Ido Dagan and Alon Itai . 
+	</s>
+	
+
+	<s id="235">
+		 1994. Word sense disambiguation using a second language monolingual corpus . 
+	</s>
+	
+
+	<s id="236">
+		 Computational Linguistics , 20(4):563– 596 . 
+	</s>
+	
+
+	<s id="237">
+		 Ido Dagan . 
+	</s>
+	
+
+	<s id="238">
+		 1991. Lexical disambiguation : Sources of information and their statistical realization . 
+	</s>
+	
+
+	<s id="239">
+		 In Meeting of the Association for Computational Linguistics , pages 341–342 . 
+	</s>
+	
+
+	<s id="240">
+		 A.P. Dempster , N.M. Laird , and D.B. Rubin . 
+	</s>
+	
+
+	<s id="241">
+		 1977. Maximum likelihood from incomplete data via the EM algorithm . 
+	</s>
+	
+
+	<s id="242">
+		 Journal of the Royal Statistical Society , B 39:1–38 . 
+	</s>
+	
+
+	<s id="243">
+		 Mona Diab and Philip Resnik . 
+	</s>
+	
+
+	<s id="244">
+		 2002. An unsupervised method for word sense tagging using parallel corpora . 
+	</s>
+	
+
+	<s id="245">
+		 In Proceedings of the 40th Anniversary Meeting of the Association for Computational Linguistics ( ACL-02 ) . 
+	</s>
+	
+
+	<s id="246">
+		 Mona Diab . 
+	</s>
+	
+
+	<s id="247">
+		 2003. Word Sense Disambiguation Within a Multilingual Framework . 
+	</s>
+	
+
+	<s id="248">
+		 Ph.D . 
+	</s>
+	
+
+	<s id="249">
+		 thesis , University of Maryland , College Park . 
+	</s>
+	
+
+	<s id="250">
+		 Christiane Fellbaum . 
+	</s>
+	
+
+	<s id="251">
+		 1998. WordNet : An Electronic Lexical Database . 
+	</s>
+	
+
+	<s id="252">
+		 MIT Press . 
+	</s>
+	
+
+	<s id="253">
+		 Nancy Ide and Jean Veronis . 
+	</s>
+	
+
+	<s id="254">
+		 1998. Word sense disambiguation : The state of the art . 
+	</s>
+	
+
+	<s id="255">
+		 Computational Linguistics , 28(1):1–40 . 
+	</s>
+	
+
+	<s id="256">
+		 Nancy Ide . 
+	</s>
+	
+
+	<s id="257">
+		 2000. Cross-lingual sense determination : Can it work ? 
+	</s>
+	
+
+	<s id="258">
+		 In Computers and the Humanities : Special Issue on Senseval , 34:147-152 . 
+	</s>
+	
+
+	<s id="259">
+		 Adam Kilgarrif and Joseph Rosenzweig . 
+	</s>
+	
+
+	<s id="260">
+		 2000. Framework and results for english senseval . 
+	</s>
+	
+
+	<s id="261">
+		 Computers and the Humanities , 34(1):15–48 . 
+	</s>
+	
+
+	<s id="262">
+		 Dekang Lin . 
+	</s>
+	
+
+	<s id="263">
+		 2000. Word sense disambiguation with a similarity based smoothed library . 
+	</s>
+	
+
+	<s id="264">
+		 In Computers and the Humanities : Special Issue on Senseval , 34:147-152 . 
+	</s>
+	
+
+	<s id="265">
+		 K. C. Litkowski . 
+	</s>
+	
+
+	<s id="266">
+		 2000. Senseval : The cl research experience . 
+	</s>
+	
+
+	<s id="267">
+		 In Computers and the Humanities , 34(1-2) , pp. 153-8 . 
+	</s>
+	
+
+	<s id="268">
+		 Philip Resnik and David Yarowsky . 
+	</s>
+	
+
+	<s id="269">
+		 1999 . 
+	</s>
+	
+
+	<s id="270">
+		 Distinguishing systems and distinguishing senses : new evaluation methods for word sense disambiguation . 
+	</s>
+	
+
+	<s id="271">
+		 Natural Language Engineering , 5(2) . 
+	</s>
+	
+
+	<s id="272">
+		 Philip Resnik . 
+	</s>
+	
+
+	<s id="273">
+		 1995. Using information content to evaluate semantic similarity in a taxonomy . 
+	</s>
+	
+
+	<s id="274">
+		 In Proceedings of the International Joint Conference on Artificial Intelligence , pages 448–453 . 
+	</s>
+	
+
+	<s id="275">
+		 Philip Resnik . 
+	</s>
+	
+
+	<s id="276">
+		 1997. Selectional preference and sense disambiguation . 
+	</s>
+	
+
+	<s id="277">
+		 In Proceedings of ACL Siglex Workshop on Tagging Text with Lexical Semantics , Why , What and How ? 
+	</s>
+	
+
+	<s id="278">
+		 , Washington , April 4-5 . 
+	</s>
+	
+
+	<s id="279">
+		 David Yarowsky . 
+	</s>
+	
+
+	<s id="280">
+		 1992. Word-sense disambiguation using statistical models of Roget’s categories trained on large corpora . 
+	</s>
+	
+
+	<s id="281">
+		 In Proceedings of COLING-92 , pages 454–460 , Nantes , France , July . 
+	</s>
+	
+
+	<s id="282">
+		 David Yarowsky . 
+	</s>
+	
+
+	<s id="283">
+		 1993. One sense per collocation . 
+	</s>
+	
+
+	<s id="284">
+		 In Proceedings , ARPA Human Language Technology Workshop , Princeton . 
+	</s>
+	
+
+	<s id="285">
+		 David Yarowsky . 
+	</s>
+	
+
+	<s id="286">
+		 1995. Unsupervised word sense disambiguation rivaling supervised methods . 
+	</s>
+	
+
+	<s id="287">
+		 In Meeting of the Association for Computational Linguistics , pages 189–196 . 
+	</s>
+	
+
+
+</acldoc>

@@ -1,0 +1,1546 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1029">
+	
+
+	<s id="1">
+		 Optimizing Typed Feature Structure Grammar Parsing through Non-Statistical Indexing Cosmin Munteanu and Gerald Penn University of Toronto 10 King’s College Rd. Toronto M5S 3G4 Canada mcosmin,gpenn @cs.toronto.edu Abstract This paper introduces an indexing method based on static analysis of grammar rules and type signatures for typed feature structure grammars ( TFSGs ) . 
+	</s>
+	
+
+	<s id="2">
+		 The static analysis tries to predict at compile-time which feature paths will cause unification failure during parsing at run-time . 
+	</s>
+	
+
+	<s id="3">
+		 To support the static analysis , we introduce a new classification of the instances of variables used in TFSGs , based on what type of structure sharing they create . 
+	</s>
+	
+
+	<s id="4">
+		 The indexing actions that can be performed during parsing are also enumerated . 
+	</s>
+	
+
+	<s id="5">
+		 Non-statistical indexing has the advantage of not requiring training , and , as the evaluation using large-scale HPSGs demonstrates , the improvements are comparable with those of statistical optimizations . 
+	</s>
+	
+
+	<s id="6">
+		 Such statistical optimizations rely on data collected during training , and their performance does not always compensate for the training costs . 
+	</s>
+	
+
+	<s id="7">
+		 1 Introduction Developing efficient all-paths parsers has been a long-standing goal of research in computational linguistics . 
+	</s>
+	
+
+	<s id="8">
+		 One particular class still in need of parsing time improvements is that of TFSGs . 
+	</s>
+	
+
+	<s id="9">
+		 While simpler formalisms such as context-free grammars ( CFGs ) also face slow all-paths parsing times when the size of the grammar increases significantly , TFSGs ( which generally have fewer rules than large- scale CFGs ) become slow as a result of the complex structures used to describe the grammatical categories . 
+	</s>
+	
+
+	<s id="10">
+		 In HPSGs 
+		<ref citStr="Pollard and Sag , 1994" id="1" label="CEPF" position="1760">
+			( Pollard and Sag , 1994 )
+		</ref>
+		 , one category description could contain hundreds of feature values . 
+	</s>
+	
+
+	<s id="11">
+		 This has been a barrier in transferring CFGsuccessful techniques to TFSG parsing . 
+	</s>
+	
+
+	<s id="12">
+		 For TFSG chart parsers , one of the most time- consuming operations is the retrieval of categories from the chart during rule completion ( closing of constituents in the chart under a grammar rule ) . 
+	</s>
+	
+
+	<s id="13">
+		 Looking in the chart for a matching edge for a daughter is accomplished by attempting unifications with edges stored in the chart , resulting in many failed unifications . 
+	</s>
+	
+
+	<s id="14">
+		 The large and complex structure of TFS descriptions 
+		<ref citStr="Carpenter , 1992" id="2" label="CEPN" position="2395">
+			( Carpenter , 1992 )
+		</ref>
+		 leads to slow unification times , affecting the parsing times . 
+	</s>
+	
+
+	<s id="15">
+		 Thus , failing unifications must be avoided during retrieval from the chart . 
+	</s>
+	
+
+	<s id="16">
+		 To our knowledge , there have been only four methods proposed for improving the retrieval component of TFSG parsing . 
+	</s>
+	
+
+	<s id="17">
+		 One 
+		<ref citStr="Penn and Munteanu , 2003" id="3" label="CEPF" position="2715">
+			( Penn and Munteanu , 2003 )
+		</ref>
+		 addresses only the cost of copying large categories , and was found to reduce parsing times by an average of 25 % on a large-scale TFSG ( MERGE ) . 
+	</s>
+	
+
+	<s id="18">
+		 The second , a statistical method known as quick- check 
+		<ref citStr="Malouf et al. , 2000" id="4" label="CEPF" position="2953">
+			( Malouf et al. , 2000 )
+		</ref>
+		 , determines the paths that are likely to cause unification failure by profiling a large sequence of parses over representative input , and then filters unifications at run-time by first testing these paths for type consistency . 
+	</s>
+	
+
+	<s id="19">
+		 This was measured as providing up to a 50 % improvement in parse times on the English Resource Grammar ( Flickinger , 1999 , ERG ) . 
+	</s>
+	
+
+	<s id="20">
+		 The third 
+		<ref citStr="Penn , 1999b" id="5" label="CEPF" position="3361">
+			( Penn , 1999b )
+		</ref>
+		 is a similar but more conservative approach that uses the profile to re-order sister feature values in the internal data structure . 
+	</s>
+	
+
+	<s id="21">
+		 This was found to improve parse times on the ALE HPSG by up to 33 % . 
+	</s>
+	
+
+	<s id="22">
+		 The problem with these statistical methods is that the improvements in parsing times may not justify the time spent on profiling , particularly during grammar development . 
+	</s>
+	
+
+	<s id="23">
+		 The static analysis method introduced here does not use profiling , although it does not preclude it either . 
+	</s>
+	
+
+	<s id="24">
+		 Indeed , an evaluation of statistical methods would be more relevant if measured on top of an adequate extent of non-statistical optimizations . 
+	</s>
+	
+
+	<s id="25">
+		 Although quick-check is thought to produce parsing time improvements , its evaluation used a parser with only a superficial static analysis of chart indexing . 
+	</s>
+	
+
+	<s id="26">
+		 That analysis , rule filtering 
+		<ref citStr="Kiefer et al. , 1999" id="6" label="CEPF" position="4262">
+			( Kiefer et al. , 1999 )
+		</ref>
+		 , reduces parse times by filtering out mother-daughter unifications that can be determined to fail at compile-time . 
+	</s>
+	
+
+	<s id="27">
+		 True indexing organizes the data ( in this case , chart edges ) to avoid unnecessary retrievals altogether , does not require the operations that it performs to be repeated once full unification is deemed necessary , and offers the support for easily adding information extracted from further static analysis of the grammar rules , while maintaining the same indexing strategy . 
+	</s>
+	
+
+	<s id="28">
+		 Flexibility is one of the reasons for the successful employment of indexing in databases 
+		<ref citStr="Elmasri and Navathe , 2000" id="7" label="CEPF" position="4896">
+			( Elmasri and Navathe , 2000 )
+		</ref>
+		 and automated reasoning 
+		<ref citStr="Ramakrishnan et al. , 2001" id="8" label="CEPF" position="4951">
+			( Ramakrishnan et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="29">
+		 In this paper , we present a general scheme for indexing TFS categories during parsing ( Section 3 ) . 
+	</s>
+	
+
+	<s id="30">
+		 We then present a specific method for statically analyzing TFSGs based on the type signature and the structure of category descriptions in the grammar rules , and prove its soundness and completeness ( Section 4.2.1 ) . 
+	</s>
+	
+
+	<s id="31">
+		 We describe a specific indexing strategy based on this analysis ( Section 4 ) , and evaluate it on two large-scale TFSGs ( Section 5 ) . 
+	</s>
+	
+
+	<s id="32">
+		 The result is a purely non-statistical method that is competitive with the improvements gained by statistical optimizations , and is still compatible with further statistical improvements . 
+	</s>
+	
+
+	<s id="33">
+		 2 TFSG Terminology TFSs are used as formal representatives of rich grammatical categories . 
+	</s>
+	
+
+	<s id="34">
+		 In this paper , the formalism from 
+		<ref citStr="Carpenter , 1992" id="9" label="CERF" position="5805">
+			( Carpenter , 1992 )
+		</ref>
+		 will be used . 
+	</s>
+	
+
+	<s id="35">
+		 A TFSG is defined relative to a fixed set of types and set of features , along with constraints , called appropriateness conditions . 
+	</s>
+	
+
+	<s id="36">
+		 These are collectively known as the type signature ( Figure 3 ) . 
+	</s>
+	
+
+	<s id="37">
+		 For each type , appropriateness specifies all and only the features that must have values defined in TFSs of that type . 
+	</s>
+	
+
+	<s id="38">
+		 It also specifies the types of the values that those features can take . 
+	</s>
+	
+
+	<s id="39">
+		 The set of types is partially ordered , and has a unique most general type ( – “bottom” ) . 
+	</s>
+	
+
+	<s id="40">
+		 This order is called subsumption ( ) : more specific ( higher ) types inherit appropriate features from their more general ( lower ) supertypes . 
+	</s>
+	
+
+	<s id="41">
+		 Two types t1 and t2 unify ( t1 t2 ) iff they have a least upper bound in the hierarchy . 
+	</s>
+	
+
+	<s id="42">
+		 Besides a type signature , TFSGs contain a set of grammar ( phrase ) rules and lexical descriptions . 
+	</s>
+	
+
+	<s id="43">
+		 A simple example of a lexical description is : john SYNSEM : SYN : np SEM : j , while an example of a phrase rule is given in Figure 1. SYN : s SEM : VPSem AGENT : NPSem SYN : np AGR : Agr SEM : NPSem , SYN : vp AGR : Agr SEM : VPSem . 
+	</s>
+	
+
+	<s id="44">
+		 Figure 1 : A phrase rule stating that the syntactic category s can be combined from np and vp if their values for agr are the same . 
+	</s>
+	
+
+	<s id="45">
+		 The semantics of s is that of the verb phrase , while the semantics of the noun phrase serves as agent . 
+	</s>
+	
+
+	<s id="46">
+		 2.1 Typed Feature Structures A TFS ( Figure 2 ) is like a recursively defined record in a programming language : it has a type and features with values that can be TFSs , all obeying the appropriateness conditions of the type signature . 
+	</s>
+	
+
+	<s id="47">
+		 TFSs can also be seen as rooted graphs , where arcs correspond to features and nodes to substructures . 
+	</s>
+	
+
+	<s id="48">
+		 A node typing function 0 q associates a type to every node q in a TFS . 
+	</s>
+	
+
+	<s id="49">
+		 Every TFS F has a unique starting or root node , qF . 
+	</s>
+	
+
+	<s id="50">
+		 For a given TFS , the feature value partial function S f q specifies the node reachable from q by feature f when one exists . 
+	</s>
+	
+
+	<s id="51">
+		 The path value partial function S 7c q specifies the node reachable from q by following a path of features 7c when one exists . 
+	</s>
+	
+
+	<s id="52">
+		 TFSs can be unified as well . 
+	</s>
+	
+
+	<s id="53">
+		 The result represents the most general consistent combination of the information from two TFSs . 
+	</s>
+	
+
+	<s id="54">
+		 That information includes typing ( by unifying the types ) , feature values ( by recursive unification ) , and structure sharing ( by an equivalence closure taken over the nodes of the arguments ) . 
+	</s>
+	
+
+	<s id="55">
+		 For large TFSs , unification is computationally expensive , since all the nodes of the two TFSs are visited . 
+	</s>
+	
+
+	<s id="56">
+		 In this process , many nodes are collapsed into equivalence classes because of structure sharing . 
+	</s>
+	
+
+	<s id="57">
+		 A node x in a TFS F with root qF and a node x in a TFS F with root qF are equivalent ( ) with respect to F F iff x qF and x qF , or if there is a path 7c such that SF F 7c qF x and SF F 7cqF x . 
+	</s>
+	
+
+	<s id="58">
+		 Figure 2 : A TFS . 
+	</s>
+	
+
+	<s id="59">
+		 Features are written in uppercase , while types are written with bold-face lowercase . 
+	</s>
+	
+
+	<s id="60">
+		 Structure sharing is indicated by numerical tags , such as [ 1 ] . 
+	</s>
+	
+
+	<s id="61">
+		 masculine feminine neuter singular plural first second third Figure 3 : A type signature . 
+	</s>
+	
+
+	<s id="62">
+		 For each type , appropriateness declares the features that must be defined on TFSs of that type , along with the type restrictions applying to their values . 
+	</s>
+	
+
+	<s id="63">
+		 index index THROWER : THROWN : PERSON : pers num gend NUMBER : GENDER : gend num pers throwing index throwing THROWER : index PERSON : third [1]singular NUMBER : THROWN : index GENDER : masculine third PERSON : [ 1 ] NUMBER : neuter GENDER : 2.2 Structure Sharing in Descriptions TFSGs are typically specified using descriptions , which logically denote sets of TFSs . 
+	</s>
+	
+
+	<s id="64">
+		 Descriptions can be more terse because they can assume all of the information about their TFSs that can be inferred from appropriateness . 
+	</s>
+	
+
+	<s id="65">
+		 Each non-disjunctive description can be associated with a unique most general feature structure in its denotation called a most general satisfier ( MGSat ) . 
+	</s>
+	
+
+	<s id="66">
+		 While a formal presentation can be found in 
+		<ref citStr="Carpenter , 1992" id="10" label="CEPF" position="10013">
+			( Carpenter , 1992 )
+		</ref>
+		 , we limit ourselves to an intuitive example : the TFS from Figure 2 is the MGSat of the description : throwing THROWER : PERSON : third NUMBER : singular Nr GENDER : masculine THROWN : PERSON : third NUMBER : Nr GENDER : neuter . 
+	</s>
+	
+
+	<s id="67">
+		 Descriptions can also contain variables , such as Nr . 
+	</s>
+	
+
+	<s id="68">
+		 Structure sharing is enforced in descriptions through the use of variables . 
+	</s>
+	
+
+	<s id="69">
+		 In TFSGs , the scope of a variable extends beyond a single description , resulting in structure sharing between different TFSs . 
+	</s>
+	
+
+	<s id="70">
+		 In phrase structure rules ( Figure 1 ) , this sharing can occur between different daughter categories in a rule , or between a mother and a daughter . 
+	</s>
+	
+
+	<s id="71">
+		 Unless the term description is explicitly used , we will use “mother” and “daughter” to refer to the MGSat of a mother or daughter description . 
+	</s>
+	
+
+	<s id="72">
+		 We can classify instances of variables based on what type of structure sharing they create . 
+	</s>
+	
+
+	<s id="73">
+		 Internal variables are the variables that represent internal structure sharing ( such as in Figure 2 ) . 
+	</s>
+	
+
+	<s id="74">
+		 The occurrences of such variables are limited to a single category in a phrase structure rule . 
+	</s>
+	
+
+	<s id="75">
+		 External variables are the variables used to share structure between categories . 
+	</s>
+	
+
+	<s id="76">
+		 If a variable is used for structure sharing both inside a category and across categories , then it is also considered an external variable . 
+	</s>
+	
+
+	<s id="77">
+		 For a specific category , two kinds of external variable instances can be distinguished , depending on their occurrence relative to the parsing control strategy : active external variables and inactive external variables . 
+	</s>
+	
+
+	<s id="78">
+		 Active external variables are instances of external variables that are shared between the description of a category D and one or more descriptions of categories in the same rule as D visited by the parser before D as the rule is extended ( completed ) . 
+	</s>
+	
+
+	<s id="79">
+		 Inactive external variables are the external variable instances that are not active . 
+	</s>
+	
+
+	<s id="80">
+		 For example , in bottom-up left-to-right parsing , all of a mother’s external variable instances would be active because , being external , they also occur in one of the daughter descriptions . 
+	</s>
+	
+
+	<s id="81">
+		 Similarly , all of the leftmost daughter’s external variable instances would be inactive because this is the first description used by the parser . 
+	</s>
+	
+
+	<s id="82">
+		 In Figure 1 , Agr is an active external variable in the second daughter , but it is inactive in the first daughter . 
+	</s>
+	
+
+	<s id="83">
+		 The active external variable instances are important for path indexing ( Section 4.2 ) , because they represent the points at which the parser must copy structure between TFSs . 
+	</s>
+	
+
+	<s id="84">
+		 They are therefore substructures that must be provided to a rule by the parsing chart if these unifications could potentially fail . 
+	</s>
+	
+
+	<s id="85">
+		 They also represent shared nodes in the MGSats of a rule’s category descriptions . 
+	</s>
+	
+
+	<s id="86">
+		 In our definitions , we assume without loss of generality that parsing proceeds bottom-up , with left-to-right of rule daughters . 
+	</s>
+	
+
+	<s id="87">
+		 This is the ALE system’s 
+		<ref citStr="Carpenter and Penn , 1996" id="11" label="OEPF" position="13117">
+			( Carpenter and Penn , 1996 )
+		</ref>
+		 parsing strategy . 
+	</s>
+	
+
+	<s id="88">
+		 Definition 1 . 
+	</s>
+	
+
+	<s id="89">
+		 If D1 Dn are daughter de- scriptions in a rule and the rules are extended from left to right , then Ext MGSat Di is the set of nodes shared between MGSat Di and MGSat D1 MGSat Di 1 . 
+	</s>
+	
+
+	<s id="90">
+		 For a mother description M , Ext MGSat M is the set of nodes shared with any daughter in the same rule . 
+	</s>
+	
+
+	<s id="91">
+		 Because the completion of TFSG rules can cause the categories to change in structure ( due to external variable sharing ) , we need some extra notation to refer to a phrase structure rule’s categories at different times during a single application of that rule . 
+	</s>
+	
+
+	<s id="92">
+		 By M we symbolize the mother M after M’s rule is completed ( all of the rule’s daughters are matched with edges in the chart ) . 
+	</s>
+	
+
+	<s id="93">
+		 D symbolizes the daughter D after all daughters to D’s left in D’s rule were unified with edges from the chart . 
+	</s>
+	
+
+	<s id="94">
+		 An important relation exists between M and M : if qM is M’s root and ^ qM is M’s root , then^x M^x which S 7c qM x and S 7c qM x , 6 x 6 x . 
+	</s>
+	
+
+	<s id="95">
+		 In other words , extending the rule extends the information states of its categories monotonically . 
+	</s>
+	
+
+	<s id="96">
+		 A similar relation exists between D and D . 
+	</s>
+	
+
+	<s id="97">
+		 The set of all nodes x in M such that 7c for which S 7c qM x and S 7c qM x will be denoted by x 1 ( and like- wise for nodes in D ) . 
+	</s>
+	
+
+	<s id="98">
+		 There may be more than one node in x 1 because of unifications that occur during the extension of M to M. 3 The Indexing Timeline Indexing can be applied at several moments during parsing . 
+	</s>
+	
+
+	<s id="99">
+		 We introduce a general strategy for indexed parsing , with respect to what actions should be taken at each stage . 
+	</s>
+	
+
+	<s id="100">
+		 Three main stages can be identified . 
+	</s>
+	
+
+	<s id="101">
+		 The first one consists of indexing actions that can be taken off-line ( along with other optimizations that can be performed at compile-time ) . 
+	</s>
+	
+
+	<s id="102">
+		 The second and third stages refer to actions performed at run time . 
+	</s>
+	
+
+	<s id="103">
+		 M such that 7c for Stage 1 . 
+	</s>
+	
+
+	<s id="104">
+		 In the off-line phase , a static analysis of grammar rules can be performed . 
+	</s>
+	
+
+	<s id="105">
+		 The complete content of mothers and daughters may not be accessible , due to variables that will be instantiated during parsing , but various sources of information , such as the type signature , appropriateness specifications , and the types and features of mother and daughter descriptions , can be analyzed and an appropriate indexing scheme can be specified . 
+	</s>
+	
+
+	<s id="106">
+		 This phase of indexing may include determining : ( 1a ) which daughters in which rules will certainly not unify with a specific mother , and ( 1b ) what information can be extracted from categories during parsing that can constitute indexing keys . 
+	</s>
+	
+
+	<s id="107">
+		 It is desirable to perform as much analysis as possible off-line , since the cost of any action taken during run time prolongs the parsing time . 
+	</s>
+	
+
+	<s id="108">
+		 Stage 2 . 
+	</s>
+	
+
+	<s id="109">
+		 During parsing , after a rule has been completed , all variables in the mother have been extended as far as they can be before insertion into the chart . 
+	</s>
+	
+
+	<s id="110">
+		 This offers the possibility of further investigating the mother’s content and extracting supplemental information from the mother that contributes to the indexing keys . 
+	</s>
+	
+
+	<s id="111">
+		 However , the choice of such investigative actions must be carefully studied , since it might burden the parsing process . 
+	</s>
+	
+
+	<s id="112">
+		 Stage 3 . 
+	</s>
+	
+
+	<s id="113">
+		 While completing a rule , for each daughter a matching edge is searched in the chart . 
+	</s>
+	
+
+	<s id="114">
+		 At this moment , the daughter’s active external variables have been extended as far as they can be before unification with a chart edge . 
+	</s>
+	
+
+	<s id="115">
+		 The information identified in stage ( 1b ) can be extracted and unified as a precursor to the remaining steps involved in category unification . 
+	</s>
+	
+
+	<s id="116">
+		 These steps also take place at this stage . 
+	</s>
+	
+
+	<s id="117">
+		 4 TFSG Indexing To reduce the time spent on failures when searching for an edge in the chart , each edge ( edge’s category ) has an associated index key which uniquely identifies the set of daughter categories that can potentially match it . 
+	</s>
+	
+
+	<s id="118">
+		 When completing a rule , edges unifying with a specific daughter are searched for in the chart . 
+	</s>
+	
+
+	<s id="119">
+		 Instead of visiting all edges in the chart , the daughter’s index key selects a restricted number of edges for traversal , thus reducing the number of unification attempts . 
+	</s>
+	
+
+	<s id="120">
+		 The passive edges added to the chart represent specializations of rules’ mothers . 
+	</s>
+	
+
+	<s id="121">
+		 When a rule is completed , its mother M is added to the chart according to M’s indexing scheme , which is the set of index keys of daughters that might possibly unify with M . 
+	</s>
+	
+
+	<s id="122">
+		 The index is implemented as a hash , where the hash function applied to a daughter yields the daughter’s index key ( a selection of chart edges ) . 
+	</s>
+	
+
+	<s id="123">
+		 For a passive edge representing M , M’s indexing scheme provides the collection of hash entries where it will be added . 
+	</s>
+	
+
+	<s id="124">
+		 Each daughter is associated with a unique index key . 
+	</s>
+	
+
+	<s id="125">
+		 During parsing , a specific daughter is searched for in the chart by visiting only those edges that have a matching key , thus reducing the time needed for traversing the chart . 
+	</s>
+	
+
+	<s id="126">
+		 The index keys can be computed off-line ( when daughters are indexed by position ) , or during parsing . 
+	</s>
+	
+
+	<s id="127">
+		 4.1 Positional Indexing In positional indexing , the index key for each daughter is represented by its position ( rule number and daughter position in the rule ) . 
+	</s>
+	
+
+	<s id="128">
+		 The structure of the index can be determined at compile-time ( first stage ) . 
+	</s>
+	
+
+	<s id="129">
+		 For each mother M in the grammar , a collection L M RZ Dj daughters that can match M is created ( M’s indexing scheme ) , where each element of L M represents the rule number RZ and daughter position Dj inside rule RZ ( 1 j arity RZ ) of a category that can match with M . 
+	</s>
+	
+
+	<s id="130">
+		 For TFSGs it is not possible to compute off-line the exact list of mother-daughter matching pairs , but it is possible to rule out certain non-unifiable pairs before parsing — a compromise that pays off with a very low index management time . 
+	</s>
+	
+
+	<s id="131">
+		 During parsing , each time an edge ( representing a rule’s mother M ) is added to the chart , it is inserted into the hash entries associated with the positions RZ Dj from the list L M ( the number of entries where M is inserted is L M ) . 
+	</s>
+	
+
+	<s id="132">
+		 The entry associated with the key RZ Dj will contain only categories that can possibly unify with the daughter at position RZ Dj in the grammar . 
+	</s>
+	
+
+	<s id="133">
+		 Because our parsing algorithm closes categories depth-first under leftmost daughter matching , only daughters DZ with i 2 are searched for in the chart ( and consequently , indexed ) . 
+	</s>
+	
+
+	<s id="134">
+		 We used the EFD-based modification of this algorithm 
+		<ref citStr="Penn and Munteanu , 2003" id="12" label="CERF" position="19900">
+			( Penn and Munteanu , 2003 )
+		</ref>
+		 , which needs no active edges , and requires a constant two copies per edges , rather than the standard one copy per retrieval found in Prolog parsers . 
+	</s>
+	
+
+	<s id="135">
+		 Without this , the cost of copying TFS categories would have overwhelmed the benefit of the index . 
+	</s>
+	
+
+	<s id="136">
+		 4.2 Path Indexing Path indexing is an extension of positional indexing . 
+	</s>
+	
+
+	<s id="137">
+		 Although it shares the same underlying principle as the path indexing used in automated reasoning 
+		<ref citStr="Ramakrishnan et al. , 2001" id="13" label="CEPF" position="20382">
+			( Ramakrishnan et al. , 2001 )
+		</ref>
+		 , its functionality is related to quick check : extract a vector of types from a mother ( which will become an edge ) and a daughter , and test the unification of the two vectors before attempting to unify the edge and the daughter . 
+	</s>
+	
+
+	<s id="138">
+		 Path indexing differs from quick-check in that it identifies these paths by a static analysis of grammar rules , performed off-line and with no training required . 
+	</s>
+	
+
+	<s id="139">
+		 Path indexing is also built on top of positional indexing , therefore the vector of types can be different for each potentially unifiable mother- daughter pair . 
+	</s>
+	
+
+	<s id="140">
+		 4.2.1 Static Analysis of Grammar Rules Similar to the abstract interpretation used in program verification 
+		<ref citStr="Cousot and Cousot , 1992" id="14" label="CEPF" position="21105">
+			( Cousot and Cousot , 1992 )
+		</ref>
+		 , the static analysis tries to predict a run-time phenomenon ( specifically , unification failures ) at compile-time . 
+	</s>
+	
+
+	<s id="141">
+		 It tries to identify nodes in a mother that carry no relevant information with respect to unification with a particular daughter . 
+	</s>
+	
+
+	<s id="142">
+		 For a mother M unifiable with a daughter D , these nodes will be grouped in a set StaticCut M D. Intuitively , these nodes can be left out or ignored while computing the unification of M and D . 
+	</s>
+	
+
+	<s id="143">
+		 The StaticCut can be divided into two subsets : StaticCut M D RigidCut M D VariableCut M D The RigidCut represents nodes that can be left out because neither they , nor one of their S^-ancestors , can have their type values changed by means of external variable sharing . 
+	</s>
+	
+
+	<s id="144">
+		 The VariableCut represents nodes that are either externally shared , or have an externally shared ancestor , but still can be left out . 
+	</s>
+	
+
+	<s id="145">
+		 Definition 2. RigidCut M D is the largest subset of nodes x M such that , y D for which x y : 1. x Ext M,y Ext D , 2.^x Ms. t. 7c s. t. S 7c x x , x Ext M^ , and 3. y D s. t. 7c s. t. S 7c y y , y Ext D. Definition 3. VariableCut is the largest subset of nodes x M such that : 1. x RigidCut M D , and 2. y D for which x y , s 6 x t 6 y , s t exists . 
+	</s>
+	
+
+	<s id="146">
+		 In words , a node can be left out even if it is externally shared ( or has an externally shared ancestor ) if all possible types this node can have unify with all possible types its corresponding nodes in D can have . 
+	</s>
+	
+
+	<s id="147">
+		 Due to structure sharing , the types of nodes in M and D can change during parsing , by being specialized to one of their subtypes . 
+	</s>
+	
+
+	<s id="148">
+		 Condition 2 ensures that the types of these nodes will remain compatible ( have a least upper bound ) , even if they specialize during rule completion . 
+	</s>
+	
+
+	<s id="149">
+		 An intuitive example ( real-life examples cannot be reproduced here — a category in a typical TFSG can have hundreds of nodes ) is presented in Figure 4 . 
+	</s>
+	
+
+	<s id="150">
+		 Figure 4 : Given the above type signature , mother M and daughter D ( externally shared nodes are pointed to by dashed arrows ) , nodes x1 x2 and x3 from M can be left out when unifying M with D during parsing . 
+	</s>
+	
+
+	<s id="151">
+		 x1 and x3 RigidCut M D , while x2 VariableCut M D ( 9 y2 can promote only to t7 , thus x2 and y2 will always be compatible ) . 
+	</s>
+	
+
+	<s id="152">
+		 x4 is not included in the StaticCut , because if ^ y5 promotes to t5 , then ^ y4 will promote to t5 ( not unifiable with t3 ) . 
+	</s>
+	
+
+	<s id="153">
+		 When computing the unification between a mother and a daughter during parsing , the same outcome ( success or failure ) will be reached by using a reduced representation of the mother ( M'`D ) , with nodes in StaticCut M D removed from M. Proposition 1 . 
+	</s>
+	
+
+	<s id="154">
+		 For a mother M and a daughter D , ifM D before parsing , and ^M ( as an edge in the chart ) and D exist , then during parsing : ( 1 ) M'`D D M D , ( 2 ) M'`D D M D. Proof . 
+	</s>
+	
+
+	<s id="155">
+		 The second part ( M'`D D M D ) of Proposition 1 has a straightforward proof : if M'`D D , then z M'`D D such that t for which^x ^z t 6 x . 
+	</s>
+	
+
+	<s id="156">
+		 Since M'`D M , z M D such that t for which^x ^z^ t 6 x , and therefore , M D. The first part of the proposition will be proven by showing that^z M D , a consistent type can be assigned to ^z , where ^z is the set of nodes in M and D equivalent to z with respect to the unification of M and D.1 Three lemmata need to be formulated : Lemma 1 . 
+	</s>
+	
+
+	<s id="157">
+		 Ifx M and x ^x 1 , then 6 x 6x . 
+	</s>
+	
+
+	<s id="158">
+		 Similarly , for y D , y ^y 1 , 6 y 6 y. Lemma 2 . 
+	</s>
+	
+
+	<s id="159">
+		 If types t0 t1 tn are such that t0 t0 i 1 n , t0 ti , then t t0 such that i 1 n , t ti . 
+	</s>
+	
+
+	<s id="160">
+		 ' Because we do not assume inequated TFSs 
+		<ref citStr="Carpenter , 1992" id="15" label="CEPF" position="24761">
+			( Carpenter , 1992 )
+		</ref>
+		 here , unification failure must result from type inconsistency . 
+	</s>
+	
+
+	<s id="161">
+		 t0 F:t6 t5 G:t5 t3 t4 t2 J:t5 G:t1 H:t6 I:t3 K:t1 t7 ts t1 t6 t1 t5 X1 M y1 D F : H : F : H : K : t7 t7 X3 X2 t6 y3 t6 y5 t1 y2 I : G : X4 t3 G : G : y4 t1 Lemma 3 . 
+	</s>
+	
+
+	<s id="162">
+		 Ifx Mandy D for which x y , then x x 1 y y 1 such that x y . 
+	</s>
+	
+
+	<s id="163">
+		 In proving the first part of Proposition 1 , four cases are identified : Case A : z^ M 1 and z D 1 , Case B : z M 1 and z D 1 , Case C : z^ M 1 and z D 1 , Case D : z M 1 and z D 1 . 
+	</s>
+	
+
+	<s id="164">
+		 Case A is trivial , and D is a generalization of B and C. Case B. It will be shown that t Type such that y z D and for x z M , t 6 y and t 6x . 
+	</s>
+	
+
+	<s id="165">
+		 Subcase B.i : x M x M'`D . 
+	</s>
+	
+
+	<s id="166">
+		 y z^ D , y x . 
+	</s>
+	
+
+	<s id="167">
+		 Therefore , according to Lemma 3 , x x 1 y y 1 such that x y . 
+	</s>
+	
+
+	<s id="168">
+		 Thus , according to Condition 2 of Definition 3 , s 6 y t 6 x , s t . 
+	</s>
+	
+
+	<s id="169">
+		 But according to Lemma 1 , 6 y 6 y and 6 x 6 x . 
+	</s>
+	
+
+	<s id="170">
+		 Therefore , y z D , s 6 y , t 6 x , s t , and hence , y z D t 6 x t 6 y . 
+	</s>
+	
+
+	<s id="171">
+		 Thus , according to Lemma 2 , t 6x y z D,t 6y . 
+	</s>
+	
+
+	<s id="172">
+		 Subcase B.ii : x Mx M'`D . 
+	</s>
+	
+
+	<s id="173">
+		 Since M'`D D , t 6 x such that y z D , t 6 y . 
+	</s>
+	
+
+	<s id="174">
+		 Case C. It will be shown that t 6 y such that^x z , t 6 x . 
+	</s>
+	
+
+	<s id="175">
+		 Let y z^ D . 
+	</s>
+	
+
+	<s id="176">
+		 The set z^ M can be divided into two subsets : SZZ x z^M x M'`D , and SZ x z M x M x M'`D , and x VariableCut M D. If x were in RigidCut M D , then necessarily z^ M would be 1 . 
+	</s>
+	
+
+	<s id="177">
+		 Since SZZ M'`D and M'`D D , then t 6 y such that^x SZZ t 6 x ( * ) . 
+	</s>
+	
+
+	<s id="178">
+		 How- ever,^x SZZ , x y . 
+	</s>
+	
+
+	<s id="179">
+		 Therefore , according to Lemma 3,^x SZZ x x 1 y y 1 such that x y . 
+	</s>
+	
+
+	<s id="180">
+		 Thus , since x VariableCut M D , Condition 2 of Definition 3 holds , and therefore , accord- ing to Lemma 1 , ^s1 6 x^s2 6 y s1 s2 . 
+	</s>
+	
+
+	<s id="181">
+		 More than this , since t 6 y ( for the type t from ( * ) ) , s1 6 x s2 t s1 s2 , and hence , s2 t s2 6 x . 
+	</s>
+	
+
+	<s id="182">
+		 Thus , according to Lemma 2 and to ( * ) , t t 6^y such that^x SZZ t 6 x Thus , t such that^x z^ , t 6 x . 
+	</s>
+	
+
+	<s id="183">
+		 While Proposition 1 could possibly be used by grammar developers to simplify TFSGs themselves at the source-code level , here we only exploit it for internally identifying index keys for more efficient chart parsing with the existing grammar . 
+	</s>
+	
+
+	<s id="184">
+		 There may be better static analyses , and better uses of this static analysis . 
+	</s>
+	
+
+	<s id="185">
+		 In particular , future work will focus on using static analysis to determine smaller representations ( by cutting nodes in Static Cuts ) of the chart edges themselves . 
+	</s>
+	
+
+	<s id="186">
+		 4.2.2 Building the Path Index The indexing schemes used in path indexing are built on the same principles as those in positional indexing . 
+	</s>
+	
+
+	<s id="187">
+		 The main difference is the content of the indexing keys , which now includes a third element . 
+	</s>
+	
+
+	<s id="188">
+		 Each mother M has its indexing scheme defined as : L M RZ Dj VZ i . 
+	</s>
+	
+
+	<s id="189">
+		 The pair RZ Dj is the positional index key ( as in positional indexing ) , while VZ i is the path index vector containing type values extracted from M . 
+	</s>
+	
+
+	<s id="190">
+		 A different set of types is extracted for each mother-daughter pair . 
+	</s>
+	
+
+	<s id="191">
+		 So , path indexing uses a two-layer indexing method : the positional key for daughters , and types extracted from the typed feature structure . 
+	</s>
+	
+
+	<s id="192">
+		 Each daughter’s index key is now given by L Dj RZ VZ i , where RZ is the rule number of a potentially matching mother , and VZ i is the path index vector containing types extracted from Dj . 
+	</s>
+	
+
+	<s id="193">
+		 The types extracted for the indexing vectors are those of nodes found at the end of indexing paths . 
+	</s>
+	
+
+	<s id="194">
+		 A path 7c is an indexing path for a mother- daughter pair M D iff : ( 1 ) 7c is defined for both M and D , ( 2 ) x StaticCut M D f s.t. S f x S 7c qM ( qM is M’s root ) , and ( 3 ) S 7c qM StaticCut M D. Indexing paths are the “frontiers” of the non-statically-cut nodes of M . 
+	</s>
+	
+
+	<s id="195">
+		 A similar key extraction could be performed during Stage 2 of indexing ( as outlined in Section 3 ) , using M rather than M . 
+	</s>
+	
+
+	<s id="196">
+		 We have found that this online path discovery is generally too expensive to be performed during parsing , however . 
+	</s>
+	
+
+	<s id="197">
+		 As stated in Proposition 1 , the nodes in StaticCut M D do not affect the success/failure of M D. Therefore , the types of first nodes not included in StaticCut M D along each path 7c that stems from the root of M and D are in- cluded in the indexing key , since these nodes might contribute to the success/failure of the unification . 
+	</s>
+	
+
+	<s id="198">
+		 It should be mentioned that the vectors VZ i are filled with values extracted from M after M’s rule is completed , and from D after all daughters to the left of D are unified with edges in the chart . 
+	</s>
+	
+
+	<s id="199">
+		 As an example , assuming that the indexing paths are THROWER:PERSON , THROWN , and THROWN:GENDER , the path index vector for the TFS shown in Figure 2 is third index neuter . 
+	</s>
+	
+
+	<s id="200">
+		 4.2.3 Using the Path Index Inserting and retrieving edges from the chart using path indexing is similar to the general method presented at the beginning of this section . 
+	</s>
+	
+
+	<s id="201">
+		 The first layer of the index is used to insert a mother as an edge into appropriate chart entries , according to the positional keys for the daughters it can match . 
+	</s>
+	
+
+	<s id="202">
+		 Along with the mother , its path index vector is inserted into the chart . 
+	</s>
+	
+
+	<s id="203">
+		 When searching for a matching edge for a daughter , the search is restricted by the first indexing layer to a single entry in the chart ( labeled with the positional index key for the daughter ) . 
+	</s>
+	
+
+	<s id="204">
+		 The second layer restricts searches to the edges that have a compatible path index vector . 
+	</s>
+	
+
+	<s id="205">
+		 The compatibility is defined as type unification : the type pointed to by the element Vi j n of an edge’s vector VZ j should unify with the type pointed to by the element Vi j n of the path index vector Vi j of the daughter on position Dj in a rule Ri . 
+	</s>
+	
+
+	<s id="206">
+		 5 Experimental Evaluation Two TFSGs were used to evaluate the performance of indexing : a pre-release version of the MERGE grammar , and the ALE port of the ERG ( in its final form ) . 
+	</s>
+	
+
+	<s id="207">
+		 MERGE is an adaptation of the ERG which uses types more conservatively in favour of relations , macros and complex-antecedent constraints . 
+	</s>
+	
+
+	<s id="208">
+		 This pre-release version has 17 rules , 136 lexical items , 1157 types , and 144 introduced features . 
+	</s>
+	
+
+	<s id="209">
+		 The ERG port has 45 rules , 1314 lexical entries , 4305 types and 155 features . 
+	</s>
+	
+
+	<s id="210">
+		 MERGE was tested on 550 sentences of lengths between 6 and 16 words , extracted from the Wall Street Journal annotated parse trees ( where phrases not covered by MERGE’s vocabulary were replaced by lexical entries having the same parts of speech ) , and from MERGE’s own test corpus . 
+	</s>
+	
+
+	<s id="211">
+		 ERG was tested on 1030 sentences of lengths between 6 and 22 words , extracted from the Brown Corpus and from the Wall Street Journal annotated parse trees . 
+	</s>
+	
+
+	<s id="212">
+		 Rather than use the current version of ALE , TFSs were encoded as Prolog terms as prescribed in 
+		<ref citStr="Penn , 1999a" id="16" label="CEPF" position="31743">
+			( Penn , 1999a )
+		</ref>
+		 , where the number of argument positions is the number of colours needed to colour the feature graph . 
+	</s>
+	
+
+	<s id="213">
+		 This was extended to allow for the enforcement of type constraints during TFS unification . 
+	</s>
+	
+
+	<s id="214">
+		 Types were encoded as attributed variables in SICStus Prolog 
+		<ref citStr="Swedish Institute of Computer Science , 2004" id="17" label="OEPF" position="32066">
+			( Swedish Institute of Computer Science , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="215">
+		 5.1 Positional and path indexing evaluation The average and best improvements in parsing times of positional and path indexing over the same EFDbased parser without indexing are presented in Table 1 . 
+	</s>
+	
+
+	<s id="216">
+		 The parsers were implemented in SICStus 3 . 
+	</s>
+	
+
+	<s id="217">
+		 10.1 for Solaris 8 , running on a Sun Server with 16 GB of memory and 4 UltraSparc v.9 processors at 1281 MHz . 
+	</s>
+	
+
+	<s id="218">
+		 For MERGE , parsing times range from 10 milliseconds to 1.3 seconds . 
+	</s>
+	
+
+	<s id="219">
+		 For ERG , parsing times vary between 60 milliseconds and 29.2 seconds . 
+	</s>
+	
+
+	<s id="220">
+		 Positional Index Path Index average best average best MERGE 1.3 % 50 % 1.3 % 53.7 % ERG 13.9 % 36.5 % 12 % 41.6 % Table 1 : Parsing time improvements of positional and path indexing over the non-indexed EFD parser . 
+	</s>
+	
+
+	<s id="221">
+		 5.2 Comparison with statistical optimizations Non-statistical optimizations can be seen as a first step toward a highly efficient parser , while statistical optimization can be applied as a second step . 
+	</s>
+	
+
+	<s id="222">
+		 However , one of the purposes of non-statistical indexing is to eliminate the burden of training while offering comparable improvements in parsing times . 
+	</s>
+	
+
+	<s id="223">
+		 A quick-check parser was also built and evaluated and the set-up times for the indexed parsers and the quick-check parser were compared ( Table 2 ) . 
+	</s>
+	
+
+	<s id="224">
+		 Quick-check was trained on a 300-sentence training corpus , as prescribed in 
+		<ref citStr="Malouf et al. , 2000" id="18" label="CEPF" position="33484">
+			( Malouf et al. , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="225">
+		 The training corpus included 150 sentences also used in testing . 
+	</s>
+	
+
+	<s id="226">
+		 The number of paths in path indexing is different for each mother-daughter pair , ranging from 1 to 43 over the two grammars . 
+	</s>
+	
+
+	<s id="227">
+		 Positional Path Index Quick Check Index Compiling grammar 6’30” Compiling index 2” 1’33” - Training - - 3h28’14” Total set-up time : 6’32” 8’3” 3h34’44” Table 2 : The set-up times for non-statistically indexed parsers and statistically optimized parsers for MERGE . 
+	</s>
+	
+
+	<s id="228">
+		 As seen in Table 3 , quick-check alone surpasses positional and path indexing for the ERG . 
+	</s>
+	
+
+	<s id="229">
+		 However , it is outperformed by them on the MERGE , recording slower times than even the baseline . 
+	</s>
+	
+
+	<s id="230">
+		 But the combination of quick-check and path indexing is faster than quick-check alone on both grammars . 
+	</s>
+	
+
+	<s id="231">
+		 Path indexing at best provided no decrease in performance over positional indexing alone in these experiments , attesting to the difficulty of maintaining efficient index keys in an implementation . 
+	</s>
+	
+
+	<s id="232">
+		 Positional Indexing Path Quick Check Quick + Indexing Path MERGE 1.3 % 1.3 % -4.5 % -4.3 % ERG 13.9 % 12 % 19.8 % 22 % Table 3 : Comparison of average improvements over non- indexed parsing among all parsers . 
+	</s>
+	
+
+	<s id="233">
+		 The quick-check evaluation presented in 
+		<ref citStr="Malouf et al. , 2000" id="19" label="CEPF" position="34810">
+			( Malouf et al. , 2000 )
+		</ref>
+		 uses only sentences with a length of at most 10 words , and the authors do not report the set-up times . 
+	</s>
+	
+
+	<s id="234">
+		 Quick-check has an additional advantage in the present comparison , because half of the training sentences were included in the test corpus . 
+	</s>
+	
+
+	<s id="235">
+		 While quick-check improvements on the ERG confirm other reports on this method , it must be Grammar Successful unifications Failed unifications Failure rate reduction ( vs. no index ) EFD Positional Path Index Quick Check Positional Path Index Quick Check non-indexed Index Index MERGE 159 755 699 552 370 7.4 % 26.8 % 50.9 % ERG 1078 215083 109080 108610 18040 49.2 % 49.5 % 91.6 % Table 4 : The number of successful and failed unifications for the non-indexed , positional indexing , path indexing , and quick-check parsers , over MERGE and ERG ( collected on the slowest sentence in the corresponding test sets . 
+	</s>
+	
+
+	<s id="236">
+		 ) noted that quick-check appears to be parochially very well-suited to the ERG ( indeed quick-check was developed alongside testing on the ERG ) . 
+	</s>
+	
+
+	<s id="237">
+		 Although the recommended first 30 most probable failure-causing paths account for a large part of the failures recorded in training on both grammars ( 94 % for ERG and 97 % for MERGE ) , only 51 paths caused failures at all for MERGE during training , compared to 216 for the ERG . 
+	</s>
+	
+
+	<s id="238">
+		 Further training with quick-check for determining a better vector length for MERGE did not improve its performance . 
+	</s>
+	
+
+	<s id="239">
+		 This discrepancy in the number of failure-causing paths could be resulting in an overfitted quick-check vector , or , perhaps the 30 paths chosen for MERGE really are not the best 30 ( quick-check uses a greedy approximation ) . 
+	</s>
+	
+
+	<s id="240">
+		 In addition , as shown in Table 4 , the improvements made by quick-check on the ERG are explained by the drastic reduction of ( chart lookup ) unification failures during parsing relative to the other methods . 
+	</s>
+	
+
+	<s id="241">
+		 It appears that nothing short of a drastic reduction is necessary to justify the overhead of maintaining the index , which is the largest for quick-check because some of its paths must be traversed at run-time — path indexing only uses paths available at compile-time in the grammar source . 
+	</s>
+	
+
+	<s id="242">
+		 Note that path indexing outperforms quick-check on MERGE in spite of its lower failure reduction rate , because of its smaller overhead . 
+	</s>
+	
+
+	<s id="243">
+		 6 Conclusions and Future Work The indexing method proposed here is suitable for several classes of unification-based grammars . 
+	</s>
+	
+
+	<s id="244">
+		 The index keys are determined statically and are based on an a priori analysis of grammar rules . 
+	</s>
+	
+
+	<s id="245">
+		 A major advantage of such indexing methods is the elimination of the lengthy training processes needed by statistical methods . 
+	</s>
+	
+
+	<s id="246">
+		 Our experimental evaluation demonstrates that indexing by static analysis is a promising alternative to optimizing parsing with TFSGs , although the time consumed by on-line maintenance of the index is a significant concern — echoes of an observation that has been made in applications of term indexing to databases and programming languages 
+		<ref citStr="Graf , 1996" id="20" label="CEPF" position="37920">
+			( Graf , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="247">
+		 Further work on efficient implementations and data structures is therefore required . 
+	</s>
+	
+
+	<s id="248">
+		 Indexing by static analysis of grammar rules combined with statistical methods also can provide a higher aggregate benefit . 
+	</s>
+	
+
+	<s id="249">
+		 The current static analysis of grammar rules used as a basis for indexing does not consider the effect of the universally quantified constraints that typically augment the signature and grammar rules . 
+	</s>
+	
+
+	<s id="250">
+		 Future work will investigate this extension as well . 
+	</s>
+	
+
+	<s id="251">
+		 References B. Carpenter and G. Penn. 1996 . 
+	</s>
+	
+
+	<s id="252">
+		 Compiling typed attribute-value logic grammars . 
+	</s>
+	
+
+	<s id="253">
+		 In H. Bunt and M. Tomita , editors , Recent Advances in Parsing Technologies , pages 145–168 . 
+	</s>
+	
+
+	<s id="254">
+		 Kluwer . 
+	</s>
+	
+
+	<s id="255">
+		 B. Carpenter . 
+	</s>
+	
+
+	<s id="256">
+		 1992. The Logic of Typed Feature Structures . 
+	</s>
+	
+
+	<s id="257">
+		 Cambridge University Press . 
+	</s>
+	
+
+	<s id="258">
+		 P. Cousot and R. Cousot . 
+	</s>
+	
+
+	<s id="259">
+		 1992. Abstract interpretation and application to logic programs . 
+	</s>
+	
+
+	<s id="260">
+		 Journal ofLogic Programming , 13(2–3) . 
+	</s>
+	
+
+	<s id="261">
+		 R. Elmasri and S. Navathe . 
+	</s>
+	
+
+	<s id="262">
+		 2000. Fundamentals of database systems . 
+	</s>
+	
+
+	<s id="263">
+		 Addison-Wesley . 
+	</s>
+	
+
+	<s id="264">
+		 D. Flickinger . 
+	</s>
+	
+
+	<s id="265">
+		 1999. The English Resource Grammar . 
+	</s>
+	
+
+	<s id="266">
+		 http://lingo.stanford.edu/erg.html . 
+	</s>
+	
+
+	<s id="267">
+		 P. Graf . 
+	</s>
+	
+
+	<s id="268">
+		 1996. Term Indexing . 
+	</s>
+	
+
+	<s id="269">
+		 Springer . 
+	</s>
+	
+
+	<s id="270">
+		 B. Kiefer , H.U. Krieger , J. Carroll , and R. Malouf . 
+	</s>
+	
+
+	<s id="271">
+		 1999. A bag of useful techniques for efficient and robust parsing . 
+	</s>
+	
+
+	<s id="272">
+		 In Proceedings of the 37th Annual Meeting of the ACL . 
+	</s>
+	
+
+	<s id="273">
+		 R. Malouf , J. Carrol , and A. Copestake . 
+	</s>
+	
+
+	<s id="274">
+		 2000. Efficient feature structure operations without compilation . 
+	</s>
+	
+
+	<s id="275">
+		 Natural Language Engineering , 6(1) . 
+	</s>
+	
+
+	<s id="276">
+		 G. Penn and C. Munteanu . 
+	</s>
+	
+
+	<s id="277">
+		 2003. A tabulation- based parsing method that reduces copying . 
+	</s>
+	
+
+	<s id="278">
+		 In Proceedings of the 41st Annual Meeting of the ACL , Sapporo , Japan . 
+	</s>
+	
+
+	<s id="279">
+		 G. Penn. 1999a . 
+	</s>
+	
+
+	<s id="280">
+		 An optimised Prolog encoding of typed feature structures . 
+	</s>
+	
+
+	<s id="281">
+		 Technical Report 138 , SFB 340 , T¨ubingen . 
+	</s>
+	
+
+	<s id="282">
+		 G. Penn. 1999b . 
+	</s>
+	
+
+	<s id="283">
+		 Optimising don’t-care non- determinism with statistical information . 
+	</s>
+	
+
+	<s id="284">
+		 Technical Report 140 , SFB 340 , T¨ubingen . 
+	</s>
+	
+
+	<s id="285">
+		 C. Pollard and I. Sag . 
+	</s>
+	
+
+	<s id="286">
+		 1994. Head-driven Phrase Structure Grammar . 
+	</s>
+	
+
+	<s id="287">
+		 The University of Chicago Press . 
+	</s>
+	
+
+	<s id="288">
+		 I.V. Ramakrishnan , R. Sekar , and A. Voronkov . 
+	</s>
+	
+
+	<s id="289">
+		 2001. Term indexing . 
+	</s>
+	
+
+	<s id="290">
+		 In Handbook of Automated Reasoning , volume II , chapter 26. Elsevier Science . 
+	</s>
+	
+
+	<s id="291">
+		 Swedish Institute of Computer Science . 
+	</s>
+	
+
+	<s id="292">
+		 2004. SIC- Stus Prolog 3.11.0. http://www.sics.se/sicstus . 
+	</s>
+	
+
+
+</acldoc>

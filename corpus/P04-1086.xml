@@ -1,0 +1,1530 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1086">
+	
+
+	<s id="1">
+		 Using Conditional Random Fields to Predict Pitch Accents in Conversational Speech Michelle L. Gregory Linguistics Department University at Buffalo Buffalo , NY 14260 mgregory@buffalo.edu Yasemin Altun Department of Computer Science Brown University Providence , RI 02912 altun@cs.brown.edu Abstract The detection of prosodic characteristics is an important aspect of both speech synthesis and speech recognition . 
+	</s>
+	
+
+	<s id="2">
+		 Correct placement of pitch accents aids in more natural sounding speech , while automatic detection of accents can contribute to better word- level recognition and better textual understanding . 
+	</s>
+	
+
+	<s id="3">
+		 In this paper we investigate probabilistic , contextual , and phonological factors that influence pitch accent placement in natural , conversational speech in a sequence labeling setting . 
+	</s>
+	
+
+	<s id="4">
+		 We introduce Conditional Random Fields ( CRFs ) to pitch accent prediction task in order to incorporate these factors efficiently in a sequence model . 
+	</s>
+	
+
+	<s id="5">
+		 We demonstrate the usefulness and the incremental effect of these factors in a sequence model by performing experiments on hand labeled data from the Switchboard Corpus . 
+	</s>
+	
+
+	<s id="6">
+		 Our model outperforms the baseline and previous models of pitch accent prediction on the Switchboard Corpus . 
+	</s>
+	
+
+	<s id="7">
+		 1 Introduction The suprasegmental features of speech relay critical information in conversation . 
+	</s>
+	
+
+	<s id="8">
+		 Yet , one of the major roadblocks to natural sounding speech synthesis has been the identification and implementation of prosodic characteristics . 
+	</s>
+	
+
+	<s id="9">
+		 The difficulty with this task lies in the fact that prosodic cues are never absolute ; they are relative to individual speakers , gender , dialect , discourse context , local context , phonological environment , and many other factors . 
+	</s>
+	
+
+	<s id="10">
+		 This is especially true of pitch accent , the acoustic cues that make one word more prominent than others in an utterance . 
+	</s>
+	
+
+	<s id="11">
+		 For example , a word with a fundamental frequency ( f0 ) of 120 Hz would likely be quite prominent in a male speaker , but not for a typical female speaker . 
+	</s>
+	
+
+	<s id="12">
+		 Likewise , the accent on the utterance ”Jon’s leaving.” is critical in determining whether it is the answer to the question ”Who is leaving?” ( ”JON’s leaving.” ) or ”What is Jon doing?” ( ”Jon’s LEAVING.” ) . 
+	</s>
+	
+
+	<s id="13">
+		 Accurate pitch accent prediction lies in the successful combination of as many of the con- textual variables as possible . 
+	</s>
+	
+
+	<s id="14">
+		 Syntactic information such as part of speech has proven to be a successful predictor of accentuation 
+		<ref citStr="Hirschberg , 1993" id="1" label="CEPF" position="2565">
+			( Hirschberg , 1993 
+		</ref>
+		<ref citStr="Pan and Hirschberg , 2001" id="2" label="CEPF" position="2585">
+			; Pan and Hirschberg , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="15">
+		 In general , function words are not accented , while content words are . 
+	</s>
+	
+
+	<s id="16">
+		 Various measures of a word’s informativeness , such as the information content ( IC ) of a word 
+		<ref citStr="Pan and McKeown , 1999" id="3" label="CEPF" position="2831">
+			( Pan and McKeown , 1999 )
+		</ref>
+		 and its collocational strength in a given context 
+		<ref citStr="Pan and Hirschberg , 2001" id="4" label="CEPF" position="2911">
+			( Pan and Hirschberg , 2001 )
+		</ref>
+		 have also proven to be useful models of pitch accent . 
+	</s>
+	
+
+	<s id="17">
+		 However , in open topic conversational speech , accent is very unpredictable . 
+	</s>
+	
+
+	<s id="18">
+		 Part of speech and the informativeness of a word do not capture all aspects of accentuation , as we see in this example taken from Switchboard , where a function word gets accented ( accented words are in uppercase ) : I , I have STRONG OBJECTIONS to THAT . 
+	</s>
+	
+
+	<s id="19">
+		 Accent is also influenced by aspects of rhythm and timing . 
+	</s>
+	
+
+	<s id="20">
+		 The length of words , in both number of phones and normalized duration , affect its likelihood of being accented . 
+	</s>
+	
+
+	<s id="21">
+		 Additionally , whether the immediately surrounding words bear pitch accent also affect the likelihood of accentuation . 
+	</s>
+	
+
+	<s id="22">
+		 In other words , a word that might typically be accented may be unaccented because the surrounding words also bear pitch accent . 
+	</s>
+	
+
+	<s id="23">
+		 Phrase boundaries seem to play a role in accentuation as well . 
+	</s>
+	
+
+	<s id="24">
+		 The first word of intonational phrases ( IP ) is less likely to be accented while the last word of an IP tends be accented . 
+	</s>
+	
+
+	<s id="25">
+		 In short , accented words within the same IP are not independent of each other . 
+	</s>
+	
+
+	<s id="26">
+		 Previous work on pitch accent prediction , however , neglected the dependency between labels . 
+	</s>
+	
+
+	<s id="27">
+		 Different machine learning techniques , such as decision trees 
+		<ref citStr="Hirschberg , 1993" id="5" label="CEPN" position="4277">
+			( Hirschberg , 1993 )
+		</ref>
+		 , rule induction systems 
+		<ref citStr="Pan and McKeown , 1999" id="6" label="CEPN" position="4329">
+			( Pan and McKeown , 1999 )
+		</ref>
+		 , bagging 
+		<ref citStr="Sun , 2002" id="7" label="CEPN" position="4354">
+			( Sun , 2002 )
+		</ref>
+		 , boosting 
+		<ref citStr="Sun , 2002" id="8" label="CEPN" position="4380">
+			( Sun , 2002 )
+		</ref>
+		 have been used in a scenario where the accent of each word is predicted independently . 
+	</s>
+	
+
+	<s id="28">
+		 One exception to this line of research is the use of Hidden Markov Models ( HMM ) for pitch accent prediction 
+		<ref citStr="Pan and McKeown , 1999" id="9" label="CEPF" position="4588">
+			( Pan and McKeown , 1999 
+		</ref>
+		<ref citStr="Conkie et al. , 1999" id="10" label="CEPF" position="4613">
+			; Conkie et al. , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="29">
+		 
+		<ref citStr="Pan and McKeown ( 1999 )" id="11" label="CEPF" position="4673">
+			Pan and McKeown ( 1999 )
+		</ref>
+		 demonstrate the effectiveness of a sequence model over a rule induction system , RIPPER , that treats each label independently by showing that HMMs outperform RIPPER when the same variables are used . 
+	</s>
+	
+
+	<s id="30">
+		 Until recently , HMMs were the predominant formalism to model label sequences . 
+	</s>
+	
+
+	<s id="31">
+		 However , they have two major shortcomings . 
+	</s>
+	
+
+	<s id="32">
+		 They are trained non-discriminatively using maximum likelihood estimation to model the joint probability of the observation and label sequences . 
+	</s>
+	
+
+	<s id="33">
+		 Also , they require questionable independence assumptions to achieve efficient inference and learning . 
+	</s>
+	
+
+	<s id="34">
+		 Therefore , variables used in Hidden Markov models of pitch accent prediction have been very limited , e.g. part of speech and frequency 
+		<ref citStr="Pan and McKeown , 1999" id="12" label="CEPN" position="5458">
+			( Pan and McKeown , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="35">
+		 Discriminative learning methods , such as Maximum Entropy Markov Models 
+		<ref citStr="McCallum et al. , 2000" id="13" label="CEPF" position="5568">
+			( McCallum et al. , 2000 )
+		</ref>
+		 , Projection Based Markov Models 
+		<ref citStr="Punyakanok and Roth , 2000" id="14" label="CEPF" position="5632">
+			( Punyakanok and Roth , 2000 )
+		</ref>
+		 , Conditional Random Fields 
+		<ref citStr="Lafferty et al. , 2001" id="15" label="CEPF" position="5687">
+			( Lafferty et al. , 2001 )
+		</ref>
+		 , Sequence AdaBoost 
+		<ref citStr="Altun et al. , 2003a" id="16" label="CEPF" position="5732">
+			( Altun et al. , 2003a )
+		</ref>
+		 , Sequence Perceptron 
+		<ref citStr="Collins , 2002" id="17" label="CEPF" position="5773">
+			( Collins , 2002 )
+		</ref>
+		 , Hidden Markov Support Vector Machines 
+		<ref citStr="Altun et al. , 2003b" id="18" label="CEPF" position="5838">
+			( Altun et al. , 2003b )
+		</ref>
+		 and Maximum-Margin Markov Networks 
+		<ref citStr="Taskar et al. , 2004" id="19" label="CEPF" position="5898">
+			( Taskar et al. , 2004 )
+		</ref>
+		 , overcome the limitations of HMMs . 
+	</s>
+	
+
+	<s id="36">
+		 Among these methods , CRFs is the most common technique used in NLP and has been successfully applied to Part-of-Speech Tagging 
+		<ref citStr="Lafferty et al. , 2001" id="20" label="CEPF" position="6099">
+			( Lafferty et al. , 2001 )
+		</ref>
+		 , Named-Entity Recognition 
+		<ref citStr="Collins , 2002" id="21" label="CEPF" position="6145">
+			( Collins , 2002 )
+		</ref>
+		 and shallow parsing 
+		<ref citStr="Sha and Pereira , 2003" id="22" label="CEPF" position="6166">
+			( Sha and Pereira , 2003 
+		</ref>
+		<ref citStr="McCallum , 2003" id="23" label="CEPF" position="6191">
+			; McCallum , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="37">
+		 The goal of this study is to better identify which words in a string of text will bear pitch accent . 
+	</s>
+	
+
+	<s id="38">
+		 Our contribution is two-fold : employing new predictors and utilizing a discriminative model . 
+	</s>
+	
+
+	<s id="39">
+		 We combine the advantages of probabilistic , syntactic , and phonological predictors with the advantages of modeling pitch accent in a sequence labeling setting using CRFs 
+		<ref citStr="Lafferty et al. , 2001" id="24" label="CERF" position="6635">
+			( Lafferty et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="40">
+		 The rest of the paper is organized as follows : In Section 2 , we introduce CRFs . 
+	</s>
+	
+
+	<s id="41">
+		 Then , we describe our corpus and the variables in Section 3 and Section 4 . 
+	</s>
+	
+
+	<s id="42">
+		 We present the experimental setup and report results in Section 5 . 
+	</s>
+	
+
+	<s id="43">
+		 Finally , we discuss our results ( Section 6 ) and conclude ( Section 7 ) . 
+	</s>
+	
+
+	<s id="44">
+		 2 Conditional Random Fields CRFs can be considered as a generalization of logistic regression to label sequences . 
+	</s>
+	
+
+	<s id="45">
+		 They define a conditional probability distribution of a label sequence y given an observation sequence x . 
+	</s>
+	
+
+	<s id="46">
+		 In this paper , x = ( x 1 , x2 , . 
+	</s>
+	
+
+	<s id="47">
+		 .. , xn ) denotes a sentence of length n and y = ( y1 , y2 , . 
+	</s>
+	
+
+	<s id="48">
+		 .. , yn ) denotes the label sequence corresponding to x . 
+	</s>
+	
+
+	<s id="49">
+		 In pitch accent prediction , xt is a word and yt is a binary label denoting whether xt is accented or not . 
+	</s>
+	
+
+	<s id="50">
+		 CRFs specify a linear discriminative function F parameterized by A over a feature representation of the observation and label sequence IF ( x , y ) . 
+	</s>
+	
+
+	<s id="51">
+		 The model is assumed to be stationary , thus the feature representation can be partitioned with respect to positions t in the sequence and linearly combined with respect to the importance of each feature Ok , denoted by Ak . 
+	</s>
+	
+
+	<s id="52">
+		 Then the discriminative function can be stated as in Equation 1 : F ( x , y ; A ) = E ~A , IFt ( x , y ) ) ( 1 ) t Then , the conditional probability is given by p(ylx ; A ) = Z(x1 A ) F(x , y ; A ) ( 2 ) where Z ( x , A ) = ~y¯ F ( x , ¯y ; A ) is a normaliza- tion constant which is computed by summing over all possible label sequences y¯ of the observation sequence x . 
+	</s>
+	
+
+	<s id="53">
+		 We extract two types of features from a sequence pair : 1 . 
+	</s>
+	
+
+	<s id="54">
+		 Current label and information about the observation sequence , such as part-of-speech tag of a word that is within a window centered at the word currently labeled , e.g. . 
+	</s>
+	
+
+	<s id="55">
+		 Is the current word pitch accented and the part-of-speech tag of the previous word=Noun ? 
+	</s>
+	
+
+	<s id="56">
+		 Current label and the neighbors of that label , i.e. features that capture the inter-label dependencies , e.g. . 
+	</s>
+	
+
+	<s id="57">
+		 Is the current wordpitch accented and the previous word not accented ? 
+	</s>
+	
+
+	<s id="58">
+		 Since CRFs condition on the observation sequence , they can efficiently employ feature representations that incorporate overlapping features , i.e. multiple interacting features or long-range dependencies of the observations , as opposed to HMMs which generate observation sequences . 
+	</s>
+	
+
+	<s id="59">
+		 In this paper , we limit ourselves to 1-order Markov model features to encode inter-label dependencies . 
+	</s>
+	
+
+	<s id="60">
+		 The information used to encode the observation-label dependencies is explained in detail in Section 4 . 
+	</s>
+	
+
+	<s id="61">
+		 In CRFs , the objective function is the log-loss of the model with A parameters with respect to a training set D . 
+	</s>
+	
+
+	<s id="62">
+		 This function is defined as the negative sum of the conditional probabilities of each training label sequence yi , given the observation sequence xi , where D - { ( xi , yi ) : i = 1 , ... , m } . 
+	</s>
+	
+
+	<s id="63">
+		 CRFs are known to overfit , especially with noisy data if not regularized . 
+	</s>
+	
+
+	<s id="64">
+		 To overcome this problem , we penalize the objective function by adding a Gaussian prior ( a term proportional to the squared norm 11A112 ) as suggested in 
+		<ref citStr="Johnson et al. , 1999" id="25" label="CERF" position="9974">
+			( Johnson et al. , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="65">
+		 Then the loss function is given as : logp(yi1xi ; A ) + 1c11A112 F(xi , yi ; A ) + log Z(xi , A ) + 1c11A112 ( 3 ) where c is a constant . 
+	</s>
+	
+
+	<s id="66">
+		 
+		<ref citStr="Lafferty et al . ( 2001 )" id="26" label="CJPN" position="10159">
+			Lafferty et al . ( 2001 )
+		</ref>
+		 , proposed a modification of improved iterative scaling for parameter estimation in CRFs . 
+	</s>
+	
+
+	<s id="67">
+		 However , gradient-based methods have often found to be more efficient for minimizing Equation 3 
+		<ref citStr="Minka , 2001" id="27" label="CEPF" position="10357">
+			( Minka , 2001 
+		</ref>
+		<ref citStr="Sha and Pereira , 2003" id="28" label="CEPF" position="10372">
+			; Sha and Pereira , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="68">
+		 In this paper , we use the conjugate gradient descent method to optimize the above objective function . 
+	</s>
+	
+
+	<s id="69">
+		 The gradients are computed as in Equation 4 : VAL = Em E Ep [ IFt ( xi , y ) ] — IFt ( xi , yi ) i t + cA ( 4 ) where the expectation is with respect to all possible label sequences of the observation sequence xi and can be computed using the forward backward algorithm . 
+	</s>
+	
+
+	<s id="70">
+		 Given an observation sequence x , the best label sequence is given by : F(x , y ; ˆA ) ( 5 ) where Aˆ is the parameter vector that minimizes L(A ; D ) . 
+	</s>
+	
+
+	<s id="71">
+		 The best label sequence can be identified by performing the Viterbi algorithm . 
+	</s>
+	
+
+	<s id="72">
+		 3 Corpus The data for this study were taken from the Switchboard Corpus 
+		<ref citStr="Godfrey et al. , 1992" id="29" label="OEPF" position="11155">
+			( Godfrey et al. , 1992 )
+		</ref>
+		 , which consists of 2430 telephone conversations between adult speakers ( approximately 2.4 million words ) . 
+	</s>
+	
+
+	<s id="73">
+		 Participants were both male and female and represented all major dialects of American English . 
+	</s>
+	
+
+	<s id="74">
+		 We used a portion of this corpus that was phonetically hand- transcribed 
+		<ref citStr="Greenberg et al. , 1996" id="30" label="OEPF" position="11480">
+			( Greenberg et al. , 1996 )
+		</ref>
+		 and segmented into speech boundaries at turn boundaries or pauses of more than 500 ms on both sides . 
+	</s>
+	
+
+	<s id="75">
+		 Fragments contained seven words on average . 
+	</s>
+	
+
+	<s id="76">
+		 Additionally , each word was coded for probabilistic and contextual information , such as word frequency , conditional probabilities , the rate of speech , and the canonical pronunciation 
+		<ref citStr="Fosler-Lussier and Morgan , 1999" id="31" label="OEPF" position="11870">
+			( Fosler-Lussier and Morgan , 1999 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="77">
+		 The dataset used in all analysis in this study consists of only the first hour of the database , comprised of 1,824 utterances with 13,190 words . 
+	</s>
+	
+
+	<s id="78">
+		 These utterances were hand coded for pitch accent and intonational phrase brakes . 
+	</s>
+	
+
+	<s id="79">
+		 3.1 Pitch Accent Coding The utterances were hand labeled for accents and boundaries according to the Tilt Intonational Model 
+		<ref citStr="Taylor , 2000" id="32" label="CERF" position="12272">
+			( Taylor , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="80">
+		 This model is characterized by a series of intonational events : accents and boundaries . 
+	</s>
+	
+
+	<s id="81">
+		 Labelers were instructed to use duration , amplitude , pausing information , and changes in f0 to identify events . 
+	</s>
+	
+
+	<s id="82">
+		 In general , labelers followed the basic conventions of EToBI for coding 
+		<ref citStr="Taylor , 2000" id="33" label="CERF" position="12598">
+			( Taylor , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="83">
+		 However , the Tilt coding scheme was simplified . 
+	</s>
+	
+
+	<s id="84">
+		 Accents were coded as either major or minor ( and some rare level accents ) and breaks were either rising or falling . 
+	</s>
+	
+
+	<s id="85">
+		 Agreement for the Tilt coding was reported at 86 % . 
+	</s>
+	
+
+	<s id="86">
+		 The CU coding also used a simplified EToBI coding scheme , with accent types conflated and only major breaks coded . 
+	</s>
+	
+
+	<s id="87">
+		 Accent and break coding pair-wise agreement was between 85- 95 % between coders , with a kappa r. of 71%-74 % where r. is the difference between expected agreement and actual agreement . 
+	</s>
+	
+
+	<s id="88">
+		 4 Variables The label we were predicting was a binary distinction of accented or not . 
+	</s>
+	
+
+	<s id="89">
+		 The variables we used for prediction fall into three main categories : syntactic , probabilistic variables , which include word frequency and collocation measures , and phonological variables , which capture aspects of rhythm and timing that affect accentuation . 
+	</s>
+	
+
+	<s id="90">
+		 4.1 Syntactic variables The only syntactic category we used was a four- way classification for hand-generated part of speech ( POS ) : Function , Noun , Verb , Other , where Other includes all adjectives and adverbs ' . 
+	</s>
+	
+
+	<s id="91">
+		 Table 1 gives the percentage of accented and unaccented items by POS . 
+	</s>
+	
+
+	<s id="92">
+		 ' We also tested a categorization of 14 distinct part of speech classes , but the results did not improve , so we only report on the four-way classification . 
+	</s>
+	
+
+	<s id="93">
+		 L(A ; D ) = — Em i = — Em i yˆ = arg max Y Accented Unaccented Function 21 % 79 % Verb 59 % 41 % Noun 30 % 70 % Other 49 % 51 % Table 1 : Percentage of accented and unaccented items by POS . 
+	</s>
+	
+
+	<s id="94">
+		 Variable Definition Example Unigram log p(wz) and , I Bigram log p(wz l wz_ 1 ) roughing it Rev Bigram log p(wzlwz+1) rid of Joint log p(wz_1 , wz ) and I Rev Joint log p(wz , wz+1 ) and I Table 2 : Definition of probabilistic variables . 
+	</s>
+	
+
+	<s id="95">
+		 4.2 Probabilistic variables Following a line of research that incorporates the information content of a word as well as collocation measures 
+		<ref citStr="Pan and McKeown , 1999" id="34" label="CEPF" position="14619">
+			( Pan and McKeown , 1999 
+		</ref>
+		<ref citStr="Pan and Hirschberg , 2001" id="35" label="CEPF" position="14644">
+			; Pan and Hirschberg , 2001 )
+		</ref>
+		 we have included a number of probabilistic variables . 
+	</s>
+	
+
+	<s id="96">
+		 The probabilistic variables we used were the unigram frequency , the predictability of a word given the preceding word ( bigram ) , the predictability of a word given the following word ( reverse bigram ) , the joint probability of a word with the preceding ( joint ) , and the joint probability of a word with the following word ( reverse joint ) . 
+	</s>
+	
+
+	<s id="97">
+		 Table 2 provides the definition for these , as well as high probability examples from the corpus ( the emphasized word being the current target ) . 
+	</s>
+	
+
+	<s id="98">
+		 Note all probabilistic variables were in log scale . 
+	</s>
+	
+
+	<s id="99">
+		 The values for these probabilities were obtained using the entire 2.4 million words of SWBD2 . 
+	</s>
+	
+
+	<s id="100">
+		 Table 3 presents the Spearman’s rank correlation coefficient between the probabilistic measures and accent 
+		<ref citStr="Conover , 1980" id="36" label="CEPF" position="15546">
+			( Conover , 1980 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="101">
+		 These values indicate the strong correlation of accents to the probabilistic variables . 
+	</s>
+	
+
+	<s id="102">
+		 As the probability increases , the chance of an accent decreases . 
+	</s>
+	
+
+	<s id="103">
+		 Note that all values are significant at the p &lt; .001 level . 
+	</s>
+	
+
+	<s id="104">
+		 We also created a combined part of speech and unigram frequency variable in order to have a variable that corresponds to the variable used in ( Pan 2Our current implementation of CRF only takes categorical variables , thus for the experiments , all probabilistic variables were binned into 5 equal categories . 
+	</s>
+	
+
+	<s id="105">
+		 We also tried more bins and produced similar results , so we only report on the 5-binned categories . 
+	</s>
+	
+
+	<s id="106">
+		 We computed correlations between pitch accent and the original 5 variables as well as the binned variables and they are very similar . 
+	</s>
+	
+
+	<s id="107">
+		 Variables Spearman’s p Unigram -.451 Bigram -.309 Reverse Bigram -.383 Joint -.207 Reverse joint -.265 Table 3 : Spearman’s correlation values for the probabilistic measures . 
+	</s>
+	
+
+	<s id="108">
+		 and McKeown , 1999 ) . 
+	</s>
+	
+
+	<s id="109">
+		 4.3 Phonological variables The last category of predictors , phonological variables , concern aspects of rhythm and timing of an utterance . 
+	</s>
+	
+
+	<s id="110">
+		 We have two main sources for these variables : those that can be computed solely from a string of text ( textual ) , and those that require some sort of acoustic information ( acoustic ) . 
+	</s>
+	
+
+	<s id="111">
+		 
+		<ref citStr="Sun ( 2002 )" id="37" label="CEPF" position="16959">
+			Sun ( 2002 )
+		</ref>
+		 demonstrated that the number of phones in a syllable , the number of syllables in a word , and the position of a word in a sentence are useful predictors of which syllables get accented . 
+	</s>
+	
+
+	<s id="112">
+		 While Sun was concerned with predicting accented syllables , some of the same variables apply to word level targets as well . 
+	</s>
+	
+
+	<s id="113">
+		 For our textual phonological features , we included the number of syllables in a word and the number of phones ( both in citation form as well as transcribed form ) . 
+	</s>
+	
+
+	<s id="114">
+		 Instead of position in a sentence , we used the position of the word in an utterance since the fragments do not necessarily correspond to sentences in the database we used . 
+	</s>
+	
+
+	<s id="115">
+		 We also made use of the utterance length . 
+	</s>
+	
+
+	<s id="116">
+		 Below is the list of our textual features : • Number of canonical syllables • Number of canonical phones • Number of transcribed phones • The length of the utterance in number of words • The position of the word in the utterance The main purpose of this study is to better predict which words in a string of text receive accent . 
+	</s>
+	
+
+	<s id="117">
+		 So far , all of our predictors are ones easily computed from a string of text . 
+	</s>
+	
+
+	<s id="118">
+		 However , we have included a few variables that affect the likelihood of a word being accented that require some acoustic data . 
+	</s>
+	
+
+	<s id="119">
+		 To the best of our knowledge , these features have not been used in acoustic models of pitch accent prediction . 
+	</s>
+	
+
+	<s id="120">
+		 These features include the duration of the word , speech rate , and following intonational phrase boundaries . 
+	</s>
+	
+
+	<s id="121">
+		 Given the nature of the SWBD corpus , there are many disfluencies . 
+	</s>
+	
+
+	<s id="122">
+		 Thus , we also Feature X2 Sig canonical syllables 1636 p &lt; .001 canonical phones 2430 p &lt; .001 transcribed phones 2741 p &lt; .001 utt length 80 p &lt; .005 utt position 295 p &lt; .001 duration 3073 p &lt; .001 speech rate 101 p &lt; .001 following pause 27 p &lt; .001 foll filled pause 328 p &lt; .001 foll IP boundary 1047 p &lt; .001 Table 4 : Significance of phonological features on pitch accent prediction . 
+	</s>
+	
+
+	<s id="123">
+		 included following pauses and filled pauses as predictors . 
+	</s>
+	
+
+	<s id="124">
+		 Below is the list of our acoustic features : • Log of duration in milliseconds normalized by number of canonical phones binned into 5 equal categories . 
+	</s>
+	
+
+	<s id="125">
+		 • Log Speech Rate ; calculated on strings of speech bounded on either side by pauses of 300 ms or greater and binned into 5 equal categories . 
+	</s>
+	
+
+	<s id="126">
+		 • Following pause ; a binary distinction of whether a word is followed by a period of silence or not . 
+	</s>
+	
+
+	<s id="127">
+		 • Following filled pause ; a binary distinction of whether a word was followed by a filled pause ( uh , um ) or not . 
+	</s>
+	
+
+	<s id="128">
+		 • Following IP boundary Table 4 indicates that each of these features significantly affect the presence of pitch accent . 
+	</s>
+	
+
+	<s id="129">
+		 While certainly all of these variables are not independent of on another , using CRFs , one can incorporate all of these variables into the pitch accent prediction model with the advantage of making use of the dependencies among the labels . 
+	</s>
+	
+
+	<s id="130">
+		 4.4 Surrounding Information 
+		<ref citStr="Sun ( 2002 )" id="38" label="CEPF" position="20073">
+			Sun ( 2002 )
+		</ref>
+		 has shown that the values immediately preceding and following the target are good predictors for the value of the target . 
+	</s>
+	
+
+	<s id="131">
+		 We also experimented with the effects of the surrounding values by varying the window size of the observation-label feature extraction described in Section 2 . 
+	</s>
+	
+
+	<s id="132">
+		 When the window size is 1 , only values of the word that is labelled are incorporated in the model . 
+	</s>
+	
+
+	<s id="133">
+		 When the window size is 3 , the values of the previous and the following words as well as the current word are incorporated in the model . 
+	</s>
+	
+
+	<s id="134">
+		 Window size 5 captures the values of the current word , the two previous words and the two following words . 
+	</s>
+	
+
+	<s id="135">
+		 5 Experiments and Results All experiments were run using 10 fold cross- validation . 
+	</s>
+	
+
+	<s id="136">
+		 We used Viterbi decoding to find the most likely sequence and report the performance in terms of label accuracy . 
+	</s>
+	
+
+	<s id="137">
+		 We ran all experiments with varying window sizes ( w E { 1 , 3 , 5 } ) . 
+	</s>
+	
+
+	<s id="138">
+		 The baseline which simply assigns the most common label , unaccented , achieves 60.53 f 1.50 % . 
+	</s>
+	
+
+	<s id="139">
+		 Previous research has demonstrated that part of speech and frequency , or a combination of these two , are very reliable predictors of pitch accent . 
+	</s>
+	
+
+	<s id="140">
+		 Thus , to test the worthiness of using a CRF model , the first experiment we ran was a comparison of an HMM to a CRF using just the combination of part of speech and unigram . 
+	</s>
+	
+
+	<s id="141">
+		 The HMM score ( referred as HMM:POS , Unigram in Table 5 ) was 68.62 f 1.78 , while the CRF model ( referred as CRF:POS , Unigram in Table 5 ) performed significantly better at 72.56 f 1.86 . 
+	</s>
+	
+
+	<s id="142">
+		 Note that 
+		<ref citStr="Pan and McKeown ( 1999 )" id="39" label="CEPF" position="21735">
+			Pan and McKeown ( 1999 )
+		</ref>
+		 reported 74 % accuracy with their HMM model . 
+	</s>
+	
+
+	<s id="143">
+		 The difference is due to the different corpora used in each case . 
+	</s>
+	
+
+	<s id="144">
+		 While they also used spontaneous speech , it was a limited domain in the sense that it was speech from discharge orders from doctors at one medical facility . 
+	</s>
+	
+
+	<s id="145">
+		 The SWDB corpus is open domain conversational speech . 
+	</s>
+	
+
+	<s id="146">
+		 In order to capture some aspects of the IC and collocational strength of a word , in the second experiment we ran part of speech plus all of the probabilistic variables ( referred as CRF:POS , Prob in Table 5 ) . 
+	</s>
+	
+
+	<s id="147">
+		 The model accuracy was 73.94 % , thus improved over the model using POS and unigram values by 1.38 % . 
+	</s>
+	
+
+	<s id="148">
+		 In the third experiment we wanted to know if TTS applications that made use of purely textual input could be aided by the addition of timing and rhythm variables that can be gleaned from a text string . 
+	</s>
+	
+
+	<s id="149">
+		 Thus , we included the textual features described in Section 4.3 in addition to the probabilistic and syntactic features ( referred as CRF:POS , Prob , Txt in Table 5 ) . 
+	</s>
+	
+
+	<s id="150">
+		 The accuracy was improved by 1.73 % . 
+	</s>
+	
+
+	<s id="151">
+		 For the final experiment , we added the acoustic variable , resulting in the use of all the variables described in Section 4 ( referred as CRF:All in Table 5 ) . 
+	</s>
+	
+
+	<s id="152">
+		 We get about 0.5 % increase in accuracy , 76.1 % with a window of size w = 1 . 
+	</s>
+	
+
+	<s id="153">
+		 Using larger windows resulted in minor increases in the performance of the model , as summarized in Table 5 . 
+	</s>
+	
+
+	<s id="154">
+		 Our best accuracy was 76.36 % using all features in a w = 5 window size . 
+	</s>
+	
+
+	<s id="155">
+		 Model:Variables w= 1 w=3 w=5 Baseline 60.53 HMM : POS,Unigram 68.62 CRF : POS , Unigram 72.56 CRF : POS , Prob 73.94 74.19 74.51 CRF : POS , Prob , Txt 75.67 75.74 75.89 CRF : All 76.1 76.23 76.36 Table 5 : Test accuracy of pitch accent prediction on SWDB using various variables and window sizes . 
+	</s>
+	
+
+	<s id="156">
+		 6 Discussion Pitch accent prediction is a difficult task , in that , the number of different speakers , topics , utterance fragments and disfluent production of the SWBD corpus only increase this difficulty . 
+	</s>
+	
+
+	<s id="157">
+		 The fact that 21 % of the function words are accented indicates that models of pitch accent that mostly rely on part of speech and unigram frequency would not fair well with this corpus . 
+	</s>
+	
+
+	<s id="158">
+		 We have presented a model of pitch accent that captures some of the other factors that influence accentuation . 
+	</s>
+	
+
+	<s id="159">
+		 In addition to adding more probabilistic variables and phonological factors , we have used a sequence model that captures the interdependence of accents within a phrase . 
+	</s>
+	
+
+	<s id="160">
+		 Given the distinct natures of corpora used , it is difficult to compare these results with earlier models . 
+	</s>
+	
+
+	<s id="161">
+		 However , in experiment 1 ( HMM : POS , Unigram vs CRF : POS , Unigram ) we have shown that a CRF model achieves a better performance than an HMM model using the same features . 
+	</s>
+	
+
+	<s id="162">
+		 However , the real strength of CRFs comes from their ability to incorporate different sources of information efficiently , as is demonstrated in our experiments . 
+	</s>
+	
+
+	<s id="163">
+		 We did not test directly the probabilistic measures ( or collocation measures ) that have been used before for this task , namely information content ( IC ) 
+		<ref citStr="Pan and McKeown , 1999" id="40" label="CEPF" position="25016">
+			( Pan and McKeown , 1999 )
+		</ref>
+		 and mutual information 
+		<ref citStr="Pan and Hirschberg , 2001" id="41" label="CEPF" position="25069">
+			( Pan and Hirschberg , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="164">
+		 However , the measures we have used encompass similar information . 
+	</s>
+	
+
+	<s id="165">
+		 For example , IC is only the additive inverse of our unigram measure : IC(w) = — log p(w) ( 6 ) Rather than using mutual information as a measure of collocational strength , we used unigram , bigram and joint probabilities . 
+	</s>
+	
+
+	<s id="166">
+		 A model that includes both joint probability and the unigram probabilities of wz and wz_i is comparable to one that includes mutual information . 
+	</s>
+	
+
+	<s id="167">
+		 Just as the likelihood of a word being accented is influenced by a following silence or IP boundary , the collocational strength of the target word with the following word ( captured by reverse bigram and reverse joint ) is also a factor . 
+	</s>
+	
+
+	<s id="168">
+		 With the use of POS , unigram , and all bigram and joint probabilities , we have shown that ( a ) CRFs outperform HMMs , and ( b ) our probabilistic variables increase accuracy from a model that include POS + unigram ( 73.94 % compared to 72.56 % ) . 
+	</s>
+	
+
+	<s id="169">
+		 For tasks in which pitch accent is predicted solely based on a string of text , without the addition of acoustic data , we have shown that adding aspects of rhythm and timing aids in the identification of accent targets . 
+	</s>
+	
+
+	<s id="170">
+		 We used the number of words in an utterance , where in the utterance a word falls , how long in both number of syllables and number of phones all affect accentuation . 
+	</s>
+	
+
+	<s id="171">
+		 The addition of these variables improved the model by nearly 2 % . 
+	</s>
+	
+
+	<s id="172">
+		 These results suggest that Accent prediction models that only make use of textual information could be improved with the addition of these variables . 
+	</s>
+	
+
+	<s id="173">
+		 While not trying to provide a complete model of accentuation from acoustic information , in this study we tested a few acoustic variables that have not yet been tested . 
+	</s>
+	
+
+	<s id="174">
+		 The nature of the SWBD corpus allowed us to investigate the role of disfluencies and widely variable durations and speech rate on accentuation . 
+	</s>
+	
+
+	<s id="175">
+		 Especially speech rate , duration and surrounding silence are good predictors of pitch accent . 
+	</s>
+	
+
+	<s id="176">
+		 The addition of these predictors only slightly improved the model ( about .5 % ) . 
+	</s>
+	
+
+	<s id="177">
+		 Acoustic features are very sensitive to individual speakers . 
+	</s>
+	
+
+	<s id="178">
+		 In the corpus , there are many different speakers of varying ages and dialects . 
+	</s>
+	
+
+	<s id="179">
+		 These variables might become more useful if one controls for individual speaker differences . 
+	</s>
+	
+
+	<s id="180">
+		 To really test the usefulness of these variables , one would have to combine them with acoustic features that have been demonstrated to be good predictors of pitch accent 
+		<ref citStr="Sun , 2002" id="42" label="CEPF" position="27666">
+			( Sun , 2002 
+		</ref>
+		<ref citStr="Conkie et al. , 1999" id="43" label="CEPF" position="27679">
+			; Conkie et al. , 1999 
+		</ref>
+		<ref citStr="Wightman et al. , 2000" id="44" label="CEPF" position="27702">
+			; Wightman et al. , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="181">
+		 7 Conclusion We used CRFs with new measures of collocational strength and new phonological factors that capture aspects of rhythm and timing to model pitch accent prediction . 
+	</s>
+	
+
+	<s id="182">
+		 CRFs have the theoretical advantage of incorporating all these factors in a principled and efficient way . 
+	</s>
+	
+
+	<s id="183">
+		 We demonstrated that CRFs outperform HMMs also experimentally . 
+	</s>
+	
+
+	<s id="184">
+		 We also demonstrated the usefulness of some new probabilistic variables and phonological variables . 
+	</s>
+	
+
+	<s id="185">
+		 Our results mainly have implications for the textual prediction of accents in TTS applications , but might also be useful in automatic speech recognition tasks such as automatic transcription of multi-speaker meetings . 
+	</s>
+	
+
+	<s id="186">
+		 In the near future we would like to incorporate reliable acoustic information , controlling for individual speaker difference and also apply different discriminative sequence labeling techniques to pitch accent prediction task . 
+	</s>
+	
+
+	<s id="187">
+		 8 Acknowledgements This work was partially funded by CAREER award #IIS 9733067 IGERT . 
+	</s>
+	
+
+	<s id="188">
+		 We would also like to thank Mark Johnson for the idea of this project , Dan Jurafsky , Alan Bell , Cynthia Girand , and Jason Brenier for their helpful comments and help with the database . 
+	</s>
+	
+
+	<s id="189">
+		 References Y. Altun , T. Hofmann , and M. Johnson . 
+	</s>
+	
+
+	<s id="190">
+		 2003a . 
+	</s>
+	
+
+	<s id="191">
+		 Discriminative learning for label sequences via boosting . 
+	</s>
+	
+
+	<s id="192">
+		 In Proc . 
+	</s>
+	
+
+	<s id="193">
+		 of Advances in Neural Information Processing Systems . 
+	</s>
+	
+
+	<s id="194">
+		 Y. Altun , I. Tsochantaridis , and T. Hofmann. 2003b . 
+	</s>
+	
+
+	<s id="195">
+		 Hidden markov support vector machines . 
+	</s>
+	
+
+	<s id="196">
+		 In Proc . 
+	</s>
+	
+
+	<s id="197">
+		 of 20th International Conference on Machine Learning . 
+	</s>
+	
+
+	<s id="198">
+		 M. Collins . 
+	</s>
+	
+
+	<s id="199">
+		 2002. Discriminative training methods for Hidden Markov Models : Theory and experiments with perceptron algorithms . 
+	</s>
+	
+
+	<s id="200">
+		 In Proc . 
+	</s>
+	
+
+	<s id="201">
+		 of Empirical Methods of Natural Language Processing . 
+	</s>
+	
+
+	<s id="202">
+		 A. Conkie , G. Riccardi , and R. Rose . 
+	</s>
+	
+
+	<s id="203">
+		 1999. Prosody recognition from speech utterances using acoustic and linguistic based models of prosodic events . 
+	</s>
+	
+
+	<s id="204">
+		 In Proc . 
+	</s>
+	
+
+	<s id="205">
+		 ofEUROSPEECH’99 . 
+	</s>
+	
+
+	<s id="206">
+		 W. J. Conover . 
+	</s>
+	
+
+	<s id="207">
+		 1980. Practical Nonparametric Statistics . 
+	</s>
+	
+
+	<s id="208">
+		 Wiley , New York , 2nd edition . 
+	</s>
+	
+
+	<s id="209">
+		 E. Fosler-Lussier and N. Morgan . 
+	</s>
+	
+
+	<s id="210">
+		 1999. Effects of speaking rate and word frequency on conversational pronunci ations . 
+	</s>
+	
+
+	<s id="211">
+		 In Speech Communication . 
+	</s>
+	
+
+	<s id="212">
+		 J. Godfrey , E. Holliman , and J. McDaniel . 
+	</s>
+	
+
+	<s id="213">
+		 1992. SWITCHBOARD : Telephone speech corpus for research and develo pment . 
+	</s>
+	
+
+	<s id="214">
+		 In Proc . 
+	</s>
+	
+
+	<s id="215">
+		 of the International Conference on Acoustics , Speech , and Signal Processing . 
+	</s>
+	
+
+	<s id="216">
+		 S. Greenberg , D. Ellis , and J. Hollenback . 
+	</s>
+	
+
+	<s id="217">
+		 1996. Insights into spoken language gleaned from phonetic transcripti on of the Switchboard corpus . 
+	</s>
+	
+
+	<s id="218">
+		 In Proc . 
+	</s>
+	
+
+	<s id="219">
+		 of International Conference on Spoken Language Processsing . 
+	</s>
+	
+
+	<s id="220">
+		 J. Hirschberg . 
+	</s>
+	
+
+	<s id="221">
+		 1993. Pitch accent in context : Predicting intonational prominence from text . 
+	</s>
+	
+
+	<s id="222">
+		 ArtificialIntelligence , 63(1-2):305–340 . 
+	</s>
+	
+
+	<s id="223">
+		 M. Johnson , S. Geman , S. Canon , Z. Chi , and S. Riezler . 
+	</s>
+	
+
+	<s id="224">
+		 1999. Estimators for stochastic unification-based grammars . 
+	</s>
+	
+
+	<s id="225">
+		 In Proc . 
+	</s>
+	
+
+	<s id="226">
+		 ofACL’99 Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="227">
+		 J. Lafferty , A. McCallum , and F. Pereira . 
+	</s>
+	
+
+	<s id="228">
+		 2001. Conditional random fields : Probabilistic models for segmenting and labeling sequence data . 
+	</s>
+	
+
+	<s id="229">
+		 In Proc . 
+	</s>
+	
+
+	<s id="230">
+		 of 18th International Conference on Machine Learning . 
+	</s>
+	
+
+	<s id="231">
+		 A. McCallum , D. Freitag , and F. Pereira . 
+	</s>
+	
+
+	<s id="232">
+		 2000. Maximum Entropy Markov Models for Information Extraction and Segmentation . 
+	</s>
+	
+
+	<s id="233">
+		 In Proc . 
+	</s>
+	
+
+	<s id="234">
+		 of 17th International Conference on Machine Learning . 
+	</s>
+	
+
+	<s id="235">
+		 A. McCallum . 
+	</s>
+	
+
+	<s id="236">
+		 2003. Efficiently inducing features of Conditional Random Fields . 
+	</s>
+	
+
+	<s id="237">
+		 In Proc . 
+	</s>
+	
+
+	<s id="238">
+		 of Uncertainty in Articifical Intelligence . 
+	</s>
+	
+
+	<s id="239">
+		 T. Minka . 
+	</s>
+	
+
+	<s id="240">
+		 2001. Algorithms for maximum- likelihood logistic regression . 
+	</s>
+	
+
+	<s id="241">
+		 Technical report , CMU , Department of Statistics , TR 758 . 
+	</s>
+	
+
+	<s id="242">
+		 S. Pan and J. Hirschberg . 
+	</s>
+	
+
+	<s id="243">
+		 2001. Modeling local context for pitch accent prediction . 
+	</s>
+	
+
+	<s id="244">
+		 In Proc . 
+	</s>
+	
+
+	<s id="245">
+		 of ACL’01 , Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="246">
+		 S. Pan and K. McKeown . 
+	</s>
+	
+
+	<s id="247">
+		 1999. Word informativeness and automatic pitch accent modeling . 
+	</s>
+	
+
+	<s id="248">
+		 In Proc . 
+	</s>
+	
+
+	<s id="249">
+		 of the Joint SIGDAT Conference on EMNLP and VLC . 
+	</s>
+	
+
+	<s id="250">
+		 V. Punyakanok and D. Roth . 
+	</s>
+	
+
+	<s id="251">
+		 2000. The use of classifiers in sequential inference . 
+	</s>
+	
+
+	<s id="252">
+		 In Proc . 
+	</s>
+	
+
+	<s id="253">
+		 of Advances in Neural Information Processing Systems . 
+	</s>
+	
+
+	<s id="254">
+		 F. Sha and F. Pereira . 
+	</s>
+	
+
+	<s id="255">
+		 2003. Shallow parsing with conditional random fields . 
+	</s>
+	
+
+	<s id="256">
+		 In Proc . 
+	</s>
+	
+
+	<s id="257">
+		 of Human Language Technology . 
+	</s>
+	
+
+	<s id="258">
+		 Xuejing Sun . 
+	</s>
+	
+
+	<s id="259">
+		 2002. Pitch accent prediction using ensemble machine learning . 
+	</s>
+	
+
+	<s id="260">
+		 In Proc . 
+	</s>
+	
+
+	<s id="261">
+		 of the International Conference on Spoken Language Processing . 
+	</s>
+	
+
+	<s id="262">
+		 B. Taskar , C. Guestrin , and D. Koller . 
+	</s>
+	
+
+	<s id="263">
+		 2004. Max- margin markov networks . 
+	</s>
+	
+
+	<s id="264">
+		 In Proc . 
+	</s>
+	
+
+	<s id="265">
+		 of Advances in Neural Information Processing Systems . 
+	</s>
+	
+
+	<s id="266">
+		 P. Taylor . 
+	</s>
+	
+
+	<s id="267">
+		 2000. Analysis and synthesis of intonation using the Tilt model . 
+	</s>
+	
+
+	<s id="268">
+		 Journal of the Acoustical Society ofAmerica . 
+	</s>
+	
+
+	<s id="269">
+		 C. W. Wightman , A. K. Syrdal , G. Stemmer , A. Conkie , and M. Beutnagel . 
+	</s>
+	
+
+	<s id="270">
+		 2000. Perceptually Based Automatic Prosody Labeling and Prosodically Enriched Unit Selection Improve Concatenative Text-To-Speech Synthesis . 
+	</s>
+	
+
+	<s id="271">
+		 volume 2 , pages 71–74 . 
+	</s>
+	
+
+
+</acldoc>

@@ -1,0 +1,1523 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<acldoc acl_id="P04-1032">
+	
+
+	<s id="1">
+		 Minimal Recursion Semantics as Dominance Constraints : Translation , Evaluation , and Analysis Ruth Fuchss,1 Alexander Koller,1 Joachim Niehren,2 and Stefan Thater1 1 Dept. of Computational Linguistics , Saarland University , Saarbrücken , Germany 2 INRIA Futurs , Lille , France {fuchss,koller,stth}@coli.uni-sb.de Abstract We show that a practical translation of MRS descriptions into normal dominance constraints is feasible . 
+	</s>
+	
+
+	<s id="2">
+		 We start from a recent theoretical translation and verify its assumptions on the outputs of the English Resource Grammar ( ERG ) on the Redwoods corpus . 
+	</s>
+	
+
+	<s id="3">
+		 The main assumption of the translation— that all relevant underspecified descriptions are nets—is validated for a large majority of cases ; all non-nets computed by the ERG seem to be systematically incomplete . 
+	</s>
+	
+
+	<s id="4">
+		 1 Introduction Underspecification is the standard approach to dealing with scope ambiguity 
+		<ref citStr="Alshawi and Crouch , 1992" id="1" label="CEPF" position="922">
+			( Alshawi and Crouch , 1992 
+		</ref>
+		<ref citStr="Pinkal , 1996" id="2" label="CEPF" position="950">
+			; Pinkal , 1996 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="5">
+		 The readings of underspecified expressions are represented by compact and concise descriptions , instead of being enumerated explicitly . 
+	</s>
+	
+
+	<s id="6">
+		 Underspecified descriptions are easier to derive in syntax-semantics interfaces 
+		<ref citStr="Egg et al. , 2001" id="3" label="CEPF" position="1206">
+			( Egg et al. , 2001 
+		</ref>
+		<ref citStr="Copestake et al. , 2001" id="4" label="CEPF" position="1226">
+			; Copestake et al. , 2001 )
+		</ref>
+		 , useful in applications such as machine translation 
+		<ref citStr="Copestake et al. , 1995" id="5" label="CEPF" position="1334">
+			( Copestake et al. , 1995 )
+		</ref>
+		 , and can be resolved by need . 
+	</s>
+	
+
+	<s id="7">
+		 Two important underspecification formalisms in the recent literature are Minimal Recursion Semantics ( MRS ) 
+		<ref citStr="Copestake et al. , 2004" id="6" label="CEPF" position="1512">
+			( Copestake et al. , 2004 )
+		</ref>
+		 and dominance constraints 
+		<ref citStr="Egg et al. , 2001" id="7" label="CEPF" position="1560">
+			( Egg et al. , 2001 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="8">
+		 MRS is the under- specification language which is used in large-scale HPSG grammars , such as the English Resource Grammar ( ERG ) 
+		<ref citStr="Copestake and Flickinger , 2000" id="8" label="CEPF" position="1738">
+			( Copestake and Flickinger , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="9">
+		 The main advantage of dominance constraints is that they can be solved very efficiently 
+		<ref citStr="Althaus et al. , 2003" id="9" label="CEPF" position="1838">
+			( Althaus et al. , 2003 
+		</ref>
+		<ref citStr="Bodirsky et al. , 2004" id="10" label="CEPF" position="1862">
+			; Bodirsky et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="10">
+		 
+		<ref citStr="Niehren and Thater ( 2003 )" id="11" label="CEPF" position="1927">
+			Niehren and Thater ( 2003 )
+		</ref>
+		 defined , in a theoretical paper , a translation from MRS into normal dominance constraints . 
+	</s>
+	
+
+	<s id="11">
+		 This translation clarified the precise relationship between these two related formalisms , and made the powerful meta-theory of dominance constraints accessible to MRS . 
+	</s>
+	
+
+	<s id="12">
+		 Their goal was to also make the large grammars for MRS * Supported by the CHORUS project of the SFB 378 of the DFG . 
+	</s>
+	
+
+	<s id="13">
+		 and the efficient constraint solvers for dominance constraints available to the other formalism . 
+	</s>
+	
+
+	<s id="14">
+		 However , Niehren and Thater made three technical assumptions : 1. that EP-conjunction can be resolved in a preprocessing step ; 2. that the qeq relation in MRS is simply dominance ; 3 . 
+	</s>
+	
+
+	<s id="15">
+		 and ( most importantly ) that all linguistically correct and relevant MRS expressions belong to a certain class of constraints called nets . 
+	</s>
+	
+
+	<s id="16">
+		 This means that it is not obvious whether their result can be immediately applied to the output of practical grammars like the ERG . 
+	</s>
+	
+
+	<s id="17">
+		 In this paper , we evaluate the truth of these assumptions on the MRS expressions which the ERG computes for the sentences in the Redwoods Tree- bank 
+		<ref citStr="Oepen et al. , 2002" id="12" label="OEPF" position="3104">
+			( Oepen et al. , 2002 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="18">
+		 The main result of our evaluation is that 83 % of the Redwoods sentences are indeed nets , and 17 % aren’t . 
+	</s>
+	
+
+	<s id="19">
+		 A closer analysis of the non-nets reveals that they seem to be systematically incomplete , i. e. they predict more readings than the sentence actually has . 
+	</s>
+	
+
+	<s id="20">
+		 This supports the claim that all linguistically correct MRS expressions are indeed nets . 
+	</s>
+	
+
+	<s id="21">
+		 We also verify the other two assumptions , one empirically and one by proof . 
+	</s>
+	
+
+	<s id="22">
+		 Our results are practically relevant because dominance constraint solvers are much faster and have more predictable runtimes when solving nets than the LKB solver for MRS 
+		<ref citStr="Copestake , 2002" id="13" label="CJPN" position="3778">
+			( Copestake , 2002 )
+		</ref>
+		 , as we also show here . 
+	</s>
+	
+
+	<s id="23">
+		 In addition , nets might be useful as a debugging tool to identify potentially problematic semantic outputs when designing a grammar . 
+	</s>
+	
+
+	<s id="24">
+		 Plan of the Paper . 
+	</s>
+	
+
+	<s id="25">
+		 We first recall the definitions of MRS ( § 2 ) and dominance constraints ( § 3 ) . 
+	</s>
+	
+
+	<s id="26">
+		 We present the translation from MRS-nets to dominance constraints ( § 4 ) and prove that it can be extended to MRS-nets with EP-conjunction ( § 5 ) . 
+	</s>
+	
+
+	<s id="27">
+		 Finally we evaluate the net hypothesis and the qeq assumption on the Redwoods corpus , and compare runtimes ( § 6 ) . 
+	</s>
+	
+
+	<s id="28">
+		 2 Minimal Recursion Semantics This section presents a definition of Minimal Recursion Semantics ( MRS ) 
+		<ref citStr="Copestake et al. , 2004" id="14" label="CERF" position="4500">
+			( Copestake et al. , 2004 )
+		</ref>
+		 including EP-conjunctions with a merging semantics . 
+	</s>
+	
+
+	<s id="29">
+		 Full MRS with qeq-semantics , top handles , and event variables will be discussed in the last paragraph . 
+	</s>
+	
+
+	<s id="30">
+		 MRS Syntax . 
+	</s>
+	
+
+	<s id="31">
+		 MRS constraints are conjunctive formulas over the following vocabulary : 1 . 
+	</s>
+	
+
+	<s id="32">
+		 An infinite set of variables ranged over by h . 
+	</s>
+	
+
+	<s id="33">
+		 Variables are also called handles . 
+	</s>
+	
+
+	<s id="34">
+		 2. An infinite set of constants x,y,z denoting indivual variables of the object language . 
+	</s>
+	
+
+	<s id="35">
+		 3. A set of function symbols ranged over by P , and a set of quantifier symbols ranged over by Q . 
+	</s>
+	
+
+	<s id="36">
+		 Pairs Qx are further function symbols . 
+	</s>
+	
+
+	<s id="37">
+		 4. The binary predicate symbol ‘=q’ . 
+	</s>
+	
+
+	<s id="38">
+		 MRS constraints have three kinds of literals , two kinds of elementary predications ( EPs ) in the first two lines and handle constraints in the third line : 1. h:P(x1,...,xn,h1 , ... , hm),where n,m&gt;0 2. h : Qx(h1,h2) 3. h1 =q h2 In EPs , label positions are on the left of ‘:’ and argument positions on the right . 
+	</s>
+	
+
+	<s id="39">
+		 Let Mbe a set of literals . 
+	</s>
+	
+
+	<s id="40">
+		 The label set lab(M) contains all handles of M that occur in label but not in argument position , and the argument handle set arg(M) contains all handles of M that occur in argument but not in label position . 
+	</s>
+	
+
+	<s id="41">
+		 Definition 1 ( MRS constraints ) . 
+	</s>
+	
+
+	<s id="42">
+		 An MRS constraint ( MRS for short ) is a finite set M of MRS- literals such that : M1 every handle occurs at most once in argument position in M , M2 handle constraints h =q h ' always relate argument handles h to labels h ' , and M3 for every constant ( individual variable ) x in argument position in M there is a unique literal of the formh : Qx(h1,h2) in M . 
+	</s>
+	
+
+	<s id="43">
+		 We say that an MRS M is compact if every handle h in M is either a label or an argument handle . 
+	</s>
+	
+
+	<s id="44">
+		 Compactness simplifies the following proofs , but it is no serious restriction in practice . 
+	</s>
+	
+
+	<s id="45">
+		 We usually represent MRSs as directed graphs : the nodes of the graph are the handles of the MRS , EPs are represented as solid lines , and handle constraints are represented as dotted lines . 
+	</s>
+	
+
+	<s id="46">
+		 For instance , the following MRS is represented by the graph on the left of Fig . 
+	</s>
+	
+
+	<s id="47">
+		 1. { h5 : somey(h6,h8),h7 : book(y),h1 : everyx(h2,h4) , h3 : student(x),h9 : read(x,y),h2 =q h3,h6 =q h7 } Figure 1 : An MRS and its two configurations . 
+	</s>
+	
+
+	<s id="48">
+		 Note that the relation between bound variables and their binders is made explicit by binding edges drawn as dotted lines ( cf. C2 below ) ; transitively redundand binding edges ( e. g. , from somey to booky ) however are omited . 
+	</s>
+	
+
+	<s id="49">
+		 MRS Semantics . 
+	</s>
+	
+
+	<s id="50">
+		 Readings of underspecified representations correspond to configurations of MRS constraints . 
+	</s>
+	
+
+	<s id="51">
+		 Intuitively , a configuration is an MRS where all handle constraints have been resolved by plugging the “tree fragments” into each other . 
+	</s>
+	
+
+	<s id="52">
+		 Let M be an MRS and h , h ' be handles in M . 
+	</s>
+	
+
+	<s id="53">
+		 We say that h immediately outscopes h ' in M if there is an EP in M with label h and argument handle h ' , and we say that h outscopes h ' in M if the pair ( h , h ' ) belongs to the reflexive transitive closure of the immediate outscope relation of M. Definition 2 ( MRS configurations ) . 
+	</s>
+	
+
+	<s id="54">
+		 An MRS M is a configuration if it satisfies conditions C 1 and C2 : C 1 The graph of M is a tree of solid edges : ( i ) all handles are labels i. e. , arg ( M ) = 0 and M contains no handle constraints , ( ii ) handles don’t properly outscope themselve , and ( iii ) all handles are pairwise connected by EPs in M. C2 If h : Qx(h1,h2) and h ' : P( ... , x , ... ) belong to M , then h outscopes h ' in M i. e. , binding edges in the graph of M are transitively redundant . 
+	</s>
+	
+
+	<s id="55">
+		 We say that a configuration M is configuration of an MRS M ' if there exists a partial substitution 6 : lab ( M ' ) --~ arg(M') that states how to identify labels with argument handles of M ' so that : C3 M= { 6(E) I E is an EP inM ' } , and C4 for all h =q h ' in M ' , h outscopes 6(h') in M . 
+	</s>
+	
+
+	<s id="56">
+		 The value 6(E) is obtained by substituting all labels in dom((Y) in E while leaving all other handels unchanged . 
+	</s>
+	
+
+	<s id="57">
+		 The MRS on the left of Fig . 
+	</s>
+	
+
+	<s id="58">
+		 1 , for instance , has two configurations given to the right . 
+	</s>
+	
+
+	<s id="59">
+		 EP-conjunctions . 
+	</s>
+	
+
+	<s id="60">
+		 Definitions 1 and 2 generalize the idealized definition of MRS of 
+		<ref citStr="Niehren and Thater ( 2003 )" id="15" label="CERF" position="8874">
+			Niehren and Thater ( 2003 )
+		</ref>
+		 by EP-conjunctions with a merging semantics . 
+	</s>
+	
+
+	<s id="61">
+		 An MRS M contains an EP-conjunction if it contains different EPs with the same label h.The intuition is that EP-conjunctions are interpreted by object language conjunctions . 
+	</s>
+	
+
+	<s id="62">
+		 studentx booky readx.y booky readx.y readx.y studentx everyx somey somey everyx somey booky everyx studentx P1 , P2 { h1 : P1 (h2),h1 : P2(h3),h4 : P3 h2 =q h4 , h3=q h4 } P3 Figure 2 : An unsolvable MRS with EP-conjunction Figure 3 : A solvable MRS without merging-free configaration Fig . 
+	</s>
+	
+
+	<s id="63">
+		 2 shows an MRS with an EP-conjunction and its graph . 
+	</s>
+	
+
+	<s id="64">
+		 The function symbols of both EPs are conjoined and their arguments are merged into a set . 
+	</s>
+	
+
+	<s id="65">
+		 The MRS does not have configurations since the argument handles of the merged EPs cannot jointly outscope the node P4 . 
+	</s>
+	
+
+	<s id="66">
+		 We call a configuration merging if it contains EP- conjunctions , and merging -free otherwise . 
+	</s>
+	
+
+	<s id="67">
+		 Merging configurations are needed to solve EP-conjuctions such as { h : P1 , h : P2 } . 
+	</s>
+	
+
+	<s id="68">
+		 Unfortunately , they can also solve MRSs without EP-conjunctions , such as the MRS in Fig . 
+	</s>
+	
+
+	<s id="69">
+		 3. The unique configuration of this MRS is a merging configuration : the labels of P1 and P2 must be identified with the only available argument handle . 
+	</s>
+	
+
+	<s id="70">
+		 The admission of merging configurations may thus have important consequences for the solution space of arbitrary MRSs . 
+	</s>
+	
+
+	<s id="71">
+		 Standard MRS . 
+	</s>
+	
+
+	<s id="72">
+		 Standard MRS requires three further extensions : ( i ) qeq-semantics , ( ii ) top- handles , and ( iii ) event variables . 
+	</s>
+	
+
+	<s id="73">
+		 These extensions are less relevant for our comparision . 
+	</s>
+	
+
+	<s id="74">
+		 The qeq-semantics restricts the interpretation of handle constraints beyond dominance . 
+	</s>
+	
+
+	<s id="75">
+		 Let M be an MRS with handles h , h ' . 
+	</s>
+	
+
+	<s id="76">
+		 We say that h is qeq h ' in M if either h = h ' , or there is an EP h : Qx ( h0 , h1 ) in M and h1 is qeq h ' in M . 
+	</s>
+	
+
+	<s id="77">
+		 Every qeq-configuration is a configuration as defined above , but not necessarily vice versa . 
+	</s>
+	
+
+	<s id="78">
+		 The qeq-restriction is relevant in theory but will turn out unproblematic in practice ( see § 6 ) . 
+	</s>
+	
+
+	<s id="79">
+		 Standard MRS requires the existence of top handles in all MRS constraints . 
+	</s>
+	
+
+	<s id="80">
+		 This condition doesn’t matter for MRSs with connected graphs ( see 
+		<ref citStr="Bodirsky et al. , 2004" id="16" label="CEPF" position="11187">
+			( Bodirsky et al. , 2004 )
+		</ref>
+		 for the proof idea ) . 
+	</s>
+	
+
+	<s id="81">
+		 MRSs with unconnected graphs clearly do not play any role in practical underspecified semantics . 
+	</s>
+	
+
+	<s id="82">
+		 Finally , MRSs permit events variables e , e ' as a second form of constants . 
+	</s>
+	
+
+	<s id="83">
+		 They are treated equally to individual variables except that they cannot be bound by quantifiers . 
+	</s>
+	
+
+	<s id="84">
+		 3 Dominance Constraints Dominance constraints are a general framework for describing trees . 
+	</s>
+	
+
+	<s id="85">
+		 For scope underspecification , they are used to describe the syntax trees of object language formulas . 
+	</s>
+	
+
+	<s id="86">
+		 Dominance constraints are the core language underlying CLLS 
+		<ref citStr="Egg et al. , 2001" id="17" label="CEPF" position="11819">
+			( Egg et al. , 2001 )
+		</ref>
+		 which adds parallelism and binding constraints . 
+	</s>
+	
+
+	<s id="87">
+		 Syntax and semantics . 
+	</s>
+	
+
+	<s id="88">
+		 We assume a possibly infinite signature E = { f,g , ... } of function symbols with fixed arities ( written ar(f)) and an infinite set of variables ranged over by X , Y , Z . 
+	</s>
+	
+
+	<s id="89">
+		 A dominance constraint q ) is a conjunction of dominance , inequality , and labeling literals of the following form , where ar(f) = n : q)::=Xa^ Y |X=~Y |X : f(X1,...,Xn) | q)^q ) ' Dominance constraints are interpreted over finite constructor trees i. e. , ground terms constructed from the function symbols in E . 
+	</s>
+	
+
+	<s id="90">
+		 We identify ground terms with trees that are rooted , ranked , edge- ordered and labeled . 
+	</s>
+	
+
+	<s id="91">
+		 A solution for a dominance constraint q ) consists of a tree i and an assign- ment a that maps the variables in q ) to nodes of i such that all constraints are satisfied : labeling lit- erals X : f(X1,...,Xn) are satisfied iff a(X) is la- beled with f and its daughters are a(X1 ) , ... , a(Xn) in this order ; dominance literals X a^ Y are satisfied iff a(X) dominates a(Y) in i ; and inequality literals X =~ Y are satisfied iff a(X) and a(Y) are distinct nodes . 
+	</s>
+	
+
+	<s id="92">
+		 Solved forms . 
+	</s>
+	
+
+	<s id="93">
+		 Satisfiable dominance constraints have infinitely many solutions . 
+	</s>
+	
+
+	<s id="94">
+		 Constraint solvers for dominance constraints therefore do not enumerate solutions but solved forms i. e. , “tree shaped” constraints . 
+	</s>
+	
+
+	<s id="95">
+		 To this end , we consider ( weakly ) normal dominance constraints 
+		<ref citStr="Bodirsky et al. , 2004" id="18" label="CERF" position="13331">
+			( Bodirsky et al. , 2004 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="96">
+		 We call a variable a hole of q ) if it occurs in argu- ment position in q ) and a root of q ) otherwise . 
+	</s>
+	
+
+	<s id="97">
+		 Definition 3 . 
+	</s>
+	
+
+	<s id="98">
+		 A dominance constraint q ) is normal if it satisfies the following conditions . 
+	</s>
+	
+
+	<s id="99">
+		 N1 ( a ) each variable of q ) occurs at most once in the labeling literals of q ) . 
+	</s>
+	
+
+	<s id="100">
+		 ( b ) each variable of q ) occurs at least once in the labeling literals of q ) . 
+	</s>
+	
+
+	<s id="101">
+		 N2 for distinct roots X and Y of q ) , X =~ Y is in q ) . 
+	</s>
+	
+
+	<s id="102">
+		 N3 ( a ) ifX a^ Y occurs in q ) , Y is a root in q ) . 
+	</s>
+	
+
+	<s id="103">
+		 ( b ) ifX a^ Y occurs in q ) , X is a hole in q ) . 
+	</s>
+	
+
+	<s id="104">
+		 We call q ) weakly normal if it satisfies the above properties except for N1 ( b ) and N3 ( b ) . 
+	</s>
+	
+
+	<s id="105">
+		 Note that Definition 3 imposes compactness : the height of tree fragments is always one . 
+	</s>
+	
+
+	<s id="106">
+		 This is not P2 , P3 P2 P3 P1 configures P1 booky read,,y read~,y student , every , somey student , booky read,,y every , somey student , somey booky every , Figure 4 : A normal dominance constraint ( left ) and its two solved forms ( right ) . 
+	</s>
+	
+
+	<s id="107">
+		 a serious restriction , as weakly normal dominance constraints can be compactified , provided that dominance links relate either roots or holes with roots . 
+	</s>
+	
+
+	<s id="108">
+		 Weakly normal dominance constraints q ) can be represented by dominance graphs . 
+	</s>
+	
+
+	<s id="109">
+		 The dominance graph of q ) is a directed graph G = ( V , ET U+ ED ) de- fined as follows . 
+	</s>
+	
+
+	<s id="110">
+		 The nodes of G are the variables of q ) . 
+	</s>
+	
+
+	<s id="111">
+		 Labeling literals X : f ( X1 , ... , Xk ) are represented by tree edges ( X,Xi ) E ET , for 1 &lt; i &lt; k , and dominance literals X a* X ' are represented by dominance edges ( X,X' ) E ED . 
+	</s>
+	
+
+	<s id="112">
+		 Inequality literals are not represented in the graph . 
+	</s>
+	
+
+	<s id="113">
+		 In pictures , labeling literals are drawn with solid lines and dominance edges with dotted lines . 
+	</s>
+	
+
+	<s id="114">
+		 We say that a constraint q ) is in solved form if its graph is in solved form . 
+	</s>
+	
+
+	<s id="115">
+		 A graph G is in solved form iff it is a forest . 
+	</s>
+	
+
+	<s id="116">
+		 The solved forms of G are solved forms G ' which are more specific than G i. e. , they differ only in their dominance edges and the reachability relation of G extends the reachability of G ' . 
+	</s>
+	
+
+	<s id="117">
+		 A minimal solved form is a solved form which is minimal with respect to specificity . 
+	</s>
+	
+
+	<s id="118">
+		 Simple solvedforms are solved forms where every hole has exactly one outgoing dominance edge . 
+	</s>
+	
+
+	<s id="119">
+		 Fig . 
+	</s>
+	
+
+	<s id="120">
+		 4 shows as a concrete example the translation of the MRS description in Fig . 
+	</s>
+	
+
+	<s id="121">
+		 1 together with its two minimal solved forms . 
+	</s>
+	
+
+	<s id="122">
+		 Both solved forms are simple . 
+	</s>
+	
+
+	<s id="123">
+		 4 Translating Merging-Free MRS-Nets This section defines MRS-nets without EP- conjunctions , and sketches their translation to normal dominance constraints . 
+	</s>
+	
+
+	<s id="124">
+		 We define nets equally for MRSs and dominance constraints . 
+	</s>
+	
+
+	<s id="125">
+		 The key semantic property of nets is that different notions of solutions coincide . 
+	</s>
+	
+
+	<s id="126">
+		 In this section , we show that merging-free configurations coincides to minimal solved forms . 
+	</s>
+	
+
+	<s id="127">
+		 § 5 generalizes the translation by adding EP-conjunctions and permitting merging semantics . 
+	</s>
+	
+
+	<s id="128">
+		 Pre-translation . 
+	</s>
+	
+
+	<s id="129">
+		 An MRS constraint M can be represented as a corresponding dominance con- straint q)M as follows : The variables of q)M are the handles of M , and the literals of q)M correspond ( a ) strong ( b ) weak ( c ) island Figure 5 : Fragment Schemata of Nets those of M in the following sence : h : P(x1 , ... , xn , h1 , ... , hk ) H h : Px1,...,xn ( h1 , ... , hk ) h : Qx(h1,h2) H h : Qx(h1,h2) h=qh'Hha*h' Additionally , dominance literals h a* h ' are added to q)Mfor all h,h's.t.h : Qx(h1,h2) and h':P(...,x , ... ) belong to M ( cf. C2 ) , and literals h =~ h ' are added to q)M for all h , h ' in distinct label position in M. Lemma 1 . 
+	</s>
+	
+
+	<s id="130">
+		 If a compact MRS M does not contain EP-conjunctions then q)M is weakly normal , and the graph of M is the transitive reduction of the graph of q)M . 
+	</s>
+	
+
+	<s id="131">
+		 Nets . 
+	</s>
+	
+
+	<s id="132">
+		 A hypernormal path 
+		<ref citStr="Althaus et al. , 2003" id="19" label="CEPF" position="17360">
+			( Althaus et al. , 2003 )
+		</ref>
+		 in a constraint graph is a path in the undirected graph that contains for every leaf X at most one incident dominance edge . 
+	</s>
+	
+
+	<s id="133">
+		 Let q ) be a weakly normal dominance constraint and let G be the constraint graph of q ) . 
+	</s>
+	
+
+	<s id="134">
+		 We say that q ) is a dominance net if the transitive reduction G ' of G is a net . 
+	</s>
+	
+
+	<s id="135">
+		 G ' is a net if every tree fragment F of G ' satisfies one of the following three conditions , illustrated in Fig . 
+	</s>
+	
+
+	<s id="136">
+		 5 : Strong . 
+	</s>
+	
+
+	<s id="137">
+		 Every hole of F has exactly one outgoing dominance edge , and there is no weak root-to-root dominance edge . 
+	</s>
+	
+
+	<s id="138">
+		 Weak . 
+	</s>
+	
+
+	<s id="139">
+		 Every hole except for the last one has exactly one outgoing dominance edge ; the last hole has no outgoing dominance edge , and there is exactly one weak root-to-root dominance edge . 
+	</s>
+	
+
+	<s id="140">
+		 Island . 
+	</s>
+	
+
+	<s id="141">
+		 The fragment has one hole X , and all variables which are connected toXby dominance edges are connected by a hypernormal path in the graph where F has been removed . 
+	</s>
+	
+
+	<s id="142">
+		 We say that an MRS M is an MRS-net if the pre- translation of its literals results in a dominance net q)M . 
+	</s>
+	
+
+	<s id="143">
+		 We say that an MRS-net M is connected if q)M is connected ; q)M is connected if the graph of q)M is connected . 
+	</s>
+	
+
+	<s id="144">
+		 Note that this notion of MRS-nets implies that MRS-nets cannot contain EP-conjunctions as otherwise the resulting dominance constraint would not be weakly normal . 
+	</s>
+	
+
+	<s id="145">
+		 § 5 shows that EP-conjunctions ... ... ... ... ... can be resolved i. e. , MRSs with EP-conjunctions can be mapped to corresponding MRSs without EP- conjunctions . 
+	</s>
+	
+
+	<s id="146">
+		 If M is an MRS-net ( without EP-conjunctions ) , then M can be translated into a corresponding dominance constraint q ) by first pre-translating M into a q)M and then normalizing q)M by replacing weak root-to-root dominance edges in weak fragments by dominance edges which start from the open last hole . 
+	</s>
+	
+
+	<s id="147">
+		 Theorem 1 
+		<ref citStr="Niehren and Thater , 2003" id="20" label="CERF" position="19292">
+			( Niehren and Thater , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="148">
+		 Let Mbe an MRS and q)M be the translation of M . 
+	</s>
+	
+
+	<s id="149">
+		 If M is a connected MRS-net , then the merging-free configurations of M bijectively correspond to the minimal solved forms of the q)M . 
+	</s>
+	
+
+	<s id="150">
+		 The following section generalizes this result to MRS-nets with a merging semantics . 
+	</s>
+	
+
+	<s id="151">
+		 5 Merging and EP-Conjunctions We now show that if an MRS is a net , then all its configurations are merging-free , which in particular means that the translation can be applied to the more general version of MRS with a merging semantics . 
+	</s>
+	
+
+	<s id="152">
+		 Lemma 2 
+		<ref citStr="Niehren and Thater , 2003" id="21" label="CERF" position="19886">
+			( Niehren and Thater , 2003 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="153">
+		 All minimal solved forms of a connected dominance net are simple . 
+	</s>
+	
+
+	<s id="154">
+		 Lemma 3 . 
+	</s>
+	
+
+	<s id="155">
+		 If all solved forms of a normal dominance constraint are simple , then all of its solved forms are minimal . 
+	</s>
+	
+
+	<s id="156">
+		 Theorem 2 . 
+	</s>
+	
+
+	<s id="157">
+		 The configurations of an MRS-net M are merging-free . 
+	</s>
+	
+
+	<s id="158">
+		 Proof . 
+	</s>
+	
+
+	<s id="159">
+		 Let M , be a configuration of M and let 6 be the underlying substitution . 
+	</s>
+	
+
+	<s id="160">
+		 We construct a solved form q)M , as follows : the labeling literals of q)M , are the pre-translations of the EPs in M , and q)M , has a dominance literal h , a* h iff ( h , h , ) E 6 , and inequal- ity literals X =~ Y for all distinct roots in q)M , . 
+	</s>
+	
+
+	<s id="161">
+		 By condition C 1 in Def . 
+	</s>
+	
+
+	<s id="162">
+		 2 , the graph of M , is a tree , hence the graph of q)M , must also be a tree i. e. , q)M , is a solved form . 
+	</s>
+	
+
+	<s id="163">
+		 q)M , must also be more spe- cific than the graph of q)M because the graph of M , satisfies all dominance requirements of the handle constraints in M , hence q)M , is a solved form of q)M . 
+	</s>
+	
+
+	<s id="164">
+		 M clearly solved q)M , . 
+	</s>
+	
+
+	<s id="165">
+		 By Lemmata 2 and 3 , q)M , must be simple and minimal because q)M is a net . 
+	</s>
+	
+
+	<s id="166">
+		 But then M , cannot contain EP-conjunctions i. e. , M , is merging-free . 
+	</s>
+	
+
+	<s id="167">
+		 The merging semantics of MRS is needed to solve EP-conjunctions . 
+	</s>
+	
+
+	<s id="168">
+		 As we have seen , the merging semantics is not relevant for MRS constraints which are nets . 
+	</s>
+	
+
+	<s id="169">
+		 This also verifies Niehren and Thater’s ( 2003 ) assumption that EP-conjunctions are “syntactic sugar” which can be resolved in a preprocessing step : EP-conjunctions can be resolved by exhaustively applying the following rule which adds new literals to make the implicit conjunction explicit : h : E1(h1,...,hn),h : E2(h,1,...,h,m) ~ h : ‘E1&amp;E2’(h1,...,hn,h,1,...,h,m) , where E ( h 1 , ... , hn ) stands for anEP with argument handles h1 , ... , hn , and where ‘E1 &amp;E2’ is a complex function symbol . 
+	</s>
+	
+
+	<s id="170">
+		 If this rule is applied exhaustively to an MRS M , we obtain an MRS M , without EP- conjunctions . 
+	</s>
+	
+
+	<s id="171">
+		 It should be intuitively clear that the configurations of M and M , correspond ; Therefore , the configurations of M also correspond to the minimal solved forms of the translation of M ,. 6 Evaluation The two remaining assumptions underlying the translation are the “net-hypothesis” that all linguistically relevant MRS expressions are nets , and the “qeq-hypothesis” that handle constraints can be given a dominance semantics practice . 
+	</s>
+	
+
+	<s id="172">
+		 In this section , we empirically show that both assumptions are met in practice . 
+	</s>
+	
+
+	<s id="173">
+		 As an interesting side effect , we also compare the run-times of the constraint-solvers we used , and we find that the dominance constraint solver typically outperforms the MRS solver , often by significant margins . 
+	</s>
+	
+
+	<s id="174">
+		 Grammar and Resources . 
+	</s>
+	
+
+	<s id="175">
+		 We use the English Resource Grammar ( ERG ) , a large-scale HPSG grammar , in connection with the LKB system , a grammar development environment for typed feature grammars 
+		<ref citStr="Copestake and Flickinger , 2000" id="22" label="OEPF" position="22934">
+			( Copestake and Flickinger , 2000 )
+		</ref>
+		 . 
+	</s>
+	
+
+	<s id="176">
+		 We use the system to parse sentences and output MRS constraints which we then translate into dominance constraints . 
+	</s>
+	
+
+	<s id="177">
+		 As a test corpus , we use the Redwoods Treebank 
+		<ref citStr="Oepen et al. , 2002" id="23" label="OEPF" position="23143">
+			( Oepen et al. , 2002 )
+		</ref>
+		 which contains 6612 sentences . 
+	</s>
+	
+
+	<s id="178">
+		 We exclude the sentences that cannot be parsed due to memory capacities or words and grammatical structures that are not included in the ERG , or which produce ill-formed MRS expressions ( typically violating M1 ) and thus base our evaluation on a corpus containing 6242 sentences . 
+	</s>
+	
+
+	<s id="179">
+		 In case of syntactic ambiguity , we only use the first reading output by the LKB system . 
+	</s>
+	
+
+	<s id="180">
+		 To enumerate the solutions of MRS constraints and their translations , we use the MRS solver built into the LKB system and a solver for weakly normal dominance constraints 
+		<ref citStr="Bodirsky et al. , 2004" id="24" label="OERF" position="23774">
+			( Bodirsky et al. , 2004 )
+		</ref>
+		 , Figure 6 : Two classes of non-nets which is implemented in C++ and uses LEDA , a class library for efficient data types and algorithms ( Mehlhorn and Näher , 1999 ) . 
+	</s>
+	
+
+	<s id="181">
+		 6.1 Relevant Constraints are Nets We check for 6242 constraints whether they constitute nets . 
+	</s>
+	
+
+	<s id="182">
+		 It turns out that 5200 ( 83.31 % ) constitute nets while 1042 ( 16.69 % ) violate one or more net- conditions . 
+	</s>
+	
+
+	<s id="183">
+		 Non-nets . 
+	</s>
+	
+
+	<s id="184">
+		 The evaluation shows that the hypothesis that all relevant constraints are nets seems to be falsified : there are constraints that are not nets . 
+	</s>
+	
+
+	<s id="185">
+		 However , a closer analysis suggests that these constraints are incomplete and predict more readings than the sentence actually has . 
+	</s>
+	
+
+	<s id="186">
+		 This can also be illustrated with the average number of solutions : For the Redwoods corpus in combination with the ERG , nets have 1836 solutions on average , while non-nets have 14039 solutions , which is a factor of 7.7 . 
+	</s>
+	
+
+	<s id="187">
+		 The large number of solutions for non-nets is due to the “structural weakness” of non-nets ; often , non-nets have only merging configurations . 
+	</s>
+	
+
+	<s id="188">
+		 Non-nets can be classified into two categories ( see Fig . 
+	</s>
+	
+
+	<s id="189">
+		 6 ) : The first class are violated “strong” fragments which have holes without outgoing dominance edge and without a corresponding root-toroot dominance edge . 
+	</s>
+	
+
+	<s id="190">
+		 The second class are violated “island” fragments where several outgoing dominance edges from one hole lead to nodes which are not hypernormally connected . 
+	</s>
+	
+
+	<s id="191">
+		 There are two more possibilities for violated “weak” fragments— having more than one weak dominance edge or having a weak dominance edge without empty hole— , but they occur infrequently ( 4.4 % ) . 
+	</s>
+	
+
+	<s id="192">
+		 If those weak fragments were normalized , they would constitute violated island fragments , so we count them as such . 
+	</s>
+	
+
+	<s id="193">
+		 124 ( 11.9 % ) of the non-nets contain empty holes , 762 ( 73.13 % ) contain violated island fragments , and 156 ( 14.97 % ) contain both . 
+	</s>
+	
+
+	<s id="194">
+		 Those constraints that contain only empty holes and no violated island fragments cannot be configured , as in configurations , all holes must be filled . 
+	</s>
+	
+
+	<s id="195">
+		 Fragments with open holes occur frequently , but not in all contexts , for constraints representing for example time specifications ( e. g. , “from nine to twelve” or “a three o’clock flight” ) or intensional expressions ( e.g. , “Is it?” or “I suppose” ) . 
+	</s>
+	
+
+	<s id="196">
+		 Ill- Figure 7 : An MRS for “A sauna and a cafeteria are available” ( top ) and two of sixteen merging configurations ( below ) . 
+	</s>
+	
+
+	<s id="197">
+		 Figure 8 : The “repaired” MRS from Fig . 
+	</s>
+	
+
+	<s id="198">
+		 7 formed island fragments are often triggered by some kind of coordination , like “a restaurant and/or a sauna” or “a hundred and thirty Marks” , also implicit ones like “one hour thirty minutes” or “one thirty” . 
+	</s>
+	
+
+	<s id="199">
+		 Constraints with both kinds of violated fragments emerge when there is some input that yields an open hole and another part of the input yields a violated island fragment ( for example in constructions like “from nine to eleven thirty” or “the ten o’clock flight Friday or Thursday” , but not necessarily as obviously as in those examples ) . 
+	</s>
+	
+
+	<s id="200">
+		 The constraint on the left in Fig . 
+	</s>
+	
+
+	<s id="201">
+		 7 gives a concrete example for violated island fragments . 
+	</s>
+	
+
+	<s id="202">
+		 The topmost fragment has outgoing dominance edges to otherwise unconnected subconstraints ^1 and q)2 . 
+	</s>
+	
+
+	<s id="203">
+		 Under the merging-free semantics of the MRS dialect used in 
+		<ref citStr="Niehren and Thater , 2003" id="25" label="CEPF" position="27315">
+			( Niehren and Thater , 2003 )
+		</ref>
+		 where every hole has to be filled exactly once , this constraint cannot be configured : there is no hole into which “available” could be plugged . 
+	</s>
+	
+
+	<s id="204">
+		 However , standard MRS has merging configuration where holes can be filled more than once . 
+	</s>
+	
+
+	<s id="205">
+		 For the constraint in Fig . 
+	</s>
+	
+
+	<s id="206">
+		 7 this means that “available” can be merged in almost ( a ) open hole ( b ) ill-formed island ... cafeteria , , saunas and~,,,,s saunas , available , and~,,,,s prop prop prop a , , available , , a , , as cafeteria , , as cafeteriax saunas and,~x~s available , prop ax as everywhere , only restricted by the “qeq-semantics” which forbids for instance “available” to be merged with “sauna.” In fact , the MRS constraint solver derives sixteen configurations for the constraint , two of which are given in Fig . 
+	</s>
+	
+
+	<s id="207">
+		 7 , although the sentence has only two scope readings . 
+	</s>
+	
+
+	<s id="208">
+		 We conjecture that non-nets are semantically “incomplete” in the sense that certain constraints are missing . 
+	</s>
+	
+
+	<s id="209">
+		 For instance , an alternative analysis for the above constraint is given in Fig . 
+	</s>
+	
+
+	<s id="210">
+		 8. The constraint adds an additional argument handle to “and” and places a dominance edge from this handle to “available.” In fact , the constraint is a net ; it has exactly two readings . 
+	</s>
+	
+
+	<s id="211">
+		 6.2 Qeq is dominance For all nets , the dominance constraint solver calculates the same number of solutions as the MRS solver does , with 3 exceptions that hint at problems in the syntax-semantics interface . 
+	</s>
+	
+
+	<s id="212">
+		 As every configuration that satisfies proper qeq-constraints is also a configuration if handle constraints are interpreted under the weaker notion of dominance , the solutions computed by the dominance constraint solver and the MRS solver must be identical for every constraint . 
+	</s>
+	
+
+	<s id="213">
+		 This means that the additional expressivity of proper qeq-constraints is not used in practice , which in turn means that in practice , the translation is sound and correct even for the standard MRS notion of solution , given the constraint is a net . 
+	</s>
+	
+
+	<s id="214">
+		 6.3 Comparison of Runtimes The availability of a large body of underspecified descriptions both in MRS and in dominance constraint format makes it possible to compare the solvers for the two underspecification formalisms . 
+	</s>
+	
+
+	<s id="215">
+		 We measured the runtimes on all nets using a Pentium III CPU at 1.3 GHz . 
+	</s>
+	
+
+	<s id="216">
+		 The tests were run in a multi-user environment , but as the MRS and dominance measurements were conducted pairwise , conditions were equal for every MRS constraint and corresponding dominance constraint . 
+	</s>
+	
+
+	<s id="217">
+		 The measurements for all MRS-nets with less than thirty dominance edges are plotted in Fig . 
+	</s>
+	
+
+	<s id="218">
+		 9. Inputs are grouped according to the constraint size . 
+	</s>
+	
+
+	<s id="219">
+		 The filled circles indicate average runtimes within each size group for enumerating all solutions using the dominance solver , and the empty circles indicate the same for the LKB solver . 
+	</s>
+	
+
+	<s id="220">
+		 The brackets around each point indicate maximum and minimum runtimes in that group . 
+	</s>
+	
+
+	<s id="221">
+		 Note that the vertical axis is logarithmic . 
+	</s>
+	
+
+	<s id="222">
+		 We excluded cases in which one or both of the solvers did not return any results : There were 173 sentences ( 3.33 % of all nets ) on which the LKB solver ran out of memory , and 1 sentence ( 0.02 % ) that took the dominance solver more than two minutes to solve . 
+	</s>
+	
+
+	<s id="223">
+		 The graph shows that the dominance constraint solver is generally much faster than the LKB solver : The average runtime is less by a factor of 50 for constraints of size 10 , and this grows to a factor of 500 for constraints of size 25 . 
+	</s>
+	
+
+	<s id="224">
+		 Our experiments show that the dominance solver outperforms the LKB solver on 98 % the cases . 
+	</s>
+	
+
+	<s id="225">
+		 In addition , its runtimes are much more predictable , as the brackets in the graph are also shorter by two or three orders of magnitude , and the standard deviation is much smaller ( not shown ) . 
+	</s>
+	
+
+	<s id="226">
+		 7 Conclusion We developed Niehren and Thater’s ( 2003 ) theoretical translation into a practical system for translating MRS into dominance constraints , applied it systematically to MRSs produced by English Resource Grammar for the Redwoods treebank , and evaluated the results . 
+	</s>
+	
+
+	<s id="227">
+		 We showed that : 1. most “real life” MRS expressions are MRS- nets , which means that the translation is correct in these cases ; 2. for nets , merging is not necessary ( or even possible ) ; 3 . 
+	</s>
+	
+
+	<s id="228">
+		 the practical translation works perfectly for all MRS-nets from the corpus ; in particular , the =q relation can be taken as synonymous with dominance in practice . 
+	</s>
+	
+
+	<s id="229">
+		 Because the translation works so well in practice , we were able to compare the runtimes of MRS and dominance constraint solvers on the same inputs . 
+	</s>
+	
+
+	<s id="230">
+		 This evaluation shows that the dominance constraint solver outperforms the MRS solver and displays more predictable runtimes . 
+	</s>
+	
+
+	<s id="231">
+		 A researcher working with MRS can now solve MRS nets using the efficient dominance constraint solvers . 
+	</s>
+	
+
+	<s id="232">
+		 A small but significant number of the MRS constraints derived by the ERG are not nets . 
+	</s>
+	
+
+	<s id="233">
+		 We have argued that these constraints seem to be systematically incomplete , and their correct completions are indeed nets . 
+	</s>
+	
+
+	<s id="234">
+		 A more detailed evaluation is an important task for future research , but if our “net hypothesis” is true , a system that tests whether all outputs of a grammar are nets ( or a formal “safety criterion” that would prove this theoretically ) could be a useful tool for developing and debugging grammars . 
+	</s>
+	
+
+	<s id="235">
+		 From a more abstract point of view , our evaluation contributes to the fundamental question of what expressive power an underspecification formalism needs . 
+	</s>
+	
+
+	<s id="236">
+		 It turned out that the distinction between qeq 0 5 10 15 20 25 30 Size ( number of dominance edges ) Figure 9 : Comparison of runtimes for the MRS and dominance constraint solvers . 
+	</s>
+	
+
+	<s id="237">
+		 DC solver ( LEDA ) MRS solver 1e+06 100000 10000 1000 100 10 1 and dominance hardly plays a role in practice . 
+	</s>
+	
+
+	<s id="238">
+		 If the net hypothesis is true , it also follows that merging is not necessary because EP-conjunctions can be converted into ordinary conjunctions . 
+	</s>
+	
+
+	<s id="239">
+		 More research along these lines could help unify different under- specification formalisms and the resources that are available for them . 
+	</s>
+	
+
+	<s id="240">
+		 Acknowledgments We are grateful to Ann Copestake for many fruitful discussions , and to our reviewers for helpful comments . 
+	</s>
+	
+
+	<s id="241">
+		 References H. Alshawi and R. Crouch . 
+	</s>
+	
+
+	<s id="242">
+		 1992. Monotonic semantic interpretation . 
+	</s>
+	
+
+	<s id="243">
+		 In Proc . 
+	</s>
+	
+
+	<s id="244">
+		 30th ACL , pages 32–39 . 
+	</s>
+	
+
+	<s id="245">
+		 Ernst Althaus , Denys Duchier , Alexander Koller , Kurt Mehlhorn , Joachim Niehren , and Sven Thiel . 
+	</s>
+	
+
+	<s id="246">
+		 2003. An efficient graph algorithm for dominance constraints . 
+	</s>
+	
+
+	<s id="247">
+		 Journal of Algorithms , 48:194–219 . 
+	</s>
+	
+
+	<s id="248">
+		 Manuel Bodirsky , Denys Duchier , Joachim Niehren , and Sebastian Miele . 
+	</s>
+	
+
+	<s id="249">
+		 2004. An efficient algorithm for weakly normal dominance constraints . 
+	</s>
+	
+
+	<s id="250">
+		 In ACM-SIAM Symposium on Discrete Algorithms . 
+	</s>
+	
+
+	<s id="251">
+		 The ACM Press . 
+	</s>
+	
+
+	<s id="252">
+		 Ann Copestake and Dan Flickinger . 
+	</s>
+	
+
+	<s id="253">
+		 2000. An open-source grammar development environment and broad-coverage english grammar using HPSG . 
+	</s>
+	
+
+	<s id="254">
+		 In Conference on Language Resources and Evaluation . 
+	</s>
+	
+
+	<s id="255">
+		 Ann Copestake , Dan Flickinger , Rob Malouf , Susanne Riehemann , and Ivan Sag . 
+	</s>
+	
+
+	<s id="256">
+		 1995. Translation using Minimal Recursion Semantics . 
+	</s>
+	
+
+	<s id="257">
+		 Leuven . 
+	</s>
+	
+
+	<s id="258">
+		 Ann Copestake , Alex Lascarides , and Dan Flickinger . 
+	</s>
+	
+
+	<s id="259">
+		 2001. An algebra for semantic construction in constraint-based grammars . 
+	</s>
+	
+
+	<s id="260">
+		 In Proceedings of the 39th Annual Meeting of the Association for Computational Linguistics , pages 132–139 , Toulouse , France . 
+	</s>
+	
+
+	<s id="261">
+		 Ann Copestake , Dan Flickinger , Carl Pollard , and Ivan Sag . 
+	</s>
+	
+
+	<s id="262">
+		 2004 . 
+	</s>
+	
+
+	<s id="263">
+		 Minimal recursion semantics : An introduction . 
+	</s>
+	
+
+	<s id="264">
+		 Journal ofLanguage and Computation . 
+	</s>
+	
+
+	<s id="265">
+		 To appear . 
+	</s>
+	
+
+	<s id="266">
+		 Ann Copestake . 
+	</s>
+	
+
+	<s id="267">
+		 2002. Implementing Typed Feature Structure Grammars . 
+	</s>
+	
+
+	<s id="268">
+		 CSLI Publications , Stanford , CA . 
+	</s>
+	
+
+	<s id="269">
+		 Markus Egg , Alexander Koller , and Joachim Niehren . 
+	</s>
+	
+
+	<s id="270">
+		 2001. The Constraint Language for Lambda Structures . 
+	</s>
+	
+
+	<s id="271">
+		 Logic , Language , and Information , 10:457–485 . 
+	</s>
+	
+
+	<s id="272">
+		 K. Mehlhorn and S. Näher . 
+	</s>
+	
+
+	<s id="273">
+		 1999. The LEDA Platform of Combinatorial and Geometric Computing . 
+	</s>
+	
+
+	<s id="274">
+		 Cambridge University Press , Cambridge . 
+	</s>
+	
+
+	<s id="275">
+		 See also http://www.mpi-sb.mpg.de/LEDA/ . 
+	</s>
+	
+
+	<s id="276">
+		 Joachim Niehren and Stefan Thater . 
+	</s>
+	
+
+	<s id="277">
+		 2003. Bridging the gap between underspecification formalisms : Minimal recursion semantics as dominance constraints . 
+	</s>
+	
+
+	<s id="278">
+		 In Proceedings of the 41st Annual Meeting of the Association for Computational Linguistics . 
+	</s>
+	
+
+	<s id="279">
+		 Stephan Oepen , Kristina Toutanova , Stuart Shieber , Christopher Manning , Dan Flickinger , and Thorsten Brants . 
+	</s>
+	
+
+	<s id="280">
+		 2002. The LinGO Redwoods treebank : Motivation and preliminary applications . 
+	</s>
+	
+
+	<s id="281">
+		 In Proceedings of the 19th International Conference on Computational Linguistics ( COLING’02 ) , pages 1253–1257 . 
+	</s>
+	
+
+	<s id="282">
+		 Manfred Pinkal . 
+	</s>
+	
+
+	<s id="283">
+		 1996. Radical underspecification . 
+	</s>
+	
+
+	<s id="284">
+		 In 10th Amsterdam Colloquium , pages 587–606 . 
+	</s>
+	
+
+
+</acldoc>
